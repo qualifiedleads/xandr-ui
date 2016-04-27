@@ -113,8 +113,8 @@ class Apn extends CI_Controller {
                 $campaign_id = $client_settings->campaign_id;
                 $whitelist_id = $client_settings->whitelist_id;
                 $blacklist_id = $client_settings->blacklist_id;
-                $media_cost['value'] = $client_settings->rules->media_cost->value;
-                $media_cost['operator'] = $client_settings->rules->media_cost->operator;
+                $media_cost['value'] = @$client_settings->rules->media_cost->value;
+                $media_cost['operator'] = @$client_settings->rules->media_cost->operator;
                 $condition_file = $this->config->item("apnx_log_folder").$client_settings->rules->condition_file;
 
                 //--------------------------------------------------------------------------------
@@ -492,9 +492,12 @@ class Apn extends CI_Controller {
         }
     }
     public function test() {
-        $file = FCPATH.'temp/frostbyte_czech.json';
-        $contents = file_get_contents($file);
-        $parsed = json_decode($contents);
-        echo $parsed->rules->media_cost->operator;
+        $last_45_days = date($this->date_format, time()-3888000);
+        $today = date($this->date_format, time());
+        $data = array(
+            'start_date' => $last_45_days,
+            'end_date' => $today
+        );
+        print_r($data);
     }
 }

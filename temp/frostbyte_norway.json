@@ -1,0 +1,9 @@
+{
+    "advertiser_id":"574205",
+    "campaign_id":"12568482",
+    "blacklist_id":"578046",
+    "whitelist_id":"578045",
+    "rules" : {
+        "condition_file" : "frostbyte_rules_1.php"
+    }
+}

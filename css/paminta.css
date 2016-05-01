@@ -1,6 +1,0 @@
-[data-paminta].paminta-blow {
-    animation: shake 300ms ease-in-out;
-}
-[data-paminta]:focus.paminta-blow {
-    border: 1px solid red;
-}

@@ -1,52 +1,72 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-class Users extends CI_Controller {
-    public function __construct() {
+class Users extends CI_Controller
+{
+    public function __construct()
+    {
         parent::__construct();
         $this->load->library("auth");
-        //$this->auth->limit();
+        $this->load->model("m_users");
     }
-    public function index() {
+    public function index()
+    {
         $task = $this->input->post("task");
-        if ($task) {
-            if ($task == "signin") {
+
+        if ($task)
+        {
+            if ($task == "signin")
+            {
                 $username = $this->input->post("username");
                 $password = $this->input->post("password");
                 $remember = $this->input->post("remember");
-                if ($username && $password) {
-                    if ($remember) {
+                if ($username && $password)
+                {
+                    if ($remember)
+                    {
                         $signin_result = $this->auth->signin($username, $password, $remember);
                     }
-                    else {
+                    else
+                    {
                         $signin_result = $this->auth->signin($username, $password);
                     }
                     header("Content-Type: application/json");
                     echo json_encode($signin_result);
                 }
-                else {
+                else
+                {
                     echo "No user or pass.";
                 }
             }
-            if ($task == "reset_pw") {
+
+            if ($task == "reset_pw")
+            {
                 $email = $this->input->post("email");
-                if ($email) {
-                    $sql = "SELECT `users`.`id`,`users`.`email`,`users`.`status` FROM `users` WHERE `email`='{$email}'";
-                    $query = $this->db->query($sql);
-                    if ($query->num_rows() == 1) {
-                        $userdata = $query->result_array()[0];
-                        if ($userdata['status'] == "active") {
+
+                if ($email)
+                {
+                    $result = $this->m_users->getBy(['email'=>$email]);
+
+                    if (count($result) == 1)
+                    {
+                        $userdata = $result[0];
+
+                        if ($userdata['status'] == "active")
+                        {
                             $response = array("status"=>"ok","code"=>"active","message"=>"Please check your email.");
                         }
-                        elseif ($userdata['status'] == "inactive") {
+                        elseif ($userdata['status'] == "inactive")
+                        {
                             $response = array("status"=>"error","code"=>"inactive","message"=>"Account is inactive.");
                         }
-                        if ($response) {
+                        if ($response)
+                        {
                             header("Content-Type: application/json");
                             echo json_encode($response);
                         }
                     }
-                    else {
+                    else
+                    {
                         $response = array("status"=>"error","code"=>"not_found","message"=>"Unauthorized access.");
                         header("Content-Type: application/json");
                         echo json_encode($response);
@@ -54,8 +74,11 @@ class Users extends CI_Controller {
                 }
             }
         }
-        else {
+        else
+        {
             $this->auth->limit();
+            $user_privileges = explode(',', @$_SESSION['userdata']['privileges']);
+
             // Navbar Side Contents
             $v_main_layout['nav_header'] = $this->load->view("theme/inspinia/navbar_static_side/v_nav_header", "", true);
             $v_main_layout['nav_menus'] = $this->load->view("theme/inspinia/navbar_static_side/v_nav_menus", "", true);
@@ -65,9 +88,16 @@ class Users extends CI_Controller {
 
             // Page Heading
             $v_page_info['title'] = "Users";
-            $v_page_info['breadcrumbs'] = array('Home' => base_url());
+            $v_page_info['breadcrumbs'] = array('Home' => base_url(),'Users'=>'javascript:void(0)');
             $v_main_layout['page_info'] = $this->load->view("theme/inspinia/page_heading/v_page_info", $v_page_info, true);
             $v_main_layout['action_area'] = $this->load->view("theme/inspinia/page_heading/v_action_buttons", "", true);
+            
+            // Contents
+            if (in_array("view_users",$user_privileges) || in_array("all",$user_privileges))
+            {
+                $users_table['users'] = $this->m_users->getAll();
+                $v_main_layout['contents'] = $this->load->view("theme/inspinia/content/v_table_users_angular", $users_table, true);
+            }
 
             $this->load->view("theme/inspinia/v_main_layout", $v_main_layout);
         }
@@ -81,37 +111,17 @@ class Users extends CI_Controller {
         session_destroy();
         header("Location: ".base_url("portal"));
     }
-    private function list_users() {
+    public function json($method = null) {
         // Privileges
         $user_privileges = explode(',', @$_SESSION['userdata']['privileges']);
 
-        if (in_array("view_users",$user_privileges) || in_array("all",$user_privileges)){
-            
-            // Page title
-            $data["page_title"] = 'RTB.cat - Users';
-            
-            // Content Title
-            $data["content_title"] = 'Users';
-
-            // Topbar right
-            $data["topbar_right_menu"] = $this->load->view("fragments/v_topbar_menu_right", "", true);
-
-            // Side menu
-            $data["side_menu"] = "";
-            $data["side_menu"] .= $this->load->view("side_bar/v_side_menu_users", "", true);
-            
-            // Content
-            $data["content"] = "";
-            $get_users_sql = "SELECT `users`.`id`,`users`.`name`,`users`.`username`,`users`.`email`,`users`.`company`,`users`.`status`,`users`.`role_id`,`roles`.`type` FROM `users` INNER JOIN `roles` ON `users`.`role_id`=`roles`.`id`";
-            $get_users_query = $this->db->query($get_users_sql);
-            $users_data = array('users'=>$get_users_query->result_array());
-            $data["content"] .= $this->load->view("main/v_panel_user_list", $users_data, true);
-
-            $data['sess_expiration'] = $this->config->item('sess_expiration');
-            $this->load->view("v_dashboard", $data);
-        }
-        else {
-            show_404();
+        if (in_array("view_users",$user_privileges) || in_array("all",$user_privileges))
+        {
+            if($method == "getall")
+            {
+                header("Content-Type: application/json");
+                echo $this->m_users->getAll(true);
+            }
         }
     }
     private function new_user() {

@@ -17,6 +17,10 @@
     <link href="<?php echo base_url('theme/inspinia/css/plugins/iCheck/custom.css');?>" rel="stylesheet" />
     <link href="<?php echo base_url('css/plugins/paminta/paminta.css');?>" rel="stylesheet" />
     <link href="<?php echo base_url('css/inspinia-custom.css');?>" rel="stylesheet" />
+
+    <!-- Essential -->
+    <script src="<?php echo base_url('theme/inspinia/js/jquery-2.1.1.js');?>"></script>
+    <script src="<?php echo base_url('js/libs/angular/angular-1.4.8.min.js');?>"></script>
  
 </head>
 <body>
@@ -59,7 +63,7 @@
             <div class="wrapper wrapper-content animated fadeInRight">
                 <div class="row">
                     <div>
-                        <p>Content goes here.</p>
+                        <?php echo @$contents;?>
                     </div>
                 </div>
             </div>
@@ -73,6 +77,19 @@
             </div>
         </div>
     </div>
+    <div id="full_loader" class="screen-overlay">
+        <div class="cell-wrapper">
+            <div class="center-box">
+                <div class="sk-spinner sk-spinner-wave">
+                    <div class="sk-rect1"></div>
+                    <div class="sk-rect2"></div>
+                    <div class="sk-rect3"></div>
+                    <div class="sk-rect4"></div>
+                    <div class="sk-rect5"></div>
+                </div>
+            </div>
+        </div>
+    </div>
     <!-- SESSION DATA
     <?php
         print_r($_SESSION);
@@ -80,7 +97,6 @@
     -->
 
     <!-- Mainly scripts -->
-    <script src="<?php echo base_url('theme/inspinia/js/jquery-2.1.1.js');?>"></script>
     <script src="<?php echo base_url('theme/inspinia/js/bootstrap.min.js');?>"></script>
     <script src="<?php echo base_url('theme/inspinia/js/plugins/metisMenu/jquery.metisMenu.js');?>"></script>
     <script src="<?php echo base_url('theme/inspinia/js/plugins/slimscroll/jquery.slimscroll.min.js');?>"></script>
@@ -100,6 +116,8 @@
         });
     </script>
 
+    <!-- Custom -->
+    <script src="<?php echo base_url('js/inspinia-custom.js');?>"></script>
     <!-- Paminta Validator -->
     <script src="<?php echo base_url('js/plugins/paminta/paminta.js');?>"></script>
     <script>

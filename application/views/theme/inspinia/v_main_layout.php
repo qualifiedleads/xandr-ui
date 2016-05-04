@@ -15,12 +15,13 @@
 
     <!-- Plugins -->
     <link href="<?php echo base_url('theme/inspinia/css/plugins/iCheck/custom.css');?>" rel="stylesheet" />
+    <link href="<?php echo base_url('theme/inspinia/css/plugins/toastr/toastr.min.css');?>" rel="stylesheet" />
     <link href="<?php echo base_url('css/plugins/paminta/paminta.css');?>" rel="stylesheet" />
     <link href="<?php echo base_url('css/inspinia-custom.css');?>" rel="stylesheet" />
 
     <!-- Essential -->
     <script src="<?php echo base_url('theme/inspinia/js/jquery-2.1.1.js');?>"></script>
-    <script src="<?php echo base_url('js/libs/angular/angular-1.4.8.min.js');?>"></script>
+    <!--<script src="<?php echo base_url('js/libs/angular/angular-1.4.8.min.js');?>"></script>-->
  
 </head>
 <body>
@@ -102,6 +103,7 @@
     <script src="<?php echo base_url('theme/inspinia/js/plugins/slimscroll/jquery.slimscroll.min.js');?>"></script>
 
     <!-- Custom and plugin javascript -->
+    <script src="<?php echo base_url('theme/inspinia/js/plugins/toastr/toastr.min.js');?>"></script>
     <script src="<?php echo base_url('theme/inspinia/js/inspinia.js');?>"></script>
     <script src="<?php echo base_url('theme/inspinia/js/plugins/pace/pace.min.js');?>"></script>
 

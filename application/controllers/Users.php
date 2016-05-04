@@ -8,6 +8,7 @@ class Users extends CI_Controller
         parent::__construct();
         $this->load->library("auth");
         $this->load->model("m_users");
+        $this->load->config("custom");
     }
     public function index()
     {
@@ -15,6 +16,59 @@ class Users extends CI_Controller
 
         if ($task)
         {
+            if ($task == "add")
+            {
+                $user_privileges = explode(',', @$_SESSION['userdata']['privileges']);
+                if (in_array("users_add",$user_privileges) || in_array("all",$user_privileges))
+                {
+                    $name     = $this->input->post("name");
+                    $email    = $this->input->post("email");
+                    $company  = $this->input->post("company");
+                    $username = $this->input->post("username");
+                    $role_id  = $this->input->post("role_id");
+                    $status   = $this->input->post("status");
+                    $apnx_id  = $this->input->post("apnx_id");
+
+                    $result   = "";
+
+                    // Check username.
+                    if($this->m_users->checkBy(["username"=>$username]))
+                    {
+                        $result = ["status"=>"error","code"=>"invalid","message"=>"Username is not available.","data"=>""];
+                    }
+                    elseif($this->m_users->checkBy(["email"=>$email]))
+                    {
+                        $result = ["status"=>"error","code"=>"invalid","message"=>"Email is not available.","data"=>""];
+                    }
+                    else
+                    {
+                        $insert_data = [
+                            "name" => $name,
+                            "email" => $email,
+                            "company" => $company,
+                            "username" => $username,
+                            "role_id" => $role_id,
+                            "status" => $status,
+                            "apnx_id" => $apnx_id,
+                            "token" => md5(time()),
+                            "token_time" => $this->config->item("user_token_time")+time()
+                        ];
+                        if ($this->m_users->add($insert_data))
+                        {
+                            $new_list = $this->m_users->getAll();
+                            $result = ["status"=>"ok","code"=>"valid","message"=>"New user added.","data"=>$new_list];
+                        }
+                        else
+                        {
+                            $result = ["status"=>"error","code"=>"valid","message"=>"Insert failed.","data"=>""];
+                        }
+                    }
+
+                    header("Content-Type: application/json");
+                    echo json_encode($result);
+                }
+            }
+
             if ($task == "signin")
             {
                 $username = $this->input->post("username");
@@ -81,7 +135,7 @@ class Users extends CI_Controller
 
             // Navbar Side Contents
             $v_main_layout['nav_header'] = $this->load->view("theme/inspinia/navbar_static_side/v_nav_header", "", true);
-            $v_main_layout['nav_menus'] = $this->load->view("theme/inspinia/navbar_static_side/v_nav_menus", "", true);
+            $v_main_layout['nav_menus'] = $this->load->view("theme/inspinia/navbar_static_side/v_nav_menus", ["user_privileges"=>$user_privileges], true);
 
             // Navbar Top Contents
             $v_main_layout['nav_logout_button'] = $this->load->view("theme/inspinia/navbar_static_top/v_logout_button", "", true);
@@ -90,13 +144,17 @@ class Users extends CI_Controller
             $v_page_info['title'] = "Users";
             $v_page_info['breadcrumbs'] = array('Home' => base_url(),'Users'=>'javascript:void(0)');
             $v_main_layout['page_info'] = $this->load->view("theme/inspinia/page_heading/v_page_info", $v_page_info, true);
-            $v_main_layout['action_area'] = $this->load->view("theme/inspinia/page_heading/v_action_buttons", "", true);
+            $v_main_layout['action_area'] = $this->load->view("theme/inspinia/page_heading/v_action_buttons", ["user_privileges"=>$user_privileges], true);
             
             // Contents
-            if (in_array("view_users",$user_privileges) || in_array("all",$user_privileges))
+            $v_main_layout['contents'] = "";
+            if (in_array("users_view",$user_privileges) || in_array("all",$user_privileges))
             {
                 $users_table['users'] = $this->m_users->getAll();
-                $v_main_layout['contents'] = $this->load->view("theme/inspinia/content/v_table_users_angular", $users_table, true);
+                $v_main_layout['contents'] .= $this->load->view("theme/inspinia/content/v_table_users", $users_table, true);
+                $users_modal['roles'] = $this->m_users->getRoles();
+                $v_main_layout['contents'] .= $this->load->view("theme/inspinia/content/v_modal_user_new", $users_modal, true);
+                $v_main_layout['contents'] .= $this->load->view("theme/inspinia/content/v_modal_user_edit", $users_modal, true);
             }
 
             $this->load->view("theme/inspinia/v_main_layout", $v_main_layout);
@@ -115,62 +173,21 @@ class Users extends CI_Controller
         // Privileges
         $user_privileges = explode(',', @$_SESSION['userdata']['privileges']);
 
-        if (in_array("view_users",$user_privileges) || in_array("all",$user_privileges))
+        if (in_array("users_view",$user_privileges) || in_array("all",$user_privileges))
         {
             if($method == "getall")
             {
                 header("Content-Type: application/json");
                 echo $this->m_users->getAll(true);
             }
-        }
-    }
-    private function new_user() {
-        // Privileges
-        $user_privileges = explode(',', @$_SESSION['userdata']['privileges']);
-
-        if (in_array("view_users",$user_privileges) || in_array("all",$user_privileges)) {
-            
-            // Page title
-            $data["page_title"] = 'RTB.cat - Users add new';
-            
-            // Content Title
-            $data["content_title"] = 'Users';
-
-            // Topbar right
-            $data["topbar_right_menu"] = $this->load->view("fragments/v_topbar_menu_right", "", true);
-
-            // Side menu
-            $data["side_menu"] = "";
-            $data["side_menu"] .= $this->load->view("side_bar/v_side_menu_users", "", true);
-            
-            // Content
-            $data["content"] = "";
-            if (in_array("add_users",$user_privileges) || in_array("all",$user_privileges)) {
-                $get_roles_sql = "SELECT * FROM `roles`";
-                $get_roles_query = $this->db->query($get_roles_sql);
-                $get_roles_result = $get_roles_query->result_array();
-                $roles_data = array();
-                foreach($get_roles_result as $role_data){
-                    if($_SESSION['userdata']['role_id'] > 1){
-                        if($role_data['id'] != 1){
-                            $roles_data[$role_data['id']] = $role_data['type'];
-                        }
-                    }
-                    else{
-                        $roles_data[$role_data['id']] = $role_data['type'];
-                    }
-                }
-                $form_data = array('roles'=>$roles_data);
-                $data["content"] .= $this->load->view("main/v_panel_user_new", $form_data, true);
+            elseif($method == "getbyid")
+            {
+                header("Content-Type: application/json");
+                echo $this->m_users->getAll(true);
             }
-
-            $data['sess_expiration'] = $this->config->item('sess_expiration');
-            $this->load->view("v_dashboard", $data);
-        }
-        else {
-            show_404();
         }
     }
+    
     private function save_new_user() {
 
         // Privileges.

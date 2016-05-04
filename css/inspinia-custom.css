@@ -43,6 +43,9 @@
 .table-custom-static td {
     vertical-align: middle !important;
 }
+.modal-table td {
+    padding: 5px;
+}
 
 /* Screen Ovelay */
 .screen-overlay {

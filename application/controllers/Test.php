@@ -8,13 +8,29 @@ class Test extends CI_Controller
     public function __construct()
     {
         parent::__construct();
-        $this->load->model("m_users");
+        
     }
     public function index()
     {
-        $single = ['email'=>'max@localhost.loc'];
-        $multiple = ['email'=>'john@doe.tld','username'=>'john','password'=>'johnpass123'];
-        echo "<pre>";
-        print_r($this->m_users->getBy($single));
+
+    }
+    public function send()
+    {
+        $to = $this->input->get("to");
+
+        if ($to)
+        {
+            $subject = "Test Message";
+            $message_plain = "Hello,\nThis is a sample plain message.\nstats.rtb.cat";
+            
+            if (mail($to, $subject, $message_plain))
+            {
+                echo "Message sent to email.";
+            }
+            else
+            {
+                echo "Email sending failed.";
+            }
+        }
     }
 }

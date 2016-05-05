@@ -17,12 +17,18 @@
                                                         <td><label>Username</label></td><td><input type="text" name="username" class="form-control" data-paminta="text" /></td>
                                                     </tr>
                                                     <tr>
-                                                        <td><label>Type</label></td>
+                                                        <td><label>Role</label></td>
                                                         <td>
                                                             <select name="role_id" class="form-control">
 <?php if(count(@$roles) > 0):?>
     <?php foreach($roles as $role):?>
-                                                                <option value="<?php echo $role['role_id'];?>"><?php echo $role['role_type'];?></option>
+        <?php if($role['privileges']=="all"):?>
+            <?php if(in_array("all",$user_privileges)):?>
+                                                                <option value="<?php echo $role['role_id'];?>"><?php echo ucfirst($role['role_name']);?></option>
+            <?php endif;?>
+        <?php else:?>
+                                                                <option value="<?php echo $role['role_id'];?>"><?php echo ucfirst($role['role_name']);?></option>
+        <?php endif;?>
     <?php endforeach;?>
 <?php endif;?>
                                                             </select>
@@ -40,9 +46,13 @@
                                                     <tr>
                                                         <td><label>Status</label></td>
                                                         <td>
-                                                            <label><input type="radio" name="status" class="i-checks" value="active" checked="true" /> Active</label>
+                                                            <div class="radio radio">
+                                                                <input type="radio" id="new_status_active" name="status" value="active" checked="true" /><label for="new_status_active"> Active</label>
+                                                            </div>
                                                             &nbsp;&nbsp;
-                                                            <label><input type="radio" name="status" class="i-checks" value="inactive" /> Inactive</label>
+                                                            <div class="radio">
+                                                                <input type="radio" id="new_status_inactive" name="status" value="inactive" /><label for="new_status_inactive"> Inactive</label>
+                                                            </div>
                                                         </td>
                                                     </tr>
                                                 </tbody>

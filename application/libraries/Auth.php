@@ -21,40 +21,60 @@ class Auth {
 
         $CI =& get_instance();
 
+        // Load necessary dependencies.
+        if(!isset($CI->m_users))
+        {
+            $CI->load->model("m_users");
+        }
+
         # If session userdata does not exist (unauthenticated visitor).
-        if(!isset($_SESSION['userdata'])){
+        if(!isset($_SESSION['userdata']))
+        {
 
             # Check for session cookie and revalidate login status.
-            if(isset($_COOKIE['sid'])){
+            if(isset($_COOKIE['sid']))
+            {
 
-                $sql_get_1 = "SELECT * FROM `users` INNER JOIN `roles` ON `users`.`role_id`=`roles`.`id` WHERE `sid`='".trim($_COOKIE['sid'])."'";
-                $query_get_1 = $CI->db->query($sql_get_1);
+                // $sql_get_1 = "SELECT * FROM `users` INNER JOIN `roles` ON `users`.`role_id`=`roles`.`id` WHERE `sid`='".trim($_COOKIE['sid'])."'";
+                // $query_get_1 = $CI->db->query($sql_get_1);
 
-                if($query_get_1->num_rows() == 1){
-                    $userdata_temp_0 = $query_get_1->result_array();
-                    $userdata_temp_0 = $userdata_temp_0[0];
-                    if(time() > $userdata_temp_0['sid_time']){
+                $params = ["sid"=>trim($_COOKIE['sid'])];
+                $result = $CI->m_users->getSesInfoBy($params);
+
+                if(count($result) == 1)
+                {
+                    $user_data = $result[0];
+
+                    if(time() > $user_data['sid_time'])
+                    {
                         header("Location: ".base_url('sessions'));
                     }
-                    else{
-                        $_SESSION['userdata'] = $userdata_temp_0;
+                    else
+                    {
+                        $_SESSION['userdata'] = $user_data;
                     }
                 }
-                else{
-                    if($redirect_page) {
+                else
+                {
+                    if($redirect_page)
+                    {
                         header("Location: {$redirect_page}");
                     }
-                    else {
+                    else
+                    {
                         exit;
                     }
                 }
 
             }
-            else{
-                if($redirect_page) {
+            else
+            {
+                if($redirect_page)
+                {
                     header("Location: {$redirect_page}");
                 }
-                else {
+                else
+                {
                     exit;
                 }
             }
@@ -71,6 +91,7 @@ class Auth {
         $salt = md5($salt);
         return substr($password, 0, 13).substr($salt, 5, 6).substr($password, 13, 19);
     }
+
     public function signin ($username, $password, $remember = false) {
 
         /*
@@ -80,26 +101,24 @@ class Auth {
         $CI =& get_instance();
 
         $password = $this->hash($password, $username);
-        $sql_get = "SELECT *,`users`.`id` AS `user_id` FROM `users` INNER JOIN `roles` ON `users`.`role_id`=`roles`.`id` WHERE `users`.`username`='{$username}' AND `users`.`password`='{$password}'";
-        $query = $CI->db->query($sql_get);
+        $params = ["username"=>$username,"password"=>$password];
+        $result = $CI->m_users->getSesInfoBy($params);
 
-        if($query->num_rows() == 1){ // User found.
+        if(count($result) == 1){ // User found.
 
-            $user_data = $query->result_array();
-            $user_data = $user_data[0];
+            $user_data = $result[0];
 
             if($user_data['status'] == "active"){ // Account is active.
 
-                $sid_time = time() + (int) $CI->config->item('sess_expiration');
+                // Update session data to db.
+                $sid_time = time() + (int) $CI->config->item('user_sid_time');
                 $sid_hash = md5($sid_time);
-                $sql_update = "UPDATE `users` SET `sid`='{$sid_hash}',`sid_time`='{$sid_time}' WHERE `id`='".$user_data['user_id']."'";
-                $CI->db->query($sql_update);
-                $_SESSION['userdata'] = $user_data;
-                $_SESSION['userdata']['user_id'] = $user_data['user_id'];
-                $_SESSION['userdata']['sid'] = $sid_hash;
-                $_SESSION['userdata']['sid_time'] = $sid_time;
+                $update_params = ["sid"=>$sid_hash,"sid_time"=>$sid_time];
+                $CI->m_users->update($update_params, $user_data['user_id']);
 
-                if($remember){ // If remember is checked.
+                $_SESSION['userdata'] = $user_data;
+
+                if($remember){ // If remember is checked, set cookie.
                     setcookie("sid", $sid_hash, $sid_time,'/');
                 }
 

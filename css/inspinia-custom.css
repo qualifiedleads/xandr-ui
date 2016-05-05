@@ -9,6 +9,10 @@
 .toast-top-center {
     margin-top: 15px;
 }
+.form-custom .radio {
+    display: inline-block;
+    margin-bottom: 0;
+}
 .form-custom .fa-spinner.rotating {
     display: none;
 }

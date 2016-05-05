@@ -14,6 +14,7 @@
     <link href="<?php echo base_url('theme/inspinia/css/style.css');?>" rel="stylesheet" />
 
     <!-- Plugins -->
+    <link href="<?php echo base_url('theme/inspinia/css/plugins/awesome-bootstrap-checkbox/awesome-bootstrap-checkbox.css');?>" rel="stylesheet" />
     <link href="<?php echo base_url('theme/inspinia/css/plugins/iCheck/custom.css');?>" rel="stylesheet" />
     <link href="<?php echo base_url('theme/inspinia/css/plugins/toastr/toastr.min.css');?>" rel="stylesheet" />
     <link href="<?php echo base_url('css/plugins/paminta/paminta.css');?>" rel="stylesheet" />
@@ -91,6 +92,9 @@
             </div>
         </div>
     </div>
+    <!-- Extras -->
+    <?php echo @$extras;?>
+    <!-- End Extras -->
     <!-- SESSION DATA
     <?php
         print_r($_SESSION);

@@ -6,9 +6,9 @@ class Users extends CI_Controller
     public function __construct()
     {
         parent::__construct();
-        $this->load->library("auth");
-        $this->load->model("m_users");
         $this->load->config("custom");
+        $this->load->model("m_users");
+        $this->load->library("auth");
     }
     public function index()
     {
@@ -19,6 +19,7 @@ class Users extends CI_Controller
             if ($task == "add")
             {
                 $user_privileges = explode(',', @$_SESSION['userdata']['privileges']);
+
                 if (in_array("users_add",$user_privileges) || in_array("all",$user_privileges))
                 {
                     $name     = $this->input->post("name");
@@ -66,6 +67,249 @@ class Users extends CI_Controller
 
                     header("Content-Type: application/json");
                     echo json_encode($result);
+                }
+            }
+
+            if ($task == "update")
+            {
+                $user_privileges = explode(',', @$_SESSION['userdata']['privileges']);
+
+                if (in_array("users_edit",$user_privileges) || in_array("all",$user_privileges))
+                {
+                    $user_id  = $this->input->post("user_id");
+                    $name     = $this->input->post("name");
+                    $email    = $this->input->post("email");
+                    $company  = $this->input->post("company");
+                    $username = $this->input->post("username");
+                    $role_id  = $this->input->post("role_id");
+                    $status   = $this->input->post("status");
+                    $apnx_id  = $this->input->post("apnx_id");
+
+                    $update_params = [
+                        "name"=>$name,
+                        "email"=>$email,
+                        "company"=>$company,
+                        "username"=>$username,
+                        "role_id"=>$role_id,
+                        "status"=>$status,
+                        "apnx_id"=>$apnx_id
+                    ];
+
+                    $result = "";
+                    $errors = [];
+                    $target_user = $this->m_users->getBy(["id"=>$user_id]);
+                    $me_is_root = false;
+                    $target_is_root = false;
+
+                    // Check if user id exists.
+                    if (count($target_user) > 0)
+                    {
+                        
+                        // Determine if currently logged user is root.
+                        if(in_array("all", $user_privileges)) $me_is_root = true;
+
+                        // Determine if target user is root.
+                        if($target_user[0]['privileges']=="all") $target_is_root = true;
+
+                        // Check if target account is not root level.
+                        if (!$target_is_root)
+                        {
+                            // Check if username belongs to another user.
+                            $username_result = $this->m_users->getBy(["username"=>$username]);
+                            if (count($username_result) == 1)
+                            {
+                                if ($user_id != $username_result[0]['user_id'])
+                                {
+                                    $errors[] = ["status"=>"error","code"=>"invalid","message"=>"Username is already in use.","data"=>""];
+                                }
+                            }
+
+                            // Check if email belongs to another user.
+                            $email_result = $this->m_users->getBy(["email"=>$email]);
+                            if (count($email_result) == 1)
+                            {
+                                if ($user_id != $email_result[0]['user_id'])
+                                {
+                                    $errors[] = ["status"=>"error","code"=>"invalid","message"=>"Email is already in use.","data"=>""];
+                                }
+                            }
+
+                            // Prevent logged acount from attempting to grant root.
+                            $role_id_result = $this->m_users->getRolesBy(["id"=>$role_id]);
+                            $role_id_result = $role_id_result[0];
+                            if ($role_id_result['privileges'] == "all")
+                            {
+                                $errors[] = ["status"=>"error","code"=>"restricted","message"=>"Permision denied.","data"=>""];
+                            }
+                        }
+                        else
+                        {
+                            // Grant permission to edit root target if logged user is also root.
+                            if($me_is_root)
+                            {
+                                // Check if username belongs to another user.
+                                $username_result = $this->m_users->getBy(["username"=>$username]);
+                                if (count($username_result) == 1)
+                                {
+                                    if ($user_id != $username_result[0]['user_id'])
+                                    {
+                                        $errors[] = ["status"=>"error","code"=>"invalid","message"=>"Username is already in use.","data"=>""];
+                                    }
+                                }
+
+                                // Check if email belongs to another user.
+                                $email_result = $this->m_users->getBy(["email"=>$email]);
+                                if (count($email_result) == 1)
+                                {
+                                    if ($user_id != $email_result[0]['user_id'])
+                                    {
+                                        $errors[] = ["status"=>"error","code"=>"invalid","message"=>"Email is already in use.","data"=>""];
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                $errors[] = ["status"=>"error","code"=>"restricted","message"=>"Permision denied.","data"=>""];
+                            }
+                        }
+                    }
+                    else
+                    {
+                        $errors[] = ["status"=>"error","code"=>"invalid","message"=>"User does not exist.","data"=>""];
+                    }
+
+                    // Process result output.
+                    if(count($errors) == 0)
+                    {
+                        if ($this->m_users->update($update_params, $user_id))
+                        {
+                            $result = ["status"=>"ok","code"=>"valid","message"=>"User updated.","data"=>$this->m_users->getAll()];
+                        }
+                        else
+                        {
+                            $result = ["status"=>"error","code"=>"invalid","message"=>"Update process failed.","data"=>""];
+                        }
+                    }
+                    else
+                    {
+                        $result = $errors[0];
+                    }
+
+                    header("Content-Type: application/json");
+                    echo json_encode($result);
+                }
+            }
+
+            if ($task == "delete")
+            {
+                $user_privileges = explode(',', @$_SESSION['userdata']['privileges']);
+
+                if (in_array("users_delete",$user_privileges) || in_array("all",$user_privileges))
+                {
+                    $id = $this->input->post("id");
+                    $errors = [];
+
+                    if ($id)
+                    {
+                        if (gettype($id) == "array")
+                        {
+                            // Batch delete here.
+                        }
+                        else
+                        {
+                            // Verify the user existed.
+                            $get_user_result = $this->m_users->getBy(["id"=>$id]);
+
+                            if (count($get_user_result) == 1)
+                            {
+                                $target_user = $get_user_result[0];
+                                $target_is_root = false;
+                                $me_is_root = false;
+                                $affected_rows = 0;
+
+                                if ($target_user['privileges']=="all") $target_is_root = true;
+                                if (in_array("all", $user_privileges)) $me_is_root = true;
+
+                                // Check if target is root.
+                                if ($target_is_root)
+                                {
+                                    // If logged user is root, proceed to delete.
+                                    if ($me_is_root)
+                                    {
+                                        $affected = $this->m_users->delete($id);
+                                        if (!$affected)
+                                        {
+                                            $errors[] = [
+                                                "status" => "error",
+                                                "code" => "db",
+                                                "message" => "Delete from db failed.",
+                                                "data" => ""
+                                            ];
+                                        }
+                                    }
+                                    else
+                                    {
+                                        $errors[] = [
+                                            "status" => "error",
+                                            "code" => "restricted",
+                                            "message" => "Permision denied.",
+                                            "data" => ""
+                                        ];
+                                    }
+                                }
+                                else
+                                {
+                                    $affected_rows = $this->m_users->delete($id);
+                                    if (!$affected_rows)
+                                    {
+                                        $errors[] = [
+                                            "status" => "error",
+                                            "code" => "db",
+                                            "message" => "Delete from db failed.",
+                                            "data" => ""
+                                        ];
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                $errors[] = [
+                                    "status" => "error",
+                                    "code" => "error",
+                                    "message" => "User does not exist.",
+                                    "data" => ""
+                                ];
+                            }
+                        }
+                    }
+                    else
+                    {
+                        $errors[] = [
+                            "status" => "error",
+                            "code" => "error",
+                            "message" => "The id is not present.",
+                            "data" => ""
+                        ];
+                    }
+                    
+                    // Finalize output.
+                    if(count($errors) == 0)
+                    {
+                        $response = [
+                            "status" => "ok",
+                            "code" => "success",
+                            "message" => "Deleted ".$affected_rows." user(s).",
+                            "data" => $this->m_users->getAll()
+                        ];
+                    }
+                    else
+                    {
+                        $response = $errors[0];
+                    }
+
+                    // Return an output.
+                    header("Content-Type: application/json");
+                    echo json_encode($response);
                 }
             }
 
@@ -148,20 +392,22 @@ class Users extends CI_Controller
             
             // Contents
             $v_main_layout['contents'] = "";
+
             if (in_array("users_view",$user_privileges) || in_array("all",$user_privileges))
             {
                 $users_table['users'] = $this->m_users->getAll();
                 $v_main_layout['contents'] .= $this->load->view("theme/inspinia/content/v_table_users", $users_table, true);
                 $users_modal['roles'] = $this->m_users->getRoles();
+                $users_modal['user_privileges'] = $user_privileges;
                 $v_main_layout['contents'] .= $this->load->view("theme/inspinia/content/v_modal_user_new", $users_modal, true);
                 $v_main_layout['contents'] .= $this->load->view("theme/inspinia/content/v_modal_user_edit", $users_modal, true);
             }
 
+            $v_main_layout['extras'] = "";
+            $v_main_layout['extras'] = $this->load->view("theme/inspinia/content/v_modal_confirm", "", true);
+
             $this->load->view("theme/inspinia/v_main_layout", $v_main_layout);
         }
-    }
-    public function sign_in() {
-
     }
     public function sign_out() {
         unset($_COOKIE['sid']);
@@ -175,180 +421,22 @@ class Users extends CI_Controller
 
         if (in_array("users_view",$user_privileges) || in_array("all",$user_privileges))
         {
-            if($method == "getall")
+            if($method == "get_all")
             {
                 header("Content-Type: application/json");
                 echo $this->m_users->getAll(true);
             }
-            elseif($method == "getbyid")
+            elseif($method == "get_by_id")
             {
-                header("Content-Type: application/json");
-                echo $this->m_users->getAll(true);
+                $id = $this->input->get('id');
+                if(is_numeric($id))
+                {
+                    $param = ['id'=>$id];
+                    header("Content-Type: application/json");
+                    echo $this->m_users->getBy($param, true);
+                }
             }
         }
     }
     
-    private function save_new_user() {
-
-        // Privileges.
-        $user_privileges = explode(',', @$_SESSION['userdata']['privileges']);
-
-        // Post data.
-        $name = $this->input->post("name");
-        $email = $this->input->post("email");
-        $company = $this->input->post("company");
-        $username = $this->input->post("username");
-        $password = $this->auth->hash($this->input->post("password"),$username);
-        $role_id = $this->input->post("role_id");
-        $status = $this->input->post("status");
-        $apnx_id = $this->input->post("apnx_id");
-
-        // Process request.
-        if (in_array("add_users",$user_privileges) || in_array("all",$user_privileges)) {
-            $insert_sql = "INSERT INTO `users`(`name`,`email`,`company`,`username`,`password`,`role_id`,`status`,`apnx_id`) VALUES('{$name}','{$email}','{$company}','{$username}','{$password}','{$role_id}','{$status}','{$apnx_id}')";
-            if($this->db->query($insert_sql)){
-                $response = array(
-                    "status" => "ok",
-                    "message" => "New user added."
-                );
-            }
-            else{
-                $response = array(
-                    "status" => "error",
-                    "message" => "Database insert failed."
-                );
-            }
-        }
-        else {
-            $response = array(
-                "status" => "error",
-                "message" => "Unauthorized request."
-            );
-        }
-        header("Content-Type: application/json");
-        echo json_encode($response);
-    }
-    private function edit_user() {
-        $user_id = isset($this->uri->segments[3])? (int)$this->uri->segments[3] : 0;
-        if(!empty($user_id)){
-
-            $get_sql = "
-            SELECT `users`.`id` AS `user_id`,`users`.`name`,`users`.`email`,`users`.`company`,`users`.`username`,`users`.`role_id`,`users`.`status`,`users`.`apnx_id`,`roles`.`type`
-            FROM `users` INNER JOIN `roles` ON `users`.`role_id`=`roles`.`id` WHERE `users`.`id`='{$user_id}'";
-
-            $get_query = $this->db->query($get_sql);
-
-            if($get_query->num_rows() == 1){
-
-                // Privileges
-                $user_privileges = explode(',', @$_SESSION['userdata']['privileges']);
-
-                if(in_array("edit_users",$user_privileges) || in_array("all",$user_privileges)){
-                    
-                    // Page title
-                    $data["page_title"] = 'RTB.cat - Users';
-                    
-                    // Content Title
-                    $data["content_title"] = 'Users';
-
-                    // Topbar right
-                    $data["topbar_right_menu"] = $this->load->view("fragments/v_topbar_menu_right", "", true);
-
-                    // Side menu
-                    $data["side_menu"] = "";
-                    $data["side_menu"] .= $this->load->view("side_bar/v_side_menu_users", "", true);
-                    
-                    // Content
-                    $data["content"] = "";
-                    $get_roles_sql = "SELECT * FROM `roles`";
-                    $get_roles_query = $this->db->query($get_roles_sql);
-                    $get_roles_result = $get_roles_query->result_array();
-                    $roles_data = array();
-                    foreach($get_roles_result as $role_data){
-                        if($_SESSION['userdata']['role_id'] > 1){
-                            if($role_data['id'] != 1){
-                                $roles_data[$role_data['id']] = $role_data['type'];
-                            }
-                        }
-                        else{
-                            $roles_data[$role_data['id']] = $role_data['type'];
-                        }
-                    }
-                    $userdata = $get_query->result_array();
-                    $user_data = array('userdata'=>$userdata[0],'roles'=>$roles_data);
-                    $data["content"] .= $this->load->view("main/v_panel_user_edit", $user_data, true);
-
-                    $data['sess_expiration'] = $this->config->item('sess_expiration');
-                    $this->load->view("v_dashboard", $data);
-                }
-                else{
-                    show_404();
-                }
-
-            }
-            else{
-                echo "user not found";
-            }
-        }
-    }
-    private function update_user() {
-        // Privileges.
-        $user_privileges = explode(',', @$_SESSION['userdata']['privileges']);
-
-        // Post Data.
-        $id = (int) $this->input->post("id");
-        $name = $this->input->post("name");
-        $role = (int) $this->input->post("role_id");
-        $username = $this->input->post("username");
-        $email = $this->input->post("email");
-        $company = $this->input->post("company");
-        $apnx_id = $this->input->post("apnx_id");
-        $status = $this->input->post("status");
-
-        if(in_array("edit_users",$user_privileges) || in_array("all",$user_privileges)){
-            // Update action.
-            $update_sql = "UPDATE `users` SET `name`='{$name}',`role_id`='{$role}',`username`='{$username}',`email`='{$email}',`company`='{$company}',`apnx_id`='{$apnx_id}',`status`='{$status}' WHERE `id`='{$id}'";
-            $this->db->query($update_sql);
-            if($this->db->affected_rows() > 0){
-                $response = array(
-                    "status" => "ok",
-                    "message" => "Changes saved."
-                );
-            }
-            else{
-                $response = array(
-                    "status" => "error",
-                    "message" => "No entry to update."
-                );
-            } 
-        }
-        else{
-            $response = array(
-                "status" => "error",
-                "message" => "Unauthorized action."
-            );
-        }
-        header("Content-Type: application/json");
-        echo json_encode($response);
-    }
-    private function delete_user() {
-        // Privileges.
-        $user_privileges = explode(',', @$_SESSION['userdata']['privileges']);
-
-        if(in_array("delete_users",$user_privileges) || in_array("all",$user_privileges)){
-            $user_id = isset($this->uri->segments[3])? (int)$this->uri->segments[3] : 0;
-            // Delete action.
-            if(!empty($user_id)){
-                $delete_sql = "DELETE FROM `users` WHERE `users`.id='{$user_id}'";
-                $this->db->query($delete_sql);
-                header("Location: ".base_url('users/list'));
-            }
-            else{
-                die("Invalid action.");
-            }
-        }
-        else{
-            die("Unauthorized access.");
-        }
-    }
 }

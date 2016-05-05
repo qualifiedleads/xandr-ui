@@ -134,12 +134,15 @@ class Users extends CI_Controller
                                 }
                             }
 
-                            // Prevent logged acount from attempting to grant root.
+                            // Prevent logged account to promote user to root if root privilege is not present.
                             $role_id_result = $this->m_users->getRolesBy(["id"=>$role_id]);
                             $role_id_result = $role_id_result[0];
                             if ($role_id_result['privileges'] == "all")
                             {
-                                $errors[] = ["status"=>"error","code"=>"restricted","message"=>"Permision denied.","data"=>""];
+                                if (!$me_is_root)
+                                {
+                                    $errors[] = ["status"=>"error","code"=>"restricted","message"=>"Permision denied.","data"=>""];
+                                }
                             }
                         }
                         else

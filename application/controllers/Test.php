@@ -22,7 +22,7 @@ class Test extends CI_Controller
         {
             $subject = "Test Message";
             $message_plain = "Hello,\nThis is a sample plain message.\nstats.rtb.cat";
-            
+
             if (mail($to, $subject, $message_plain))
             {
                 echo "Message sent to email.";
@@ -32,5 +32,9 @@ class Test extends CI_Controller
                 echo "Email sending failed.";
             }
         }
+    }
+    public function info()
+    {
+        phpinfo();
     }
 }

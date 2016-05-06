@@ -11,7 +11,7 @@
                                 </span>
                             </a>
                             <ul class="dropdown-menu animated fadeInRight m-t-xs">
-                                <li><a>Change Password</a></li>
+                                <li><a onclick="users.changeMyPass()">Change Password</a></li>
                                 <li class="divider"></li>
                                 <li><a href="<?php echo base_url('users/sign_out');?>">Logout</a></li>
                             </ul>

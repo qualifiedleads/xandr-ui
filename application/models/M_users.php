@@ -124,6 +124,7 @@ class M_users extends CI_Model
                 `users`.`email`,
                 `users`.`company`,
                 `users`.`username`,
+                `users`.`password`,
                 `users`.`role_id`,
                 `users`.`status`,
                 `users`.`apnx_id`,

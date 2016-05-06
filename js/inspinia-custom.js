@@ -41,6 +41,51 @@ users.view = function(id) {
 users.new = function() {
     $("#new_user_modal").modal("show");
 }
+users.changeMyPass = function() {
+    $("#change_pass_modal").modal("show");
+}
+users.updateMyPass = function(e, f) {
+    e.preventDefault();
+    var userinfo = f.serialize();
+    $(f).find("button").prop("disabled", true);
+    $(f).find("input").prop("disabled", true);
+    $(f).find("select").prop("disabled", true);
+    $.ajax({
+        url: "users",
+        method: "post",
+        data: userinfo,
+        error: function(jqXHR) {
+            setTimeout(function() {
+                // Show toastr notice.
+                toastr.options.positionClass = "toast-top-center";
+                toastr.error(jqXHR.statusText, "Error "+jqXHR.status);
+                // Disable form fields.
+                $(f).find("input").prop("disabled", false);
+                $(f).find("select").prop("disabled", false);
+                $(f).find("button").prop("disabled", false);
+            }, 1000);
+        },
+        success: function(response) {
+            setTimeout(function() {
+                // Disable form fields.
+                $(f).find("input").prop("disabled", false);
+                $(f).find("select").prop("disabled", false);
+                $(f).find("button").prop("disabled", false);
+                // Show toastr notice.
+                if(response.status == "error") {
+                    toastr.options.positionClass = "toast-top-center";
+                    toastr.error(response.message, "Error");
+                }
+                else if(response.status == "ok") {
+                    toastr.options.positionClass = "toast-top-center";
+                    toastr.success(response.message, "Success");
+                    $("#change_pass_modal").modal("hide");
+                    $(f)[0].reset();
+                }
+            }, 1000);
+        }
+    });
+}
 users.add = function(e, f) {
     e.preventDefault();
     var userinfo = f.serialize();
@@ -172,7 +217,7 @@ users.update = function(e, f) {
                 }
             }, 1000);
         }
-    })
+    });
 }
 users.delete = function(id, self) {
     var name = $(self).parents("tr").find("td").get(0).innerText;

@@ -11,10 +11,10 @@
                                             <table class="modal-table" align="center">
                                                 <tbody>
                                                     <tr>
-                                                        <td><label>Name</label></td><td><input type="text" name="name" class="form-control" data-paminta="text" /></td>
+                                                        <td><label>Name</label></td><td><input type="text" name="name" class="form-control" data-paminta="text" placeholder="John Doe" /></td>
                                                     </tr>
                                                     <tr>
-                                                        <td><label>Username</label></td><td><input type="text" name="username" class="form-control" data-paminta="text" /></td>
+                                                        <td><label>Username</label></td><td><input type="text" name="username" class="form-control" data-paminta="text" placeholder="john" /></td>
                                                     </tr>
                                                     <tr>
                                                         <td><label>Role</label></td>
@@ -35,13 +35,13 @@
                                                         </td>
                                                     </tr>
                                                     <tr>
-                                                        <td><label>Email</label></td><td><input type="text" name="email" class="form-control" data-paminta="email" /></td>
+                                                        <td><label>Email</label></td><td><input type="text" name="email" class="form-control" data-paminta="email" placeholder="john.doe@email.tld" /></td>
                                                     </tr>
                                                     <tr>
-                                                        <td><label>Company</label></td><td><input type="text" name="company" class="form-control" /></td>
+                                                        <td><label>Company</label></td><td><input type="text" name="company" class="form-control" placeholder="John Doe Inc." /></td>
                                                     </tr>
                                                     <tr>
-                                                        <td><label>APNX ID</label></td><td><input type="text" name="apnx_id" class="form-control" /></td>
+                                                        <td><label>APNX ID</label></td><td><input type="text" name="apnx_id" class="form-control" placeholder="123456" /></td>
                                                     </tr>
                                                     <tr>
                                                         <td><label>Status</label></td>

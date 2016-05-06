@@ -54,7 +54,7 @@ class Users extends CI_Controller
                             "token" => md5(time().microtime()),
                             "token_time" => time()+$this->config->item("user_token_time")
                         ];
-                        
+
                         if ($this->m_users->add($insert_data))
                         {
                             $new_list = $this->m_users->getAll();
@@ -355,6 +355,71 @@ class Users extends CI_Controller
                 }
             }
 
+            if ($task == "change_my_pw")
+            {
+                $user_id = $this->input->post("user_id");
+                $opassword = $this->input->post("opassword");
+                $npassword = $this->input->post("npassword");
+                $rpassword = $this->input->post("rpassword");
+
+                if ($user_id && $opassword && $npassword && $rpassword)
+                {
+                    $errors = [];
+                    $get_user = $this->m_users->getSesInfoBy(["id"=>$user_id]);
+
+                    // Make sure user exist.
+                    if (!$get_user)
+                    {
+                        $errors[] = ["status"=>"error","code"=>"not_found","message"=>"User does not exist."];
+                    }
+                    else
+                    {
+                        $userdata = $get_user[0];
+                        $opassword = $this->auth->hash($opassword, $userdata['username']);
+
+                        if ($opassword != $userdata['password'])
+                        {
+                            $errors[] = ["status"=>"error","code"=>"not_found","message"=>"Old password is wrong."];
+                        }
+                        elseif (strlen($npassword) < 6)
+                        {
+                            $errors[] = ["status"=>"error","code"=>"invalid","message"=>"New password is too short."];
+                        }
+                        elseif ($npassword != $rpassword)
+                        {
+                            $errors[] = ["status"=>"error","code"=>"invalid","message"=>"Password did not match."];
+                        }
+                        else
+                        {
+                            $npassword = $this->auth->hash($npassword, $userdata['username']);
+
+                            if ($this->m_users->update(["password"=>$npassword], $user_id))
+                            {
+                                $response = ["status"=>"ok","code"=>"success","message"=>"New password saved."];
+                            }
+                            else
+                            {
+                                $errors[] = ["status"=>"error","code"=>"db","message"=>"Database update failed."];
+                            }
+                        }
+
+                    }
+
+                    if (count($errors) > 0)
+                    {
+                        $response = $errors[0];
+                    }
+
+                    header("Content-Type: application/json");
+                    echo json_encode($response);
+                }
+                else
+                {
+                    header("Content-Type: application/json");
+                    echo json_encode([]);
+                }
+            }
+
             if ($task == "reset_pw")
             {
                 $email = $this->input->post("email");
@@ -443,8 +508,8 @@ class Users extends CI_Controller
                 $v_main_layout['contents'] .= $this->load->view("theme/inspinia/content/v_modal_user_view", $users_modal, true);
             }
 
-            $v_main_layout['extras'] = "";
-            $v_main_layout['extras'] = $this->load->view("theme/inspinia/content/v_modal_confirm", "", true);
+            $v_main_layout['extras']  = "";
+            $v_main_layout['extras'] .= $this->load->view("theme/inspinia/content/v_modal_confirm", "", true);
 
             $this->load->view("theme/inspinia/v_main_layout", $v_main_layout);
         }

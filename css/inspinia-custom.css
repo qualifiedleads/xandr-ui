@@ -16,6 +16,18 @@
 .form-custom .fa-spinner.rotating {
     display: none;
 }
+.form-custom table.table {
+    margin-bottom: 0;
+}
+.form-custom table.table tr:first-child td {
+    border: 0;
+}
+.form-custom [data-rel="reset"] {
+    background-color: transparent;
+    border-style: none;
+    display: block;
+    width: 100%;
+}
 .form-custom button.submit:disabled span.fa-spinner.rotating {
     display: inline-block;
 }

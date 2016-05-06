@@ -14,10 +14,16 @@ class Portal extends CI_Controller
     function __construct()
     {
         parent::__construct();
+        $this->load->config("custom");
+        $this->load->model("m_users");
     }
 
-    public function index() {
-        $this->load->view("theme/inspinia/v_portal_layout");
+    public function index()
+    {
+        $data['short_title'] = "rtb";
+        $data['content'] = $this->load->view("theme/inspinia/portal/v_login", "", true);
+        $data['short_footnote'] = 'rtb.cat &copy; 2016';
+        $this->load->view("theme/inspinia/v_portal_layout", $data);
     }
 
     public function v2() {

@@ -71,6 +71,8 @@ class M_users extends CI_Model
                 `users`.`role_id`,
                 `users`.`status`,
                 `users`.`apnx_id`,
+                `users`.`token`,
+                `users`.`token_time`,
                 `roles`.`type` as `role_name`,
                 `roles`.`privileges`
                 FROM `users`
@@ -216,6 +218,8 @@ class M_users extends CI_Model
                 `users`.`role_id`,
                 `users`.`status`,
                 `users`.`apnx_id`,
+                `users`.`token`,
+                `users`.`token_time`,
                 `roles`.`type` as `role_name`,
                 `roles`.`privileges`
                 FROM `users`

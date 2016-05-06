@@ -14,7 +14,29 @@ modals.confirm = function(message="Default message?", fn=null) {
 }
 users = {}
 users.view = function(id) {
-    console.log("View user "+id);
+    var view_modal = "#view_user_modal";
+    
+    $(view_modal+" td.value-cell").text("Fetching...");
+    $(view_modal+' [data-rel="reset"]').val("Fetching...");
+    $(view_modal).modal("show");
+    $.ajax({
+        url: "users/json/get_by_id?id="+id,
+        method: "get",
+        success: function(response) {
+            setTimeout(function(){
+                var user_data = response[0];
+                $(view_modal+' [data-rel="id"]').text(user_data.user_id);
+                $(view_modal+' [data-rel="name"]').text(user_data.name);
+                $(view_modal+' [data-rel="username"]').text(user_data.username);
+                $(view_modal+' [data-rel="role"]').text(user_data.role_name);
+                $(view_modal+' [data-rel="email"]').text(user_data.email);
+                $(view_modal+' [data-rel="company"]').text(user_data.company);
+                $(view_modal+' [data-rel="apnx_id"]').text(user_data.apnx_id);
+                $(view_modal+' [data-rel="status"]').text(user_data.status);
+                $(view_modal+' [data-rel="reset"]').val(user_data.reset_link);
+            },1000);
+        } 
+    });
 }
 users.new = function() {
     $("#new_user_modal").modal("show");

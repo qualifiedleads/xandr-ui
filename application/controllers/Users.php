@@ -51,8 +51,8 @@ class Users extends CI_Controller
                             "role_id" => $role_id,
                             "status" => $status,
                             "apnx_id" => $apnx_id,
-                            "token" => md5(time()),
-                            "token_time" => $this->config->item("user_token_time")+time()
+                            "token" => md5(time().microtime()),
+                            "token_time" => time()+$this->config->item("user_token_time")
                         ];
                         if ($this->m_users->add($insert_data))
                         {
@@ -346,7 +346,7 @@ class Users extends CI_Controller
 
                 if ($email)
                 {
-                    $result = $this->m_users->getBy(['email'=>$email]);
+                    $result = $this->m_users->getBy(["email"=>$email]);
 
                     if (count($result) == 1)
                     {
@@ -354,7 +354,28 @@ class Users extends CI_Controller
 
                         if ($userdata['status'] == "active")
                         {
-                            $response = array("status"=>"ok","code"=>"active","message"=>"Please check your email.");
+                            $token = md5(time().microtime());
+                            $token_time = time()+$this->config->item("user_token_time");
+                            $update_params = [
+                                "token"=>$token,
+                                "token_time"=>$token_time
+                            ];
+
+                            if ($this->m_users->update($update_params, $userdata['user_id']))
+                            {
+                                $reset_link = base_url("users/reset/{$token}");
+                                $first_name = explode(' ', $userdata['name'])[0];
+                                $message = $this->load->view("etc/v_password_reset_email", ["name"=>$first_name,"reset_link"=>$reset_link], true);
+                                $subject = "Reset your password";
+                                $from = "From: ".$this->config->item("system_email");
+                                
+                                mail($userdata['email'], $subject, $message, $from);
+                                $response = array("status"=>"ok","code"=>"active","message"=>"Please check your email.", "data"=>$userdata['email']);
+                            }
+                            else
+                            {
+                                $response = array("status"=>"error","code"=>"db","message"=>"Token update failed.");
+                            }
                         }
                         elseif ($userdata['status'] == "inactive")
                         {
@@ -404,6 +425,7 @@ class Users extends CI_Controller
                 $users_modal['user_privileges'] = $user_privileges;
                 $v_main_layout['contents'] .= $this->load->view("theme/inspinia/content/v_modal_user_new", $users_modal, true);
                 $v_main_layout['contents'] .= $this->load->view("theme/inspinia/content/v_modal_user_edit", $users_modal, true);
+                $v_main_layout['contents'] .= $this->load->view("theme/inspinia/content/v_modal_user_view", $users_modal, true);
             }
 
             $v_main_layout['extras'] = "";
@@ -412,11 +434,101 @@ class Users extends CI_Controller
             $this->load->view("theme/inspinia/v_main_layout", $v_main_layout);
         }
     }
-    public function sign_out() {
+    public function sign_out()
+    {
         unset($_COOKIE['sid']);
         setcookie('sid', null, -1, '/');
         session_destroy();
         header("Location: ".base_url("portal"));
+    }
+    public function reset($token=null)
+    {
+        if($token)
+        {
+            $token_result = $this->m_users->getBy(["token"=>$token]);
+
+            if (count($token_result) == 1)
+            {
+                $userdata = $token_result[0];
+
+                if ($userdata['token_time'] < time())
+                {
+                    $data['short_title'] = '<i class="fa fa-exclamation-circle"></i>';
+                    $data['content'] = '<h3>Token has expired.</h3>';
+                    $data['short_footnote'] = '';
+                    $this->load->view("theme/inspinia/v_portal_layout", $data);
+                }
+                else
+                {
+                    $data['short_title'] = "rtb";
+                    $data['content'] = $this->load->view("theme/inspinia/portal/v_new_password", ["user_id"=>$userdata['user_id']], true);
+                    $data['short_footnote'] = 'rtb.cat &copy; 2016';
+                    $this->load->view("theme/inspinia/v_portal_layout", $data);
+                }
+            }
+            else
+            {
+                show_404();
+            }
+        }
+        else
+        {
+            $task = $this->input->post("task");
+
+            if($task && $task == "update_pw")
+            {
+                $user_id = $this->input->post("user_id");
+                $npassword = $this->input->post("npassword");
+                $rpassword = $this->input->post("rpassword");
+
+                if ($npassword && $rpassword && $user_id)
+                {
+                    $get_user = $this->m_users->getBy(["id"=>$user_id]);
+
+                    if(count($get_user) == 1)
+                    {
+                        $userdata = $get_user[0];
+
+                        if (strlen(trim($npassword)) < 4)
+                        {
+                            $response = ["status"=>"error","code"=>"invalid","message"=>"Password is too short.","data"=>""];
+                        }
+                        elseif ($npassword != $rpassword)
+                        {
+                            $response = ["status"=>"error","code"=>"invalid","message"=>"Password did not match.","data"=>""];
+                        }
+                        else
+                        {
+                            $update_params = [
+                                "password"=>$this->auth->hash($npassword, $userdata['username']),
+                                "token"=>"",
+                                "token_time"=>""
+                            ];
+
+                            if ($this->m_users->update($update_params, $user_id))
+                            {
+                                $response = ["status"=>"ok","code"=>"success","message"=>"New password saved.","data"=>""];
+                            }
+                            else
+                            {
+                                $response = ["status"=>"error","code"=>"db","message"=>"Password update failed.","data"=>""];
+                            }
+                        }
+                    }
+                    else
+                    {
+                        $response = ["status"=>"error","code"=>"not_found","message"=>"Use does not exist.","data"=>""];
+                    }
+
+                    header("Content-Type: application/json");
+                    echo json_encode($response);
+                }
+            }
+            else
+            {
+                show_404();
+            }
+        }
     }
     public function json($method = null) {
         // Privileges
@@ -435,8 +547,20 @@ class Users extends CI_Controller
                 if(is_numeric($id))
                 {
                     $param = ['id'=>$id];
-                    header("Content-Type: application/json");
-                    echo $this->m_users->getBy($param, true);
+                    $user_data = $this->m_users->getBy($param);
+                    if ($user_data)
+                    {
+                        $user_data[0]['reset_link'] = "";
+                        if ($user_data[0]['token'] != "") $user_data[0]['reset_link'] = base_url("users/reset/".$user_data[0]['token']);
+                        
+                        header("Content-Type: application/json");
+                        echo json_encode($user_data);
+                    }
+                    else
+                    {
+                        header("Content-Type: application/json");
+                        echo json_encode([]);
+                    }
                 }
             }
         }

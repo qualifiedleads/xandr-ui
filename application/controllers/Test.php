@@ -37,4 +37,8 @@ class Test extends CI_Controller
     {
         phpinfo();
     }
+    public function micro()
+    {
+        echo microtime();
+    }
 }

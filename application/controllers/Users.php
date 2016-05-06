@@ -54,6 +54,7 @@ class Users extends CI_Controller
                             "token" => md5(time().microtime()),
                             "token_time" => time()+$this->config->item("user_token_time")
                         ];
+                        
                         if ($this->m_users->add($insert_data))
                         {
                             $new_list = $this->m_users->getAll();
@@ -230,17 +231,53 @@ class Users extends CI_Controller
                                 $me_is_root = false;
                                 $affected_rows = 0;
 
-                                if ($target_user['privileges']=="all") $target_is_root = true;
-                                if (in_array("all", $user_privileges)) $me_is_root = true;
-
-                                // Check if target is root.
-                                if ($target_is_root)
+                                // Prevent deleting own account.
+                                if ($_SESSION['userdata']['user_id'] == $target_user['user_id'])
                                 {
-                                    // If logged user is root, proceed to delete.
-                                    if ($me_is_root)
+                                    $errors[] = [
+                                        "status" => "error",
+                                        "code" => "invalid",
+                                        "message" => "Deleting own account is not allowed.",
+                                        "data" => ""
+                                    ];
+                                }
+                                else
+                                {
+                                    if ($target_user['privileges']=="all") $target_is_root = true;
+                                    if (in_array("all", $user_privileges)) $me_is_root = true;
+
+                                    // Check if target is root.
+                                    if ($target_is_root)
                                     {
-                                        $affected = $this->m_users->delete($id);
-                                        if (!$affected)
+                                        // If logged user is root, proceed to delete.
+                                        if ($me_is_root)
+                                        {
+                                            $affected = $this->m_users->delete($id);
+
+                                            if (!$affected)
+                                            {
+                                                $errors[] = [
+                                                    "status" => "error",
+                                                    "code" => "db",
+                                                    "message" => "Delete from db failed.",
+                                                    "data" => ""
+                                                ];
+                                            }
+                                        }
+                                        else
+                                        {
+                                            $errors[] = [
+                                                "status" => "error",
+                                                "code" => "restricted",
+                                                "message" => "Permision denied.",
+                                                "data" => ""
+                                            ];
+                                        }
+                                    }
+                                    else
+                                    {
+                                        $affected_rows = $this->m_users->delete($id);
+                                        if (!$affected_rows)
                                         {
                                             $errors[] = [
                                                 "status" => "error",
@@ -250,35 +287,13 @@ class Users extends CI_Controller
                                             ];
                                         }
                                     }
-                                    else
-                                    {
-                                        $errors[] = [
-                                            "status" => "error",
-                                            "code" => "restricted",
-                                            "message" => "Permision denied.",
-                                            "data" => ""
-                                        ];
-                                    }
-                                }
-                                else
-                                {
-                                    $affected_rows = $this->m_users->delete($id);
-                                    if (!$affected_rows)
-                                    {
-                                        $errors[] = [
-                                            "status" => "error",
-                                            "code" => "db",
-                                            "message" => "Delete from db failed.",
-                                            "data" => ""
-                                        ];
-                                    }
                                 }
                             }
                             else
                             {
                                 $errors[] = [
                                     "status" => "error",
-                                    "code" => "error",
+                                    "code" => "not_found",
                                     "message" => "User does not exist.",
                                     "data" => ""
                                 ];

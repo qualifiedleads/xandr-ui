@@ -1,0 +1,110 @@
+Startpagina
+Campagnes
+Optimiser
+Facturering
+Kost
+conversies
+vertoningen
+Aantal klikken
+cpc
+cpm
+Conversieratio
+ctr
+compare
+Select all
+Go to Page
+Show rows
+of
+vertoningen
+CPA
+CPC
+clicks
+media spend
+conversions
+CTR
+Campaign Home
+Campaign
+Go to the Optimiser
+clicks
+vertoningen
+CPA
+CPC
+CTR
+conversions
+media spend
+Plaatsingen
+Network & Publisher
+conversions
+vertoningen
+Aantal klikken
+cpc
+Conversieratio
+cpm
+CTR
+Select All
+Bulk Edit
+Blacklist Selected
+Whitelist Selected
+Suspend Selected
+Whitelist
+Suspend
+Operating Systems used
+Plaaatsingen
+creative id
+creative size
+viewability
+OS
+Carrier
+netwerk (Verkoper)
+connection type
+device
+extra
+Publisher
+Alle
+Converteerd
+CPA buckets / cohorts
+Whitelist
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

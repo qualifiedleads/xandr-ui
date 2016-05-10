@@ -104,17 +104,16 @@ class Apnx
 
     public function getTokenTime()
     {
-        if ($token_time = file_get_contents($this->token_time))
+        $token_time = @file_get_contents($this->token_time);
+        if (!$token_time)
         {
-            return $token_time;
-        }
-        elseif ($token_time == 0)
-        {
-            return $token_time;
+            if (!is_dir($this->token_dir)) mkdir($this->token_dir, 0777, true);
+            file_put_contents($this->token_time, "1");
+            return "1";
         }
         else
         {
-            die("Cannot retrieve token time $token_time.");
+            return $token_time;
         }
     }
 

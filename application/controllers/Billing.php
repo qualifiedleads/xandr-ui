@@ -23,7 +23,8 @@ class Billing extends CI_Controller
 
     public function getCostImps($apnx_id = null)
     {
-        $this->apnx->setUserIndex(1);
+        //$this->apnx->setUserIndex(1);
+
         if ($apnx_id)
         {
             $json_request = $this->load->view("json/json_billing_cost", "", true);

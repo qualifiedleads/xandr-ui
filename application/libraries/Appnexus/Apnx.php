@@ -18,7 +18,7 @@ class Apnx
 
         // Set defaults.
         $this->user = $config['api_users'][0];
-        $this->token_dir = __DIR__.'/logs/sessions/0';
+        $this->token_dir = __DIR__.'/logs/sessions/a0';
         $this->token_text = $this->token_dir.'/token';
         $this->token_time = $this->token_dir.'/time';
     }
@@ -31,14 +31,17 @@ class Apnx
             {
                 $this->user_index = $num;
                 $this->user = $this->config['api_users'][$num];
-                $this->token_dir = __DIR__.'/logs/sessions/'.$num;
+                $this->token_dir = __DIR__.'/logs/sessions/a'.$num;
                 $this->token_text = $this->token_dir.'/token';
                 $this->token_time = $this->token_dir.'/time';
+                
                 if (!is_dir($this->token_dir))
                 {
-                    mkdir($this->token_dir);
-                    file_put_contents($this->token_text, "0");
-                    file_put_contents($this->token_time, "0");
+                    if (mkdir($this->token_dir, 0777, true))
+                    {
+                        file_put_contents($this->token_text, "0");
+                        file_put_contents($this->token_time, "0");
+                    }
                 }
             }
             else
@@ -105,11 +108,21 @@ class Apnx
     public function getTokenTime()
     {
         $token_time = @file_get_contents($this->token_time);
+
         if (!$token_time)
         {
-            if (!is_dir($this->token_dir)) mkdir($this->token_dir, 0777, true);
-            file_put_contents($this->token_time, "1");
-            return "1";
+            if (!is_dir($this->token_dir))
+            {
+                if (mkdir($this->token_dir, 0777, true))
+                {
+                    file_put_contents($this->token_time, "1");
+                    return "1";
+                }
+            }
+            else
+            {
+                return false;
+            }
         }
         else
         {

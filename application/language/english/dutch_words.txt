@@ -1,21 +1,21 @@
-Home
-Campaigns
+Startpagina
+Campagnes
 Optimiser
-Billing
-Spend
-conversions
-impressions
-clicks
+Facturering
+Kost
+conversies
+vertoningen
+Aantal klikken
 cpc
 cpm
-cvr
+Conversieratio
 ctr
 compare
 Select all
 Go to Page
 Show rows
 of
-impressions
+vertoningen
 CPA
 CPC
 clicks
@@ -26,19 +26,19 @@ Campaign Home
 Campaign
 Go to the Optimiser
 clicks
-impressions
+vertoningen
 CPA
 CPC
 CTR
 conversions
 media spend
-Placement
+Plaatsingen
 Network & Publisher
 conversions
-imp
-clicks
+vertoningen
+Aantal klikken
 cpc
-CVR
+Conversieratio
 cpm
 CTR
 Select All
@@ -49,19 +49,19 @@ Suspend Selected
 Whitelist
 Suspend
 Operating Systems used
-Placement
+Plaaatsingen
 creative id
 creative size
 viewability
 OS
 Carrier
-network (Seller)
+netwerk (Verkoper)
 connection type
 device
 extra
 Publisher
-All
-Converted
+Alle
+Converteerd
 CPA buckets / cohorts
 Whitelist
 

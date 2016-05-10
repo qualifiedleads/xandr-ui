@@ -101,9 +101,10 @@ class Billing extends CI_Controller
 
                 $output['data'] = $data;
                 $json_output = json_encode($output);
-                // Test array output
-                echo "<pre>";
-                print_r($json_output);
+                
+                // JSON output.
+                header("Content-Type: application/json");
+                echo $json_output;
             }
         }
         else

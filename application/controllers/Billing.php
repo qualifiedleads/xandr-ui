@@ -39,6 +39,9 @@ class Billing extends CI_Controller
                     "message" => $error,
                     "data" => ""
                 ];
+
+                header("Content-Type: application/json");
+                echo json_encode($output);
             }
             else
             {

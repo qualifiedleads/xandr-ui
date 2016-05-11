@@ -11,6 +11,7 @@ class Billing extends CI_Controller
     function __construct()
     {
         parent::__construct();
+        date_default_timezone_set('UTC');
         // $this->load->config("custom");
         // $this->load->model("m_users");
         $this->load->library("Appnexus/Apnx");
@@ -129,15 +130,5 @@ class Billing extends CI_Controller
             header("Content-Type: application/json");
             echo json_encode($response);
         }
-    }
-
-    public function test()
-    {
-        $timestamp = time();
-        $year = date("Y", $timestamp);
-        $month = date("n", $timestamp);
-        $day = date("j", $timestamp);
-
-        
     }
 }

@@ -1,0 +1,110 @@
+Главная страница
+Кампании
+Optimiser
+Платежный
+Стоимость
+Конверсии
+Показы
+Клики
+cpc
+cpm
+Коэфф конверсии
+ctr
+compare
+Select all
+Перейти на страницу:
+Количество строк:
+из
+Показы
+Стоимость конверсии
+CPC
+Клики
+media spend
+Конверсии
+CTR
+Все кампании
+Кампании
+Go to the Optimiser
+Клики
+Показы
+Стоимость конверсии
+CPC
+CTR
+Конверсии
+media spend
+Аудитория
+Network & Publisher
+Конверсии
+Показы
+Клики
+cpc
+Коэфф конверсии
+cpm
+CTR
+Select All
+Bulk Edit
+Blacklist Selected
+Whitelist Selected
+Suspend Selected
+Whitelist
+Suspend
+Operating Systems used
+Аудитория
+creative id
+creative size
+viewability
+OS
+Carrier
+netwerk (Verkoper)
+connection type
+device
+extra
+Publisher
+Alle
+Converteerd
+CPA buckets / cohorts
+Whitelist
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

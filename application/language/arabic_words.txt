@@ -1,0 +1,110 @@
+الرئيسية
+الحملات
+Optimiser
+Billing
+Spend
+النقرات المؤدية إلى تحويلات
+الظهور
+النقرات
+cpc
+cpm
+cvr
+ctr
+compare
+Select all
+الذهاب إلى الصفحة: 
+ إظهار الصفوف: 
+من
+الظهور
+تكلفة النقرة المؤدية إلى تحويلات
+CPC
+النقرات
+التكلفة
+النقرات المؤدية إلى تحويلات
+CTR
+جميع الحملات
+حملة
+Go to the Optimiser
+النقرات
+الظهور
+تكلفة النقرة المؤدية إلى تحويلات
+CPC
+CTR
+النقرات المؤدية إلى تحويلات
+التكلفة
+موضع الإعلان
+Network & Publisher
+النقرات المؤدية إلى تحويلات
+imp
+النقرات
+cpc
+CVR
+cpm
+CTR
+Select All
+Bulk Edit
+Blacklist Selected
+Whitelist Selected
+Suspend Selected
+Whitelist
+Suspend
+Operating Systems used
+موضع الإعلان
+creative id
+creative size
+viewability
+OS
+Carrier
+network (Seller)
+connection type
+device
+extra
+Publisher
+All
+Converted
+CPA buckets / cohorts
+Whitelist
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

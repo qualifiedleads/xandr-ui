@@ -23,7 +23,13 @@ class Billing extends CI_Controller
 
     public function getCostImps($apnx_id = null)
     {
-        //$this->apnx->setUserIndex(1);
+        $timestamp = time();
+        $year = date("Y", $timestamp);
+        $nmonth = date("n", $timestamp); // A numeric representation of a month, without leading zeros (1 to 12).
+        $tmonth = date("F", $timestamp); // A full textual representation of a month (January through December).
+        $day = date("j", $timestamp); // The day of the month without leading zeros (1 to 31).
+
+        $this->apnx->setUserIndex(1);
 
         if ($apnx_id)
         {
@@ -56,18 +62,24 @@ class Billing extends CI_Controller
                     "data" => ""
                 ];
                 $data = [
-                    "google"=>[
-                        "media_cost"=>0,
-                        "imps"=>0
+                    "google" => [
+                        "media_cost" => 0,
+                        "imps" => 0
                     ],
-                    "yahoo"=>[
-                        "media_cost"=>0,
-                        "imps"=>0
+                    "yahoo" => [
+                        "media_cost" => 0,
+                        "imps" => 0
                     ],
-                    "others"=>[
-                        "media_cost"=>0,
-                        "imps"=>0
+                    "others" => [
+                        "media_cost" => 0,
+                        "imps" => 0
                     ]
+                ];
+                $date = [
+                    "y" => $year,
+                    "nm" => $nmonth,
+                    "tm" => $tmonth,
+                    "d" => $day
                 ];
                 
                 // Filter, group according to seller
@@ -100,6 +112,7 @@ class Billing extends CI_Controller
                 }
 
                 $output['data'] = $data;
+                $output['date'] = $date;
                 $json_output = json_encode($output);
                 
                 // JSON output.
@@ -116,5 +129,15 @@ class Billing extends CI_Controller
             header("Content-Type: application/json");
             echo json_encode($response);
         }
+    }
+
+    public function test()
+    {
+        $timestamp = time();
+        $year = date("Y", $timestamp);
+        $month = date("n", $timestamp);
+        $day = date("j", $timestamp);
+
+        
     }
 }

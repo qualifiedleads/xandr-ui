@@ -17,7 +17,7 @@ class Apnx
         include "config.php";
 
         // Set defaults.
-        $this->user = $config['api_users'][0];
+        $this->user = $config['api_creds'][0];
         $this->token_dir = __DIR__.'/logs/sessions/a0';
         $this->token_text = $this->token_dir.'/token';
         $this->token_time = $this->token_dir.'/time';
@@ -27,10 +27,10 @@ class Apnx
     {
         if ($num)
         {
-            if (array_key_exists($num, $this->config['api_users']))
+            if (array_key_exists($num, $this->config['api_creds']))
             {
                 $this->user_index = $num;
-                $this->user = $this->config['api_users'][$num];
+                $this->user = $this->config['api_creds'][$num];
                 $this->token_dir = __DIR__.'/logs/sessions/a'.$num;
                 $this->token_text = $this->token_dir.'/token';
                 $this->token_time = $this->token_dir.'/time';

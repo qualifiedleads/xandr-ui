@@ -4,19 +4,10 @@
 | Appnexus API Configuration File
 +-------------------------------------------------------------
 */
+include "creds.php";
 
 // Base endpoint (trailing slash included).
 $config['api_base'] = "http://api.appnexus.com/";
-
-// Can have multiple API users identified by array index.
-$config['api_users'][0] = array(
-    'name' => 'stats_api',
-    'pass' => 'Stats?3nt3r!'
-);
-$config['api_users'][1] = array(
-    'name' => 'cyrilnet',
-    'pass' => 'C3j3nt3r!'
-);
 
 // Token expiration time in seconds.
 $config['token_expiry'] = 7200; # 2 hrs default.

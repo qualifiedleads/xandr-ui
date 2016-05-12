@@ -35,9 +35,6 @@ class Auth {
             if(isset($_COOKIE['sid']))
             {
 
-                // $sql_get_1 = "SELECT * FROM `users` INNER JOIN `roles` ON `users`.`role_id`=`roles`.`id` WHERE `sid`='".trim($_COOKIE['sid'])."'";
-                // $query_get_1 = $CI->db->query($sql_get_1);
-
                 $params = ["sid"=>trim($_COOKIE['sid'])];
                 $result = $CI->m_users->getSesInfoBy($params);
 
@@ -47,7 +44,7 @@ class Auth {
 
                     if(time() > $user_data['sid_time'])
                     {
-                        header("Location: ".base_url('sessions'));
+                        header("Location: ".base_url($redirect_page));
                     }
                     else
                     {

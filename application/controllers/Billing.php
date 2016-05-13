@@ -25,10 +25,13 @@ class Billing extends CI_Controller
     public function getCostImps($apnx_id = null)
     {
         $timestamp = time();
-        $year = date("Y", $timestamp);
-        $nmonth = date("n", $timestamp); // A numeric representation of a month, without leading zeros (1 to 12).
-        $tmonth = date("F", $timestamp); // A full textual representation of a month (January through December).
-        $day = date("j", $timestamp); // The day of the month without leading zeros (1 to 31).
+        $YYYY = date("Y", $timestamp);  // A four digit representation of a year.
+        $MM = date("m", $timestamp);    // A numeric representation of a month, with leading zeros (01 to 12).
+        $MT = date("F", $timestamp);    // A full textual representation of a month (January through December).
+        $DD = date("d", $timestamp);    // The day of the month with leading zeros (01 to 31).
+        $hh = date("H", $timestamp);    // 24-hour format of an hour (00 to 23).
+        $mm = date("i", $timestamp);    // Minutes with leading zeros (00 to 59).
+        $ss = date("s", $timestamp);    // Seconds, with leading zeros (00 to 59).
 
         if ($apnx_id)
         {
@@ -87,10 +90,12 @@ class Billing extends CI_Controller
                     ]
                 ];
                 $date = [
-                    "y" => $year,
-                    "nm" => $nmonth,
-                    "tm" => $tmonth,
-                    "d" => $day
+                    "YYYY" => $YYYY,
+                    "MM" => $MM,
+                    "MT" => $MT,
+                    "hh" => $hh,
+                    "mm" => $mm,
+                    "ss" => $ss
                 ];
                 
                 // Filter, group according to seller

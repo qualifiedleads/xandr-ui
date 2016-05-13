@@ -93,6 +93,7 @@ class Billing extends CI_Controller
                     "YYYY" => $YYYY,
                     "MM" => $MM,
                     "MT" => $MT,
+                    "DD" => $DD,
                     "hh" => $hh,
                     "mm" => $mm,
                     "ss" => $ss

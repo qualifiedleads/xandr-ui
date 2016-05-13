@@ -30,15 +30,25 @@ class Billing extends CI_Controller
         $tmonth = date("F", $timestamp); // A full textual representation of a month (January through December).
         $day = date("j", $timestamp); // The day of the month without leading zeros (1 to 31).
 
-        $this->apnx->setUserIndex(1);
-
         if ($apnx_id)
         {
             $json_request = $this->load->view("json/json_billing_cost", "", true);
             $response = $this->apnx->requestPost("report?advertiser_id={$apnx_id}", $json_request);
             $response = json_decode($response, true);
             
-            if (isset($response['response']['error']))
+            if (!$response)
+            {
+                $error = $response['response']['error'];
+                $output = [
+                    "status" => "error",
+                    "message" => "Authentication failed.",
+                    "data" => ""
+                ];
+
+                header("Content-Type: application/json");
+                echo json_encode($output);
+            }
+            else if (isset($response['response']['error']))
             {
                 $error = $response['response']['error'];
                 $output = [

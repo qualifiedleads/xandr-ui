@@ -7,7 +7,11 @@
 <?php endif;?>
                     <li>
                         <a href="#"><i class="fa fa-area-chart"></i>
-                        <span class="nav-label">Campaigns</span></a>
+                        <span class="nav-label">Campaigns</span><span class="fa arrow"></span></a>
+                        <ul class="nav nav-second-level collapse">
+                            <li><a href="campaign_tree">Campaign Tree</a></li>
+                            <li><a href="campaign_single">Single</a></li>
+                        </ul>
                     </li>
                     <li>
                         <a href="#"><i class="fa fa-line-chart"></i>

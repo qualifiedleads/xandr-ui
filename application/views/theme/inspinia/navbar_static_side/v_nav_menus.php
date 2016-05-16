@@ -1,4 +1,7 @@
-<?php if(in_array('users_view', $user_privileges) || in_array('all', $user_privileges)):?><li>
+<li>
+                        <a href="<?php echo base_url();?>"><i class="fa fa-home"></i>
+                        <span class="nav-label">Home</span></a>
+                    </li><?php if(in_array('users_view', $user_privileges) || in_array('all', $user_privileges)):?><li>
                         <a href="users">
                             <i class="fa fa-users"></i>
                             <span class="nav-label">Users</span>

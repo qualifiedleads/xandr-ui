@@ -1,3 +1,4 @@
 creds.php
 temp.php
 database.php
+*.log

@@ -38,6 +38,14 @@
                     <a href="#signin"><small>Back to login.</small></a>
                 </form>
             </div>
+<!-- iCheck -->
+<script src="<?php echo base_url('theme/inspinia/js/plugins/iCheck/icheck.min.js');?>"></script>
+<script>
+    $('.i-checks').iCheck({
+        checkboxClass: 'icheckbox_square-green',
+        radioClass: 'iradio_square-green',
+    });
+</script>
 <!-- Submit Script with Paminta Validator -->
 <script src="<?php echo base_url('js/plugins/paminta/paminta.js');?>"></script>
 <script>

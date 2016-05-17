@@ -23,8 +23,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 | a PHP script and you can easily do that on your own.
 |
 */
-// $config['base_url'] = 'https://stats.rtb.cat/';
-$config['base_url'] = 'http://localhost/caravel';
+$config['base_url'] = 'https://stats.rtb.cat/';
 
 /*
 |--------------------------------------------------------------------------

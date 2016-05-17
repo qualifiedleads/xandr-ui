@@ -1,7 +1,7 @@
 Startpagina
 Campagnes
 Optimiser
-Facturering
+Financien
 Kost
 conversies
 vertoningen
@@ -10,56 +10,56 @@ cpc
 cpm
 Conversieratio
 ctr
-compare
-Select all
-Go to Page
-Show rows
-of
+vergelijk
+Selecteer alle
+Ga naar pagina
+Toon rijen
+van
 vertoningen
 CPA
 CPC
-clicks
-media spend
-conversions
+Aantal klikken
+Kosten
+conversies
 CTR
-Campaign Home
-Campaign
+Startpagina Campagnes
+Campagne
 Go to the Optimiser
-clicks
+Aantal klikken
 vertoningen
 CPA
 CPC
 CTR
-conversions
-media spend
+conversies
+kosten
 Plaatsingen
-Network & Publisher
-conversions
+Netwerk & Uitgever
+conversies
 vertoningen
 Aantal klikken
 cpc
 Conversieratio
 cpm
 CTR
-Select All
-Bulk Edit
+Selecteer Alle
+bulkbewerking
 Blacklist Selected
 Whitelist Selected
 Suspend Selected
 Whitelist
 Suspend
-Operating Systems used
+Besturingssystemen (OS)
 Plaaatsingen
-creative id
-creative size
+advertentie id
+advertentie formaat
 viewability
-OS
-Carrier
+OS (Besturingssysteem)
+Provider
 netwerk (Verkoper)
-connection type
-device
+connectie-type
+aparaat
 extra
-Publisher
+Uitgever
 Alle
 Converteerd
 CPA buckets / cohorts

@@ -1,16 +1,16 @@
 דף הבית
 קמפיינים
 Optimiser
-Facturering
-Kost
+כַּספִּי
+עֲלוּת
 המרות
 הופעות
-Aantal klikken
+קליקים
 cpc
 cpm
 שיעור המרות
 שיעור קליקים
-compare
+לְהַשְׁווֹת
 Select all
 עבור לדף:
 הצג שורות:
@@ -31,9 +31,9 @@ Go to the Optimiser
 CPC
 שיעור קליקים
 המרות
-media spend
+עֲלוּת
 מיקומים
-Network & Publisher
+רֶשֶׁת + מו'ל
 המרות
 הופעות
 קליקים
@@ -45,24 +45,24 @@ Select All
 Bulk Edit
 Blacklist Selected
 Whitelist Selected
-Suspend Selected
+לְהַשְׁעוֹת Selected
 Whitelist
-Suspend
-Operating Systems used
+לְהַשְׁעוֹת
+מערכות הפעלה
 מיקומים
 creative id
 creative size
 viewability
-OS
-Carrier
+OS (מערכות הפעלה)
+ספקים
 netwerk (Verkoper)
-connection type
-device
-extra
-Publisher
-Alle
+Wi-Fi / ספקים
+דגמים של מכשירים
+תוֹסֶפֶת
+רֶשֶׁת
+הַכֹּל
 המרות
-מחיר/המרה buckets / cohorts
+מחיר/המרה עוקבה (CPA buckets / cohorts) 
 Whitelist
 
 

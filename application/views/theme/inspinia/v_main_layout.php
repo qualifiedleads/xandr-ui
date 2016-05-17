@@ -70,11 +70,7 @@
                 </div>
             </div>
             <div class="wrapper wrapper-content animated fadeInRight">
-                <div class="row">
-                    <div>
-                        <?php echo @$contents;?>
-                    </div>
-                </div>
+                <?php echo @$contents;?>
             </div>
             <div class="footer">
                 <div class="pull-right">

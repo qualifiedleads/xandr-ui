@@ -8,7 +8,7 @@ Kost
 Aantal klikken
 cpc
 cpm
-Conversieratio
+שיעור המרות
 שיעור קליקים
 compare
 Select all
@@ -19,8 +19,8 @@ Select all
 מחיר/המרה
 CPC
 קליקים
-media spend
-conversions
+מחיר
+המרות
 שיעור קליקים
 כל הקמפיינים
 קמפיין
@@ -30,15 +30,15 @@ Go to the Optimiser
 מחיר/המרה
 CPC
 שיעור קליקים
-conversions
+המרות
 media spend
 מיקומים
 Network & Publisher
-conversions
+המרות
 הופעות
-Aantal klikken
+קליקים
 cpc
-Conversieratio
+שיעור המרות
 cpm
 שיעור קליקים
 Select All
@@ -61,7 +61,7 @@ device
 extra
 Publisher
 Alle
-Converteerd
+המרות
 מחיר/המרה buckets / cohorts
 Whitelist
 

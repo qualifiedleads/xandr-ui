@@ -1,8 +1,8 @@
 الرئيسية
 الحملات
 Optimiser
-Billing
-Spend
+مالي
+كلفة
 النقرات المؤدية إلى تحويلات
 الظهور
 النقرات
@@ -10,8 +10,8 @@ cpc
 cpm
 cvr
 ctr
-compare
-Select all
+قارن
+اختار
 الذهاب إلى الصفحة: 
  إظهار الصفوف: 
 من
@@ -33,7 +33,7 @@ CTR
 النقرات المؤدية إلى تحويلات
 التكلفة
 موضع الإعلان
-Network & Publisher
+شبكة والناشر
 النقرات المؤدية إلى تحويلات
 imp
 النقرات
@@ -41,26 +41,26 @@ cpc
 CVR
 cpm
 CTR
-Select All
+اختار
 Bulk Edit
 Blacklist Selected
 Whitelist Selected
-Suspend Selected
+أجل
 Whitelist
-Suspend
-Operating Systems used
+أجل
+أنظمة التشغيل
 موضع الإعلان
 creative id
 creative size
 viewability
 OS
-Carrier
-network (Seller)
-connection type
-device
-extra
+مشغلات شبكة الجوّال
+شبكة (Seller)
+wifi / 3G
+طُرُز الأجهزة
+إضافي
 Publisher
-All
+جميع
 Converted
 CPA buckets / cohorts
 Whitelist

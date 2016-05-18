@@ -21,7 +21,7 @@
                         <span class="nav-label">Optimiser</span></a>
                     </li>
                     <li>
-                        <a href="#"><i class="fa fa-money"></i>
+                        <a href="billing"><i class="fa fa-money"></i>
                         <span class="nav-label">Billing</span></a>
                     </li>
 

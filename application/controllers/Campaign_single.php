@@ -1,7 +1,7 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-class Campaign_tree extends CI_Controller
+class Campaign_single extends CI_Controller
 {
     public function __construct()
     {
@@ -40,7 +40,7 @@ class Campaign_tree extends CI_Controller
 
             if (in_array("users_view",$user_privileges) || in_array("all",$user_privileges))
             {
-                $v_main_layout['contents'] .= $this->load->view("jaiho/campaigns_tree", '', true);
+                $v_main_layout['contents'] .= $this->load->view("jaiho/campaigns_single", '', true);
   
             }
             $this->load->view("jaiho/campaigns_main", $v_main_layout);

@@ -32,6 +32,9 @@ class Dashboard extends CI_Controller
         $v_main_layout['page_info'] = $this->load->view("theme/inspinia/page_heading/v_page_info", $v_page_info, true);
         //$v_main_layout['action_area'] = $this->load->view("theme/inspinia/page_heading/v_action_buttons", "", true);
 
+        // Contents
+        $v_main_layout['contents'] = $this->load->view("theme/inspinia/content/v_dashboard_index", "", true);
+
         $this->load->view("theme/inspinia/v_main_layout", $v_main_layout);
     }
 

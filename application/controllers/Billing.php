@@ -14,12 +14,36 @@ class Billing extends CI_Controller
         date_default_timezone_set('UTC');
         // $this->load->config("custom");
         // $this->load->model("m_users");
+        $this->load->library("auth");
         $this->load->library("Appnexus/Apnx");
     }
 
     public function index()
     {
-        
+        // Limit this particular page to registered users.
+        $this->auth->limit(base_url("portal"));
+
+        // Privilege reference.
+        $user_privileges = explode(',', @$_SESSION['userdata']['privileges']);
+
+        // Navbar Side Contents
+        $v_main_layout['nav_header'] = $this->load->view("theme/inspinia/navbar_static_side/v_nav_header", ["user_privileges"=>$user_privileges], true);
+        $v_main_layout['nav_menus'] = $this->load->view("theme/inspinia/navbar_static_side/v_nav_menus", ["user_privileges"=>$user_privileges], true);
+
+        // Navbar Top Contents
+        $v_main_layout['nav_logout_button'] = $this->load->view("theme/inspinia/navbar_static_top/v_logout_button", "", true);
+
+        // Page Heading
+        $v_page_info['title'] = "Billing";
+        $v_page_info['breadcrumbs'] = array('Home' => base_url(),'Billing' => 'javascript:void(0)');
+        $v_page_info['user_privileges'] = $user_privileges;
+        $v_main_layout['page_info'] = $this->load->view("theme/inspinia/page_heading/v_page_info", $v_page_info, true);
+        //$v_main_layout['action_area'] = $this->load->view("theme/inspinia/page_heading/v_action_buttons", "", true);
+
+        // Contents
+        $v_main_layout['contents'] = $this->load->view("theme/inspinia/content/v_billing", "", true);
+
+        $this->load->view("theme/inspinia/v_main_layout", $v_main_layout);
     }
 
     public function getCostImps($apnx_id = null)
@@ -115,7 +139,7 @@ class Billing extends CI_Controller
                         $data['google']['imps'] += $imps;
                     }
                     // Yahoo
-                    if ($member_id == 273)
+                    elseif ($member_id == 273)
                     {
                         $data['yahoo']['media_cost'] += $media_cost;
                         $data['yahoo']['imps'] += $imps;

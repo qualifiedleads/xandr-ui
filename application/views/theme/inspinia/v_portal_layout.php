@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html>
 
@@ -50,15 +49,6 @@
     <script src="<?php echo base_url('theme/inspinia/js/inspinia.js');?>"></script>
     <script src="<?php echo base_url('theme/inspinia/js/plugins/pace/pace.min.js');?>"></script>
     <script src="<?php echo base_url('theme/inspinia/js/plugins/toastr/toastr.min.js');?>"></script>
-
-    <!-- iCheck -->
-    <script src="<?php echo base_url('theme/inspinia/js/plugins/iCheck/icheck.min.js');?>"></script>
-    <script>
-        $('.i-checks').iCheck({
-            checkboxClass: 'icheckbox_square-green',
-            radioClass: 'iradio_square-green',
-        });
-    </script>
 
 </body>
 

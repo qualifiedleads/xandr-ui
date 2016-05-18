@@ -20,6 +20,13 @@
     <link href="<?php echo base_url('css/plugins/paminta/paminta.css');?>" rel="stylesheet" />
     <link href="<?php echo base_url('css/inspinia-custom.css');?>" rel="stylesheet" />
 
+    <link href="<?php echo base_url('theme/inspinia/css/plugins/jqGrid/ui.jqgrid.css');?>" rel="stylesheet" />
+
+    <!-- Plugins Home -->
+    <link href="<?php echo base_url('theme/inspinia/css/plugins/c3/c3.min.css');?>" rel="stylesheet" />
+    <link href="<?php echo base_url('theme/inspinia/css/plugins/jQueryUI/jquery-ui-1.10.4.custom.min.css');?>" rel="stylesheet" />
+    <link href="<?php echo base_url('theme/inspinia/css/plugins/c3/c3.min.css');?>" rel="stylesheet" />
+
     <!-- Essential -->
     <script src="<?php echo base_url('theme/inspinia/js/jquery-2.1.1.js');?>"></script>
     <!--<script src="<?php echo base_url('js/libs/angular/angular-1.4.8.min.js');?>"></script>-->
@@ -63,11 +70,7 @@
                 </div>
             </div>
             <div class="wrapper wrapper-content animated fadeInRight">
-                <div class="row">
-                    <div>
-                        <?php echo @$contents;?>
-                    </div>
-                </div>
+                <?php echo @$contents;?>
             </div>
             <div class="footer">
                 <div class="pull-right">
@@ -128,11 +131,6 @@
             </form>
         </div>
     </div>
-    <script>
-        $(document).ready(function(){
-            $("#change_pass_form").paminta(users.updateMyPass);
-        })
-    </script>
     <!-- End Extras -->
     <!-- SESSION DATA
     <?php
@@ -150,29 +148,8 @@
     <script src="<?php echo base_url('theme/inspinia/js/inspinia.js');?>"></script>
     <script src="<?php echo base_url('theme/inspinia/js/plugins/pace/pace.min.js');?>"></script>
 
-    <!-- iCheck -->
-    <script src="<?php echo base_url('theme/inspinia/js/plugins/iCheck/icheck.min.js');?>"></script>
-    <script>
-        $(document).ready(function () {
-            $('.i-checks').iCheck({
-                checkboxClass: 'icheckbox_square-green',
-                radioClass: 'iradio_square-green',
-            });
-        });
-    </script>
-
     <!-- Custom -->
     <script src="<?php echo base_url('js/inspinia-custom.js');?>"></script>
-    <!-- Paminta Validator -->
-    <script src="<?php echo base_url('js/plugins/paminta/paminta.js');?>"></script>
-    <script>
-        $(document).ready(function () {
-            $('.i-checks').iCheck({
-                checkboxClass: 'icheckbox_square-green',
-                radioClass: 'iradio_square-green',
-            });
-        });
-    </script>
-
+    
 </body>
 </html>

@@ -27,11 +27,18 @@
                                 </tfoot>
                             </table>
                         </div>
-                        <!-- FooTable -->
-                        <script src="<?php echo base_url('theme/inspinia/js/plugins/footable/footable.all.min.js');?>"></script>
-                        <!-- Page-Level Scripts -->
-                        <script>
-                            $(document).ready(function() {
-                                users.updateTable();
-                            });
-                        </script>
+<!-- FooTable -->
+<script src="<?php echo base_url('theme/inspinia/js/plugins/footable/footable.all.min.js');?>"></script>
+<!-- Page-Level Scripts -->
+<script>
+    $(document).ready(function() {
+        users.updateTable();
+    });
+</script>
+<!-- Paminta Validator -->
+<script src="<?php echo base_url('js/plugins/paminta/paminta.js');?>"></script>
+<script>
+    $(document).ready(function(){
+        $("#change_pass_form").paminta(users.updateMyPass);
+    })
+</script>

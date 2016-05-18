@@ -10,7 +10,7 @@ cpc
 cpm
 Коэфф конверсии
 ctr
-compare
+сравнить
 Select all
 Перейти на страницу:
 Количество строк:
@@ -19,7 +19,7 @@ Select all
 Стоимость конверсии
 CPC
 Клики
-media spend
+расходы
 Конверсии
 CTR
 Все кампании
@@ -31,7 +31,7 @@ Go to the Optimiser
 CPC
 CTR
 Конверсии
-media spend
+Стоимость
 Аудитория
 Network & Publisher
 Конверсии
@@ -48,20 +48,20 @@ Whitelist Selected
 Suspend Selected
 Whitelist
 Suspend
-Operating Systems used
+Операционные системы
 Аудитория
 creative id
 creative size
 viewability
-OS
-Carrier
-netwerk (Verkoper)
-connection type
-device
-extra
-Publisher
-Alle
-Converteerd
+Операционные системы (OS)
+Операторы мобильной связи
+сеть (Seller)
+тип соединения
+Модели устройств
+экстра
+издатель
+все
+Converted
 CPA buckets / cohorts
 Whitelist
 

@@ -1,8 +1,13 @@
 <link href="theme/inspinia/css/plugins/footable/footable.core.css" rel="stylesheet">
+                        <div class="ibox-title" style="vertical-align: middle">
+                            <h5 style="margin: 0">Registered Users</h5>
+                            <div class="ibox-tools" style="overflow: auto">
+                                <div style="float:right;display: inline-block;">
+                                    <input type="text" class="form-control input-sm m-b-xs" id="filter" placeholder="Search in table" />
+                                </div>
+                            </div>
+                        </div>
                         <div class="ibox-content">
-                            <input type="text" class="form-control input-sm m-b-xs" id="filter"
-                                   placeholder="Search in table">
-
                             <table id="users_table" class="table table-stripped" data-page-size="10" data-filter=#filter>
                                 <thead>
                                     <tr>
@@ -34,11 +39,4 @@
     $(document).ready(function() {
         users.updateTable();
     });
-</script>
-<!-- Paminta Validator -->
-<script src="<?php echo base_url('js/plugins/paminta/paminta.js');?>"></script>
-<script>
-    $(document).ready(function(){
-        $("#change_pass_form").paminta(users.updateMyPass);
-    })
 </script>

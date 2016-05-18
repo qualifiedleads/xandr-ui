@@ -131,6 +131,12 @@
             </form>
         </div>
     </div>
+    <script>
+        $(document).ready(function(){
+            $("#change_pass_form").paminta(users.updateMyPass);
+        })
+    </script>
+
     <!-- End Extras -->
     <!-- SESSION DATA
     <?php
@@ -147,6 +153,7 @@
     <script src="<?php echo base_url('theme/inspinia/js/plugins/toastr/toastr.min.js');?>"></script>
     <script src="<?php echo base_url('theme/inspinia/js/inspinia.js');?>"></script>
     <script src="<?php echo base_url('theme/inspinia/js/plugins/pace/pace.min.js');?>"></script>
+    <script src="<?php echo base_url('js/plugins/paminta/paminta.js');?>"></script>
 
     <!-- Custom -->
     <script src="<?php echo base_url('js/inspinia-custom.js');?>"></script>

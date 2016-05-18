@@ -74,7 +74,7 @@
                 }
                 else
                 {
-                    $notice = '<div class="ibox float-e-margins"><div class="ibox-content"><p style="margin:0">You do not have registered billing account.</p></div></div>';
+                    var notice = '<div class="ibox float-e-margins"><div class="ibox-content"><p style="margin:0">You do not have registered billing account.</p></div></div>';
                     $("#billing_content").html(notice);
                 }
             }

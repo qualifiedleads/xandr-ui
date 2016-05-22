@@ -1,9 +1,9 @@
 <style>
-    .home-stats{
+    .home-stats {
         background: white;
     }
 
-    #data-home .tbody{
+    #data-home .tbody {
         overflow-x: scroll;
     }
 </style>
@@ -11,162 +11,162 @@
 <div class="ibox">
     <div class="ibox-content">
         <div class="home-stats">
-    <div class="row">
-        <div class="col-lg-5">
             <div class="row">
-                <div class="col-lg-12 padding">
-                    <canvas id="lineChart" height="150"></canvas>
+                <div class="col-lg-5">
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <canvas id="lineChart" height="150"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3">
+                    <div class="row" style="margin-left: 10px;">
+                        <div class="col-lg-6">
+                            <div class="checkbox">
+                                <input id="checkbox1" type="checkbox">
+                                <label for="checkbox1">
+                                    Impressions
+                                </label>
+                            </div>
+                            <div class="checkbox">
+                                <input id="checkbox1" type="checkbox">
+                                <label for="checkbox1">
+                                    CPA
+                                </label>
+                            </div>
+                            <div class="checkbox">
+                                <input id="checkbox1" type="checkbox">
+                                <label for="checkbox1">
+                                    CPC
+                                </label>
+                            </div>
+                            <div class="checkbox">
+                                <input id="checkbox1" type="checkbox">
+                                <label for="checkbox1">
+                                    CPM
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="checkbox">
+                                <input id="checkbox1" type="checkbox">
+                                <label for="checkbox1">
+                                    Clicks
+                                </label>
+                            </div>
+                            <div class="checkbox">
+                                <input id="checkbox1" type="checkbox">
+                                <label for="checkbox1">
+                                    Conversions
+                                </label>
+                            </div>
+                            <div class="checkbox">
+                                <input id="checkbox1" type="checkbox">
+                                <label for="checkbox1">
+                                    CTR
+                                </label>
+                            </div>
+                            <div class="checkbox">
+                                <input id="checkbox1" type="checkbox">
+                                <label for="checkbox1">
+                                    Media Spend
+                                </label>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+                <div class="col-lg-4">
+                    <div id="world-map" style="height: 200px;"></div>
                 </div>
             </div>
         </div>
-        <div class="col-lg-3">
-            <div class="row">
-                <div class="col-lg-6">
-                    <div class="checkbox">
-                        <input id="checkbox1" type="checkbox">
-                        <label for="checkbox1">
-                            Impressions
-                        </label>
-                    </div>
-                    <div class="checkbox">
-                        <input id="checkbox1" type="checkbox">
-                        <label for="checkbox1">
-                            CPA
-                        </label>
-                    </div>
-                    <div class="checkbox">
-                        <input id="checkbox1" type="checkbox">
-                        <label for="checkbox1">
-                            CPC
-                        </label>
-                    </div>
-                    <div class="checkbox">
-                        <input id="checkbox1" type="checkbox">
-                        <label for="checkbox1">
-                            CPM
-                        </label>
-                    </div>
-                </div>
-                <div class="col-lg-6">
-                    <div class="checkbox">
-                        <input id="checkbox1" type="checkbox">
-                        <label for="checkbox1">
-                            Clicks
-                        </label>
-                    </div>
-                    <div class="checkbox">
-                        <input id="checkbox1" type="checkbox">
-                        <label for="checkbox1">
-                            Conversions
-                        </label>
-                    </div>
-                    <div class="checkbox">
-                        <input id="checkbox1" type="checkbox">
-                        <label for="checkbox1">
-                            CTR
-                        </label>
-                    </div>
-                    <div class="checkbox">
-                        <input id="checkbox1" type="checkbox">
-                        <label for="checkbox1">
-                            Media Spend
-                        </label>
-                    </div>
-                </div>
-
-            </div>
-
-        </div>
-        <div class="col-lg-4">
-            <div id="world-map" style="height: 200px;"></div>
-        </div>
-    </div>
-</div>
 
     </div>
 </div>
 <div class="ibox">
     <div class="ibox-content">
         <div class="home-campaigns">
-    <div class="row">
-        <div class="col-md-6 col-md-offset-3">
-            <div id="range_slider"></div>
+            <div class="row">
+                <div class="col-md-6 col-md-offset-3">
+                    <div id="range_slider"></div>
+                </div>
+            </div>
+            <br>
+            <div class="row">
+                <div class="col-md-6 col-md-offset-3">
+                    <table class="table table-striped table-condensed">
+                        <thead>
+                        <tr>
+                            <th></th>
+                            <th>Spend</th>
+                            <th>Conv.</th>
+                            <th>Imp</th>
+                            <th>Clicks</th>
+                            <th>CPC avg.</th>
+                            <th>CPM avg.</th>
+                            <th>CVR avg.</th>
+                            <th>CTR avg.</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr>
+                            <td><strong>Totals</strong></td>
+                            <td>$1710</td>
+                            <td>13</td>
+                            <td>3.2M</td>
+                            <td>2769</td>
+                            <td>$1.15</td>
+                            <td>$1.57</td>
+                            <td>0.9%</td>
+                            <td>0.4%</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
-    </div>
-    <br>
-    <div class="row">
-        <div class="col-md-6 col-md-offset-3">
-            <table class="table table-striped table-condensed">
-                <thead>
-                <tr>
-                    <th></th>
-                    <th>Spend</th>
-                    <th>Conv.</th>
-                    <th>Imp</th>
-                    <th>Clicks</th>
-                    <th>CPC avg.</th>
-                    <th>CPM avg.</th>
-                    <th>CVR avg.</th>
-                    <th>CTR avg.</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td><strong>Totals</strong></td>
-                    <td>$1710</td>
-                    <td>13</td>
-                    <td>3.2M</td>
-                    <td>2769</td>
-                    <td>$1.15</td>
-                    <td>$1.57</td>
-                    <td>0.9%</td>
-                    <td>0.4%</td>
-                </tr>
-                </tbody>
-            </table>
+        <div class="row">
+            <div class="col-md-12">
+                <table id="data-home" class="table table-striped">
+                    <thead>
+                    <tr>
+                        <th>Line Item</th>
+                        <th>Campaigns</th>
+                        <th>Spend</th>
+                        <th>Conv.</th>
+                        <th>Imp</th>
+                        <th>Clicks</th>
+                        <th>CPC</th>
+                        <th>CPM</th>
+                        <th>CVR</th>
+                        <th>CTR</th>
+                        <th></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td width="1%">1</td>
+                        <td>1</td>
+                        <td>1</td>
+                        <td>1</td>
+                        <td>1</td>
+                        <td>1</td>
+                        <td>1</td>
+                        <td>1</td>
+                        <td>1</td>
+                        <td>1</td>
+                        <td width="30%">
+                            <div>
+                                <canvas id="lineChart2" height="200"></canvas>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
-    </div>
-</div>
-<div class="row">
-    <div class="col-md-12">
-        <table id="data-home" class="table table-striped">
-            <thead>
-                <tr>
-                    <th>Line Item</th>
-                    <th>Campaigns</th>
-                    <th>Spend</th>
-                    <th>Conv.</th>
-                    <th>Imp</th>
-                    <th>Clicks</th>
-                    <th>CPC</th>
-                    <th>CPM</th>
-                    <th>CVR</th>
-                    <th>CTR</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td width="1%">1</td>
-                    <td>1</td>
-                    <td>1</td>
-                    <td>1</td>
-                    <td>1</td>
-                    <td>1</td>
-                    <td>1</td>
-                    <td>1</td>
-                    <td>1</td>
-                    <td>1</td>
-                    <td width="30%">
-                        <div>
-                        <canvas id="lineChart2" height="200"></canvas>
-                        </div>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-</div>
 
     </div>
 </div>
@@ -210,32 +210,32 @@
     $(document).ready(function () {
         // Table
         $('#data-home').DataTable({
-                dom: '<"html5buttons"B>lTfgitp',
-                buttons: [
-                    {
-                        text: 'Active',
-                        action: function(e, dt, node, config){
-                            alert("TODO");
-                        }
-                    }, {
-                        text: 'Inactive',
-                        action: function(e, dt, node, config){
-                            alert("TODO");
-                        }
-                    }, {
-                        text: 'All',
-                        action: function(e, dt, node, config){
-                            alert("TODO");
-                        }
-                    }, {
-                        text: 'Filter',
-                        action: function(e, dt, node, config){
-                            alert("TODO");
-                        }
-                    },
-                ]
+            dom: '<"html5buttons"B>lTfgitp',
+            buttons: [
+                {
+                    text: 'Active',
+                    action: function (e, dt, node, config) {
+                        alert("TODO");
+                    }
+                }, {
+                    text: 'Inactive',
+                    action: function (e, dt, node, config) {
+                        alert("TODO");
+                    }
+                }, {
+                    text: 'All',
+                    action: function (e, dt, node, config) {
+                        alert("TODO");
+                    }
+                }, {
+                    text: 'Filter',
+                    action: function (e, dt, node, config) {
+                        alert("TODO");
+                    }
+                },
+            ]
 
-            });
+        });
 
 
         // Stats
@@ -335,12 +335,12 @@
 
         // Range Slider
         $("#range_slider").noUiSlider({
-            start: [ 7, 14 ],
+            start: [7, 14],
             behaviour: 'drag',
             connect: true,
             range: {
-                'min':  1,
-                'max':  31
+                'min': 1,
+                'max': 31
             }
         });
     });

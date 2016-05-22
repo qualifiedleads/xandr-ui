@@ -8,6 +8,7 @@
     }
 </style>
 
+<p>All Campaigns (Home)</p>
 <div class="ibox">
     <div class="ibox-content">
         <div class="home-stats">

@@ -76,13 +76,14 @@
         </div>
     </div>
 </div>
-
+<br>
 <div class="home-campaigns">
     <div class="row">
         <div class="col-md-6 col-md-offset-3">
             <div id="range_slider"></div>
         </div>
     </div>
+    <br>
     <div class="row">
         <div class="col-md-6 col-md-offset-3">
             <table class="table table-striped table-condensed">
@@ -116,7 +117,45 @@
         </div>
     </div>
 </div>
-
+<br>
+<div class="row">
+    <div class="col-md-12">
+        <table id="data-home" class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Line Item</th>
+                    <th>Campaigns</th>
+                    <th>Spend</th>
+                    <th>Conv.</th>
+                    <th>Imp</th>
+                    <th>Clicks</th>
+                    <th>CPC</th>
+                    <th>CPM</th>
+                    <th>CVR</th>
+                    <th>CTR</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>1</td>
+                    <td>1</td>
+                    <td>1</td>
+                    <td>1</td>
+                    <td>1</td>
+                    <td>1</td>
+                    <td>1</td>
+                    <td>1</td>
+                    <td>1</td>
+                    <td>1</td>
+                    <td>
+                        <canvas id="lineChart2" height="150"></canvas>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
 
 
 <script src="<?php echo base_url('theme/inspinia/js/plugins/nouslider/jquery.nouislider.min.js'); ?>"></script>
@@ -154,6 +193,29 @@
 <script>
 
     $(document).ready(function () {
+        // Table
+        $('.data-home').DataTable({
+                dom: '<"html5buttons"B>lTfgitp',
+                buttons: [
+                    { extend: 'copy'},
+                    {extend: 'csv'},
+                    {extend: 'excel', title: 'ExampleFile'},
+                    {extend: 'pdf', title: 'ExampleFile'},
+
+                    {extend: 'print',
+                     customize: function (win){
+                            $(win.document.body).addClass('white-bg');
+                            $(win.document.body).css('font-size', '10px');
+
+                            $(win.document.body).find('table')
+                                    .addClass('compact')
+                                    .css('font-size', 'inherit');
+                    }
+                    }
+                ]
+
+            });
+
 
         // Stats
         var lineData = {
@@ -202,6 +264,9 @@
 
         var ctx = document.getElementById("lineChart").getContext("2d");
         var myNewChart = new Chart(ctx).Line(lineData, lineOptions);
+
+        var ctx2 = document.getElementById("lineChart2").getContext("2d");
+        var myNewChart2 = new Chart(ctx2).Line(lineData, lineOptions);
 
         // Map Area
         var mapData = {

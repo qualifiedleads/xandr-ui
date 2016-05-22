@@ -2,9 +2,15 @@
     .home-stats{
         background: white;
     }
+
+    #data-home .tbody{
+        overflow-x: scroll;
+    }
 </style>
 
-<div class="home-stats">
+<div class="ibox">
+    <div class="ibox-content">
+        <div class="home-stats">
     <div class="row">
         <div class="col-lg-5">
             <div class="row">
@@ -76,8 +82,12 @@
         </div>
     </div>
 </div>
-<br>
-<div class="home-campaigns">
+
+    </div>
+</div>
+<div class="ibox">
+    <div class="ibox-content">
+        <div class="home-campaigns">
     <div class="row">
         <div class="col-md-6 col-md-offset-3">
             <div id="range_slider"></div>
@@ -117,7 +127,6 @@
         </div>
     </div>
 </div>
-<br>
 <div class="row">
     <div class="col-md-12">
         <table id="data-home" class="table table-striped">
@@ -138,6 +147,7 @@
             </thead>
             <tbody>
                 <tr>
+                    <td width="1%">1</td>
                     <td>1</td>
                     <td>1</td>
                     <td>1</td>
@@ -147,13 +157,17 @@
                     <td>1</td>
                     <td>1</td>
                     <td>1</td>
-                    <td>1</td>
-                    <td>
-                        <canvas id="lineChart2" height="150"></canvas>
+                    <td width="30%">
+                        <div>
+                        <canvas id="lineChart2" height="200"></canvas>
+                        </div>
                     </td>
                 </tr>
             </tbody>
         </table>
+    </div>
+</div>
+
     </div>
 </div>
 
@@ -198,21 +212,27 @@
         $('#data-home').DataTable({
                 dom: '<"html5buttons"B>lTfgitp',
                 buttons: [
-                    { extend: 'copy'},
-                    {extend: 'csv'},
-                    {extend: 'excel', title: 'ExampleFile'},
-                    // {extend: 'pdf', title: 'ExampleFile'},
-
-                    // {extend: 'print',
-                    //  customize: function (win){
-                    //         $(win.document.body).addClass('white-bg');
-                    //         $(win.document.body).css('font-size', '10px');
-
-                    //         $(win.document.body).find('table')
-                    //                 .addClass('compact')
-                    //                 .css('font-size', 'inherit');
-                    // }
-                    // }
+                    {
+                        text: 'Active',
+                        action: function(e, dt, node, config){
+                            alert("TODO");
+                        }
+                    }, {
+                        text: 'Inactive',
+                        action: function(e, dt, node, config){
+                            alert("TODO");
+                        }
+                    }, {
+                        text: 'All',
+                        action: function(e, dt, node, config){
+                            alert("TODO");
+                        }
+                    }, {
+                        text: 'Filter',
+                        action: function(e, dt, node, config){
+                            alert("TODO");
+                        }
+                    },
                 ]
 
             });
@@ -262,12 +282,29 @@
             scaleShowLabels: false
         };
 
+        var lineOptions2 = {
+            scaleShowGridLines: false,
+            scaleGridLineColor: "rgba(0,0,0,.05)",
+            scaleGridLineWidth: 1,
+            bezierCurve: true,
+            bezierCurveTension: 0.4,
+            pointDot: true,
+            pointDotRadius: 4,
+            pointDotStrokeWidth: 1,
+            pointHitDetectionRadius: 20,
+            datasetStroke: true,
+            datasetStrokeWidth: 2,
+            datasetFill: true,
+            responsive: true,
+            scaleShowLabels: false
+        };
+
 
         var ctx = document.getElementById("lineChart").getContext("2d");
         var myNewChart = new Chart(ctx).Line(lineData, lineOptions);
 
         var ctx2 = document.getElementById("lineChart2").getContext("2d");
-        var myNewChart2 = new Chart(ctx2).Line(lineData, lineOptions);
+        var myNewChart2 = new Chart(ctx2).Line(lineData, lineOptions2);
 
         // Map Area
         var mapData = {

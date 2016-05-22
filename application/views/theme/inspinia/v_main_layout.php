@@ -26,6 +26,12 @@
     <link href="<?php echo base_url('theme/inspinia/css/plugins/c3/c3.min.css');?>" rel="stylesheet" />
     <link href="<?php echo base_url('theme/inspinia/css/plugins/jQueryUI/jquery-ui-1.10.4.custom.min.css');?>" rel="stylesheet" />
     <link href="<?php echo base_url('theme/inspinia/css/plugins/c3/c3.min.css');?>" rel="stylesheet" />
+    <link href="<?php echo base_url('theme/inspinia/css/plugins/chartist/chartist.min.css');?>" rel="stylesheet" />
+    <link href="<?php echo base_url('theme/inspinia/css/plugins/ionRangeSlider/ion.rangeSlider.css');?>" rel="stylesheet">
+    <link href="<?php echo base_url('theme/inspinia/css/plugins/ionRangeSlider/ion.rangeSlider.skinFlat.css');?>" rel="stylesheet">
+    <link href="<?php echo base_url('theme/inspinia/css/plugins/nouslider/jquery.nouislider.css');?>" rel="stylesheet">
+    <link href="<?php echo base_url('theme/inspinia/css/plugins/dataTables/datatables.min.css');?>" rel="stylesheet">
+
 
     <!-- Essential -->
     <script src="<?php echo base_url('theme/inspinia/js/jquery-2.1.1.js');?>"></script>

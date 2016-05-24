@@ -9,6 +9,7 @@ class Test extends CI_Controller
     {
         parent::__construct();
         $this->load->library("Appnexus/Apnx");
+        $this->load->helper('url');
     }
     public function index()
     {
@@ -20,6 +21,7 @@ class Test extends CI_Controller
     }
     public function serverName()
     {
-        echo $_SERVER['SERVER_NAME'];
+        $server = $_SERVER['SERVER_NAME'];
+        echo domain_base($server);
     }
 }

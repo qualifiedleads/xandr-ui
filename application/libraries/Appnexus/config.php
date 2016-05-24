@@ -4,7 +4,7 @@
 | Appnexus API Configuration File
 +-------------------------------------------------------------
 */
-include "creds.php";
+@include "creds.php";
 
 // Base endpoint (trailing slash included).
 $config['api_base'] = "http://api.appnexus.com/";

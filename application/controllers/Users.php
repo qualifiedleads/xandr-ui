@@ -476,6 +476,67 @@ class Users extends CI_Controller
                 }
             }
         }
+        elseif($_SERVER['REQUEST_METHOD'] == "POST")
+        {
+            $input = file_get_contents('php://input');
+            $request = json_decode($input, true);
+            $response = [
+                "status" => "error",
+                "code" => null,
+                "message" => "Invalid syntax.",
+                "data" => null,
+                "debug_info" => [
+                    "date" => date($this->config->item('log_date_format'),time())
+                ]
+            ];
+
+            if (isset($request['auth']))
+            {
+                if (isset($request['auth']['token']))
+                {
+                    $result = $this->m_users->getBy(['api_token'=>$request['auth']['token']]);
+                    if (count($result) > 0)
+                    {
+                        $data = $result[0];
+                        if (time() > $data['api_time'])
+                        {
+                            $response['message'] = "Token has expired.";
+                        }
+                        else
+                        {
+                            $response['status'] = "ok";
+                            $response['message'] = "Token is active.";
+                            $response['data'][]['accounts'] = trim($data['apnx_id']);
+                            $response['debug_info']['seconds_to_expire'] = $data['api_time'] - time();
+                        }
+                        $response['debug_info']['items_found'] = count($result);
+                    }
+                    else
+                    {
+                        $response['message'] = "Invalid token.";
+                    }
+                }
+                elseif (isset($request['auth']['username'],$request['auth']['password']))
+                {
+                    $result = $this->auth->signin($request['auth']['username'],$request['auth']['password']);
+                    
+                    if ($result['status'] == "ok")
+                    {
+                        $response['status'] = "ok";
+                        $response['message'] = $result['message'];
+                        $response['data'][]['token'] = $result['data'];
+                    }
+                    elseif ($result['status'] == "error")
+                    {
+                        $response['status'] == "error";
+                        $response['message'] = $result['message'];
+                    }
+                }
+            }
+
+            header("Content-Type: json/application");
+            echo json_encode($response);
+        }
         else
         {
             $this->auth->limit();
@@ -516,8 +577,9 @@ class Users extends CI_Controller
     }
     public function sign_out()
     {
-        unset($_COOKIE['sid']);
+        unset($_COOKIE['sid'],$_COOKIE['authorization']);
         setcookie('sid', null, -1, '/');
+        setcookie('Authorization', null, -1, '/');
         session_destroy();
         header("Location: ".base_url("portal"));
     }

@@ -73,6 +73,8 @@ class M_users extends CI_Model
                 `users`.`apnx_id`,
                 `users`.`token`,
                 `users`.`token_time`,
+                `users`.`api_token`,
+                `users`.`api_time`,
                 `roles`.`type` as `role_name`,
                 `roles`.`privileges`
                 FROM `users`

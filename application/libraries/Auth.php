@@ -109,8 +109,10 @@ class Auth {
 
                 // Update session data to db.
                 $sid_time = time() + (int) $CI->config->item('user_sid_time');
-                $sid_hash = md5($sid_time);
-                $update_params = ["sid"=>$sid_hash,"sid_time"=>$sid_time];
+                $sid_hash = md5($sid_time.$user_data['username']);
+                $api_time = time() + (int) $CI->config->item('api_token_time');
+                $api_token = md5($api_time.$user_data['username']);
+                $update_params = ["sid"=>$sid_hash,"sid_time"=>$sid_time,"api_token"=>$api_token,"api_time"=>$api_time];
                 $CI->m_users->update($update_params, $user_data['user_id']);
 
                 $_SESSION['userdata'] = $user_data;
@@ -119,7 +121,10 @@ class Auth {
                     setcookie("sid", $sid_hash, $sid_time,'/');
                 }
 
-                return array("status"=>"ok","code"=>"active","message"=>"Account is active.");
+                // Set API authorization token.
+                setcookie("Authorization", $api_token, $api_time, '/', domain_base($_SERVER['SERVER_NAME']));
+
+                return array("status"=>"ok","code"=>"active","message"=>"Account is active.", "data"=>$api_token);
 
             }
             else{ // Account is inactive.

@@ -18,4 +18,8 @@ class Test extends CI_Controller
     {
         
     }
+    public function serverName()
+    {
+        echo $_SERVER['SERVER_NAME'];
+    }
 }

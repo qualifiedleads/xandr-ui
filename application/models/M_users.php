@@ -28,12 +28,12 @@ class M_users extends CI_Model
         {
             if($index == 0)
             {
-                $sql .= " WHERE `{$key}`='{$val}'";
+                $sql .= " WHERE `users`.`".stripslashes($key)."`=".$this->db->escape($val);
                 $index++;
             }
             else
             {
-                $sql .= " AND `{$key}`='{$val}'";
+                $sql .= " AND `users`.`".stripslashes($key)."`=".$this->db->escape($val);
             }
         }
 
@@ -86,12 +86,12 @@ class M_users extends CI_Model
         {
             if($index == 0)
             {
-                $sql .= " WHERE `users`.`{$key}`='{$val}'";
+                $sql .= " WHERE `users`.`".stripslashes($key)."`=".$this->db->escape($val);
                 $index++;
             }
             else
             {
-                $sql .= " AND `users`.`{$key}`='{$val}'";
+                $sql .= " AND `users`.`".stripslashes($key)."`=".$this->db->escape($val);
             }
         }
 
@@ -143,12 +143,12 @@ class M_users extends CI_Model
         {
             if($index == 0)
             {
-                $sql .= " WHERE `users`.`{$key}`='{$val}'";
+                $sql .= " WHERE `users`.`".stripslashes($key)."`=".$this->db->escape($val);
                 $index++;
             }
             else
             {
-                $sql .= " AND `users`.`{$key}`='{$val}'";
+                $sql .= " AND `users`.`".stripslashes($key)."`=".$this->db->escape($val);
             }
         }
 
@@ -234,12 +234,12 @@ class M_users extends CI_Model
         {
             if($index == 0)
             {
-                $sql .= " WHERE `users`.`{$key}`='{$val}'";
+                $sql .= " WHERE `users`.`".stripslashes($key)."`=".$this->db->escape($val);
                 $index++;
             }
             else
             {
-                $sql .= " AND `users`.`{$key}`='{$val}'";
+                $sql .= " AND `users`.`".stripslashes($key)."`=".$this->db->escape($val);
             }
         }
 
@@ -303,12 +303,12 @@ class M_users extends CI_Model
         {
             if($index == 0)
             {
-                $sql .= " WHERE `roles`.`{$key}`='{$val}'";
+                $sql .= " WHERE `roles`.`".stripslashes($key)."`=".$this->db->escape($val);
                 $index++;
             }
             else
             {
-                $sql .= " AND `roles`.`{$key}`='{$val}'";
+                $sql .= " AND `roles`.`".stripslashes($key)."`=".$this->db->escape($val);
             }
         }
 
@@ -343,12 +343,12 @@ class M_users extends CI_Model
         {
             if($index == 0)
             {
-                $sql .= " SET `{$key}`='{$val}'";
+                $sql .= " SET `".stripslashes($key)."`=".$this->db->escape($val);
                 $index++;
             }
             else
             {
-                $sql .= ", `{$key}`='{$val}'";
+                $sql .= ", `".stripslashes($key)."`=".$this->db->escape($val);
             }
         }
 
@@ -376,16 +376,16 @@ class M_users extends CI_Model
         {
             if($index == 0)
             {
-                $sql .= " SET `users`.`{$key}`='{$val}'";
+                $sql .= " SET `users`.`".stripslashes($key)."`=".$this->db->escape($val);
                 $index++;
             }
             else
             {
-                $sql .= ", `users`.`{$key}`='{$val}'";
+                $sql .= ", `users`.`".stripslashes($key)."`=".$this->db->escape($val);
             }
         }
 
-        $sql .= " WHERE `users`.`id`={$id}";
+        $sql .= " WHERE `users`.`id`=".$this->db->escape($id);
 
         $query = $this->db->query($sql);
 
@@ -402,7 +402,7 @@ class M_users extends CI_Model
     {
         if (gettype($ids) == "array")
         {
-            $ids = implode(',', $ids);
+            $ids = implode(',', $this->db->escape($ids));
         }
         
         $sql = "DELETE FROM `users` WHERE `users`.`id` IN ($ids)";

@@ -13,29 +13,18 @@
     <link href="<?php echo base_url('theme/inspinia/css/animate.css');?>" rel="stylesheet" />
     <link href="<?php echo base_url('theme/inspinia/css/style.css');?>" rel="stylesheet" />
 
-    <!-- Plugins -->
+    <!-- Plugins CSS -->
     <link href="<?php echo base_url('theme/inspinia/css/plugins/awesome-bootstrap-checkbox/awesome-bootstrap-checkbox.css');?>" rel="stylesheet" />
     <link href="<?php echo base_url('theme/inspinia/css/plugins/iCheck/custom.css');?>" rel="stylesheet" />
     <link href="<?php echo base_url('theme/inspinia/css/plugins/toastr/toastr.min.css');?>" rel="stylesheet" />
     <link href="<?php echo base_url('css/plugins/paminta/paminta.css');?>" rel="stylesheet" />
     <link href="<?php echo base_url('css/inspinia-custom.css');?>" rel="stylesheet" />
 
-    <link href="<?php echo base_url('theme/inspinia/css/plugins/jqGrid/ui.jqgrid.css');?>" rel="stylesheet" />
-
-    <!-- Plugins Home -->
-    <link href="<?php echo base_url('theme/inspinia/css/plugins/c3/c3.min.css');?>" rel="stylesheet" />
-    <link href="<?php echo base_url('theme/inspinia/css/plugins/jQueryUI/jquery-ui-1.10.4.custom.min.css');?>" rel="stylesheet" />
-    <link href="<?php echo base_url('theme/inspinia/css/plugins/c3/c3.min.css');?>" rel="stylesheet" />
-    <link href="<?php echo base_url('theme/inspinia/css/plugins/chartist/chartist.min.css');?>" rel="stylesheet" />
-    <link href="<?php echo base_url('theme/inspinia/css/plugins/ionRangeSlider/ion.rangeSlider.css');?>" rel="stylesheet">
-    <link href="<?php echo base_url('theme/inspinia/css/plugins/ionRangeSlider/ion.rangeSlider.skinFlat.css');?>" rel="stylesheet">
-    <link href="<?php echo base_url('theme/inspinia/css/plugins/nouslider/jquery.nouislider.css');?>" rel="stylesheet">
-    <link href="<?php echo base_url('theme/inspinia/css/plugins/dataTables/datatables.min.css');?>" rel="stylesheet">
-
+    <!-- Extras CSS - Page limted CSS -->
+    <?php echo @$header_css;?>
 
     <!-- Essential -->
     <script src="<?php echo base_url('theme/inspinia/js/jquery-2.1.1.js');?>"></script>
-    <!--<script src="<?php echo base_url('js/libs/angular/angular-1.4.8.min.js');?>"></script>-->
  
 </head>
 <body>
@@ -101,8 +90,9 @@
             </div>
         </div>
     </div>
-    <!-- Extras -->
-    <?php echo @$extras;?>
+
+    <!-- Essentials - Side wide element or functions. -->
+    <!-- Essentials[Modal] -->
     <div class="modal fade inmodal" id="change_pass_modal" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
         <div class="modal-dialog modal-sm">
             <form id="change_pass_form" class="form-custom" method="post">
@@ -142,9 +132,13 @@
             $("#change_pass_form").paminta(users.updateMyPass);
         })
     </script>
+    <!-- End Essentials -->
 
+    <!-- Extras - Page limited element or functions. Pass it on $extras variable from the calling controller. -->
+    <?php echo @$extras;?>
     <!-- End Extras -->
-    <!-- SESSION DATA
+
+    <!-- SESSION DATA - Temporary reference only for checking what's in the current session.
     <?php
         print_r($_SESSION);
     ?>

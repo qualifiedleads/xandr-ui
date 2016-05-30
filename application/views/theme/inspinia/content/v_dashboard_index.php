@@ -1,14 +1,4 @@
-<style>
-    .home-stats {
-        background: white;
-    }
 
-    #data-home .tbody {
-        overflow-x: scroll;
-    }
-</style>
-
-<p>All Campaigns (Home)</p>
 <div class="ibox">
     <div class="ibox-content">
         <div class="home-stats">

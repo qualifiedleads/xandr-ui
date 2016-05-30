@@ -34,8 +34,8 @@ class Billing extends CI_Controller
         $v_main_layout['nav_logout_button'] = $this->load->view("theme/inspinia/navbar_static_top/v_logout_button", "", true);
 
         // Page Heading
-        $v_page_info['title'] = "Billing";
-        $v_page_info['breadcrumbs'] = array('Home' => base_url(),'Billing' => 'javascript:void(0)');
+        $v_page_info['title'] = "Billing Statement";
+        $v_page_info['breadcrumbs'] = array('Home' => base_url(),'Billing' => '');
         $v_page_info['user_privileges'] = $user_privileges;
         $v_main_layout['page_info'] = $this->load->view("theme/inspinia/page_heading/v_page_info", $v_page_info, true);
         //$v_main_layout['action_area'] = $this->load->view("theme/inspinia/page_heading/v_action_buttons", "", true);

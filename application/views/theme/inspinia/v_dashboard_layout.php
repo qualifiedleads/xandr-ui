@@ -65,11 +65,16 @@
                     </div>
                 </div>
             </div>
-            <div class="row wrapper wrapper-content animated fadeInRight">
+            <div class="row wrapper wrapper-content">
                 <div class="col-lg-7">
                     <div class="ibox float-e-margins" id="main_graph">
+                        <div class="ibox-title">
+                            <h5>Line Graph</h5>
+                            <div class="ibox-tools">
+                                <a class="fullscreen-link"><i class="fa fa-expand"></i></a>
+                            </div>
+                        </div>
                         <div class="ibox-content">
-                            <h2 class="no-margins">Line Graph</h2>
                             <div style="height: 218px;margin-top:15px;">
                                 <div id="cumulative_line_chart" style="width:100%;height:100%">&nbsp;</div>
                             </div>
@@ -149,9 +154,59 @@
                     </div>
                 </div>
                 <div class="col-lg-5">
-                    <div class="ibox float-e-margins" id="">
+                    <div class="ibox float-e-margins" id="main_map">
+                        <div class="ibox-title">
+                            <h5>World Map</h5>
+                            <div class="ibox-tools">
+                                <a class="fullscreen-link"><i class="fa fa-expand"></i></a>
+                                <a class="dropdown-toggle" data-toggle="dropdown">
+                                    <i class="fa fa-wrench"></i>
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li>
+                                        <a>
+                                            <div class="radio">
+                                                <input id="map_rb_clks" type="radio" name="map_stat" value="clicks" />
+                                                <label for="map_rb_clks">
+                                                    Clicks
+                                                </label>
+                                            </div>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a>
+                                            <div class="radio">
+                                                <input id="map_rb_cost" type="radio" name="map_stat" value="cost" />
+                                                <label for="map_rb_cost">
+                                                    Cost
+                                                </label>
+                                            </div>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a>
+                                            <div class="radio">
+                                                <input id="map_rb_conv" type="radio" name="map_stat" value="conv" />
+                                                <label for="map_rb_conv">
+                                                    Conversion
+                                                </label>
+                                            </div>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a>
+                                            <div class="radio">
+                                                <input id="map_rb_imps" type="radio" name="map_stat" value="imps" checked="true" />
+                                                <label for="map_rb_imps">
+                                                    Impression
+                                                </label>
+                                            </div>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
                         <div class="ibox-content">
-                            <h2 class="no-margins">Map</h2>
                             <div style="height:450px;margin-top:15px">
                                 <div id="world_map" style="width:100%;height:100%"></div>
                             </div>
@@ -159,7 +214,7 @@
                     </div>
                 </div>
             </div>
-            <div class="wrapper wrapper-content animated fadeInRight">
+            <div class="wrapper wrapper-content">
                 <?php echo @$contents;?>
             </div>
             <div class="footer">

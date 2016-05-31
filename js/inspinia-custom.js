@@ -6,6 +6,11 @@ pageLoader.stop = function() {
     $("#full_loader").css("display", "none");
 }
 modals = {}
+modals.message = function(message="Default message.") {
+    var modal_ob = "#message_modal";
+    $(modal_ob+' .modal-body').html(message);
+    $(modal_ob).modal("show");
+}
 modals.confirm = function(message="Default message?", fn=null) {
     var modal_ob = "#confirm_modal";
     $(modal_ob+' .modal-body').html(message);

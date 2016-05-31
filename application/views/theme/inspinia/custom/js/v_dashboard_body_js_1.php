@@ -136,6 +136,10 @@
                             console.log("Stalled.");
                         }
                     }
+                    else if (response.status == "error")
+                    {
+                        modals.message(response.message);
+                    }    
                 }
             });
         }

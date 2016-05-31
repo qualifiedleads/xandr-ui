@@ -29,14 +29,17 @@ class Dashboard extends CI_Controller
         $v_dashboard_layout['nav_logout_button'] = $this->load->view("theme/inspinia/navbar_static_top/v_logout_button", "", true);
 
         // Page Heading
-        $v_page_info['title'] = "Stats for Advertiser";
+        $v_page_info['title'] = "Welcome ".@$_SESSION['userdata']['company'];
         $v_page_info['breadcrumbs'] = array('Home'=>'');
         $v_page_info['user_privileges'] = $user_privileges;
         $v_dashboard_layout['page_info'] = $this->load->view("theme/inspinia/page_heading/v_page_info", $v_page_info, true);
         $v_dashboard_layout['action_area'] = $this->load->view("theme/inspinia/page_heading/v_action_date_range", "", true);
 
         // Extras
-        $v_dashboard_layout['extras'] = $this->load->view("theme/inspinia/custom/js/v_dashboard_body_js_1", "", true);
+        $v_dashboard_layout['extras'] = "";
+        $v_dashboard_layout['extras'] .= $this->load->view("theme/inspinia/extras/v_modal_confirm", "", true);
+        $v_dashboard_layout['extras'] .= $this->load->view("theme/inspinia/extras/v_modal_message", "", true);
+        $v_dashboard_layout['extras'] .= $this->load->view("theme/inspinia/custom/js/v_dashboard_body_js_1", "", true);
         $v_dashboard_layout['extras'] .= $this->load->view("theme/inspinia/plugins/js/v_date_range_picker", "", true);
         $v_dashboard_layout['extras'] .= $this->load->view("theme/inspinia/plugins/js/v_flot_chart", "", true);
         $v_dashboard_layout['extras'] .= $this->load->view("theme/inspinia/plugins/js/v_jvectormap", "", true);

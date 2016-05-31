@@ -9,7 +9,9 @@
         #main_graph .table td .stat-label {
             display: inline-block;
             cursor: default;
+            font-size: 11px;
             color: white;
+            /*vertical-align: middle;*/
             margin-left: 5px;
             padding: 2px 8px;
             border-radius: 5px;

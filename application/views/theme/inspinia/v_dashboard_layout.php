@@ -172,6 +172,22 @@
             </div>
         </div>
     </div>
+    
+    <!-- Mainly scripts -->
+    <script src="<?php echo base_url('theme/inspinia/js/bootstrap.min.js');?>"></script>
+    <script src="<?php echo base_url('theme/inspinia/js/plugins/metisMenu/jquery.metisMenu.js');?>"></script>
+    <script src="<?php echo base_url('theme/inspinia/js/plugins/slimscroll/jquery.slimscroll.min.js');?>"></script>
+
+    <!-- Custom and plugin javascript -->
+    <script src="<?php echo base_url('theme/inspinia/js/plugins/toastr/toastr.min.js');?>"></script>
+    <script src="<?php echo base_url('theme/inspinia/js/inspinia.js');?>"></script>
+    <script src="<?php echo base_url('theme/inspinia/js/plugins/pace/pace.min.js');?>"></script>
+    <script src="<?php echo base_url('js/plugins/paminta/paminta.js');?>"></script>
+
+    <!-- Custom -->
+    <script src="<?php echo base_url('js/inspinia-custom.js');?>"></script>
+    
+    <!-- Essentials - Side wide element or functions. -->
     <div id="full_loader" class="screen-overlay">
         <div class="cell-wrapper">
             <div class="center-box">
@@ -185,9 +201,6 @@
             </div>
         </div>
     </div>
-
-    <!-- Essentials - Side wide element or functions. -->
-    <!-- Essentials[Modal] -->
     <div class="modal fade inmodal" id="change_pass_modal" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
         <div class="modal-dialog modal-sm">
             <form id="change_pass_form" class="form-custom" method="post">
@@ -227,8 +240,7 @@
             $("#change_pass_form").paminta(users.updateMyPass);
         })
     </script>
-    <!-- End Essentials -->
-
+    
     <!-- Extras - Page limited element or functions. Pass it on $extras variable from the calling controller. -->
     <?php echo @$extras;?>
     <!-- End Extras -->
@@ -238,20 +250,6 @@
         print_r($_SESSION);
     ?>
     -->
-
-    <!-- Mainly scripts -->
-    <script src="<?php echo base_url('theme/inspinia/js/bootstrap.min.js');?>"></script>
-    <script src="<?php echo base_url('theme/inspinia/js/plugins/metisMenu/jquery.metisMenu.js');?>"></script>
-    <script src="<?php echo base_url('theme/inspinia/js/plugins/slimscroll/jquery.slimscroll.min.js');?>"></script>
-
-    <!-- Custom and plugin javascript -->
-    <script src="<?php echo base_url('theme/inspinia/js/plugins/toastr/toastr.min.js');?>"></script>
-    <script src="<?php echo base_url('theme/inspinia/js/inspinia.js');?>"></script>
-    <script src="<?php echo base_url('theme/inspinia/js/plugins/pace/pace.min.js');?>"></script>
-    <script src="<?php echo base_url('js/plugins/paminta/paminta.js');?>"></script>
-
-    <!-- Custom -->
-    <script src="<?php echo base_url('js/inspinia-custom.js');?>"></script>
     
 </body>
 </html>

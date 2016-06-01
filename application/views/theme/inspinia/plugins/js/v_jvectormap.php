@@ -28,8 +28,20 @@
             "RU": 11
         };
 
-        var vmap = new jvm.Map({
-            container: $('#world_map'),
+        var mapData3 = {
+            "CN": 1,
+            "SG": 2,
+            "JP": 3,
+            "PH": 4,
+            "IN": 5,
+            "TH": 6,
+            "MY": 7,
+            "VN": 8,
+        };
+
+        var dataSource = mapData;
+
+        $('#world_map').vectorMap({
             backgroundColor: "transparent",
             regionStyle: {
                 initial: {
@@ -42,16 +54,30 @@
             },
             series: {
                 regions: [{
-                    values: mapData,
-                    scale: ["#1ab394", "#22d6b1"],
+                    values: dataSource,
+                    scale: ["#22d6b1","#027f49"],
                     normalizeFunction: 'polynomial'
                 }]
             },
             onRegionTipShow: function(event, label, code){
                 label.html(
                     label.html()
-                    +' <br/>hits: '+mapData[code]
+                    +' <br/>hits: '+dataSource[code]
                 );
+                //console.log(code);
             }
         });
+        /*
+            TO DO: Implement dynamic update function.
+            
+            #1 Initialize map instance.
+            //  var mapObject = $('#world_map').vectorMap('get', 'mapObject');
+
+            #2 Change data source
+            //  dataSource = new_value;
+
+            #3 Apply new values. 
+            // mapObject.series.regions[0].setValues(mapData2)
+        */
+        
     </script>

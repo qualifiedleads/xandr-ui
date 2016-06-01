@@ -75,10 +75,10 @@
                             </div>
                         </div>
                         <div class="ibox-content">
-                            <div style="height: 218px;margin-top:15px;">
+                            <div class="row_1">
                                 <div id="cumulative_line_chart" style="width:100%;height:100%">&nbsp;</div>
                             </div>
-                            <div style="height: 217px;margin-top:15px;">
+                            <div class="row_2">
                                 <div style="width:100%;height:100%">
                                     <table class="table">
                                         <tbody>
@@ -207,7 +207,7 @@
                             </div>
                         </div>
                         <div class="ibox-content">
-                            <div style="height:450px;margin-top:15px">
+                            <div class="map_container">
                                 <div id="world_map" style="width:100%;height:100%"></div>
                             </div>
                         </div>

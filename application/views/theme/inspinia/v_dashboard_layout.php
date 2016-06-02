@@ -71,6 +71,31 @@
                         <div class="ibox-title">
                             <h5>Line Graph</h5>
                             <div class="ibox-tools">
+                                <div class="vs-dropdown">
+                                    <div class="pallet-box" id="graph_vs_pallet_1">&nbsp;</div>
+                                    <select class="vs-dropdown-metrics" id="graph_metrics_1" name="yaxis-l">
+                                        <option value="clks">Clicks</option>
+                                        <option value="conv" disabled="true">Conversion</option>
+                                        <option value="cpc">CPC</option>
+                                        <option value="cpm">CPM</option>
+                                        <option value="ctr">CTR</option>
+                                        <option value="cvr">CVR</option>
+                                        <option value="imps">Impression</option>
+                                        <option value="cost" selected="true">Spend</option>
+                                    </select>
+                                    &nbsp;vs.&nbsp;
+                                    <div class="pallet-box" id="graph_vs_pallet_2">&nbsp;</div>
+                                    <select class="vs-dropdown-metrics" id="graph_metrics_2" name="yaxis-r">
+                                        <option value="clks">Clicks</option>
+                                        <option value="conv" selected="true">Conversion</option>
+                                        <option value="cpc">CPC</option>
+                                        <option value="cpm">CPM</option>
+                                        <option value="ctr">CTR</option>
+                                        <option value="cvr">CVR</option>
+                                        <option value="imps">Impression</option>
+                                        <option value="cost" disabled="true">Spend</option>
+                                    </select>
+                                </div>
                                 <a class="fullscreen-link"><i class="fa fa-expand"></i></a>
                             </div>
                         </div>
@@ -78,76 +103,42 @@
                             <div class="row_1">
                                 <div id="cumulative_line_chart" style="width:100%;height:100%">&nbsp;</div>
                             </div>
-                            <div class="row_2">
-                                <div style="width:100%;height:100%">
+                            <div class="row row_2">
+                                <div class="col-xs-6">
                                     <table class="table">
                                         <tbody>
                                             <tr>
-                                                <td>
-                                                    <div class="checkbox checkbox-default">
-                                                        <input id="stat_cb_cost" class="graph_cb" type="checkbox" value="cost" checked="true" />
-                                                        <label for="stat_cb_cost">Spend</label>
-                                                    </div>
-                                                    <span class="stat-label" data-for="cost"></span>
-                                                </td>
-                                                <td>
-                                                    <div class="checkbox checkbox-default">
-                                                        <input id="stat_cb_cpc" class="graph_cb" type="checkbox" value="cpc" />
-                                                        <label for="stat_cb_cpc">CPC</label>
-                                                    </div>
-                                                    <span class="stat-label" data-for="cpc"></span>
-                                                </td>
+                                                <td>Spend <span class="stat-label" data-for="cost"></span></td>
                                             </tr>
                                             <tr>
-                                                <td>
-                                                    <div class="checkbox checkbox-default">
-                                                        <input id="stat_cb_conv" class="graph_cb" type="checkbox" value="conv" checked="true" />
-                                                        <label for="stat_cb_conv">Conversion</label>
-                                                    </div>
-                                                    <span class="stat-label" data-for="conv"></span>
-                                                </td>
-                                                <td>
-                                                    <div class="checkbox checkbox-default">
-                                                        <input id="stat_cb_cpm" class="graph_cb" type="checkbox" value="cpm" />
-                                                        <label for="stat_cb_cpm">CPM</label>
-                                                    </div>
-                                                    <span class="stat-label" data-for="cpm"></span>
-                                                </td>
+                                                <td>Conversion <span class="stat-label" data-for="conv"></span></td>
                                             </tr>
                                             <tr>
-                                                <td>
-                                                    <div class="checkbox checkbox-default">
-                                                        <input id="stat_cb_imps" class="graph_cb" type="checkbox" value="imps" />
-                                                        <label for="stat_cb_imps">Impression</label>
-                                                    </div>
-                                                    <span class="stat-label" data-for="imps"></span>
-                                                </td>
-                                                <td>
-                                                    <div class="checkbox checkbox-default">
-                                                        <input id="stat_cb_cvr" class="graph_cb" type="checkbox" value="cvr" />
-                                                        <label for="stat_cb_cvr">CVR</label>
-                                                    </div>
-                                                    <span class="stat-label" data-for="cvr"></span>
-                                                </td>
+                                                <td>Impression <span class="stat-label" data-for="imps"></span></td>
                                             </tr>
                                             <tr>
-                                                <td>
-                                                    <div class="checkbox checkbox-default">
-                                                        <input id="stat_cb_clks" class="graph_cb" type="checkbox" value="clks" />
-                                                        <label for="stat_cb_clks">Clicks</label>
-                                                    </div>
-                                                    <span class="stat-label" data-for="clks"></span>
-                                                </td>
-                                                <td>
-                                                    <div class="checkbox checkbox-default">
-                                                        <input id="stat_cb_ctr" class="graph_cb" type="checkbox" value="ctr" />
-                                                        <label for="stat_cb_ctr">CTR</label>
-                                                    </div>
-                                                    <span class="stat-label" data-for="ctr"></span>
-                                                </td>
+                                                <td>Clicks <span class="stat-label" data-for="clks"></span></td>
                                             </tr>
                                         </tbody>
-                                    </table> 
+                                    </table>
+                                </div>
+                                <div class="col-xs-6">
+                                    <table class="table">
+                                        <tbody>
+                                            <tr>
+                                                <td>CPC <span class="stat-label" data-for="cpc"></span></td>
+                                            </tr>
+                                            <tr>
+                                                <td>CPM <span class="stat-label" data-for="cpm"></span></td>
+                                            </tr>
+                                            <tr>
+                                                <td>CVR <span class="stat-label" data-for="cvr"></span></td>
+                                            </tr>
+                                            <tr>
+                                                <td>CTR <span class="stat-label" data-for="ctr"></span></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
                         </div>

@@ -60,14 +60,14 @@
         dash.total = {cost:0,conv:0,imps:0,clks:0,cpc:0,cpm:0,cvr:0,ctr:0}
         dash.plots =
         {
-            cost : {data: null, color: '#18A689'},
-            conv : {data: null, color: '#21B9BB'},
-            imps : {data: null, color: '#1C84C6'},
-            clks : {data: null, color: '#533A71'},
-            cpc : {data: null, color: '#F8AC59'},
-            cpm : {data: null, color: '#ED5565'},
-            cvr : {data: null, color: '#50514F'},
-            ctr : {data: null, color: '#843B62'}
+            cost : {data: null, hoverable: true, color: '#18A689'},
+            conv : {data: null, hoverable: true, color: '#21B9BB'},
+            imps : {data: null, hoverable: true, color: '#1C84C6'},
+            clks : {data: null, hoverable: true, color: '#533A71'},
+            cpc : {data: null, hoverable: true, color: '#F8AC59'},
+            cpm : {data: null, hoverable: true, color: '#ED5565'},
+            cvr : {data: null, hoverable: true, color: '#50514F'},
+            ctr : {data: null, hoverable: true, color: '#843B62'}
         }
         dash.setPlots = function (data)
         {
@@ -145,33 +145,45 @@
         }
         dash.update = function ()
         {
-            var columns = $('#main_graph input.graph_cb:checked');
-            var column_obs = [];
+            var metrics_1 = $("#graph_metrics_1");
+            var metrics_2 = $("#graph_metrics_2");
+            var dataset_1, dataset_2;
+            
+            // Process the two datasets.
+            $('#graph_vs_pallet_1').css('background-color',dash.plots[metrics_1.val()].color);
+            $('#graph_vs_pallet_2').css('background-color',dash.plots[metrics_2.val()].color);
+            dataset_1 = dash.plots[metrics_1.val()];
+            dataset_2 = dash.plots[metrics_2.val()];
+            dataset_1.yaxis = 1;
+            dataset_2.yaxis = 2;
+            dataset_2.position = "right";
 
-            columns.each(function(){
-                column_obs.push(dash.plots[this.value]);
-            });
             var options = {
                 xaxes: [{mode: 'time'}],
+                yaxes : [
+                    {},
+                    {alignTicksWithAxis: 1,position: "right"}
+                ],
                 grid: {
                     color: "#999999",
                     hoverable: true,
-                    clickable: true,
                     tickColor: "#D4D4D4",
                     borderWidth:0,
                     hoverable: true //IMPORTANT! this is needed for tooltip to work,
                 },
+                
+                /*
                 tooltip: true,
                 tooltipOpts: {
-                content: "%s for %x was %y",
-                xDateFormat: "%y-%0m-%0d",
-
-                onHover: function(flotItem, $tooltipEl) {
-                    // console.log(flotItem, $tooltipEl);
+                    content: "%s for %x was %y",
+                    xDateFormat: "%y-%0m-%0d",
+                    onHover: function(flotItem, $tooltipEl) {
+                        console.log(flotItem, $tooltipEl);
+                    }
                 }
+                */
             }
-            }
-            $.plot($('#cumulative_line_chart'),column_obs,options);
+            $.plot($('#cumulative_line_chart'),[dataset_1,dataset_2],options);
             dash.init();
         }
         dash.init = function()

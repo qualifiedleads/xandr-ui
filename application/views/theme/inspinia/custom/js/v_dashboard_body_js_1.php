@@ -61,7 +61,7 @@
         dash.plots =
         {
             cost : {data: null, hoverable: true, color: '#18A689'},
-            conv : {data: null, hoverable: true, color: '#21B9BB'},
+            conv : {data: null, hoverable: true, color: '#C8D468'},
             imps : {data: null, hoverable: true, color: '#1C84C6'},
             clks : {data: null, hoverable: true, color: '#533A71'},
             cpc : {data: null, hoverable: true, color: '#F8AC59'},

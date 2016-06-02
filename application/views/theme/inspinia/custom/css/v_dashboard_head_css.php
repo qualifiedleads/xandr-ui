@@ -78,6 +78,15 @@
             margin: 0;
             padding: 5px 10px;
         }
-        /* JVector Map */
-        .jvectormap-tip {z-index: 2031}
+        /* jVector Map & Flot Chart */
+        .jvectormap-tip,.flotTip {
+            z-index: 2031 !important;
+            border: solid 1px #CDCDCD;
+            border-radius: 3px;
+            background-color: #292929;
+            color: white;
+            font-family: sans-serif, Verdana;
+            font-size: smaller;
+            padding: 5px;
+        }
     </style>

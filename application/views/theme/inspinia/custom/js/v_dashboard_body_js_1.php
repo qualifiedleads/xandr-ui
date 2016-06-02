@@ -148,7 +148,7 @@
             var metrics_1 = $("#graph_metrics_1");
             var metrics_2 = $("#graph_metrics_2");
             var dataset_1, dataset_2;
-            
+
             // Process the two datasets.
             $('#graph_vs_pallet_1').css('background-color',dash.plots[metrics_1.val()].color);
             $('#graph_vs_pallet_2').css('background-color',dash.plots[metrics_2.val()].color);
@@ -172,16 +172,12 @@
                     hoverable: true //IMPORTANT! this is needed for tooltip to work,
                 },
                 
-                /*
                 tooltip: true,
                 tooltipOpts: {
-                    content: "%s for %x was %y",
-                    xDateFormat: "%y-%0m-%0d",
-                    onHover: function(flotItem, $tooltipEl) {
-                        console.log(flotItem, $tooltipEl);
-                    }
+                    cssClass: "flotTip",
+                    defaultTheme: false,
+                    content: "x: %x <br />y: %y"
                 }
-                */
             }
             $.plot($('#cumulative_line_chart'),[dataset_1,dataset_2],options);
             dash.init();

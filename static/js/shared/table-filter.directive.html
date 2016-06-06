@@ -1,0 +1,42 @@
+<div class="filter-box well form-inline">
+    <form class="form-group">
+        <div class="form-group">
+            <input class="form-control input-medium"
+                   type="search"
+                   ng-model="listOptions.q"
+                   placeholder="Search"/>
+
+            <select class="form-control input-medium"
+                    ng-model="listOptions.searchField"
+                    ng-options="field.field as field.title for field in fields">
+
+                <!-- Default Option -->
+                <option value="">-- Any Field --</option>
+
+            </select>
+
+            <a href=""
+               ng-click="refreshList()"
+               class="btn btn-default input-medium">
+                <span class="glyphicon glyphicon-search"></span>
+            </a>
+
+            <a href="" ui-sref="resource.create({ resource: resource })"
+               class="btn btn-primary input-medium">
+                New
+            </a>
+
+        </div>
+    </form>
+
+    <div class="form-group pull-right" ng-if="statusList != null">
+        <select class="form-control"
+                ng-model="listOptions.filter"
+                ng-options="status.value as status.name for status in filters"
+                ng-change="refreshList()">
+
+            <!-- Default Option -->
+            <option value="">All</option>
+        </select>
+    </div>
+</div>

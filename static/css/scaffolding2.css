@@ -1,0 +1,64 @@
+[ng\:cloak], [ng-cloak], [data-ng-cloak], [x-ng-cloak],
+.ng-cloak, .x-ng-cloak,
+.ng-hide {
+  display: none !important;
+}
+
+
+
+[data-ng-click] {
+	cursor: pointer;
+}
+
+a.skip {
+	position: absolute;
+	left: -9999px;
+}
+
+table.list th {background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, #ffffff), color-stop(1, #eaeaea));}
+table.list > tbody > tr > td { font-size: 10pt; }
+table.list > thead > tr > th { font-size: 10pt; }
+
+/** 
+* Validation Classes for AngularJS
+*/
+.ng-valid {
+	
+}
+.ng-invalid {
+  border-color: #b94a48;
+  
+  -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+     -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+          box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+}
+
+input.ng-invalid.ng-pristine, select.ng-invalid.ng-pristine {
+	border: 1px solid #357ebd;
+	background-color: #F4FFE8;
+}
+
+input.ng-pristine, select.ng-pristine {
+	border-color: #cccccc;
+}
+
+.ng-dirty {
+	
+}
+
+.text-error {
+	color: red;
+}
+
+div.timepicker button.btn-default, 
+div.datepicker button.btn-default {
+	background-image: none !important;
+	border: 0px;
+}
+.rowActive {
+}
+.rowInactive {
+	text-decoration: line-through;
+  	color: silver;
+}
+

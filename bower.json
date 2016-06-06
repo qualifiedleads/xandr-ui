@@ -1,0 +1,40 @@
+{
+  "name": "cockpit",
+  "authors": [
+    "Roselle Ebarle <roselle.ebarle@ocomsoft.com>"
+  ],
+  "description": "",
+  "main": "",
+  "license": "MIT",
+  "homepage": "",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "jquery": "^2.2.3",
+    "bootstrap": "^3.3.6",
+    "angular-strap": "^2.3.8"
+  },
+  "devDependencies": {
+    "angular": "^1.5.5",
+    "angular-resource": "^1.5.5",
+    "angular-ui-router": "^0.3.0",
+    "ocom-angular-scaffolding": "https://ocom.repositoryhosting.com/git/ocom/ocom-angular-scaffolding.git#2.0.2",
+    "angular-strap": "~2.3.1",
+    "textAngular": "1.4.2",
+    "lodash": "~3.10.1",
+    "checklist-model": "~0.6.0",
+    "ui-select": "angular-ui-select#~0.13.2",
+    "angular-sanitize": "~1.4.8",
+    "ngstorage": "~0.3.10",
+    "font-awesome": "~4.5.0"
+  },
+  "resolutions": {
+    "angular": "^1.5.5"
+  }
+}

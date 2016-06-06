@@ -1,0 +1,21 @@
+<div class="well form-inline well-sm">
+    <div class="form-group">
+        <div class="pull-left"
+             data-pagination data-boundary-links="true" data-max-size="10"
+             data-rotate="false" data-items-per-page="listOptions.limit" data-total-items="listOptions.total"
+             ng-model="listOptions.currentPage" ng-change="pageChanged()"></div>
+    </div>
+
+    <div class="form-group pull-right">
+        <div class="btn-group">
+            <button ng-repeat="max in maxRanges"
+                    type="button" class="btn btn-default"
+                    ng-class="{active:listOptions.limit==max}"
+                    ng-click="changeLimit(max)">{{ max }}</button>
+
+            <button disabled="disabled" type="button" class="btn btn-default">
+                of {{ listOptions.total }}
+            </button>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,12 @@
+pytz
+Django
+psycopg2
+data-importer
+untangle
+xmltodict
+djangorestframework
+markdown
+django-filter
+pygments
+httpie
+django-cors-headers

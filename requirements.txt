@@ -10,3 +10,4 @@ django-filter
 pygments
 httpie
 django-cors-headers
+fabric

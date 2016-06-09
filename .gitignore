@@ -4,6 +4,7 @@
 .DS_Store
 node_modules/
 bower_components/
+static-collect/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

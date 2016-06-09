@@ -11,6 +11,6 @@ router = routers.DefaultRouter()
 router.register('raw', views.NetworkAnalyticsRawViewSet)
 
 urlpatterns = [
-                  url(r'^', include(router.urls)),
-                  url(r'^admin/', include(admin.site.urls)),
-              ]
+    url(r'^', include(router.urls)),
+    url(r'^admin/', include(admin.site.urls)),
+]

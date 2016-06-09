@@ -1,4 +1,4 @@
-from api import app
+from stats import app
 
 if __name__ == "__main__":
     app.debug = True

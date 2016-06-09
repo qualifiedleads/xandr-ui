@@ -2,6 +2,6 @@
 
 #### Setup locally
 ````
-python manage.py runserver
+python run.py
 ````
 

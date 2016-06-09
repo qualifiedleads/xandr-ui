@@ -2,12 +2,12 @@ import os
 import json
 from flask import jsonify, redirect, url_for
 from flask import request, send_from_directory
-from api import app
-from api.users import verify_auth_token
-from api.utils import spcall
-from api.utils import build_json, clean_form
-from api.utils import InvalidForm, DuplicateRow, InvalidRequest
-from api.users import user_exists, generate_auth_token
+from stats import app
+from stats.users import verify_auth_token
+from stats.utils import spcall
+from stats.utils import build_json, clean_form
+from stats.utils import InvalidForm, DuplicateRow, InvalidRequest
+from stats.users import user_exists, generate_auth_token
 from passlib.apps import custom_app_context as pwd_context
 from flask.ext.httpauth import HTTPBasicAuth
 

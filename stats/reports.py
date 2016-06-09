@@ -108,4 +108,5 @@ def get_network_analytics():
 
     print reports
 
+
 get_network_analytics()

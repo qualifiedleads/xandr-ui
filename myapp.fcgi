@@ -1,6 +1,6 @@
 #!/usr/bin/python2.7
 from flup.server.fcgi import WSGIServer
-from api import app
+from stats import app
 
 
 if __name__ == '__main__':

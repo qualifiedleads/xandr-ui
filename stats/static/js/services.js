@@ -1,5 +1,5 @@
 function User($resource) {
-    return $resource('/carave/users/:id/', {id: '@id'}, {
+    return $resource('/caravel/users/:id/', {id: '@id'}, {
         'list': {method: 'GET'},
         'update': {method: 'PUT'},
     });

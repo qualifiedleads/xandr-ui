@@ -4,6 +4,9 @@
  */
 (function () {
     angular.module('inspinia', [
+        // Custom
+        'ngResource',
+
         'ui.router',                    // Routing
         'oc.lazyLoad',                  // ocLazyLoad
         'ui.bootstrap',                 // Ui Bootstrap

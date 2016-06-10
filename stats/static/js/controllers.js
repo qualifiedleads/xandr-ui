@@ -10,21 +10,21 @@ function UserAddController(User) {
     vm.formData = new User();
     vm.createUser = createUser;
 
-    function createUser(){
-        vm.formData.$save(function(data){
+    function createUser() {
+        vm.formData.$save(function (data) {
             console.log(data);
             vm.formData = new User();
         });
     }
 }
 
-function UserListController(User){
+function UserListController(User) {
     var vm = this;
 
     vm.users = [];
 
     var loadList = function () {
-        User.get(function(data){
+        User.get(function (data) {
             vm.users = data.results;
         })
     }
@@ -47,7 +47,7 @@ function dashboardMap() {
     this.data = data;
 }
 
-function MainCtrl() {
+function MainCtrl($state) {
     /**
      * Data for Multi line chart
      */
@@ -57,6 +57,7 @@ function MainCtrl() {
     function euroFormatter(v, axis) {
         return v.toFixed(axis.tickDecimals) + "€";
     }
+
     var position = 'right';
 
     /**
@@ -276,6 +277,12 @@ function MainCtrl() {
             fill: ["#1ab394", "#d7d7d7"]
         }
     };
+
+    this.logoutUser = logoutUser;
+
+    function logoutUser() {
+        $state.go('login');
+    }
 };
 
 /**

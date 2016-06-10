@@ -1,1 +1,12 @@
-Flask
+psycopg2
+
+Flask==0.10.1
+Flask-Bcrypt==0.7.1
+Flask-Cors==2.1.2
+Flask-HTTPAuth==3.1.2
+Flask-Migrate==1.8.0
+Flask-RESTful==0.3.5
+Flask-Script==2.0.5
+Flask-SocketIO==2.2
+Flask-SQLAlchemy==2.1
+Flask-Triangle==0.5.4

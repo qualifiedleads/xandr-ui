@@ -6,13 +6,19 @@ from flask import Flask, jsonify, send_from_directory, abort, g
 from flask import request
 from flask.ext.httpauth import HTTPBasicAuth
 from flask_sqlalchemy import SQLAlchemy
+from flask_script import Manager
+from flask_migrate import Migrate, MigrateCommand
 
 from passlib.apps import custom_app_context as pwd_context
 
 
 app = Flask(__name__, static_url_path="")
 app.config.from_pyfile('stats.cfg')
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:1@localhost/rtbstats'
 db = SQLAlchemy(app)
+migrate = Migrate(app, db)
+manager = Manager(app)
+manager.add_command('db', MigrateCommand)
 auth = HTTPBasicAuth()
 
 
@@ -131,4 +137,6 @@ def users_create():
     return jsonify({'username': user.username}), 201
 
 
-db.create_all()
+#db.create_all()
+if __name__ == '__main__':
+    manager.run()

@@ -8,6 +8,19 @@ function UserAddController() {
     var vm = this;
 }
 
+function UserListController(User){
+    var vm = this;
+
+    vm.users = [];
+
+    var loadList = function () {
+        User.get(function(data){
+            vm.users = data.results;
+        })
+    }
+
+    loadList();
+}
 function dashboardMap() {
     var data = {
         "US": 298,

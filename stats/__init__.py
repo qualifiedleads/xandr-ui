@@ -104,12 +104,9 @@ def users_appnexus_get():
 
 # Caravel API Endpoints
 @app.route("/caravel/users/", methods=['GET'])
-@auth.login_required
 def users_caravel_get():
-    headers = apn_service_headers()
-    r = requests.get('https://api.appnexus.com/user', headers=headers)
-    response = json.loads(r.content)
-    return jsonify(response)
+    users = User.query.all()
+    return jsonify({"results": users})
 
 
 @app.route("/caravel/users/", methods=['POST'])

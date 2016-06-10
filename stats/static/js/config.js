@@ -90,6 +90,8 @@ function config($stateProvider, $urlRouterProvider, $ocLazyLoadProvider, IdlePro
         .state('users.all', {
             url: "/all",
             templateUrl: "views/stats/users.html",
+            controller: UserListController,
+            controllerAs: 'vm',
             resolve: {
                 loadPlugin: function ($ocLazyLoad) {
                     return $ocLazyLoad.load([

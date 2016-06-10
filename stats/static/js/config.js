@@ -6,13 +6,14 @@
  * Initial there are written state for all view in theme.
  *
  */
-function config($stateProvider, $urlRouterProvider, $ocLazyLoadProvider, IdleProvider, KeepaliveProvider) {
+function config($stateProvider, $resourceProvider, $urlRouterProvider, $ocLazyLoadProvider, IdleProvider, KeepaliveProvider) {
 
     // Configure Idle settings
     IdleProvider.idle(5); // in seconds
     IdleProvider.timeout(120); // in seconds
 
     $urlRouterProvider.otherwise("/stats/home");
+    $resourceProvider.defaults.stripTrailingSlashes = false;
 
     $ocLazyLoadProvider.config({
         // Set to true if you want to see what and when is dynamically loaded

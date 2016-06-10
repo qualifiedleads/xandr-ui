@@ -4,8 +4,18 @@
  *
  */
 
-function UserAddController() {
+function UserAddController(User) {
     var vm = this;
+
+    vm.formData = new User();
+    vm.createUser = createUser;
+
+    function createUser(){
+        vm.formData.$save(function(data){
+            console.log(data);
+            vm.formData = new User();
+        });
+    }
 }
 
 function UserListController(User){

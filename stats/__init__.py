@@ -111,6 +111,8 @@ def users_caravel_get():
 
 @app.route("/caravel/users/", methods=['POST'])
 def users_create():
+    print "Saving"
+
     username = request.json.get('username')
     email = request.json.get('email')
     first_name = request.json.get('first_name')

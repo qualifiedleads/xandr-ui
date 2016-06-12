@@ -148,7 +148,7 @@ def get_network_analytics():
         #line_item_type
         #insertion_order_type
         "buying_currency",
-        "selling_currency"
+        "selling_currency",
 
         "imps",
         "imps_blank",

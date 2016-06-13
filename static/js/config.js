@@ -6,13 +6,14 @@
  * Initial there are written state for all view in theme.
  *
  */
-function config($stateProvider, $urlRouterProvider, $ocLazyLoadProvider, IdleProvider, KeepaliveProvider) {
+function config($stateProvider, $resourceProvider, $urlRouterProvider, $ocLazyLoadProvider, IdleProvider, KeepaliveProvider) {
 
     // Configure Idle settings
     IdleProvider.idle(5); // in seconds
     IdleProvider.timeout(120); // in seconds
 
     $urlRouterProvider.otherwise("/stats/home");
+    $resourceProvider.defaults.stripTrailingSlashes = false;
 
     $ocLazyLoadProvider.config({
         // Set to true if you want to see what and when is dynamically loaded
@@ -81,6 +82,91 @@ function config($stateProvider, $urlRouterProvider, $ocLazyLoadProvider, IdlePro
             }
         })
 
+        .state('users', {
+            abstract: true,
+            url: "/users",
+            templateUrl: "views/common/content.html"
+        })
+
+        .state('users.all', {
+            url: "/all",
+            templateUrl: "views/stats/users.html",
+            controller: UserListController,
+            controllerAs: 'vm',
+            resolve: {
+                loadPlugin: function ($ocLazyLoad) {
+                    return $ocLazyLoad.load([
+                        {
+
+                            serie: true,
+                            name: 'angular-flot',
+                            files: ['js/plugins/flot/jquery.flot.js', 'js/plugins/flot/jquery.flot.time.js', 'js/plugins/flot/jquery.flot.tooltip.min.js', 'js/plugins/flot/jquery.flot.spline.js', 'js/plugins/flot/jquery.flot.resize.js', 'js/plugins/flot/jquery.flot.pie.js', 'js/plugins/flot/curvedLines.js', 'js/plugins/flot/angular-flot.js',]
+                        },
+                        {
+                            name: 'angles',
+                            files: ['js/plugins/chartJs/angles.js', 'js/plugins/chartJs/Chart.min.js']
+                        },
+                        {
+                            name: 'angular-peity',
+                            files: ['js/plugins/peity/jquery.peity.min.js', 'js/plugins/peity/angular-peity.js']
+                        }
+                    ]);
+                }
+            }
+        })
+
+        .state('users.add', {
+            url: "/add",
+            templateUrl: "views/stats/users-add.html",
+            controller: UserAddController,
+            controllerAs: 'vm',
+            resolve: {
+                loadPlugin: function ($ocLazyLoad) {
+                    return $ocLazyLoad.load([
+                        {
+
+                            serie: true,
+                            name: 'angular-flot',
+                            files: ['js/plugins/flot/jquery.flot.js', 'js/plugins/flot/jquery.flot.time.js', 'js/plugins/flot/jquery.flot.tooltip.min.js', 'js/plugins/flot/jquery.flot.spline.js', 'js/plugins/flot/jquery.flot.resize.js', 'js/plugins/flot/jquery.flot.pie.js', 'js/plugins/flot/curvedLines.js', 'js/plugins/flot/angular-flot.js',]
+                        },
+                        {
+                            name: 'angles',
+                            files: ['js/plugins/chartJs/angles.js', 'js/plugins/chartJs/Chart.min.js']
+                        },
+                        {
+                            name: 'angular-peity',
+                            files: ['js/plugins/peity/jquery.peity.min.js', 'js/plugins/peity/angular-peity.js']
+                        }
+                    ]);
+                }
+            }
+        })
+
+        .state('users.single', {
+            url: "/single",
+            templateUrl: "views/stats/users-single.html",
+            resolve: {
+                loadPlugin: function ($ocLazyLoad) {
+                    return $ocLazyLoad.load([
+                        {
+
+                            serie: true,
+                            name: 'angular-flot',
+                            files: ['js/plugins/flot/jquery.flot.js', 'js/plugins/flot/jquery.flot.time.js', 'js/plugins/flot/jquery.flot.tooltip.min.js', 'js/plugins/flot/jquery.flot.spline.js', 'js/plugins/flot/jquery.flot.resize.js', 'js/plugins/flot/jquery.flot.pie.js', 'js/plugins/flot/curvedLines.js', 'js/plugins/flot/angular-flot.js',]
+                        },
+                        {
+                            name: 'angles',
+                            files: ['js/plugins/chartJs/angles.js', 'js/plugins/chartJs/Chart.min.js']
+                        },
+                        {
+                            name: 'angular-peity',
+                            files: ['js/plugins/peity/jquery.peity.min.js', 'js/plugins/peity/angular-peity.js']
+                        }
+                    ]);
+                }
+            }
+        })
+
         .state('campaigns', {
             abstract: true,
             url: "/campaigns",
@@ -90,6 +176,8 @@ function config($stateProvider, $urlRouterProvider, $ocLazyLoadProvider, IdlePro
         .state('campaigns.tree', {
             url: "/tree",
             templateUrl: "views/stats/campaigns-tree.html",
+            controller: CampaignListController,
+            controllerAs: 'vm',
             resolve: {
                 loadPlugin: function ($ocLazyLoad) {
                     return $ocLazyLoad.load([

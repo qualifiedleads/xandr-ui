@@ -14,7 +14,7 @@
                 <div ibox-tools></div>
             </div>
             <div class="ibox-content">
-                <table class="table table-striped table-hover">
+                <table class="table table-striped table-hover" ng-if="vm.campaigns.length > 0">
                     <thead>
                         <th>Campaign</th>
                         <th>Spend</th>
@@ -27,6 +27,7 @@
                         <th>CTR</th>
                     </thead>
                 </table>
+                <p ng-if="vm.campaigns.length == 0">No campaigns listed.</p>
             </div>
         </div>
     </div>

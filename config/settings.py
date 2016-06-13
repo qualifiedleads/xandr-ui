@@ -38,7 +38,7 @@ INSTALLED_APPS = (
 
     'corsheaders',
     'rest_framework',
-    'api',
+    'rtb',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -119,7 +119,6 @@ STATICFILES_DIRS = [
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Django Rest Framework Additional Settings
 REST_FRAMEWORK = {

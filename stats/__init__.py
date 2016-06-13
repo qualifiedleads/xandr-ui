@@ -3,8 +3,6 @@ import datetime
 
 import requests
 
-from flask_restful import Resource, Api
-from flask_restful import reqparse
 from flask import Flask, jsonify, send_from_directory, abort, g
 from flask import request
 from flask.ext.httpauth import HTTPBasicAuth
@@ -16,16 +14,7 @@ app = Flask(__name__, static_url_path="")
 app.config.from_pyfile('stats.cfg')
 db = SQLAlchemy(app)
 auth = HTTPBasicAuth()
-api = Api(app)
 
-class User(Resource):
-    def get(self, user_id=None):
-        users = User.query.all()
-        return {"results": users}
-
-api.add_resource(User,
-                 '/users/',
-                 '/<string:user_id>')
 
 class UserType(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -117,7 +106,10 @@ def users_appnexus_get():
 @app.route("/caravel/users/", methods=['GET'])
 def users_caravel_get():
     users = User.query.all()
-    return jsonify({"results": users})
+    print "hi"
+    print json.dumps(users)
+    # return jsonify({"results": users})
+    return jsonify({"results": "OK"})
 
 
 @app.route("/caravel/users/", methods=['POST'])

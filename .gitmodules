@@ -1,0 +1,3 @@
+[submodule "src/django-versionfield"]
+	path = src/django-versionfield
+	url = ../../tonioo/django-versionfield.git

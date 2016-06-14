@@ -74,8 +74,8 @@ class BrandInCountry(models.Model):
 
 
 STATE_CHOICES = (
-    ('ACTIVE', 'Active'),
-    ('INACTIVE', 'Inactive'),
+    ('active', 'Active'),
+    ('inactive', 'Inactive'),
 )
 
 TIME_FORMAT_CHOICES = (
@@ -90,7 +90,6 @@ class Advertiser(models.Model):
     name = models.TextField(null=True, blank=True, db_index=True)
     state = models.TextField(
         choices=STATE_CHOICES,
-        default="ACTIVE",
         null=True, blank=True)
     default_brand_id = models.IntegerField(null=True, blank=True, db_index=True)
     remarketing_segment_id = models.IntegerField(null=True, blank=True, db_index=True)
@@ -219,7 +218,7 @@ class NetworkAnalyticsRaw(models.Model):
     csv = models.TextField(null=True, blank=True)
     report_type = models.TextField(null=True, blank=True)
     report_id = models.TextField(null=True, blank=True) #TODO FK is needed in future
-    last_updated = models.DateTimeField(default=datetime.datetime.now)
+    last_updated = models.DateTimeField()
 
     class Meta:
         db_table = "network_analytics_raw"
@@ -240,10 +239,74 @@ class MediaType(models.Model):
     uses_sizes = models.TextField(
         choices=MEDIA_TYPE_SIZES,
         null=True, blank=True)
-    last_modified = models.DateTimeField(default=datetime.datetime.now)
+    last_modified = models.DateTimeField()
 
     class Meta:
         db_table = "media_type"
+
+
+class MediaSubType(models.Model):
+    #https: // wiki.appnexus.com / display / api / Media + Subtype + Service
+    name = models.TextField(null=True, blank=True, db_index=True)
+    media_type = models.ForeignKey("MediaType", null=True, blank=True)
+    #permitted_sizes - see model MediaSubTypePermittedSizes below
+    #native_assets - see model MediaSubTypeNativeAssets below
+    last_modified = models.DateTimeField()
+
+    class Meta:
+        db_table = "media_sub_type"
+
+
+class MediaSubTypePermittedSizes(models.Model):
+    media_sub_type = models.ForeignKey("MediaSubType", null=True, blank=True)
+    platform_width = models.IntegerField(null=True, blank=True)
+    platform_height = models.IntegerField(null=True, blank=True)
+    validate_image_size = models.NullBooleanField(null=True, blank=True)
+    scaling_permitted = models.NullBooleanField(null=True, blank=True)
+    aspect_ratio_tolerance = models.FloatField(null=True, blank=True)
+    min_image_width = models.IntegerField(null=True, blank=True)
+    max_image_width = models.IntegerField(null=True, blank=True)
+    min_image_height = models.IntegerField(null=True, blank=True)
+    max_image_height = models.IntegerField(null=True, blank=True)
+
+    class Meta:
+        db_table = "media_sub_type_permitted_sizes"
+
+
+NATIVE_ASSETS_NAME = (
+    ('title', 'title'),
+    ('content', 'content'),
+    ('description', 'description'),
+    ('full_text', 'full_text'),
+    ('context', 'context'),
+    ('icon_img_url', 'icon_img_url'),
+    ('main_media', 'main_media'),
+    ('cta', 'cta'),
+    ('rating', 'rating'),
+    ('click_fallback_url', 'click_fallback_url')
+)
+
+
+MEDIA_REQUIRENMENT = (
+    ('required', 'required'),
+    ('recommended', 'recommended'),
+    ('optional', 'optional')
+)
+
+
+class MediaSubTypeNativeAssets(models.Model):
+    media_sub_type = models.ForeignKey("MediaSubType", null=True, blank=True)
+    native_asset_name = models.TextField(
+        choices=NATIVE_ASSETS_NAME,
+        null=True, blank=True)
+    min_text_length = models.IntegerField(null=True, blank=True)
+    max_text_length = models.IntegerField(null=True, blank=True)
+    requirement = models.TextField(
+        choices=MEDIA_REQUIRENMENT,
+        null=True, blank=True)
+
+    class Meta:
+        db_table = "media_sub_type_native_assets"
 
 
 RESELLING_EXPOSURE_CHOICES = (
@@ -286,12 +349,12 @@ class Publisher(models.Model):
     reselling_exposure = models.TextField(
         choices=RESELLING_EXPOSURE_CHOICES,
         null=True, blank=True)
-    reselling_exposed_on = models.DateTimeField(default=datetime.datetime.now)
+    reselling_exposed_on = models.DateTimeField()
     reselling_name = models.TextField(null=True, blank=True)
     description = models.TextField(null=True, blank=True)
     is_rtb = models.NullBooleanField(null=True, blank=True)
     timezone = models.TextField(null=True, blank=True) #originally it is enum
-    last_modified = models.DateTimeField(default=datetime.datetime.now)
+    last_modified = models.DateTimeField()
     # stats	object #should be in sepparait model if needed
     max_learn_pct = models.IntegerField(null=True, blank=True)
     learn_bypass_cpm = models.IntegerField(null=True, blank=True)
@@ -309,7 +372,7 @@ class Publisher(models.Model):
     accept_supply_partner_usersync = models.NullBooleanField(null=True, blank=True)
     accept_demand_partner_usersync = models.NullBooleanField(null=True, blank=True)
     accept_data_provider_usersync = models.NullBooleanField(null=True, blank=True)
-    ym_profile_id =  models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    ym_profile_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
     allow_cpm_managed = models.NullBooleanField(null=True, blank=True)
     allow_cpm_external = models.NullBooleanField(null=True, blank=True)
     allow_cpa_managed = models.NullBooleanField(null=True, blank=True)
@@ -390,12 +453,187 @@ class PublisherLabel(models.Model):
         db_table = "publisher_label"
 
 
+CONTENT_CATEGORY_TYPE = (
+    ('standard', 'standard'),
+    ('standard', 'standard')
+)
+
+
+class ContentCategory(models.Model):
+    name = models.TextField(null=True, blank=True, db_index=True)
+    description = models.TextField(null=True, blank=True)
+    is_system = models.NullBooleanField(null=True, blank=True)
+    parent_category = models.ForeignKey("ContentCategory", null=True, blank=True)
+    type = models.TextField(
+        choices=CONTENT_CATEGORY_TYPE,
+        null=True, blank=True)
+    last_modified = models.DateTimeField()
+
+    class Meta:
+        db_table = "content_category"
+
+
+PLACEMENT_POSITION = (
+    ('above', 'above the fold'),
+    ('below', 'below the fold'),
+    ('unknown', 'unknown')
+)
+
+
+PIXEL_TYPE = (
+    ('javascript', 'javascript'),
+    ('image', 'image')
+)
+
+
+AUDIT_LEVEL = (
+    ('site', 'site'),
+    ('placement', 'placement')
+)
+
+
+INTENDED_AUDIENCE = (
+    ('general', 'general'),
+    ('children', 'children'),
+    ('young_adult', 'young_adult'),
+    ('mature', 'mature'),
+
+)
+
+
+DEFAULT_CALCULATION_TYPE = (
+    ('gross', 'gross'),
+    ('net', 'net')
+)
+
+
+FLOOR_APPLICATION_TARGET = (
+    ('external_only', 'external_only'),
+    ('external_non_preferred', 'external_non_preferred'),
+    ('all', 'all')
+)
+
+
+SITE_AUDIT_STATUS = (
+    ('self', 'self'),
+    ('unaudited', 'unaudited')
+)
+
+
 class Placement(models.Model):
     name = models.TextField(null=True, blank=True, db_index=True)
     #TODO to be continued
+    code = models.TextField(null=True, blank=True, db_index=True)
+    code2 = models.TextField(null=True, blank=True, db_index=True)
+    code3 = models.TextField(null=True, blank=True, db_index=True)
+    state = models.TextField(
+        choices=STATE_CHOICES,
+        null=True, blank=True)
+    width = models.IntegerField(null=True, blank=True, db_index=True)
+    height = models.IntegerField(null=True, blank=True, db_index=True)
+    is_resizable = models.NullBooleanField(null=True, blank=True)
+    default_position = models.TextField(
+        choices=PLACEMENT_POSITION,
+        null=True, blank=True)
+    publisher_id = models.ForeignKey("Publisher", null=True, blank=True)
+    site_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    inventory_source_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    ad_profile_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    #supported_media_types = array - see model PlacementMediaType below
+    #supported_media_subtypes = array - see model PlacementMediaSubType below
+    #pop_values = array - see model PlacementPopValues
+    default_creative_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    reserve_price = models.FloatField(null=True, blank=True)
+    hide_referer = models.NullBooleanField(null=True, blank=True)
+    default_referrer_url = models.TextField(null=True, blank=True)
+    visibility_profile_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    exclusive = models.NullBooleanField(null=True, blank=True)
+    pixel_url = models.TextField(null=True, blank=True)
+    pixel_type = models.TextField(
+        choices=PIXEL_TYPE,
+        null=True, blank=True)
+    #content_categories = array -  see model PlacementContentCategory below
+#    filtered_advertisers = array
+#    filtered_line_items = array
+#    filtered_campaigns = array
+#    segments = array
+#    estimated_clear_prices = array
+#    media_subtypes = array
+    intended_audience = models.TextField(
+        choices=INTENDED_AUDIENCE,
+        null=True, blank=True)
+#    inventory_attributes = array
+    audited = models.NullBooleanField(null=True, blank=True)
+    audit_level = models.TextField(
+        choices=AUDIT_LEVEL,
+        null=True, blank=True)
+    default_calculation_type = models.TextField(
+        choices=DEFAULT_CALCULATION_TYPE,
+        null=True, blank=True)
+    apply_floor_to_direct = models.NullBooleanField(null=True, blank=True)
+    demand_filter_action = models.TextField(null=True, blank=True)
+    floor_application_target = models.TextField(
+        choices=FLOOR_APPLICATION_TARGET,
+        null=True, blank=True)
+    pixel_url_secure = models.TextField(null=True, blank=True)
+    site_audit_status = models.TextField(
+        choices=SITE_AUDIT_STATUS,
+        null=True, blank=True)
+    toolbar = object
+    acb_code = models.TextField(null=True, blank=True)
+    tag_data = models.TextField(null=True, blank=True)
+    cost_cpm = models.FloatField(null=True, blank=True)
+    is_prohibited = models.NullBooleanField(null=True, blank=True)
+    last_modified = models.DateTimeField(null=True, blank=True, db_index=True)
+    stats = object
+    content_retrieval_timeout_ms = models.IntegerField(null=True, blank=True, db_index=True)
+    enable_for_mediation = models.NullBooleanField(null=True, blank=True)
+#    private_sizes = array
+    video = object
+#    ad_types = array
+    use_detected_domain = bool
 
     class Meta:
         db_table = "placement"
+
+
+class PlacementContentCategory(models.Model):
+    placement = models.ForeignKey("Placement", null=True, blank=True)
+    content_category = models.ForeignKey("ContentCategory", null=True, blank=True)
+
+    class Meta:
+        db_table = "placement_content_category"
+
+
+class PlacementMediaType(models.Model):
+    placement = models.ForeignKey("Placement", null=True, blank=True)
+    media_type = models.ForeignKey("MediaType", null=True, blank=True)
+    last_modified = models.DateTimeField()
+
+    class Meta:
+        db_table = "placement_media_type"
+
+
+class PlacementPopValues(models.Model):
+    placement = models.ForeignKey("Placement", null=True, blank=True)
+    pop_freq_times = models.IntegerField(null=True, blank=True)
+    pop_freq_duration = models.IntegerField(null=True, blank=True)
+    pop_is_prepop = models.NullBooleanField(null=True, blank=True)
+    pop_max_width = models.IntegerField(null=True, blank=True)
+    pop_max_height = models.IntegerField(null=True, blank=True)
+
+    class Meta:
+        db_table = "placement_pop_values"
+
+
+class PlacementMediaSubType(models.Model):
+    placement = models.ForeignKey("Placement", null=True, blank=True)
+    media_sub_type = models.ForeignKey("MediaSubType", null=True, blank=True)
+    is_private = models.NullBooleanField(null=True, blank=True)
+    last_modified = models.DateTimeField()
+
+    class Meta:
+        db_table = "placement_media_sub_type"
 
 
 class PublisherPlacement(models.Model):
@@ -438,7 +676,7 @@ class NetworkAnalyticsReport(models.Model):
     supply_type = models.TextField(null=True, blank=True)
     payment_type = models.TextField(null=True, blank=True)
     deal_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
-    media_type_id = models.ForeignKey("MediaType", null=True, blank=True) #TODO FK is needed in future
+    media_type = models.ForeignKey("MediaType", null=True, blank=True)
 
     class Meta:
         db_table = "network_analytics_report"

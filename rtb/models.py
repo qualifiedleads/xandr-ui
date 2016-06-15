@@ -78,6 +78,7 @@ STATE_CHOICES = (
     ('inactive', 'Inactive'),
 )
 
+
 TIME_FORMAT_CHOICES = (
     ('12', '12-Hour'),
     ('24', '24-Hour'),
@@ -522,7 +523,6 @@ SITE_AUDIT_STATUS = (
 
 class Placement(models.Model):
     name = models.TextField(null=True, blank=True, db_index=True)
-    #TODO to be continued
     code = models.TextField(null=True, blank=True, db_index=True)
     code2 = models.TextField(null=True, blank=True, db_index=True)
     code3 = models.TextField(null=True, blank=True, db_index=True)
@@ -553,16 +553,15 @@ class Placement(models.Model):
         choices=PIXEL_TYPE,
         null=True, blank=True)
     #content_categories = array -  see model PlacementContentCategory below
-#    filtered_advertisers = array
-#    filtered_line_items = array
-#    filtered_campaigns = array
-#    segments = array
-#    estimated_clear_prices = array
-#    media_subtypes = array
+    #filtered_advertisers = array - see model FilteredAdvertisers below
+    #filtered_line_items = array - see model FilteredLineItems below
+    #filtered_campaigns = array - see model FilteredCampaigns
+    #segments = array - see model AllowedSegments below
+    #estimated_clear_prices = array - see model PlacementEstimatedClearPrices below
     intended_audience = models.TextField(
         choices=INTENDED_AUDIENCE,
         null=True, blank=True)
-#    inventory_attributes = array
+    #inventory_attributes = array - see model PlacementInventoryAttributes
     audited = models.NullBooleanField(null=True, blank=True)
     audit_level = models.TextField(
         choices=AUDIT_LEVEL,
@@ -584,13 +583,13 @@ class Placement(models.Model):
     tag_data = models.TextField(null=True, blank=True)
     cost_cpm = models.FloatField(null=True, blank=True)
     is_prohibited = models.NullBooleanField(null=True, blank=True)
-    last_modified = models.DateTimeField(null=True, blank=True, db_index=True)
+    last_modified = models.DateTimeField(null=True, blank=True)
     stats = object
-    content_retrieval_timeout_ms = models.IntegerField(null=True, blank=True, db_index=True)
+    content_retrieval_timeout_ms = models.IntegerField(null=True, blank=True)
     enable_for_mediation = models.NullBooleanField(null=True, blank=True)
-#    private_sizes = array
+    #private_sizes = array - see model PlacementPrivateSizes below
     video = object
-#    ad_types = array
+    ad_types = models.TextField(null=True, blank=True) #TODO it is an array in origin but there is no description of it so we need to look at the API responce
     use_detected_domain = bool
 
     class Meta:
@@ -603,6 +602,116 @@ class PlacementContentCategory(models.Model):
 
     class Meta:
         db_table = "placement_content_category"
+
+
+class PlacementPrivateSizes(models.Model):
+    placement = models.ForeignKey("Placement", null=True, blank=True)
+    width = models.IntegerField(null=True, blank=True)
+    height = models.IntegerField(null=True, blank=True)
+
+    class Meta:
+        db_table = "placement_private_sizes"
+
+
+class FilteredAdvertisers(models.Model):
+    placement = models.ForeignKey("Placement", null=True, blank=True)
+    advertiser = models.ForeignKey("Advertiser", null=True, blank=True)
+
+    class Meta:
+        db_table = "filtered_advertisers"
+
+
+class FilteredLineItems(models.Model):
+    placement = models.ForeignKey("Placement", null=True, blank=True)
+    line_item = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+
+    class Meta:
+        db_table = "filtered_line_items"
+
+
+class FilteredCampaigns(models.Model):
+    placement = models.ForeignKey("Placement", null=True, blank=True)
+    campaign = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+
+    class Meta:
+        db_table = "filtered_campaigns"
+
+
+class Segment(models.Model):
+    code = models.TextField(null=True, blank=True, db_index=True)
+    state = models.TextField(
+        choices=STATE_CHOICES,
+        null=True, blank=True)
+    short_name = models.TextField(null=True, blank=True, db_index=True)
+    description = models.TextField(null=True, blank=True)
+    member_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    price = models.FloatField(null=True, blank=True)
+    expire_minutes = models.IntegerField(null=True, blank=True)
+    enable_rm_piggyback = models.NullBooleanField(null=True, blank=True)
+    max_usersync_pixels = models.IntegerField(null=True, blank=True)
+    last_modified = models.DateTimeField()
+    provider = models.TextField(null=True, blank=True)
+    advertiser_id = models.ForeignKey("Advertiser", null=True, blank=True)
+    #piggyback_pixels - see model PiggybackPixels below
+    parent_segment_id = models.ForeignKey("Segment", null=True, blank=True)
+    querystring_mapping = models.TextField(null=True, blank=True) #TODO JSON
+    querystring_mapping_key_value = models.TextField(null=True, blank=True) #TODO JSON
+
+    class Meta:
+        db_table = "segment"
+
+
+PYGGYBACK_PIXEL_TYPE = (
+    ('js', 'js'),
+    ('img', 'img')
+)
+
+
+class PiggybackPixels(models.Model):
+    segment = models.ForeignKey("Segment", null=True, blank=True)
+    url = models.TextField(null=True, blank=True)
+    pixel_type = models.TextField(
+        choices=PYGGYBACK_PIXEL_TYPE,
+        null=True, blank=True)
+
+    class Meta:
+        db_table = "piggyback_pixels"
+
+
+class AllowedSegments(models.Model):
+    placement = models.ForeignKey("Placement", null=True, blank=True)
+    segment = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+
+    class Meta:
+        db_table = "allowed_segments"
+
+
+class PlacementEstimatedClearPrices(models.Model):
+    placement = models.ForeignKey("Placement", null=True, blank=True)
+    clear_price = models.IntegerField(null=True, blank=True)
+    average_price = models.IntegerField(null=True, blank=True)
+    width = models.FloatField(null=True, blank=True)
+    height = models.IntegerField(null=True, blank=True)
+    verified = models.NullBooleanField(null=True, blank=True)
+
+    class Meta:
+        db_table = "placement_estimated_clear_prices"
+
+
+class InventoryAttribute(models.Model):
+    name = models.TextField(null=True, blank=True)
+    last_activity = models.DateTimeField()
+
+    class Meta:
+        db_table = "inventory_attribute"
+
+
+class PlacementInventoryAttributes(models.Model):
+    placement = models.ForeignKey("Placement", null=True, blank=True)
+    inventory_attribute = models.ForeignKey("InventoryAttribute", null=True, blank=True)
+
+    class Meta:
+        db_table = "placement_inventory_attributes"
 
 
 class PlacementMediaType(models.Model):

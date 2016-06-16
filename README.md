@@ -9,4 +9,8 @@ python manage.py runserver
 2. Migrating tables
 python manage.py makemigrations rtb
 python manage.py migrate
+
+3. Shedule jobs
+python manage.py crontab add
+On Windows run  Job_install.bat
 ````

@@ -867,28 +867,198 @@ class ConversionPixelPiggybackPixels(models.Model):
         db_table = "conversion_pixel_piggyback_pixels"
 
 
+AGE_BUCKET_CHOISE = (
+    ('0', 'unknown'),
+    ('1', '13-17'),
+    ('2', '18-24'),
+    ('3', '25-34'),
+    ('4', '35-44'),
+    ('5', '45-54'),
+    ('6', '55-64'),
+    ('7', '65+')
+)
+
+
+FOLD_POSITION_CHOISE = (
+    ('0', 'unknown'),
+    ('1', 'above'),
+    ('2', 'below'),
+    ('11', 'Top FB Ad Slot'),
+    ('12', '2nd FB Ad Slot'),
+    ('13', '3nd FB Ad Slot'),
+    ('14', '4nd FB Ad Slot'),
+    ('15', '5nd FB Ad Slot'),
+    ('16', '6nd FB Ad Slot'),
+    ('17', '7nd FB Ad Slot'),
+    ('18', '8nd FB Ad Slot'),
+    ('19', '9nd FB Ad Slot'),
+    ('20', '10nd FB Ad Slot')
+)
+
+
+PLATFORM_TYPE_CHOICE = (
+    ('web', 'web'),
+    ('mobile', 'mobile'),
+    ('both', 'both')
+)
+
+
+class OSFamily(models.Model):
+    name = models.TextField(null=True, blank=True, db_index=True)
+    last_modified = models.DateTimeField()
+
+    class Meta:
+        db_table = "os_family"
+
+
+class OperatingSystem(models.Model):
+    name = models.TextField(null=True, blank=True, db_index=True)
+    platform_type = models.TextField(
+        choices=PLATFORM_TYPE_CHOICE,
+        null=True, blank=True)
+    os_family = models.ForeignKey("OSFamily", null=True, blank=True)
+    last_modified = models.DateTimeField()
+
+    class Meta:
+        db_table = "operating_system"
+
+
+INVENTORY_TYPE_COICES = (
+    ('real_time', 'real_time'),
+    ('direct', 'direct'),
+    ('both', 'both')
+)
+
+
+READLOCK_TYPE_COICES = (
+    ('normal_roadblock', 'normal_roadblock'),
+    ('partial_roadblock', 'partial_roadblock'),
+    ('exact_roadblock', 'exact_roadblock')
+)
+
+
+CREATIVE_DISTRIBUTUIN_TYPE_COICES = (
+    ('even', 'even'),
+    ('weighted', 'weighted'),
+    ('ctr-optimized', 'ctr-optimized')
+)
+
+
+class Campaign(models.Model):
+    state = models.TextField(
+        choices=STATE_CHOICES,
+        null=True, blank=True)
+    parent_inactive = models.NullBooleanField(null=True, blank=True)
+    code = models.TextField(null=True, blank=True, db_index=True)
+    name = models.TextField(null=True, blank=True, db_index=True)
+    short_name = models.TextField(null=True, blank=True, db_index=True)
+    advertiser = models.ForeignKey("Advertiser", null=True, blank=True)
+    profile_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    line_item_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    start_date = models.DateTimeField(db_index=True)
+    end_date = models.DateTimeField(db_index=True)
+    #creatives - see model CampaignCreatives below
+    #creative_groups - se model CampaignLineItems below
+    timezone = models.TextField(null=True, blank=True)
+    last_modified = models.DateTimeField()
+    supply_type = models.TextField(null=True, blank=True)
+    supply_type_action = models.TextField(null=True, blank=True)
+    inventory_type = models.TextField(
+        choices=INVENTORY_TYPE_COICES,
+        null=True, blank=True)
+    roadblock_creatives = models.NullBooleanField(null=True, blank=True)
+    roadblock_type = models.TextField(
+        choices=READLOCK_TYPE_COICES,
+        null=True, blank=True)
+    #stats - will create another model in it will be needed
+    #all_stats - will create another model in it will be needed
+    comments = models.TextField(null=True, blank=True)
+    #labels - see model CampaignLabel below
+    #broker_fees - see CampaignBrokerFees below
+    click_url = models.TextField(null=True, blank=True)
+    valuation_min_margin_rtb_pct = models.DecimalField(max_digits=35, decimal_places=10)
+    remaining_days_eap_multiplier = models.DecimalField(max_digits=35, decimal_places=10)
+    first_run = models.DateTimeField()
+    last_run = models.DateTimeField()
+    alerts = models.TextField(null=True, blank=True)
+    creative_distribution_type = models.TextField(
+        choices=CREATIVE_DISTRIBUTUIN_TYPE_COICES,
+        null=True, blank=True)
+    weight = models.IntegerField(null=True, blank=True)
+
+
+    class Meta:
+        db_table = "campaign"
+
+
+PAYMENT_TYPE_CHOICES = (
+    ('cpm', 'cpm'),
+    ('revshare', 'revshare')
+)
+
+
+class CampaignBrokerFees(models.Model):
+    campaign = models.ForeignKey("Campaign", null=True, blank=True)
+    broker_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    payment_type = models.TextField(
+        choices=PAYMENT_TYPE_CHOICES,
+        null=True, blank=True)
+    value = models.FloatField(null=True, blank=True)
+    description = models.TextField(null=True, blank=True)
+
+    class Meta:
+        db_table = "campaign_brocker_fees"
+
+
+class CampaignLabel(models.Model):
+    label = models.ForeignKey("Label", null=True, blank=True) #id in origin
+    campaign = models.ForeignKey("Campaign", null=True, blank=True)
+
+    class Meta:
+        db_table = "campaign_label"
+
+
+class CampaignCreatives(models.Model):
+    campaign = models.ForeignKey("Campaign", null=True, blank=True)
+    creative = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+
+    class Meta:
+        db_table = "campaign_creatives"
+
+
+class CampaignLineItems(models.Model):
+    campaign = models.ForeignKey("Campaign", null=True, blank=True)
+    line_item = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+
+    class Meta:
+        db_table = "campaign_line_items"
+
+
 class SiteDomainPerformanceReport(models.Model):
     #https://wiki.appnexus.com/display/api/Site+Domain+Performance
     day = models.DateTimeField(null=True, blank=True, db_index=True)
     site_domain = models.TextField(null=True, blank=True, db_index=True)
     campaign = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
     line_item_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
-    campaign_group = models.TextField(null=True, blank=True, db_index=True) #TODO ???
     top_level_category = models.ForeignKey("ContentCategory", related_name='top_level_category_id', null=True, blank=True)
     second_level_category = models.ForeignKey("ContentCategory", related_name='second_level_category_id', null=True, blank=True)
     deal_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
     advertiser = models.ForeignKey("Advertiser", null=True, blank=True)
     #campaign_group = campaign_group is a synonymous with line_item .
     buyer_member_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
-    operating_system_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    operating_system = models.ForeignKey("OperatingSystem", null=True, blank=True)
     supply_type = models.TextField(
         choices=SUPPLY_TYPE,
         null=True, blank=True)
-    mobile_application_id =  models.TextField(null=True, blank=True, db_index=True) #TODO ???
-    mobile_application_name = models.TextField(null=True, blank=True, db_index=True) #TODO ???
-    mobile_application = models.TextField(null=True, blank=True, db_index=True) #TODO ???
-    fold_position_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
-    age_bucket_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    mobile_application_id =  models.TextField(null=True, blank=True, db_index=True)
+    mobile_application_name = models.TextField(null=True, blank=True, db_index=True)
+    mobile_application = models.TextField(null=True, blank=True, db_index=True)
+    fold_position = models.TextField(
+        choices=FOLD_POSITION_CHOISE,
+        null=True, blank=True)
+    age_bucket = models.TextField(
+        choices=AGE_BUCKET_CHOISE,
+        null=True, blank=True)
     gender = models.TextField(
         choices=GENDER,
         null=True, blank=True)

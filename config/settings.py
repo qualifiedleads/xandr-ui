@@ -38,6 +38,7 @@ INSTALLED_APPS = (
 
     'corsheaders',
     'rest_framework',
+	'django_crontab',
     'rtb',
 )
 
@@ -127,3 +128,7 @@ REST_FRAMEWORK = {
         # 'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
     ]
 }
+# Periodic jobs
+CRONJOBS = [
+    ('*/5 * * * *', 'rtb.cron.hourly_task')
+]

@@ -667,7 +667,7 @@ PYGGYBACK_PIXEL_TYPE = (
 )
 
 
-class PiggybackPixels(models.Model):
+class SegmentPiggybackPixels(models.Model):
     segment = models.ForeignKey("Segment", null=True, blank=True)
     url = models.TextField(null=True, blank=True)
     pixel_type = models.TextField(
@@ -675,7 +675,7 @@ class PiggybackPixels(models.Model):
         null=True, blank=True)
 
     class Meta:
-        db_table = "piggyback_pixels"
+        db_table = "segment_piggyback_pixels"
 
 
 class AllowedSegments(models.Model):
@@ -792,3 +792,129 @@ class NetworkAnalyticsReport(models.Model):
         index_together = ["advertiser_id", "hour"]
         index_together = ["publisher_id", "hour"]
         index_together = ["campaign_id", "hour"]
+
+
+SUPPLY_TYPE = (
+    ('web', 'web'),
+    ('mobile_app', 'mobile_app'),
+    ('mobile_web', 'mobile_web')
+)
+
+
+GENDER = (
+    ('m', 'm'),
+    ('f', 'f'),
+    ('u', 'u')
+)
+
+
+TRIGGER_TYPE_CHOICES = (
+    ('view', 'view'),
+    ('click', 'click'),
+    ('hybrid', 'hybrid')
+)
+
+
+class ConversionPixel(models.Model):
+    code = models.TextField(null=True, blank=True, db_index=True)
+    name = models.TextField(null=True, blank=True, db_index=True)
+    state = models.TextField(
+        choices=STATE_CHOICES,
+        null=True, blank=True)
+    #campaigns - see model CampaignConversionPixel below
+    #line_items - see model LineItemConversionPixel below
+    trigger_type = models.TextField(
+        choices=TRIGGER_TYPE_CHOICES,
+        null=True, blank=True)
+    min_minutes_per_conv = models.IntegerField(null=True, blank=True)
+    post_view_expire_mins = models.IntegerField(null=True, blank=True)
+    post_click_expire_mins = models.IntegerField(null=True, blank=True)
+    post_click_value = models.FloatField(null=True, blank=True)
+    post_view_value = models.FloatField(null=True, blank=True)
+    #piggyback_pixels - see model ConversionPixelPiggybackPixels below
+    created_on = models.DateTimeField()
+    last_modified = models.DateTimeField()
+    advertiser = models.ForeignKey("Advertiser", null=True, blank=True)
+
+    class Meta:
+        db_table = "conversion_pixel"
+
+
+class LineItemConversionPixel(models.Model):
+    conversion_pixel = models.ForeignKey("ConversionPixel", null=True, blank=True)
+    line_item = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+
+    class Meta:
+        db_table = "line_item_conversion_pixel"
+
+
+class CampaignConversionPixel(models.Model):
+    conversion_pixel = models.ForeignKey("ConversionPixel", null=True, blank=True)
+    campaign = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+
+    class Meta:
+        db_table = "campaign_conversion_pixel"
+
+
+class ConversionPixelPiggybackPixels(models.Model):
+    segment = models.ForeignKey("ConversionPixel", null=True, blank=True)
+    url = models.TextField(null=True, blank=True)
+    pixel_type = models.TextField(
+        choices=PYGGYBACK_PIXEL_TYPE,
+        null=True, blank=True)
+
+    class Meta:
+        db_table = "conversion_pixel_piggyback_pixels"
+
+
+class SiteDomainPerformanceReport(models.Model):
+    #https://wiki.appnexus.com/display/api/Site+Domain+Performance
+    day = models.DateTimeField(null=True, blank=True, db_index=True)
+    site_domain = models.TextField(null=True, blank=True, db_index=True)
+    campaign = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    line_item_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    campaign_group = models.TextField(null=True, blank=True, db_index=True) #TODO ???
+    top_level_category = models.ForeignKey("ContentCategory", related_name='top_level_category_id', null=True, blank=True)
+    second_level_category = models.ForeignKey("ContentCategory", related_name='second_level_category_id', null=True, blank=True)
+    deal_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    advertiser = models.ForeignKey("Advertiser", null=True, blank=True)
+    #campaign_group = campaign_group is a synonymous with line_item .
+    buyer_member_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    operating_system_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    supply_type = models.TextField(
+        choices=SUPPLY_TYPE,
+        null=True, blank=True)
+    mobile_application_id =  models.TextField(null=True, blank=True, db_index=True) #TODO ???
+    mobile_application_name = models.TextField(null=True, blank=True, db_index=True) #TODO ???
+    mobile_application = models.TextField(null=True, blank=True, db_index=True) #TODO ???
+    fold_position_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    age_bucket_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    gender = models.TextField(
+        choices=GENDER,
+        null=True, blank=True)
+    is_remarketing = models.IntegerField(null=True, blank=True)
+    conversion_pixel = models.ForeignKey("ConversionPixel", null=True, blank=True)
+    booked_revenue = models.DecimalField(max_digits=35, decimal_places=10)
+    clicks = models.IntegerField(null=True, blank=True)
+    click_thru_pct = models.FloatField(null=True, blank=True)
+    convs_per_mm = models.FloatField(null=True, blank=True)
+    convs_rate = models.FloatField(null=True, blank=True)
+    cost_ecpa = models.DecimalField(max_digits=35, decimal_places=10)
+    cost_ecpc = models.DecimalField(max_digits=35, decimal_places=10)
+    cpm = models.DecimalField(max_digits=35, decimal_places=10)
+    ctr = models.FloatField(null=True, blank=True)
+    imps = models.IntegerField(null=True, blank=True)
+    media_cost = models.DecimalField(max_digits=35, decimal_places=10)
+    post_click_convs = models.IntegerField(null=True, blank=True)
+    post_click_convs_rate = models.FloatField(null=True, blank=True)
+    post_view_convs = models.IntegerField(null=True, blank=True)
+    post_view_convs_rate = models.FloatField(null=True, blank=True)
+    profit = models.DecimalField(max_digits=35, decimal_places=10)
+    profit_ecpm = models.DecimalField(max_digits=35, decimal_places=10)
+    imps_viewed = models.IntegerField(null=True, blank=True)
+    view_measured_imps = models.IntegerField(null=True, blank=True)
+    view_rate = models.FloatField(null=True, blank=True)
+    view_measurement_rate = models.FloatField(null=True, blank=True)
+
+    class Meta:
+        db_table = "site_domain_performance_report"

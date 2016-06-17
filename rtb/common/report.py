@@ -5,7 +5,7 @@ import requests
 import time
 import os
 
-log_path=os.path.dirname(os.path.dirname(os.path.abspath(__file__)))+'/logs'
+log_path=os.path.join(os.path.dirname(os.path.dirname(__file__)),'logs')
 
 def get_str_time(): 
     return datetime.datetime.utcnow().isoformat()
@@ -21,7 +21,7 @@ def get_report(rid, token):
 
     response = requests.get(url, headers=headers)
 
-    with open('logs/%s_report_%s.csv'%(get_str_time(),rid), 'wb') as fd:
+    with open('%s/%s_report_%s.csv'%(log_path, get_str_time(),rid), 'wb') as fd:
         for chunk in response.iter_content(1024):
             fd.write(chunk)
 
@@ -149,7 +149,7 @@ def get_specifed_report(report_type):
     
     report_id = out['response']['report_id']
 
-    with open('logs/%s_report_response_%s.json'%(get_str_time(), report_id), 'wb') as f:
+    with open('%s/%s_report_response_%s.json'%(log_path, get_str_time(), report_id), 'wb') as f:
         f.write(r.content)
 
     return get_report_status(report_id, token)

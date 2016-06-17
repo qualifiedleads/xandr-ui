@@ -14,13 +14,13 @@ def analize_csv(csvFile, modelClass, fieldNames):
         c=modelClass()
         for field, fName in zip(row,fieldNames):
             c.__dict__[fName]=field
-        if c.hasattr('TransformFields')
+        if c.hasattr('TransformFields'):
             c.TransformFields()
         result.append(c)
     return result
 
 # Task, executed twice in hour. Get new data from NexusApp
-def hourly_task()
+def hourly_task():
     print ('NexusApp API pooling...')
     #reports.get_specifed_report('network_analytics')
     f=reports.get_specifed_report('site_domain_performance')

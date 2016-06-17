@@ -69,3 +69,6 @@ target/
 #Ipython Notebook
 .ipynb_checkpoints
 rtb/common/logs
+/venv/
+Task.bat
+

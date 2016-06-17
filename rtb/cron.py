@@ -1,4 +1,5 @@
 #!/bin/python
+import datetime
 
 import common.report as reports
 
@@ -6,3 +7,5 @@ import common.report as reports
 def hourly_task()	
 	print ('NexiusApp API pooling...')
 	reports.get_network_analytics()
+	
+if __name__=='__main__':hourly_task()

@@ -2,8 +2,12 @@ import csv
 import json
 import datetime
 import requests
+import time
 
 
+def get_str_time(): 
+    return datetime.datetime.utcnow().isoformat()
+    
 def import_to_db(csv):
     pass
 
@@ -20,8 +24,7 @@ def get_report(rid, token):
     data = response.text
 
     print data
-
-    with open('/tmp/network_analytics_1.csv', 'wb') as fd:
+    with open('logs/%s_network_analytics.csv'%(get_str_time()), 'wb') as fd:
         for chunk in response.iter_content(1024):
             fd.write(chunk)
 
@@ -40,6 +43,7 @@ def get_report_status(rid, token):
         response = requests.get(url, headers=headers)
         content = json.loads(response.content)
         exec_stat = content['response']['execution_status']
+        time.sleep(1000)
 
     data = get_report(rid, token)
 
@@ -101,6 +105,9 @@ def get_network_analytics():
     r = requests.post(url, data=json.dumps(report_data), headers=headers)
 
     out = json.loads(r.content)
+    
+    with open('logs/%s_report_response.json'%(get_str_time()), 'wb') as f:
+        f.write(r.content)
 
     report_id = out['response']['report_id']
 

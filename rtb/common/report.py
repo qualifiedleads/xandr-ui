@@ -3,7 +3,9 @@ import json
 import datetime
 import requests
 import time
+import os
 
+log_path=os.path.dirname(os.path.dirname(os.path.abspath(__file__)))+'/logs'
 
 def get_str_time(): 
     return datetime.datetime.utcnow().isoformat()
@@ -150,7 +152,11 @@ def get_specifed_report(report_type):
     with open('logs/%s_report_response_%s.json'%(get_str_time(), report_id), 'wb') as f:
         f.write(r.content)
 
-    reports = get_report_status(report_id, token)
+    return get_report_status(report_id, token)
+
+try:
+    os.makedirs(log_path)
+except: pass
 
 get_specifed_report('network_analytics')
 #get_specifed_report('site_domain_performance')

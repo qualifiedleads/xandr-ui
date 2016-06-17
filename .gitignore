@@ -72,3 +72,4 @@ rtb/logs
 /venv/
 Task.bat
 
+config/local_settings.py

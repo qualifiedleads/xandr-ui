@@ -19,16 +19,12 @@ def get_report(rid, token):
 
     response = requests.get(url, headers=headers)
 
-    print response
-
-    data = response.text
-
-    print data
-    with open('logs/%s_network_analytics.csv'%(get_str_time()), 'wb') as fd:
+    with open('logs/%s_report_%s.csv'%(get_str_time(),rid), 'wb') as fd:
         for chunk in response.iter_content(1024):
             fd.write(chunk)
 
-    return data
+    #file-like object
+    return response
 
 
 def get_report_status(rid, token):
@@ -48,24 +44,9 @@ def get_report_status(rid, token):
     data = get_report(rid, token)
 
     return data
-
-
-def get_network_analytics():
-    auth_url = "https://api.appnexus.com/auth"
-    data = {"auth": {"username": "stats_api", "password": "API?1nsid3!"}}
-    auth_request = requests.post(auth_url, data=json.dumps(data))
-    response = json.loads(auth_request.content)
-
-    try:
-        token = response['response']['token']
-    except:
-        token = ''
-
-    url = "https://api.appnexus.com/report"
-    report_type = "network_analytics"
-    report_data = {}
-
-    columns = [
+    
+column_sets_for_reports ={
+    "network_analytics":[
         "hour",
         "advertiser_id",
         "advertiser_name",
@@ -90,11 +71,69 @@ def get_network_analytics():
         "cost",
         "commissions",
         "serving_fees"
+    ],
+    "site_domain_performance":[
+        "day" ,
+        "site_domain" ,
+        "campaign" ,
+        "line_item_id" ,
+        "top_level_category" ,
+        "second_level_category" ,
+        "deal_id" ,
+        "advertiser" ,
+        "buyer_member_id" ,
+        "operating_system" ,
+        "supply_type" ,
+        "mobile_application_id" ,
+        "mobile_application_name" ,
+        "mobile_application" ,
+        "fold_position" ,
+        "age_bucket" ,
+        "gender" ,
+        "is_remarketing" ,
+        "conversion_pixel" ,
+        "booked_revenue" ,
+        "clicks" ,
+        "click_thru_pct" ,
+        "convs_per_mm" ,
+        "convs_rate" ,
+        "cost_ecpa" ,
+        "cost_ecpc" ,
+        "cpm" ,
+        "ctr" ,
+        "imps" ,
+        "media_cost" ,
+        "post_click_convs" ,
+        "post_click_convs_rate" ,
+        "post_view_convs" ,
+        "post_view_convs_rate" ,
+        "profit" ,
+        "profit_ecpm" ,
+        "imps_viewed" ,
+        "view_measured_imps" ,
+        "view_rate" ,
+        "view_measurement_rate" ,
     ]
+}
+
+
+def get_specifed_report(report_type):
+    auth_url = "https://api.appnexus.com/auth"
+    data = {"auth": {"username": "stats_api", "password": "API?1nsid3!"}}
+    auth_request = requests.post(auth_url, data=json.dumps(data))
+    response = json.loads(auth_request.content)
+
+    try:
+        token = response['response']['token']
+    except:
+        token = ''
+
+    url = "https://api.appnexus.com/report"
+    report_data = {}
 
     report_data['report'] = {
         "report_type": report_type,
-        "columns": columns,
+        "columns": column_sets_for_reports[report_type],
         "timezone": "UTC",
         "report_interval": "last_hour",
         "format": "csv"
@@ -106,13 +145,12 @@ def get_network_analytics():
 
     out = json.loads(r.content)
     
-    with open('logs/%s_report_response.json'%(get_str_time()), 'wb') as f:
-        f.write(r.content)
-
     report_id = out['response']['report_id']
+
+    with open('logs/%s_report_response_%s.json'%(get_str_time(), report_id), 'wb') as f:
+        f.write(r.content)
 
     reports = get_report_status(report_id, token)
 
-    print reports
-
-get_network_analytics()
+get_specifed_report('network_analytics')
+#get_specifed_report('site_domain_performance')

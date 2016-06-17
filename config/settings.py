@@ -130,5 +130,5 @@ REST_FRAMEWORK = {
 }
 # Periodic jobs
 CRONJOBS = [
-    ('*/5 * * * *', 'rtb.cron.hourly_task')
+    ('*/30 * * * *', 'rtb.cron.hourly_task')
 ]

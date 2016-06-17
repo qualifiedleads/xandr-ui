@@ -3,7 +3,9 @@ import json
 import datetime
 import requests
 import time
+import os
 
+log_path=os.path.dirname(os.path.dirname(os.path.abspath(__file__)))+'/logs'
 
 def get_str_time(): 
     return datetime.datetime.utcnow().isoformat()
@@ -24,7 +26,7 @@ def get_report(rid, token):
     data = response.text
 
     print data
-    with open('logs/%s_network_analytics.csv'%(get_str_time()), 'wb') as fd:
+    with open('%s/%s_network_analytics.csv'%(log_path,get_str_time()), 'wb') as fd:
         for chunk in response.iter_content(1024):
             fd.write(chunk)
 
@@ -106,7 +108,7 @@ def get_network_analytics():
 
     out = json.loads(r.content)
     
-    with open('logs/%s_report_response.json'%(get_str_time()), 'wb') as f:
+    with open('%s/%s_report_response.json'%(log_path,get_str_time()), 'wb') as f:
         f.write(r.content)
 
     report_id = out['response']['report_id']
@@ -114,5 +116,9 @@ def get_network_analytics():
     reports = get_report_status(report_id, token)
 
     print reports
+
+try:
+    os.makedirs(log_path)
+except: pass
 
 get_network_analytics()

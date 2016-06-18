@@ -181,6 +181,13 @@ def get_all_advertisers(token):
     url='https://api.appnexus.com/advertiser'    
     r=requests.get(url,headers = {"Authorization": token});
     print r.content
+    
+def get_report_metadata(token, report_type='')
+    url='https://api.appnexus.com/report?meta'
+    if report_type:
+        url+='='+report_type
+    r=requests.get(url,headers = {"Authorization": token});
+    print r.content
 
 try:
     os.makedirs(log_path)

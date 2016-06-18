@@ -48,6 +48,9 @@ def hourly_task():
     #reports.get_specifed_report('network_analytics')
     try:
         token=reports.get_auth_token()
+        reports.get_report_metadata()
+        print '-'*80
+        reports.get_all_advertisers()
         f=reports.get_specifed_report('site_domain_performance',{'advertiser_id':992089}, token)
         #f=open('/home/alex/rtbstats/rtb/logs/2016-06-18T15:58:22.612795_report_fcdb362c76664babc1a973da2c91a946.csv','r')
         r=analize_csv(f, models.StgSiteDomainPerformanceReport, reports.column_sets_for_reports['site_domain_performance'])

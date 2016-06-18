@@ -5,6 +5,7 @@ import requests
 import time
 import os
 import sets
+from django.conf import settings
 
 log_path=os.path.join(os.path.dirname(os.path.dirname(__file__)),'logs')
 
@@ -129,17 +130,19 @@ column_sets_for_reports ={
 }
 no_hours_reports=sets.Set(["site_domain_performance"])
 
-def get_specifed_report(report_type,query_data={}):
-    auth_url = "https://api.appnexus.com/auth"
-    data = {"auth": {"username": "stats_api", "password": "API?1nsid3!"}}
-    auth_request = requests.post(auth_url, data=json.dumps(data))
-    response = json.loads(auth_request.content)
 
+def get_auth_token():
     try:
-        token = response['response']['token']
+        auth_url = "https://api.appnexus.com/auth"
+        data = {"auth": settings.}
+        auth_request = requests.post(auth_url, data=json.dumps(data))
+        response = json.loads(auth_request.content)
+        return response['response']['token']
     except:
-        token = ''
+        return None
 
+def get_specifed_report(report_type,query_data={}):
+    token=get_auth_token()
     url = "https://api.appnexus.com/report"
     report_data = {}
 #    if query_data:
@@ -174,6 +177,12 @@ def get_specifed_report(report_type,query_data={}):
     
 
     return get_report_status(report_id, token)
+    
+#function to get all advertisers
+def get_all_advertisers(token):    
+    url='https://api.appnexus.com/advertiser'    
+    r=requests.get(url,headers = {"Authorization": token});
+    print r.content
 
 try:
     os.makedirs(log_path)

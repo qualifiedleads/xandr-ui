@@ -132,3 +132,7 @@ REST_FRAMEWORK = {
 CRONJOBS = [
     ('*/30 * * * *', 'rtb.cron.hourly_task')
 ]
+NEXUS_AUTH_DATA= {
+    "username": "stats_api", 
+    "password": "API?1nsid3!"
+}

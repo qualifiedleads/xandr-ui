@@ -850,7 +850,11 @@ class LineItemConversionPixel(models.Model):
 
 class CampaignConversionPixel(models.Model):
     conversion_pixel = models.ForeignKey("ConversionPixel", null=True, blank=True)
-    campaign = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    campaign = models.ForeignKey("Campaign", null=True, blank=True)
+    roi_click_goal = models.FloatField(null=True, blank=True)
+    roi_view_goal = models.FloatField(null=True, blank=True)
+    click_payout = models.FloatField(null=True, blank=True)
+    view_payout = models.FloatField(null=True, blank=True)
 
     class Meta:
         db_table = "campaign_conversion_pixel"
@@ -923,6 +927,171 @@ class OperatingSystem(models.Model):
         db_table = "operating_system"
 
 
+TARGETS_OPERATOR_CHOICE = (
+    ('and', 'and'),
+    ('or', 'or')
+)
+
+
+TARGETS_ACTION_CHOICE = (
+    ('include', 'include'),
+    ('exclude', 'exclude')
+)
+
+
+PROFILE_TRUST_LEVEL_CHOICE = (
+    ('appnexus', 'appnexus'),
+    ('seller', 'seller')
+)
+
+
+SESSION_FREQ_COUNTING_TYPE_CHOICE = (
+    ('platform', 'platform'),
+    ('publisher', 'publisher')
+)
+
+
+class Profile(models.Model):
+    #https://wiki.appnexus.com/display/api/Profile+Service
+    code = models.TextField(null=True, blank=True)
+    description = models.TextField(null=True, blank=True, db_index=True)
+    is_template = models.NullBooleanField(null=True, blank=True)
+    last_modified = models.DateTimeField()
+    max_lifetime_imps = models.IntegerField(null=True, blank=True)
+    min_session_imps = models.IntegerField(null=True, blank=True)
+    max_session_imps = models.IntegerField(null=True, blank=True)
+    max_day_imps = models.IntegerField(null=True, blank=True)
+    min_minutes_per_imp = models.IntegerField(null=True, blank=True)
+    max_page_imps = models.IntegerField(null=True, blank=True)
+
+    daypart_timezone = models.TextField(null=True, blank=True)
+    daypart_targets = models.TextField(null=True, blank=True) #array of objects in origin TODO it is needed to be concidered if we need a sepparait model here
+    segment_targets = models.TextField(null=True, blank=True) #array of objects in origin TODO it is needed to be concidered if we need a sepparait model here
+    segment_group_targets = models.TextField(null=True, blank=True) #array of objects in origin TODO it is needed to be concidered if we need a sepparait model here
+    segment_boolean_operator = models.TextField(
+        choices=TARGETS_OPERATOR_CHOICE,
+        null=True, blank=True)
+    age_targets = models.TextField(null=True, blank=True) #array of objects in origin TODO it is needed to be concidered if we need a sepparait model here
+    gender_targets = models.TextField(null=True, blank=True) #array of objects in origin TODO it is needed to be concidered if we need a sepparait model here
+    country_targets = models.TextField(null=True, blank=True) #array of objects in origin TODO it is needed to be concidered if we need a sepparait model here
+    country_action = models.TextField(
+        choices=TARGETS_ACTION_CHOICE,
+        null=True, blank=True)
+    region_targets = models.TextField(null=True, blank=True) #array of objects in origin TODO it is needed to be concidered if we need a sepparait model here
+    region_action = models.TextField(
+        choices=TARGETS_ACTION_CHOICE,
+        null=True, blank=True)
+    dma_targets = models.TextField(null=True, blank=True) #array of objects in origin TODO it is needed to be concidered if we need a sepparait model here
+    dma_action = models.TextField(
+        choices=TARGETS_ACTION_CHOICE,
+        null=True, blank=True)
+    city_targets = models.TextField(null=True, blank=True) #array of objects in origin TODO it is needed to be concidered if we need a sepparait model here
+    city_action = models.TextField(
+        choices=TARGETS_ACTION_CHOICE,
+        null=True, blank=True)
+    domain_targets = models.TextField(null=True, blank=True) #array of objects in origin TODO it is needed to be concidered if we need a sepparait model here
+    domain_action = models.TextField(
+        choices=TARGETS_ACTION_CHOICE,
+        null=True, blank=True)
+    domain_list_targets = models.TextField(null=True, blank=True) #array of objects in origin TODO it is needed to be concidered if we need a sepparait model here
+    domain_list_action = models.TextField(
+        choices=TARGETS_ACTION_CHOICE,
+        null=True, blank=True)
+    platform_placement_targets = models.TextField(null=True, blank=True) #array of objects in origin TODO it is needed to be concidered if we need a sepparait model here
+    size_targets = models.TextField(null=True, blank=True) #array of objects in origin TODO it is needed to be concidered if we need a sepparait model here
+    seller_member_group_targets = models.TextField(null=True, blank=True) #array of objects in origin TODO it is needed to be concidered if we need a sepparait model here
+    member_targets = models.TextField(null=True, blank=True) #array of objects in origin TODO it is needed to be concidered if we need a sepparait model here
+    member_default_action = models.TextField(
+        choices=TARGETS_ACTION_CHOICE,
+        null=True, blank=True)
+    video_targets = models.TextField(null=True, blank=True) #array of objects in origin TODO it is needed to be concidered if we need a sepparait model here
+    engagement_rate_targets = models.TextField(null=True, blank=True) #array of objects in origin TODO it is needed to be concidered if we need a sepparait model here
+    publisher_targets = models.TextField(null=True, blank=True) #array of objects in origin TODO it is needed to be concidered if we need a sepparait model here
+    site_targets = models.TextField(null=True, blank=True) #array of objects in origin TODO it is needed to be concidered if we need a sepparait model here
+    placement_targets = models.TextField(null=True, blank=True) #array of objects in origin TODO it is needed to be concidered if we need a sepparait model here
+    inventory_action = models.TextField(
+        choices=TARGETS_ACTION_CHOICE,
+        null=True, blank=True)
+    content_category_targets = models.TextField(null=True, blank=True) #array of objects in origin TODO it is needed to be concidered if we need a sepparait model here
+    deal_targets = models.TextField(null=True, blank=True) #array of objects in origin TODO it is needed to be concidered if we need a sepparait model here
+    platform_publisher_targets = models.TextField(null=True, blank=True) #array of objects in origin TODO it is needed to be concidered if we need a sepparait model here
+    platform_content_category_targets = models.TextField(null=True, blank=True) #array of objects in origin TODO it is needed to be concidered if we need a sepparait model here
+    use_inventory_attribute_targets = models.TextField(null=True, blank=True) #array of objects in origin TODO it is needed to be concidered if we need a sepparait model here
+    trust = models.TextField(
+        choices=PROFILE_TRUST_LEVEL_CHOICE,
+        null=True, blank=True)
+    certified_supply = models.NullBooleanField(null=True, blank=True)
+    allow_unaudited = models.NullBooleanField(null=True, blank=True)
+    session_freq_type = models.TextField(
+        choices=SESSION_FREQ_COUNTING_TYPE_CHOICE,
+        null=True, blank=True)
+    inventory_attribute_targets = models.TextField(null=True, blank=True) #array of objects in origin TODO it is needed to be concidered if we need a sepparait model here
+    intended_audience_targets = models.TextField(null=True, blank=True) #array of objects in origin TODO it is needed to be concidered if we need a sepparait model here
+    language_targets = models.TextField(null=True, blank=True) #array of objects in origin TODO it is needed to be concidered if we need a sepparait model here
+    language_action = models.TextField(
+        choices=TARGETS_ACTION_CHOICE,
+        null=True, blank=True)
+    querystring_targets = models.TextField(null=True, blank=True) #array of objects in origin TODO it is needed to be concidered if we need a sepparait model here
+    querystring_action = models.TextField(
+        choices=TARGETS_ACTION_CHOICE,
+        null=True, blank=True)
+    querystring_boolean_operator = models.TextField(
+        choices=TARGETS_OPERATOR_CHOICE,
+        null=True, blank=True)
+    postal_code_targets = models.TextField(null=True, blank=True) #array of objects in origin TODO it is needed to be concidered if we need a sepparait model here
+    zip_targets = models.TextField(null=True, blank=True) #array of objects in origin TODO it is needed to be concidered if we need a sepparait model here
+    supply_type_targets = models.TextField(null=True, blank=True) #array of objects in origin TODO it is needed to be concidered if we need a sepparait model here
+    supply_type_action = models.TextField(
+        choices=TARGETS_ACTION_CHOICE,
+        null=True, blank=True)
+    user_group_targets = models.TextField(null=True, blank=True) #array of objects in origin TODO it is needed to be concidered if we need a sepparait model here
+    position_targets = models.TextField(null=True, blank=True) #array of objects in origin TODO it is needed to be concidered if we need a sepparait model here
+    browser_targets = models.TextField(null=True, blank=True) #array of objects in origin TODO it is needed to be concidered if we need a sepparait model here
+    browser_action = models.TextField(
+        choices=TARGETS_ACTION_CHOICE,
+        null=True, blank=True)
+    location_target_latitude = models.IntegerField(null=True, blank=True)
+    location_target_longitude = models.IntegerField(null=True, blank=True)
+    location_target_radius = models.IntegerField(null=True, blank=True)
+    device_model_targets = models.TextField(null=True, blank=True) #array of objects in origin TODO it is needed to be concidered if we need a sepparait model here
+    device_model_action = models.TextField(
+        choices=TARGETS_ACTION_CHOICE,
+        null=True, blank=True)
+    device_type_targets = models.TextField(null=True, blank=True) #array of objects in origin TODO it is needed to be concidered if we need a sepparait model here
+    device_type_action = models.TextField(
+        choices=TARGETS_ACTION_CHOICE,
+        null=True, blank=True)
+    carrier_targets = models.TextField(null=True, blank=True) #array of objects in origin TODO it is needed to be concidered if we need a sepparait model here
+    carrier_action = models.TextField(
+        choices=TARGETS_ACTION_CHOICE,
+        null=True, blank=True)
+    operating_system_family_targets = models.TextField(null=True, blank=True) #array of objects in origin TODO it is needed to be concidered if we need a sepparait model here
+    operating_system_family_action = models.TextField(
+        choices=TARGETS_ACTION_CHOICE,
+        null=True, blank=True)
+    use_operating_system_extended_targeting = models.NullBooleanField(null=True, blank=True)
+    operating_system_extended_targets = models.TextField(null=True, blank=True) #array of objects in origin TODO it is needed to be concidered if we need a sepparait model here
+    operating_system_action = models.TextField(
+        choices=TARGETS_ACTION_CHOICE,
+        null=True, blank=True)
+    operating_system_targets = models.TextField(null=True, blank=True) #array of objects in origin TODO it is needed to be concidered if we need a sepparait model here
+    require_cookie_for_freq_cap = models.NullBooleanField(null=True, blank=True)
+    mobile_app_instance_targets = models.TextField(null=True, blank=True) #array of objects in origin TODO it is needed to be concidered if we need a sepparait model here
+    mobile_app_instance_action_include = models.NullBooleanField(null=True, blank=True)
+    mobile_app_instance_list_targets = models.TextField(null=True, blank=True) #array of objects in origin TODO it is needed to be concidered if we need a sepparait model here
+    mobile_app_instance_list_action_include = models.NullBooleanField(null=True, blank=True)
+    ip_range_list_targets = models.TextField(null=True, blank=True) #array of objects in origin TODO it is needed to be concidered if we need a sepparait model here
+    optimization_zone_action = models.TextField(
+        choices=TARGETS_ACTION_CHOICE,
+        null=True, blank=True)
+    optimization_zone_targets = models.TextField(null=True, blank=True) #array of objects in origin TODO it is needed to be concidered if we need a sepparait model here
+    created_on = models.DateTimeField()
+    is_expired = models.NullBooleanField(null=True, blank=True)
+
+    class Meta:
+        db_table = "profile"
+
+
 INVENTORY_TYPE_COICES = (
     ('real_time', 'real_time'),
     ('direct', 'direct'),
@@ -944,7 +1113,31 @@ CREATIVE_DISTRIBUTUIN_TYPE_COICES = (
 )
 
 
+CPM_BID_TYPE_COICES = (
+    ('base', 'base'),
+    ('average', 'average'),
+    ('clearing', 'clearing'),
+    ('predicted', 'predicted'),
+    ('margin', 'margin'),
+    ('custom_model', 'custom_model'),
+    ('none', 'none')
+)
+
+
+CADENCE_TYPE_COICES = (
+    ('advertiser', 'advertiser'),
+    ('creative', 'creative')
+)
+
+
+LEARN_OVERRIDE_TYPE_COICES = (
+    ('base_cpm_bid', 'base_cpm_bid'),
+    ('venue_avg_cpm_bid', 'venue_avg_cpm_bid')
+)
+
+
 class Campaign(models.Model):
+    #https://wiki.appnexus.com/display/api/Campaign+Service
     state = models.TextField(
         choices=STATE_CHOICES,
         null=True, blank=True)
@@ -953,8 +1146,8 @@ class Campaign(models.Model):
     name = models.TextField(null=True, blank=True, db_index=True)
     short_name = models.TextField(null=True, blank=True, db_index=True)
     advertiser = models.ForeignKey("Advertiser", null=True, blank=True)
-    profile_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
-    line_item_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    profile_id = models.ForeignKey("Profile", null=True, blank=True)
+    line_item_id = models.ForeignKey("LineItem", null=True, blank=True)
     start_date = models.DateTimeField(db_index=True)
     end_date = models.DateTimeField(db_index=True)
     #creatives - see model CampaignCreatives below
@@ -985,10 +1178,193 @@ class Campaign(models.Model):
         choices=CREATIVE_DISTRIBUTUIN_TYPE_COICES,
         null=True, blank=True)
     weight = models.IntegerField(null=True, blank=True)
+    lifetime_budget = models.FloatField(null=True, blank=True)
+    lifetime_budget_imps = models.IntegerField(null=True, blank=True)
+    daily_budget = models.FloatField(null=True, blank=True)
+    daily_budget_imps = models.IntegerField(null=True, blank=True)
+    learn_budget = models.FloatField(null=True, blank=True)
+    learn_budget_imps = models.IntegerField(null=True, blank=True)
+    learn_budget_daily_cap = models.FloatField(null=True, blank=True)
+    learn_budget_daily_imps = models.IntegerField(null=True, blank=True)
+    enable_pacing = models.NullBooleanField(null=True, blank=True)
+    lifetime_pacing = models.NullBooleanField(null=True, blank=True)
+    lifetime_pacing_span = models.IntegerField(null=True, blank=True)
+    priority = models.IntegerField(null=True, blank=True)
+    cadence_modifier_enabled = models.NullBooleanField(null=True, blank=True)
+    expected_pacing = models.FloatField(null=True, blank=True)
+    total_pacing = models.FloatField(null=True, blank=True)
+    has_pacing_dollars = models.IntegerField(null=True, blank=True) #enum in origin
+    has_pacing_imps = models.IntegerField(null=True, blank=True) #enum in origin
+    imps_pacing_percent = models.IntegerField(null=True, blank=True)
+    media_cost_pacing_percent = models.IntegerField(null=True, blank=True)
 
+    cpm_bid_type = models.TextField(
+        choices=CPM_BID_TYPE_COICES,
+        null=True, blank=True)
+    base_bid = models.FloatField(null=True, blank=True)
+    min_bid = models.FloatField(null=True, blank=True)
+    max_bid = models.FloatField(null=True, blank=True)
+    bid_margin = models.FloatField(null=True, blank=True)
+    cpc_goal = models.FloatField(null=True, blank=True)
+    max_learn_bid = models.FloatField(null=True, blank=True)
+    #pixels = array  - see model CampaignConversionPixel
+    bid_model = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+
+    learn_threshold = models.IntegerField(null=True, blank=True)
+    max_learn_bid = models.FloatField(null=True, blank=True)
+    cadence_type = models.TextField(
+        choices=CADENCE_TYPE_COICES,
+        null=True, blank=True)
+    defer_to_li_prediction = models.NullBooleanField(null=True, blank=True)
+    optimization_lookback = models.TextField(null=True, blank=True) #TODO JSON
+    optimization_version = models.TextField(null=True, blank=True)
+    learn_override_type = models.TextField(
+        choices=LEARN_OVERRIDE_TYPE_COICES,
+        null=True, blank=True)
+    base_cpm_bid_value = models.FloatField(null=True, blank=True)
+    bid_multiplier = models.FloatField(null=True, blank=True)
+    impression_limit = models.IntegerField(null=True, blank=True)
+    campaign_modifiers = models.TextField(null=True, blank=True) #TODO JSON
+    bid_modifier_model = models.TextField(null=True, blank=True) #TODO JSON
 
     class Meta:
         db_table = "campaign"
+
+
+REVENUE_TYPE_CHOICES = (
+    ('none', 'none'),
+    ('cpm', 'cpm'),
+    ('cpc', 'cpc'),
+    ('cpa', 'cpa'),
+    ('cost_plus_cpm', 'cost_plus_cpm'),
+    ('cost_plus_margin', 'cost_plus_margin'),
+    ('flat_fee', 'flat_fee')
+)
+
+
+GOAL_TYPE_CHOICES = (
+    ('none', 'none'),
+    ('cpc', 'cpc'),
+    ('cpa', 'cpa'),
+    ('ctr', 'ctr')
+)
+
+
+FLAT_FEE_STATUS_CHOICES = (
+    ('pending', 'pending'),
+    ('processing', 'processing'),
+    ('allocated', 'allocated'),
+    ('error', 'error')
+)
+
+
+class LineItem(models.Model):
+    #https://wiki.appnexus.com/display/api/Line+Item+Service
+    code = models.TextField(null=True, blank=True, db_index=True)
+    name = models.TextField(null=True, blank=True, db_index=True)
+    advertiser = models.ForeignKey("Advertiser", null=True, blank=True)
+    state = models.TextField(
+        choices=STATE_CHOICES,
+        null=True, blank=True)
+    start_date = models.DateTimeField()
+    end_date = models.DateTimeField()
+    timezone = models.TextField(null=True, blank=True)
+    revenue_value = models.FloatField(null=True, blank=True)
+    revenue_type = models.TextField(
+        choices=REVENUE_TYPE_CHOICES,
+        null=True, blank=True)
+    goal_type = models.TextField(
+        choices=GOAL_TYPE_CHOICES,
+        null=True, blank=True)
+    goal_value = models.FloatField(null=True, blank=True)
+    last_modified = models.DateTimeField()
+    click_url = models.TextField(null=True, blank=True)
+    currency = models.TextField(null=True, blank=True)
+    require_cookie_for_tracking = models.NullBooleanField(null=True, blank=True)
+    profile_id = models.ForeignKey("Profile", null=True, blank=True)
+    member_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    comments = models.TextField(null=True, blank=True)
+    remaining_days = models.IntegerField(null=True, blank=True)
+    total_days = models.IntegerField(null=True, blank=True)
+    manage_creative = models.NullBooleanField(null=True, blank=True)
+    flat_fee_status = models.TextField(
+        choices=FLAT_FEE_STATUS_CHOICES,
+        null=True, blank=True)
+    flat_fee_allocation_date = models.DateTimeField()
+    flat_fee_adjustment_id = models.IntegerField(null=True, blank=True)
+    #labels = array - see model LineItemLabel below
+    #broker_fees = array - see model LineItemBroker below
+    #pixels = array - see model LineItemConversionPixel
+#    insertion_orders = array
+#    goal_pixels = array
+#    imptrackers = array
+#    clicktrackers = array
+#    campaigns = array
+#    valuation = object
+#    creatives = array
+#    budget_intervals = array
+#    click_model = array
+    lifetime_budget = models.FloatField(null=True, blank=True)
+    lifetime_budget_imps = models.IntegerField(null=True, blank=True)
+    daily_budget = models.FloatField(null=True, blank=True)
+    daily_budget_imps = models.FloatField(null=True, blank=True)
+    enable_pacing = models.NullBooleanField(null=True, blank=True)
+    allow_safety_pacing = models.NullBooleanField(null=True, blank=True)
+    lifetime_pacing = models.NullBooleanField(null=True, blank=True)
+    lifetime_pacing_span = models.IntegerField(null=True, blank=True)
+    lifetime_pacing_pct = models.FloatField(null=True, blank=True)
+    payout_margin = models.FloatField(null=True, blank=True)
+#    insertion_order_id = int
+#    stats = object
+    #all_stats = array - may be we'll need this in separate model in the future
+#    object_stats = object
+    first_run = models.DateTimeField()
+    last_run = models.DateTimeField()
+    expected_pacing = models.FloatField(null=True, blank=True)
+    total_pacing = models.FloatField(null=True, blank=True)
+#    has_pacing_dollars = enum
+#    has_pacing_imps = enum
+    imps_pacing_percent = models.IntegerField(null=True, blank=True)
+    rev_pacing_percent = models.IntegerField(null=True, blank=True)
+#    alerts = object
+    creative_distribution_type = models.TextField(
+        choices=CREATIVE_DISTRIBUTUIN_TYPE_COICES,
+        null=True, blank=True)
+    weight = models.IntegerField(null=True, blank=True)
+    inventory_type = models.TextField(null=True, blank=True) #no description in origin
+    priority = models.TextField(null=True, blank=True) #no description in origin
+
+    class Meta:
+        db_table = "line_item"
+
+
+class LineItemConversionPixel(models.Model):
+    pixel = models.ForeignKey("ConversionPixel", null=True, blank=True)
+    line_item = models.ForeignKey("LineItem", null=True, blank=True)
+
+    class Meta:
+        db_table = "line_item_label"
+
+
+class LineItemLabel(models.Model):
+    label = models.ForeignKey("Label", null=True, blank=True) #id in origin
+    line_item = models.ForeignKey("LineItem", null=True, blank=True)
+
+    class Meta:
+        db_table = "line_item_label"
+
+
+class LineItemBroker(models.Model):
+    broker = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    line_item = models.ForeignKey("LineItem", null=True, blank=True)
+    payment_type = models.TextField(
+        choices=PAYMENT_TYPE_CHOICES,
+        null=True, blank=True)
+    value = models.FloatField(null=True, blank=True)
+    description = models.TextField(null=True, blank=True)
+
+    class Meta:
+        db_table = "line_item_broker"
 
 
 PAYMENT_TYPE_CHOICES = (

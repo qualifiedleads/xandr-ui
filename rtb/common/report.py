@@ -4,6 +4,7 @@ import datetime
 import requests
 import time
 import os
+import sets
 
 log_path=os.path.join(os.path.dirname(os.path.dirname(__file__)),'logs')
 
@@ -75,6 +76,15 @@ column_sets_for_reports ={
         "serving_fees"
     ],
     "site_domain_performance":[
+        "day",
+        "campaign",
+        "booked_revenue",
+        "imps",
+        "clicks",
+        "click_thru_pct",
+        "site_domain"
+    ],
+    "site_domain_performance_":[
         "day" ,
         "site_domain" ,
         "campaign" ,
@@ -93,7 +103,7 @@ column_sets_for_reports ={
         "age_bucket" ,
         "gender" ,
         "is_remarketing" ,
-        "conversion_pixel" ,
+        "conversion_pixel_id" ,
         "booked_revenue" ,
         "clicks" ,
         "click_thru_pct" ,
@@ -117,9 +127,9 @@ column_sets_for_reports ={
         "view_measurement_rate" ,
     ]
 }
+no_hours_reports=sets.Set(["site_domain_performance"])
 
-
-def get_specifed_report(report_type):
+def get_specifed_report(report_type,query_data={}):
     auth_url = "https://api.appnexus.com/auth"
     data = {"auth": {"username": "stats_api", "password": "API?1nsid3!"}}
     auth_request = requests.post(auth_url, data=json.dumps(data))
@@ -132,25 +142,36 @@ def get_specifed_report(report_type):
 
     url = "https://api.appnexus.com/report"
     report_data = {}
-
+#    if query_data:
+#        url+='?'+'&'.join("%s=%s"%(k,query_data[k]) for k in query_data)
+    print url
     report_data['report'] = {
         "report_type": report_type,
         "columns": column_sets_for_reports[report_type],
         "timezone": "UTC",
-        "report_interval": "last_hour",
+        "report_interval": "last_hour" if report_type not in no_hours_reports else "yesterday",
         "format": "csv"
     }
+    #report_data['report'].update(query_data)
+    #report_data.update(query_data)
 
     headers = {"Authorization": token, 'Content-Type': 'application/json'}
 
-    r = requests.post(url, data=json.dumps(report_data), headers=headers)
+    r = requests.post(url, params=query_data, data=json.dumps(report_data), headers=headers)
 
     out = json.loads(r.content)
     
-    report_id = out['response']['report_id']
+    report_id='Unassigned'
+    
+    try:
+        report_id = out['response']['report_id']
+    except Exception as e:
+        print 'Error by analizing response: %s'%e
+        print out
 
     with open('%s/%s_report_response_%s.json'%(log_path, get_str_time(), report_id), 'wb') as f:
         f.write(r.content)
+    
 
     return get_report_status(report_id, token)
 
@@ -158,5 +179,5 @@ try:
     os.makedirs(log_path)
 except: pass
 
-get_specifed_report('network_analytics')
+#get_specifed_report('network_analytics')
 #get_specifed_report('site_domain_performance')

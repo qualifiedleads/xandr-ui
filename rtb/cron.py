@@ -3,29 +3,55 @@ import datetime
 import common.report as reports
 import threading
 import csv
+from django.conf import settings
+import models
 
 def analize_csv(csvFile, modelClass, fieldNames):
-    reader = csv.reader(csvFile)
+    reader = csv.DictReader(csvFile)
+    print 'Begin analyzing csv file ...'
     result=[]
-    for row in csv:
+    for row in reader:
         # if first: 
             # first=False
             # continue
         c=modelClass()
-        for field, fName in zip(row,fieldNames):
-            c.__dict__[fName]=field
-        if c.hasattr('TransformFields'):
+        for field in row:
+            if hasattr(c,field): print 'Setting field %s'%field
+            #if field == 'day': print row[field]
+            setattr(c,field,row[field])
+        if hasattr(c,'TransformFields'):
             c.TransformFields()
+        all_keys = row.keys()
         result.append(c)
+    
     return result
+
+
+fields_for_site_domain_report=['advertiser_name', 'commissions', 
+'placement_id', 'site_id', 'campaign_id', 'serving_fees', 
+'campaign_name', 'cost', 'placement_name', 'site_name', 
+'line_item_id', 'geo_country', 'publisher_name', 'creative_id', 
+'creative_name', 'publisher_id', 'clicks', 'total_convs', 
+'advertiser_id', 'insertion_order_id', 'imps', 'hour', 
+'insertion_order_name', 'line_item_name'] 
+
+#hour,advertiser_id,advertiser_name,campaign_id,campaign_name,
+#creative_id,creative_name,geo_country,insertion_order_id,
+#insertion_order_name,line_item_id,line_item_name,site_id,site_name,
+#placement_id,placement_name,publisher_id,publisher_name,imps,clicks,
+#total_convs,cost,commissions,serving_fees
 
 # Task, executed twice in hour. Get new data from NexusApp
 def hourly_task():
     print ('NexusApp API pooling...')
     #reports.get_specifed_report('network_analytics')
-    f=reports.get_specifed_report('site_domain_performance')
-    r=analize_csv(f, SiteDomainPerformanceReport, reports.column_sets_for_reports['site_domain_performance'])
-    print r[0]
-    print r[1]
-    
+    try:
+        f=reports.get_specifed_report('site_domain_performance',{'advertiser_id':992089})
+        r=analize_csv(f, models.StgSiteDomainPerformanceReport, reports.column_sets_for_reports['site_domain_performance'])
+    except Exception as e:
+        print 'Error by fetching data: %s'%e
+    print "There is %d rows fetched "%len(r)
+    print r[0].day, r[0].site_domain
+    print r[1].day
+
 if __name__=='__main__':hourly_task()

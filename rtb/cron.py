@@ -8,7 +8,7 @@ import models
 import json
 
 def analize_csv(csvFile, modelClass, fieldNames):
-    reader = csv.DictReader(csvFile, dialect='excel') # or excel-tab ?
+    reader = csv.DictReader(csvFile, delimiter=',') #  dialect='excel-tab' or excel ?
     print 'Begin analyzing csv file ...'
     result=[]
     counter=0

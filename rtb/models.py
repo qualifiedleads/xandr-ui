@@ -1096,6 +1096,7 @@ class SiteDomainPerformanceReport(models.Model):
 #staging table for SiteDomainPerformanceReport
 class StgSiteDomainPerformanceReport(models.Model):
     #https://wiki.appnexus.com/display/api/Site+Domain+Performance
+    fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
     day = models.DateTimeField(null=True, blank=True, db_index=True)
     site_domain = models.TextField(null=True, blank=True, db_index=True)
     campaign = models.IntegerField(null=True, blank=True, db_index=True)

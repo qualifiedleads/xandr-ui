@@ -173,21 +173,20 @@ def get_specifed_report(report_type,query_data={}, token=None):
     with open('%s/%s_report_response_%s.json'%(log_path, get_str_time(), report_id), 'wb') as f:
         f.write(r.content)
     
-
     return get_report_status(report_id, token)
     
 #function to get all advertisers
 def get_all_advertisers(token):    
     url='https://api.appnexus.com/advertiser'    
     r=requests.get(url,headers = {"Authorization": token});
-    print r.content
+    return r.content
     
-def get_report_metadata(token, report_type='')
+def get_report_metadata(token, report_type=''):
     url='https://api.appnexus.com/report?meta'
     if report_type:
         url+='='+report_type
     r=requests.get(url,headers = {"Authorization": token});
-    print r.content
+    return r.content
 
 try:
     os.makedirs(log_path)

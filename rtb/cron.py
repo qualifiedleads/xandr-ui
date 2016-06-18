@@ -5,26 +5,34 @@ import threading
 import csv
 from django.conf import settings
 import models
+import json
 
 def analize_csv(csvFile, modelClass, fieldNames):
     reader = csv.DictReader(csvFile, dialect='excel') # or excel-tab ?
     print 'Begin analyzing csv file ...'
     result=[]
+    counter=0
+    fetch_date = datetime.datetime.utcnow()
     for row in reader:
         # if first: 
             # first=False
             # continue
         c=modelClass()
+        c.fetch_date=fetch_date
         for field in row:
-            #if field == 'day': print row[field]
-            setattr(c,field,row[field])
+            if field: 
+                setattr(c,field,row[field])
+            else:
+                print 'Somewhat imposible: null field name'
         if hasattr(c,'TransformFields'):
             c.TransformFields()
-        all_keys = row.keys()
         result.append(c)
         fields_in_row = len(row)
-    print 'There is %d fields in row'%fields_in_row
-    
+        counter+=1
+        if counter%1000==0:
+            print '%d rows fetched'%counter
+        if counter>10000:break
+    print 'There is %d fields in row'%fields_in_row    
     return result
 
 
@@ -48,16 +56,15 @@ def hourly_task():
     #reports.get_specifed_report('network_analytics')
     try:
         token=reports.get_auth_token()
-        reports.get_report_metadata()
-        print '-'*80
-        reports.get_all_advertisers()
-        f=reports.get_specifed_report('site_domain_performance',{'advertiser_id':992089}, token)
-        #f=open('/home/alex/rtbstats/rtb/logs/2016-06-18T15:58:22.612795_report_fcdb362c76664babc1a973da2c91a946.csv','r')
+        advertisers = json.loads(reports.get_all_advertisers(token))['response']['advertisers']
+        print 'There is %d advertisers'%len(advertisers)
+        #f=reports.get_specifed_report('site_domain_performance',{'advertiser_id':992089}, token)
+        f=open('rtb/logs/2016-06-18T18:42:42.861630_report_3dbaf1cab9c5870fa023e2492028aa58.csv','r')
         r=analize_csv(f, models.StgSiteDomainPerformanceReport, reports.column_sets_for_reports['site_domain_performance'])
+        for i in r: i.save()
+        print "Domain performance report saved to DB"
     except Exception as e:
         print 'Error by fetching data: %s'%e
     print "There is %d rows fetched "%len(r)
-    print r[0].day, r[0].site_domain
-    print r[1].day
 
 if __name__=='__main__':hourly_task()

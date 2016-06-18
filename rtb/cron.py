@@ -7,7 +7,7 @@ from django.conf import settings
 import models
 
 def analize_csv(csvFile, modelClass, fieldNames):
-    reader = csv.DictReader(csvFile)
+    reader = csv.DictReader(csvFile, dialect='excel') # or excel-tab ?
     print 'Begin analyzing csv file ...'
     result=[]
     for row in reader:
@@ -16,13 +16,14 @@ def analize_csv(csvFile, modelClass, fieldNames):
             # continue
         c=modelClass()
         for field in row:
-            if hasattr(c,field): print 'Setting field %s'%field
             #if field == 'day': print row[field]
             setattr(c,field,row[field])
         if hasattr(c,'TransformFields'):
             c.TransformFields()
         all_keys = row.keys()
         result.append(c)
+        fields_in_row = len(row)
+    print 'There is %d fields in row'%fields_in_row
     
     return result
 
@@ -46,7 +47,9 @@ def hourly_task():
     print ('NexusApp API pooling...')
     #reports.get_specifed_report('network_analytics')
     try:
-        f=reports.get_specifed_report('site_domain_performance',{'advertiser_id':992089})
+        token=reports.get_auth_token()
+        f=reports.get_specifed_report('site_domain_performance',{'advertiser_id':992089}, token)
+        #f=open('/home/alex/rtbstats/rtb/logs/2016-06-18T15:58:22.612795_report_fcdb362c76664babc1a973da2c91a946.csv','r')
         r=analize_csv(f, models.StgSiteDomainPerformanceReport, reports.column_sets_for_reports['site_domain_performance'])
     except Exception as e:
         print 'Error by fetching data: %s'%e

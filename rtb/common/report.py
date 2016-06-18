@@ -76,7 +76,7 @@ column_sets_for_reports ={
         "commissions",
         "serving_fees"
     ],
-    "site_domain_performance":[
+    "site_domain_performance_":[
         "day",
         "campaign",
         "booked_revenue",
@@ -85,7 +85,7 @@ column_sets_for_reports ={
         "click_thru_pct",
         "site_domain"
     ],
-    "site_domain_performance_":[
+    "site_domain_performance":[
         "day" ,
         "site_domain" ,
         "campaign" ,
@@ -104,7 +104,7 @@ column_sets_for_reports ={
         "age_bucket" ,
         "gender" ,
         "is_remarketing" ,
-        "conversion_pixel_id" ,
+        #"conversion_pixel_id" , probary pixel_id
         "booked_revenue" ,
         "clicks" ,
         "click_thru_pct" ,
@@ -134,20 +134,18 @@ no_hours_reports=sets.Set(["site_domain_performance"])
 def get_auth_token():
     try:
         auth_url = "https://api.appnexus.com/auth"
-        data = {"auth": settings.}
+        data = {"auth": settings.NEXUS_AUTH_DATA}
         auth_request = requests.post(auth_url, data=json.dumps(data))
         response = json.loads(auth_request.content)
         return response['response']['token']
     except:
         return None
 
-def get_specifed_report(report_type,query_data={}):
-    token=get_auth_token()
+def get_specifed_report(report_type,query_data={}, token=None):
+    if not token:
+        token=get_auth_token()
     url = "https://api.appnexus.com/report"
     report_data = {}
-#    if query_data:
-#        url+='?'+'&'.join("%s=%s"%(k,query_data[k]) for k in query_data)
-    print url
     report_data['report'] = {
         "report_type": report_type,
         "columns": column_sets_for_reports[report_type],

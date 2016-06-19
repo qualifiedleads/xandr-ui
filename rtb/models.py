@@ -1447,12 +1447,12 @@ class LineItemInsertionOrder(models.Model):
         db_table = "line_item_insertion_order"
 
 
-class LineItemConversionPixel(models.Model):
-    pixel = models.ForeignKey("ConversionPixel", null=True, blank=True)
-    line_item = models.ForeignKey("LineItem", null=True, blank=True)
+#class LineItemConversionPixel(models.Model):
+#    pixel = models.ForeignKey("ConversionPixel", null=True, blank=True)
+#    line_item = models.ForeignKey("LineItem", null=True, blank=True)
 
-    class Meta:
-        db_table = "line_item_conversion_pixel"
+#    class Meta:
+#        db_table = "line_item_conversion_pixel"
 
 
 class LineItemLabel(models.Model):

@@ -7,13 +7,15 @@ from django.conf import settings
 #import models
 import json
 from models import Advertiser, Campaign, StgSiteDomainPerformanceReport
+from pytz import utc
 
 def update_object_from_dict(o,d):
     for field in d:
         try:
             setattr(o,field,row[field])
         except:
-            print "Can't set field %s in object %s"%(field,repr(o))
+            if settings.DEBUG:
+                print "Can't set field %s in object %s"%(field,repr(o))
     
 
 def analize_csv(csvFile, modelClass, metadata = {}):
@@ -51,47 +53,54 @@ fields_for_site_domain_report=['advertiser_name', 'commissions',
 #insertion_order_name,line_item_id,line_item_name,site_id,site_name,
 #placement_id,placement_name,publisher_id,publisher_name,imps,clicks,
 #total_convs,cost,commissions,serving_fees
+unix_epoch = datetime.datetime.utcfromtimestamp(0).replace(tzinfo=utc)
+def get_current_time():
+    return datetime.datetime.utcnow().replace(tzinfo=utc)
 
 # get all Advertisers from DB or with API. Invalidate values, stored in DB
 def get_advertisers(token):
     advertisers_in_db=list(Advertiser.objects.all().order_by('fetch_date'))
-    print "Advertisers succefully fetched from DB"
-    current_date=datetime.datetime.utcnow()
-    if advertisers_in_db:
+    print "Advertisers succefully fetched from DB (%d records)"%len(advertisers_in_db)
+    current_date=get_current_time()
+    try:
         last_date = advertisers_in_db[-1].fetch_date
-    else:
-        last_date = datetime.datetime(0)
-        print "Null date"
+    except:
+        last_date = unix_epoch
     print current_date, last_date
     if current_date-last_date > settings.INVALIDATE_TIME:
         json_text = reports.get_all_advertisers(token)
         advertisers = json.loads(json_text)['response']['advertisers']
         print "Advertisers succefully fetched from Nexus API"
         adv_by_code = {i.code: i for i in advertisers_in_db}
-        print "Code dict build (%d elements)"%len(adv_by_code)
         for i in advertisers:
             object_db = adv_by_code.get(i['code'], Advertiser())
-            print ""
             update_object_from_dict(object_db, i)
             object_db.fetch_date=current_date
             object_db.save()
-    print "End of get_advertisers"
     return advertisers_in_db
     
 # get all Campaigns from DB or with API. Invalidate values, stored in DB
 def get_campaigns(token, advertiser_id):
-    Campaigns_in_db=list(Campaign.objects.filter(advertiser==advertiser_id).order_by('fetch_date'))
+    print "Begin get_campaigns"
+    Campaigns_in_db=list(Campaign.objects.filter(advertiser=advertiser_id).order_by('fetch_date'))
     #Campaigns_in_db=list(Campaign.objects.filter(advertiser==advertiser_id))
-    current_date=datetime.datetime.utcnow()
+    print "Campaigns succefully fetched from DB (%d records)"%len(Campaigns_in_db)    
+    current_date=get_current_time()
     try:
         last_date = Campaigns_in_db[-1].fetch_date
     except:
-        last_date = 0
+        last_date = unix_epoch
     if current_date-last_date > settings.INVALIDATE_TIME:
-        campaigns = json.loads(reports.get_all_campaigns(token))['response']['advertisers']
+        txt = reports.get_all_campaigns(token,advertiser_id)
+        response = json.loads(txt)['response']
+        campaigns=response['campaigns']
+        if response['count']!=response['num_elements']:
+            print "There is too much data ... (%d)"%response['count']
+            raise Exception("Bulk data")
+        print "Campaigns succefully fetched from Nexus API (%d records)"%len(campaigns)
         camp_by_code = {i.code: i for i in Campaigns_in_db}
         for i in campaigns:
-            object_db = camp_by_code.get(i['code'], Campaigns())
+            object_db = camp_by_code.get(i['code'], Campaign())
             update_object_from_dict(object_db, i)
             object_db.fetch_date=current_date
             object_db.save()

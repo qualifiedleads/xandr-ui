@@ -1685,4 +1685,5 @@ class StgSiteDomainPerformanceReport(models.Model):
     #This function transform raw data, collected from csv, to value, saved into DB/
     def TransformFields(self, metadata={}):
         if not metadata: return
-        #Campaign
+        campaign_name_to_code = metadata["campaign_name_to_code"]
+        self.campaign=campaign_name_to_code.get(self.campaign,0)

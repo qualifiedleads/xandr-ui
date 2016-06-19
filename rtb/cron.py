@@ -15,25 +15,18 @@ def update_object_from_dict(o,d):
 			print "Can't set field %s in object %s"%(field,repr(o))
 	
 
-def analize_csv(csvFile, modelClass, fieldNames):
+def analize_csv(csvFile, modelClass, metadata = {}):
     reader = csv.DictReader(csvFile, delimiter=',') #  dialect='excel-tab' or excel ?
     print 'Begin analyzing csv file ...'
     result=[]
     counter=0
     fetch_date = datetime.datetime.utcnow()
     for row in reader:
-        # if first: 
-            # first=False
-            # continue
         c=modelClass()
         c.fetch_date=fetch_date
-        for field in row:
-            if field: 
-                setattr(c,field,row[field])
-            else:
-                print 'Somewhat imposible: null field name'
+        update_object_from_dict(c, row)
         if hasattr(c,'TransformFields'):
-            c.TransformFields()
+            c.TransformFields(metadata)
         result.append(c)
         fields_in_row = len(row)
         counter+=1
@@ -104,11 +97,12 @@ def hourly_task():
         print 'There is %d advertisers'%len(advertisers)
         advertiser_id = 992089
         campaigns_for_sel_adv = get_campaigns(token, advertiser_id)
+        campaign_name_to_code = {i.name: i.code for i in campaigns_for_sel_adv}
         #f=reports.get_specifed_report('site_domain_performance',{'advertiser_id':advertiser_id}, token)
         f=open('rtb/logs/2016-06-18T18:42:42.861630_report_3dbaf1cab9c5870fa023e2492028aa58.csv','r')
         r=analize_csv(f, models.StgSiteDomainPerformanceReport, 
                       reports.column_sets_for_reports['site_domain_performance']
-                      meta={})
+                      metadata={"campaign_name_to_code": campaign_name_to_code})
         for i in r: i.save()
         print "Domain performance report saved to DB"
     except Exception as e:

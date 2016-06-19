@@ -9,6 +9,7 @@ import json
 from models import Advertiser, Campaign, StgSiteDomainPerformanceReport
 from pytz import utc
 import re
+import requests
 
 def update_object_from_dict(o,d):
     for field in d:
@@ -111,7 +112,7 @@ def get_campaigns(token, advertiser_id):
 def Nexus_get_objects(token, url, params, query_set, object_class, key_field):
     print "Begin of Nexus_get_objects func"
     print url
-    last_word = re.find(r'/(\w+)[^/]*$', url).group(0)
+    last_word = re.search(r'/(\w+)[^/]*$', url).group(1)
     print last_word
     objects_in_db=list(query_set)
     print "Objects succefully fetched from DB (%d records)"%len(objects_in_db)    
@@ -167,7 +168,12 @@ def hourly_task():
         advertisers=get_advertisers(token)        
         print 'There is %d advertisers'%len(advertisers)
         advertiser_id = 992089
-        campaigns_for_sel_adv = get_campaigns(token, advertiser_id)
+        #campaigns_for_sel_adv = get_campaigns(token, advertiser_id)
+        campaigns_for_sel_adv = Nexus_get_objects(token,
+                                'https://api.appnexus.com/campaign',
+                                {'advertiser_id':advertiser_id},
+                                Campaign.objects.filter(advertiser=advertiser_id).order_by('fetch_date'), 
+                                Campaign, 'code')
         print 'There is %d campaigns '%len(campaigns_for_sel_adv)
         campaign_name_to_code = {i.name: i.code for i in campaigns_for_sel_adv}
         #f=reports.get_specifed_report('site_domain_performance',{'advertiser_id':advertiser_id}, token)

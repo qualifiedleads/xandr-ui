@@ -136,3 +136,4 @@ NEXUS_AUTH_DATA= {
     "username": "stats_api", 
     "password": "API?1nsid3!"
 }
+INVALIDATE_TIME = datetime.timedelta(day=1)

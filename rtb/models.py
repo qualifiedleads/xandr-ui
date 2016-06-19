@@ -87,6 +87,7 @@ TIME_FORMAT_CHOICES = (
 
 class Advertiser(models.Model):
     #https://wiki.appnexus.com/display/api/Advertiser+Service
+    fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
     code = models.TextField(null=True, blank=True, db_index=True)
     name = models.TextField(null=True, blank=True, db_index=True)
     state = models.TextField(
@@ -1084,6 +1085,7 @@ LEARN_OVERRIDE_TYPE_COICES = (
 
 class Campaign(models.Model):
     #https://wiki.appnexus.com/display/api/Campaign+Service
+    fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)    
     state = models.TextField(
         choices=STATE_CHOICES,
         null=True, blank=True)

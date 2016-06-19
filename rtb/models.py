@@ -92,7 +92,6 @@ class Advertiser(models.Model):
     state = models.TextField(
         choices=STATE_CHOICES,
         null=True, blank=True)
-    default_brand_id = models.IntegerField(null=True, blank=True, db_index=True)
     remarketing_segment_id = models.IntegerField(null=True, blank=True, db_index=True)
     lifetime_budget = models.FloatField(null=True, blank=True)
     lifetime_budget_imps = models.IntegerField(null=True, blank=True)
@@ -102,7 +101,7 @@ class Advertiser(models.Model):
     #competitive_categories	#see model AdvertiserCategories below
     enable_pacing = models.NullBooleanField(null=True, blank=True)
     allow_safety_pacing = models.NullBooleanField(null=True, blank=True)
-    profile_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    profile = models.ForeignKey("Profile", null=True, blank=True)
     control_pct = models.FloatField(null=True, blank=True)
     timezone = models.TextField(null=True, blank=True) #originally it is enum
     last_modified = models.DateTimeField(null=True, blank=True)
@@ -124,7 +123,7 @@ class Advertiser(models.Model):
         choices=TIME_FORMAT_CHOICES,
         default="12",
         null=True, blank=True)
-    default_brand_id = models.ForeignKey("Brand", null=True, blank=True) #default_brand in origin API responce
+    default_brand = models.ForeignKey("Brand", null=True, blank=True) #default_brand in origin API responce
     is_mediated = models.NullBooleanField(null=True, blank=True)
     is_malicious = models.NullBooleanField(null=True, blank=True)
     #object_stats	object #should be in sepparait model if needed
@@ -177,11 +176,11 @@ class Label(models.Model):
 
 class LabeledObject(models.Model):
     label = models.ForeignKey("Label", null=True, blank=True)
-    advertiser_id = models.ForeignKey("Advertiser", null=True, blank=True)
-    insertion_order_id = models.IntegerField(null=True, blank=True,db_index=True) #TODO FK is needed in future
-    line_item_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
-    campaign_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
-    publisher_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    advertiser = models.ForeignKey("Advertiser", null=True, blank=True)
+    insertion_order = models.ForeignKey("InsertionOrder", null=True, blank=True)
+    line_item = models.ForeignKey("LineItem", null=True, blank=True)
+    campaign = models.ForeignKey("Campaign", null=True, blank=True)
+    publisher = models.ForeignKey("Publisher", null=True, blank=True)
     value = models.TextField(null=True, blank=True)
 
     class Meta:
@@ -213,19 +212,6 @@ class ThirdPartyPixel(models.Model):
     class Meta:
         db_table = "thirdparty_pixel"
 
-
-class NetworkAnalyticsRaw(models.Model):
-    json = models.TextField(null=True, blank=True)#JSONField(null=True, blank=True)
-    csv = models.TextField(null=True, blank=True)
-    report_type = models.TextField(null=True, blank=True)
-    report_id = models.TextField(null=True, blank=True) #TODO FK is needed in future
-    last_updated = models.DateTimeField()
-
-    class Meta:
-        db_table = "network_analytics_raw"
-
-    def __unicode__(self):
-        return self.id
 
 MEDIA_TYPE_SIZES = (
     ('always', 'Width and height are required when adding creatives (Banner, Expandable, and Facebook)'),
@@ -623,7 +609,7 @@ class FilteredAdvertisers(models.Model):
 
 class FilteredLineItems(models.Model):
     placement = models.ForeignKey("Placement", null=True, blank=True)
-    line_item = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    line_item = models.ForeignKey("LineItem", null=True, blank=True)
 
     class Meta:
         db_table = "filtered_line_items"
@@ -631,7 +617,7 @@ class FilteredLineItems(models.Model):
 
 class FilteredCampaigns(models.Model):
     placement = models.ForeignKey("Placement", null=True, blank=True)
-    campaign = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    campaign = models.ForeignKey("Campaign", null=True, blank=True)
 
     class Meta:
         db_table = "filtered_campaigns"
@@ -754,46 +740,6 @@ class PublisherPlacement(models.Model):
         db_table = "publisher_placement"
 
 
-class NetworkAnalyticsReport(models.Model):
-    hour = models.DateTimeField(null=True, blank=True, db_index=True)
-    entity_member_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
-    buyer_member_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
-    seller_member_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
-    advertiser_id = models.ForeignKey("Advertiser", null=True, blank=True)
-    adjustment_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
-    publisher_id = models.ForeignKey("Publisher", null=True, blank=True)
-    pub_rule_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
-    site_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
-    pixel_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
-    placement_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
-    insertion_order_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
-    line_item_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
-    campaign_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
-    creative_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
-    size = models.TextField(null=True, blank=True)
-    brand_id = models.ForeignKey("Brand", null=True, blank=True)
-    billing_period_start_date = models.DateTimeField(null=True, blank=True, db_index=True)
-    billing_period_end_date = models.DateTimeField(null=True, blank=True, db_index=True)
-    geo_country = models.TextField(null=True, blank=True)
-    inventory_class = models.TextField(null=True, blank=True)
-    bid_type = models.TextField(null=True, blank=True)
-    imp_type_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
-    buyer_type = models.TextField(null=True, blank=True)
-    seller_type = models.TextField(null=True, blank=True)
-    revenue_type_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
-
-    supply_type = models.TextField(null=True, blank=True)
-    payment_type = models.TextField(null=True, blank=True)
-    deal_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
-    media_type = models.ForeignKey("MediaType", null=True, blank=True)
-
-    class Meta:
-        db_table = "network_analytics_report"
-        index_together = ["advertiser_id", "hour"]
-        index_together = ["publisher_id", "hour"]
-        index_together = ["campaign_id", "hour"]
-
-
 SUPPLY_TYPE = (
     ('web', 'web'),
     ('mobile_app', 'mobile_app'),
@@ -842,7 +788,7 @@ class ConversionPixel(models.Model):
 
 class LineItemConversionPixel(models.Model):
     conversion_pixel = models.ForeignKey("ConversionPixel", null=True, blank=True)
-    line_item = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    line_item = models.ForeignKey("LineItem", null=True, blank=True)
 
     class Meta:
         db_table = "line_item_conversion_pixel"
@@ -1295,15 +1241,19 @@ class LineItem(models.Model):
     #labels = array - see model LineItemLabel below
     #broker_fees = array - see model LineItemBroker below
     #pixels = array - see model LineItemConversionPixel
-#    insertion_orders = array
-#    goal_pixels = array
-#    imptrackers = array
-#    clicktrackers = array
-#    campaigns = array
-#    valuation = object
-#    creatives = array
-#    budget_intervals = array
-#    click_model = array
+    #insertion_orders = array - see model LineItemInsertionOrder
+    #goal_pixels = array - see model LineItemGoalPixel below
+    #imptrackers = array - see model ImpressionTracker below
+    #clicktrackers = array - see model ClickTracker below
+    #campaigns = array - see model Campaign
+    valuation_min_margin_pct = models.FloatField(null=True, blank=True)
+    valuation_goal_threshold = models.FloatField(null=True, blank=True)
+    valuation_goal_target = models.FloatField(null=True, blank=True)
+    valuation_performance_offer = models.NullBooleanField(null=True, blank=True)
+    valuation_performance_mkt_managed = models.NullBooleanField(null=True, blank=True)
+    valuation_performance_mkt_crossnet = models.NullBooleanField(null=True, blank=True)
+    #creatives = array - see model LineItemCreatives below
+    budget_intervals = models.TextField(null=True, blank=True) #TODO JSON and maybe separate model later
     lifetime_budget = models.FloatField(null=True, blank=True)
     lifetime_budget_imps = models.IntegerField(null=True, blank=True)
     daily_budget = models.FloatField(null=True, blank=True)
@@ -1314,19 +1264,18 @@ class LineItem(models.Model):
     lifetime_pacing_span = models.IntegerField(null=True, blank=True)
     lifetime_pacing_pct = models.FloatField(null=True, blank=True)
     payout_margin = models.FloatField(null=True, blank=True)
-#    insertion_order_id = int
-#    stats = object
+    insertion_order_id = models.ForeignKey("InsertionOrder", null=True, blank=True)
+    #stats = object - late we'll decide if we need a model for stats
     #all_stats = array - may be we'll need this in separate model in the future
-#    object_stats = object
     first_run = models.DateTimeField()
     last_run = models.DateTimeField()
     expected_pacing = models.FloatField(null=True, blank=True)
     total_pacing = models.FloatField(null=True, blank=True)
-#    has_pacing_dollars = enum
-#    has_pacing_imps = enum
+    has_pacing_dollars = models.IntegerField(null=True, blank=True) #enum in origin
+    has_pacing_imps = models.IntegerField(null=True, blank=True) #enum in origin
     imps_pacing_percent = models.IntegerField(null=True, blank=True)
     rev_pacing_percent = models.IntegerField(null=True, blank=True)
-#    alerts = object
+    alerts = models.TextField(null=True, blank=True) #TODO JSON
     creative_distribution_type = models.TextField(
         choices=CREATIVE_DISTRIBUTUIN_TYPE_COICES,
         null=True, blank=True)
@@ -1338,12 +1287,170 @@ class LineItem(models.Model):
         db_table = "line_item"
 
 
+class LineItemCreatives(models.Model):
+    line_item = models.ForeignKey("LineItem", null=True, blank=True)
+    creative = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    code = models.TextField(null=True, blank=True, db_index=True)
+
+    class Meta:
+        db_table = "line_item_creatives"
+
+
+class ClickTracker(models.Model):
+    #https://wiki.appnexus.com/display/api/Click+Tracker+Service
+    member_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    advertiser_id = models.ForeignKey("Advertiser", null=True, blank=True)
+    name = models.TextField(null=True, blank=True, db_index=True)
+    code = models.TextField(null=True, blank=True, db_index=True)
+    state = models.TextField(
+        choices=STATE_CHOICES,
+        null=True, blank=True)
+    click_url = models.TextField(null=True, blank=True, db_index=True)
+    publisher = models.ForeignKey("Publisher", null=True, blank=True)
+    #tag = array - see model ClickTrackerPlacement below
+    payment_rule_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    line_item = models.ForeignKey("LineItem", null=True, blank=True)
+    last_modified = models.DateTimeField()
+
+    class Meta:
+        db_table = "click_tracker"
+
+
+class ClickTrackerPlacement(models.Model):
+    click_tracker = models.ForeignKey("ClickTracker", null=True, blank=True)
+    placement = models.ForeignKey("Placement", null=True, blank=True)
+
+    class Meta:
+        db_table = "click_tracker_placement"
+
+
+class ImpressionTracker(models.Model):
+    #https://wiki.appnexus.com/display/api/Impression+Tracker+Service
+    member_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    advertiser_id = models.ForeignKey("Advertiser", null=True, blank=True)
+    name = models.TextField(null=True, blank=True, db_index=True)
+    code = models.TextField(null=True, blank=True, db_index=True)
+    state = models.TextField(
+        choices=STATE_CHOICES,
+        null=True, blank=True)
+    publisher = models.ForeignKey("Publisher", null=True, blank=True)
+    #tag = array - see model ImpressionTrackerPlacement below
+    payment_rule_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    line_item = models.ForeignKey("LineItem", null=True, blank=True)
+    last_modified = models.DateTimeField()
+
+    class Meta:
+        db_table = "impression_tracker"
+
+
+class ImpressionTrackerPlacement(models.Model):
+    impression_tracker = models.ForeignKey("ImpressionTracker", null=True, blank=True)
+    placement = models.ForeignKey("Placement", null=True, blank=True)
+
+    class Meta:
+        db_table = "impression_tracker_placement"
+
+
+class GoalPixel(models.Model):
+    code = models.TextField(null=True, blank=True, db_index=True)
+    name = models.TextField(null=True, blank=True, db_index=True)
+    state = models.TextField(
+        choices=STATE_CHOICES,
+        null=True, blank=True)
+    trigger_type = models.TextField(
+        choices=TRIGGER_TYPE_CHOICES,
+        null=True, blank=True)
+    post_click_goal_target = models.FloatField(null=True, blank=True)
+    post_view_goal_target = models.FloatField(null=True, blank=True)
+    post_click_goal_threshold = models.FloatField(null=True, blank=True)
+    post_view_goal_threshold = models.FloatField(null=True, blank=True)
+
+    class Meta:
+        db_table = "goal_pixel"
+
+
+class LineItemGoalPixel(models.Model):
+    pixel = models.ForeignKey("GoalPixel", null=True, blank=True)
+    line_item = models.ForeignKey("LineItem", null=True, blank=True)
+
+    class Meta:
+        db_table = "line_item_goal_pixel"
+
+
+class InsertionOrder(models.Model):
+    #https://wiki.appnexus.com/display/api/Insertion+Order+Service
+    name = models.TextField(null=True, blank=True, db_index=True)
+    code = models.TextField(null=True, blank=True, db_index=True)
+    state = models.TextField(
+        choices=STATE_CHOICES,
+        null=True, blank=True)
+    advertiser_id = models.ForeignKey("Advertiser", null=True, blank=True)
+    start_date = models.DateTimeField()
+    end_date = models.DateTimeField()
+    last_modified = models.DateTimeField()
+    timezone = models.FloatField(null=True, blank=True)
+    currency = models.FloatField(null=True, blank=True)
+    comments = models.FloatField(null=True, blank=True)
+    billing_code = models.FloatField(null=True, blank=True)
+    #spend_protection_pixels = array - it is in alpha-beta phase on AppNexus
+    #labels = array - see model InsertionOrderLabel below
+    #broker_fees = array - see model InsertionOrderBrokerFees below
+    budget_intervals = models.TextField(null=True, blank=True) #TODO JSON and maybe separate model later
+    lifetime_pacing = models.NullBooleanField(null=True, blank=True)
+    lifetime_budget = models.FloatField(null=True, blank=True)
+    lifetime_budget_imps = models.IntegerField(null=True, blank=True)
+    enable_pacing = models.NullBooleanField(null=True, blank=True)
+    lifetime_pacing_span = models.IntegerField(null=True, blank=True)
+    daily_budget = models.FloatField(null=True, blank=True)
+    daily_budget_imps = models.FloatField(null=True, blank=True)
+    lifetime_pacing_pct = models.FloatField(null=True, blank=True)
+    #stats = object - late we'll decide if we need a model for stats
+
+    class Meta:
+        db_table = "insertion_order"
+
+
+PAYMENT_TYPE_CHOICES = (
+    ('cpm', 'cpm'),
+    ('revshare', 'revshare')
+)
+
+
+class InsertionOrderBrokerFees(models.Model):
+    insertion_order = models.ForeignKey("InsertionOrder", null=True, blank=True)
+    broker_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    payment_type = models.TextField(
+        choices=PAYMENT_TYPE_CHOICES,
+        null=True, blank=True)
+    value = models.FloatField(null=True, blank=True)
+    description = models.TextField(null=True, blank=True)
+
+    class Meta:
+        db_table = "insertion_order_brocker_fees"
+
+
+class InsertionOrderLabel(models.Model):
+    insertion_order = models.ForeignKey("InsertionOrder", null=True, blank=True)
+    line_item = models.ForeignKey("LineItem", null=True, blank=True)
+
+    class Meta:
+        db_table = "insertion_order_label"
+
+
+class LineItemInsertionOrder(models.Model):
+    insertion_order = models.ForeignKey("InsertionOrder", null=True, blank=True)
+    line_item = models.ForeignKey("LineItem", null=True, blank=True)
+
+    class Meta:
+        db_table = "line_item_insertion_order"
+
+
 class LineItemConversionPixel(models.Model):
     pixel = models.ForeignKey("ConversionPixel", null=True, blank=True)
     line_item = models.ForeignKey("LineItem", null=True, blank=True)
 
     class Meta:
-        db_table = "line_item_label"
+        db_table = "line_item_conversion_pixel"
 
 
 class LineItemLabel(models.Model):
@@ -1355,7 +1462,7 @@ class LineItemLabel(models.Model):
 
 
 class LineItemBroker(models.Model):
-    broker = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    broker_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
     line_item = models.ForeignKey("LineItem", null=True, blank=True)
     payment_type = models.TextField(
         choices=PAYMENT_TYPE_CHOICES,
@@ -1365,12 +1472,6 @@ class LineItemBroker(models.Model):
 
     class Meta:
         db_table = "line_item_broker"
-
-
-PAYMENT_TYPE_CHOICES = (
-    ('cpm', 'cpm'),
-    ('revshare', 'revshare')
-)
 
 
 class CampaignBrokerFees(models.Model):
@@ -1404,18 +1505,72 @@ class CampaignCreatives(models.Model):
 
 class CampaignLineItems(models.Model):
     campaign = models.ForeignKey("Campaign", null=True, blank=True)
-    line_item = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    line_item = models.ForeignKey("LineItem", null=True, blank=True)
 
     class Meta:
         db_table = "campaign_line_items"
+
+
+class NetworkAnalyticsRaw(models.Model):
+    json = models.TextField(null=True, blank=True)#JSONField(null=True, blank=True)
+    csv = models.TextField(null=True, blank=True)
+    report_type = models.TextField(null=True, blank=True)
+    report_id = models.TextField(null=True, blank=True) #TODO FK is needed in future
+    last_updated = models.DateTimeField()
+
+    class Meta:
+        db_table = "network_analytics_raw"
+
+    def __unicode__(self):
+        return self.id
+
+
+class NetworkAnalyticsReport(models.Model):
+    hour = models.DateTimeField(null=True, blank=True, db_index=True)
+    entity_member_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    buyer_member_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    seller_member_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    advertiser_id = models.ForeignKey("Advertiser", null=True, blank=True)
+    adjustment_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    publisher_id = models.ForeignKey("Publisher", null=True, blank=True)
+    pub_rule_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    site_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    pixel_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    placement_id = models.ForeignKey("Placement", null=True, blank=True)
+    insertion_order_id = models.ForeignKey("InsertionOrder", null=True, blank=True)
+    line_item_id = models.ForeignKey("LineItem", null=True, blank=True)
+    campaign_id = models.ForeignKey("Campaign", null=True, blank=True)
+    creative_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    size = models.TextField(null=True, blank=True)
+    brand_id = models.ForeignKey("Brand", null=True, blank=True)
+    billing_period_start_date = models.DateTimeField(null=True, blank=True, db_index=True)
+    billing_period_end_date = models.DateTimeField(null=True, blank=True, db_index=True)
+    geo_country = models.TextField(null=True, blank=True)
+    inventory_class = models.TextField(null=True, blank=True)
+    bid_type = models.TextField(null=True, blank=True)
+    imp_type_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    buyer_type = models.TextField(null=True, blank=True)
+    seller_type = models.TextField(null=True, blank=True)
+    revenue_type_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+
+    supply_type = models.TextField(null=True, blank=True)
+    payment_type = models.TextField(null=True, blank=True)
+    deal_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    media_type = models.ForeignKey("MediaType", null=True, blank=True)
+
+    class Meta:
+        db_table = "network_analytics_report"
+        index_together = ["advertiser_id", "hour"]
+        index_together = ["publisher_id", "hour"]
+        index_together = ["campaign_id", "hour"]
 
 
 class SiteDomainPerformanceReport(models.Model):
     #https://wiki.appnexus.com/display/api/Site+Domain+Performance
     day = models.DateTimeField(null=True, blank=True, db_index=True)
     site_domain = models.TextField(null=True, blank=True, db_index=True)
-    campaign = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
-    line_item_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    campaign = models.ForeignKey("Campaign", null=True, blank=True)
+    line_item = models.ForeignKey("LineItem", null=True, blank=True)
     top_level_category = models.ForeignKey("ContentCategory", related_name='top_level_category_id', null=True, blank=True)
     second_level_category = models.ForeignKey("ContentCategory", related_name='second_level_category_id', null=True, blank=True)
     deal_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future

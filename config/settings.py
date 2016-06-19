@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/1.8/ref/settings/
 """
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-import os
+import os, datetime
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -136,4 +136,4 @@ NEXUS_AUTH_DATA= {
     "username": "stats_api", 
     "password": "API?1nsid3!"
 }
-INVALIDATE_TIME = datetime.timedelta(day=1)
+INVALIDATE_TIME = datetime.timedelta(days=1)

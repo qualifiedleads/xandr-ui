@@ -8,6 +8,7 @@ from django.conf import settings
 import json
 from models import Advertiser, Campaign, StgSiteDomainPerformanceReport
 from pytz import utc
+import re
 
 def update_object_from_dict(o,d):
     for field in d:
@@ -105,6 +106,57 @@ def get_campaigns(token, advertiser_id):
             object_db.fetch_date=current_date
             object_db.save()
     return Campaigns_in_db
+
+#https://api.appnexus.com/creative?start_element=0&num_elements=50'    
+def Nexus_get_objects(token, url, params, query_set, object_class, key_field):
+    print "Begin of Nexus_get_objects func"
+    print url
+    last_word = re.find(r'/(\w+)[^/]*$', url).group(0)
+    print last_word
+    objects_in_db=list(query_set)
+    print "Objects succefully fetched from DB (%d records)"%len(objects_in_db)    
+    current_date=get_current_time()
+    try:
+        last_date = objects_in_db[-1].fetch_date
+    except:
+        last_date = unix_epoch
+    if current_date-last_date > settings.INVALIDATE_TIME:
+        count,cur_records=-1,-2
+        objects_by_api=[]
+        data_key_name=None
+        while cur_records<count: 
+            if cur_records>0:
+                params["start_element"]=cur_records
+                params["num_elements"]=min(100, count-cur_records)
+            r=requests.get(url, params=params, headers = {"Authorization": token});            
+            response = json.loads(r.content)['response']
+            if not data_key_name:
+                data_key_name=list(set(response.keys()) - \
+                              set([u'status', u'count', u'dbg_info', u'num_elements', u'start_element']))
+                if len(data_key_name)>1:
+                    data_key_name = [x for x in data_key_name if x.startswith(last_word)]
+                if len(data_key_name)>0:
+                    data_key_name = data_key_name[0]
+            pack_of_objects=response.get(data_key_name, [])
+            if count<0: # first portion of objects
+                count = response["count"]
+                cur_records = 0
+            objects_by_api.extend(pack_of_objects)
+            cur_records += response['num_elements']
+
+        print "Objects succefully fetched from Nexus API (%d records)"%len(objects_by_api)
+        obj_by_code = {getattr(i,key_field): i for i in objects_in_db}
+        for i in objects_by_api:
+            object_db = obj_by_code.get(i[key_field])
+            if not object_db:
+                object_db = object_class()
+                objects_in_db.append(object_db) 
+            update_object_from_dict(object_db, i)
+            if hasattr(object_db, "fetch_date"):
+                object_db.fetch_date=current_date
+            object_db.save()
+            
+    return objects_in_db
     
 # Task, executed twice in hour. Get new data from NexusApp
 def hourly_task():

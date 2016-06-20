@@ -4,21 +4,35 @@ import common.report as reports
 import threading
 import csv
 from django.conf import settings
-#import models
 import json
-from models import Advertiser
-from models_api import  API_Campaign, API_SiteDomainPerformanceReport
+from models import Advertiser,  API_Campaign, API_SiteDomainPerformanceReport, \
+                   Campaign, SiteDomainPerformanceReport, Profile, LineItem, InsertionOrder
 from pytz import utc
 import re
 import requests
+import django.db.models as django_types
+
+def date_type(t):
+    return t==type(django_types.DateField) or \
+           t==type(django_types.DateTimeField) 
+           #t==type(django_types.TimeField)
+
+def replace_tzinfo(o):
+    for name in (field.name for field in o._meta.fields if date_type(type(field))):
+        try: 
+            setattr(o, name, getattr(o, name).replace(tzinfo=utc))
+        except Exception as e:
+            print "Error setting timezone for field %s in object %s (%s)"(name, repr(o), e)
+        
 
 def update_object_from_dict(o,d):
     error_counter=0
     for field in d:
         try:
-            setattr(o,field,row[field])
+            setattr(o,field,d[field])
         except:
             error_counter+=1
+    replace_tzinfo(o)
     if settings.DEBUG and error_counter>0:
         print "There is %d errors at settings fields in object %s"%(error_counter,repr(o))
     
@@ -62,28 +76,6 @@ unix_epoch = datetime.datetime.utcfromtimestamp(0).replace(tzinfo=utc)
 def get_current_time():
     return datetime.datetime.utcnow().replace(tzinfo=utc)
 
-# get all Advertisers from DB or with API. Invalidate values, stored in DB
-def get_advertisers(token):
-    advertisers_in_db=list(Advertiser.objects.all().order_by('fetch_date'))
-    print "Advertisers succefully fetched from DB (%d records)"%len(advertisers_in_db)
-    current_date=get_current_time()
-    try:
-        last_date = advertisers_in_db[-1].fetch_date
-    except:
-        last_date = unix_epoch
-    print current_date, last_date
-    if current_date-last_date > settings.INVALIDATE_TIME:
-        json_text = reports.get_all_advertisers(token)
-        advertisers = json.loads(json_text)['response']['advertisers']
-        print "Advertisers succefully fetched from Nexus API"
-        adv_by_code = {i.code: i for i in advertisers_in_db}
-        for i in advertisers:
-            object_db = adv_by_code.get(i['code'], Advertiser())
-            update_object_from_dict(object_db, i)
-            object_db.fetch_date=current_date
-            object_db.save()
-    return advertisers_in_db
-    
 #https://api.appnexus.com/creative?start_element=0&num_elements=50'    
 def Nexus_get_objects(token, url, params, query_set, object_class, key_field):
     print "Begin of Nexus_get_objects func"
@@ -142,8 +134,6 @@ def Nexus_get_objects(token, url, params, query_set, object_class, key_field):
             field_set_json = set(objects_by_api[0])
             print "Uncommon fields in DB:", field_set_db - field_set_json
             print "Uncommon fields in API:", field_set_json - field_set_db 
-            print "All fields in API object", objects_by_api[0].keys()
-            print objects_by_api[0]
     return objects_in_db
     
 # Task, executed twice in hour. Get new data from NexusApp
@@ -152,22 +142,55 @@ def hourly_task():
     #reports.get_specifed_report('network_analytics')
     try:
         token=reports.get_auth_token()
-        advertisers=get_advertisers(token)        
+        advertisers=Nexus_get_objects(token,
+                                      'https://api.appnexus.com/advertiser',
+                                      {},
+                                      Advertiser.objects.all().order_by('fetch_date'),
+                                      Advertiser, 'id')                                      
         print 'There is %d advertisers'%len(advertisers)
         advertiser_id = 992089 # Need to change
-        #advertiser_obj = Advertiser.objects.get(advertiser_id=advertiser_id)
         advertiser_obj = Advertiser.objects.get(pk=advertiser_id)
-        print advertiser_obj
-        #campaigns_for_sel_adv = get_campaigns(token, advertiser_id)
-        campaigns_for_sel_adv = Nexus_get_objects(token,
-                                'https://api.appnexus.com/campaign',
-                                {'advertiser_id':advertiser_id},
-                                API_Campaign.objects.filter(advertiser=advertiser_id).order_by('fetch_date'), 
-                                API_Campaign, 'code')
-        print 'There is %d campaigns '%len(campaigns_for_sel_adv)
+        #Get all of the profiles for the advertiser
+        profiles = Nexus_get_objects(token,
+                                    'https://api.appnexus.com/profile',
+                                    {'advertiser_id':advertiser_id},
+                                    Profile.objects.filter(advertiser=advertiser_id).order_by('fetch_date'), 
+                                    Profile, 'id')
+        print 'There is %d profiles'%len(profiles)
+        #Get all of the insertion orders for one of your advertisers:
+        insert_order = Nexus_get_objects(token,
+                                      'https://api.appnexus.com/insertion-order',
+                                      {'advertiser_id':advertiser_id},
+                                      InsertionOrder.objects.filter(advertiser=advertiser_id).order_by('fetch_date'), 
+                                      InsertionOrder, 'id')
+        print 'There is %d  insertion orders'%len(insert_order)
+        if len(insert_order)>0:
+            print 'First insertion order:'
+            print insert_order[0]
+            print '-'*80
+
+        #Get all of an advertiser's line items:
+        line_items = Nexus_get_objects(token,
+                                      'https://api.appnexus.com/line-item',
+                                      {'advertiser_id':advertiser_id},
+                                      LineItem.objects.filter(advertiser=advertiser_id).order_by('fetch_date'), 
+                                      LineItem, 'id')
+        print 'There is %d  line items'%len(line_items)
+        if len(insert_order)>0:
+            print 'First insertion order:'
+            print insert_order[0]
+            print '-'*80
+
+        campaigns = Nexus_get_objects(token,
+                                    'https://api.appnexus.com/campaign',
+                                    {'advertiser_id':advertiser_id},
+                                    Campaign.objects.filter(advertiser=advertiser_id).order_by('fetch_date'), 
+                                    Campaign, 'id')
+        print 'There is %d campaigns '%len(campaigns)
+        
         campaign_name_to_code = {i.name: i.code for i in campaigns_for_sel_adv}
-        f=reports.get_specifed_report('site_domain_performance',{'advertiser_id':advertiser_id}, token)
-        #f=open('rtb/logs/2016-06-18T18:42:42.861630_report_3dbaf1cab9c5870fa023e2492028aa58.csv','r')
+        #f=reports.get_specifed_report('site_domain_performance',{'advertiser_id':advertiser_id}, token)
+        f=open('rtb/logs/2016-06-20T14:36:14.880399_report_f2d2f5b35e0c0ec03d5b73f9938add64.csv','r')
         r=analize_csv(f, SiteDomainPerformanceReport, 
                       metadata={"campaign_name_to_code": campaign_name_to_code, 
                                 'advertiser_id':advertiser_obj})

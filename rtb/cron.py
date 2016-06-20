@@ -6,18 +6,21 @@ import csv
 from django.conf import settings
 #import models
 import json
-from models import Advertiser, Campaign, StgSiteDomainPerformanceReport
+from models import Advertiser
+from models_api import  Campaign, SiteDomainPerformanceReport
 from pytz import utc
 import re
 import requests
 
 def update_object_from_dict(o,d):
+    error_counter=0
     for field in d:
         try:
             setattr(o,field,row[field])
         except:
-            if settings.DEBUG:
-                print "Can't set field %s in object %s"%(field,repr(o))
+            error_counter+=1
+    if settings.DEBUG and error_counter>0:
+        print "There is %d errors at settings fields in object %s"%(error_counter,repr(o))
     
 
 def analize_csv(csvFile, modelClass, metadata = {}):
@@ -81,33 +84,6 @@ def get_advertisers(token):
             object_db.save()
     return advertisers_in_db
     
-# get all Campaigns from DB or with API. Invalidate values, stored in DB
-def get_campaigns(token, advertiser_id):
-    print "Begin get_campaigns"
-    Campaigns_in_db=list(Campaign.objects.filter(advertiser=advertiser_id).order_by('fetch_date'))
-    #Campaigns_in_db=list(Campaign.objects.filter(advertiser==advertiser_id))
-    print "Campaigns succefully fetched from DB (%d records)"%len(Campaigns_in_db)    
-    current_date=get_current_time()
-    try:
-        last_date = Campaigns_in_db[-1].fetch_date
-    except:
-        last_date = unix_epoch
-    if current_date-last_date > settings.INVALIDATE_TIME:
-        txt = reports.get_all_campaigns(token,advertiser_id)
-        response = json.loads(txt)['response']
-        campaigns=response['campaigns']
-        if response['count']!=response['num_elements']:
-            print "There is too much data ... (%d)"%response['count']
-            raise Exception("Bulk data")
-        print "Campaigns succefully fetched from Nexus API (%d records)"%len(campaigns)
-        camp_by_code = {i.code: i for i in Campaigns_in_db}
-        for i in campaigns:
-            object_db = camp_by_code.get(i['code'], Campaign())
-            update_object_from_dict(object_db, i)
-            object_db.fetch_date=current_date
-            object_db.save()
-    return Campaigns_in_db
-
 #https://api.appnexus.com/creative?start_element=0&num_elements=50'    
 def Nexus_get_objects(token, url, params, query_set, object_class, key_field):
     print "Begin of Nexus_get_objects func"
@@ -155,8 +131,19 @@ def Nexus_get_objects(token, url, params, query_set, object_class, key_field):
             update_object_from_dict(object_db, i)
             if hasattr(object_db, "fetch_date"):
                 object_db.fetch_date=current_date
-            object_db.save()
-            
+            try:
+                object_db.save()
+            except Exception as e:
+                print "Error by saving ",e
+        if settings.DEBUG and len(objects_by_api)>0:
+            #field_set_db = set(x.field_name for x in object_class._meta.get_fields())  # get_all_field_names())
+            print "Calc field lists difference..."
+            field_set_db = set(x.name for x in object_class._meta.fields)  
+            field_set_json = set(objects_by_api[0])
+            print "Uncommon fields in DB:", field_set_db - field_set_json
+            print "Uncommon fields in API:", field_set_json - field_set_db 
+            print "All fields in API object", objects_by_api[0].keys()
+            print objects_by_api[0]
     return objects_in_db
     
 # Task, executed twice in hour. Get new data from NexusApp
@@ -178,7 +165,7 @@ def hourly_task():
         campaign_name_to_code = {i.name: i.code for i in campaigns_for_sel_adv}
         #f=reports.get_specifed_report('site_domain_performance',{'advertiser_id':advertiser_id}, token)
         f=open('rtb/logs/2016-06-18T18:42:42.861630_report_3dbaf1cab9c5870fa023e2492028aa58.csv','r')
-        r=analize_csv(f, StgSiteDomainPerformanceReport, 
+        r=analize_csv(f, SiteDomainPerformanceReport, 
                       metadata={"campaign_name_to_code": campaign_name_to_code})
         for i in r: i.save()
         print "Domain performance report saved to DB"

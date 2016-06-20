@@ -14,9 +14,7 @@ import time
 import django.db.models as django_types
 
 def date_type(t):
-    return t is django_types.DateField or \
-           t is django_types.DateTimeField
-           #t is django_types.TimeField
+    return isinstance(t ,(django_types.DateField, django_types.TimeField, django_types.DateField))
 
 def replace_tzinfo(o):
     time_fields = [field.name for field in o._meta.fields if date_type(field)]
@@ -25,7 +23,7 @@ def replace_tzinfo(o):
         try: 
             setattr(o, name, getattr(o, name).replace(tzinfo=utc))
         except Exception as e:
-            print "Error setting timezone for field %s in object %s (%s)"(name, repr(o), e)
+            print "Error setting timezone for field %s in object %s (%s)"%(name, o, e)
         
 
 def update_object_from_dict(o,d):
@@ -35,10 +33,7 @@ def update_object_from_dict(o,d):
             setattr(o,field,d[field])
         except:
             error_counter+=1
-    try:
-        replace_tzinfo(o)
-    except Exception as e:
-        print "Error in replace_tzinfo", e, o
+    replace_tzinfo(o)
     if settings.DEBUG and error_counter>0:
         print "There is %d errors at settings fields in object %s"%(error_counter,repr(o))
     
@@ -173,7 +168,6 @@ def hourly_task():
             print 'First insertion order:'
             print insert_order[0]
             print '-'*80
-        time.sleep(10)
         #Get all of an advertiser's line items:
         line_items = Nexus_get_objects(token,
                                       'https://api.appnexus.com/line-item',
@@ -185,21 +179,18 @@ def hourly_task():
             print 'First insertion order:'
             print insert_order[0]
             print '-'*80
-        time.sleep(10)
         campaigns = Nexus_get_objects(token,
                                     'https://api.appnexus.com/campaign',
                                     {'advertiser_id':advertiser_id},
                                     Campaign.objects.filter(advertiser=advertiser_id).order_by('fetch_date'), 
                                     Campaign, 'id')
-        print "-"*80
         print 'There is %d campaigns '%len(campaigns)
         
-        campaign_name_to_code = {i.name: i.code for i in campaigns_for_sel_adv}
+        campaign_name_to_code = {i.name: i.code for i in campaigns}
         #f=reports.get_specifed_report('site_domain_performance',{'advertiser_id':advertiser_id}, token)
         f=open('rtb/logs/2016-06-20T14:36:14.880399_report_f2d2f5b35e0c0ec03d5b73f9938add64.csv','r')
         r=analize_csv(f, SiteDomainPerformanceReport, 
-                      metadata={"campaign_name_to_code": campaign_name_to_code, 
-                                'advertiser_id':advertiser_obj})
+                      metadata={"campaign_name_to_code": campaign_name_to_code})
         for i in r: i.save()
         print "Domain performance report saved to DB"
     except Exception as e:

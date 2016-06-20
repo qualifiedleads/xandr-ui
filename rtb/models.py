@@ -1633,8 +1633,11 @@ class SiteDomainPerformanceReport(models.Model):
     class Meta:
         db_table = "site_domain_performance_report"
     #This function transform raw data, collected from csv, to value, saved into DB/
-    def TransformFields(self):
-        pass
+    def TransformFields(self, metadata={}):
+        if not metadata: return
+        campaign_name_to_code = metadata["campaign_name_to_code"]
+        self.campaign=campaign_name_to_code.get(self.campaign)
+        #self.advertiser_id = metadata.get("advertiser_id")
 
 
 class API_Campaign(models.Model):
@@ -1711,10 +1714,6 @@ class API_Campaign(models.Model):
     #This function transform data
     def TransformFields(self, metadata={}):
         if not metadata: return
-        if type(self.advertiser_id)==type(int):
-            advertiser = metatada.get("advertiser_id")
-            if not advertiser: advertiser = Advertiser.objects.get(self.advertiser_id)
-            self.advertiser_id = advertiser
 
 
 #table for SiteDomainPerformanceReport. Data extracted from correspondent report
@@ -1779,4 +1778,4 @@ class API_SiteDomainPerformanceReport(models.Model):
         if not metadata: return
         campaign_name_to_code = metadata["campaign_name_to_code"]
         self.campaign=campaign_name_to_code.get(self.campaign)
-        self.advertiser_id = metatada.get("advertiser_id")
+        #self.advertiser_id = metadata.get("advertiser_id")

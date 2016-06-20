@@ -155,7 +155,9 @@ def hourly_task():
         advertisers=get_advertisers(token)        
         print 'There is %d advertisers'%len(advertisers)
         advertiser_id = 992089 # Need to change
-        advertiser_obj = Advertiser.objects.get(advertiser_id)
+        #advertiser_obj = Advertiser.objects.get(advertiser_id=advertiser_id)
+        advertiser_obj = Advertiser.objects.get(pk=advertiser_id)
+        print advertiser_obj
         #campaigns_for_sel_adv = get_campaigns(token, advertiser_id)
         campaigns_for_sel_adv = Nexus_get_objects(token,
                                 'https://api.appnexus.com/campaign',
@@ -164,8 +166,8 @@ def hourly_task():
                                 API_Campaign, 'code')
         print 'There is %d campaigns '%len(campaigns_for_sel_adv)
         campaign_name_to_code = {i.name: i.code for i in campaigns_for_sel_adv}
-        #f=reports.get_specifed_report('site_domain_performance',{'advertiser_id':advertiser_id}, token)
-        f=open('rtb/logs/2016-06-18T18:42:42.861630_report_3dbaf1cab9c5870fa023e2492028aa58.csv','r')
+        f=reports.get_specifed_report('site_domain_performance',{'advertiser_id':advertiser_id}, token)
+        #f=open('rtb/logs/2016-06-18T18:42:42.861630_report_3dbaf1cab9c5870fa023e2492028aa58.csv','r')
         r=analize_csv(f, SiteDomainPerformanceReport, 
                       metadata={"campaign_name_to_code": campaign_name_to_code, 
                                 'advertiser_id':advertiser_obj})

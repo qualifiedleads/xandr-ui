@@ -1,10 +1,15 @@
 from django.db import models
+from models import Advertiser
+from models import SUPPLY_TYPE, FOLD_POSITION_CHOISE, AGE_BUCKET_CHOISE, GENDER
 
-class Campaign(models.Model):
+
+class API_Campaign(models.Model):
     #https://wiki.appnexus.com/display/api/Campaign+Service
     fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)    
     id = models.IntegerField(null=True, primary_key=True, db_index=True)
     code = models.IntegerField(null=True, blank=True, db_index=True)
+    advertiser_id = models.ForeignKey('Advertiser', null=True, blank=True, db_index=True)
+    #advertiser_id = models.IntegerField(null=True, blank=True, db_index=True)
     pixel_id = models.IntegerField(null=True, blank=True, db_index=True)
     optimization_version = models.TextField(null=True, blank=True, db_index=True)
     profile_id = models.IntegerField(null=True, blank=True, db_index=True)
@@ -48,7 +53,6 @@ class Campaign(models.Model):
     cpm_bid_type = models.IntegerField(null=True, blank=True, db_index=True)
     ecp_learn_divisor = models.IntegerField(null=True, blank=True, db_index=True)
     creatives = models.IntegerField(null=True, blank=True, db_index=True)
-    advertiser_id = models.IntegerField(null=True, blank=True, db_index=True)
     last_modified = models.IntegerField(null=True, blank=True, db_index=True)
     campaign_modifiers = models.IntegerField(null=True, blank=True, db_index=True)
     creative_distribution_type = models.IntegerField(null=True, blank=True, db_index=True)
@@ -68,20 +72,30 @@ class Campaign(models.Model):
     total_days = models.IntegerField(null=True, blank=True, db_index=True)
     lifetime_pacing_span = models.IntegerField(null=True, blank=True, db_index=True)
     cpc_payout = models.IntegerField(null=True, blank=True, db_index=True)
+    class Meta:
+        db_table = "api_campaign"
+    #This function transform data
+    def TransformFields(self, metadata={}):
+        if not metadata: return
+        if type(self.advertiser_id)==type(int):
+            advertiser = metatada.get("advertiser_id")
+            if not advertiser: advertiser = Advertiser.objects.get(self.advertiser_id)
+            self.advertiser_id = advertiser
 
 
 #table for SiteDomainPerformanceReport. Data extracted from correspondent report
-class SiteDomainPerformanceReport(models.Model):
+class API_SiteDomainPerformanceReport(models.Model):
     #https://wiki.appnexus.com/display/api/Site+Domain+Performance
     fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
+    advertiser_id = models.ForeignKey('Advertiser', null=True, blank=True, db_index=True)
+    #advertiser_id = models.IntegerField(null=True, blank=True, db_index=True)
+    campaign = models.ForeignKey("API_Campaign",null=True, blank=True, db_index=True)  
     day = models.DateTimeField(null=True, blank=True, db_index=True)
     site_domain = models.TextField(null=True, blank=True, db_index=True)
-    campaign = models.IntegerField(null=True, blank=True, db_index=True)  
     line_item_id = models.IntegerField(null=True, blank=True, db_index=True)
     top_level_category_id = models.IntegerField(null=True, blank=True, db_index=True)
     second_level_category_id = models.IntegerField(null=True, blank=True, db_index=True)
     deal_id = models.IntegerField(null=True, blank=True, db_index=True)
-    advertiser_id = models.IntegerField(null=True, blank=True, db_index=True)
     #campaign_group = campaign_group is a synonymous with line_item .
     buyer_member_id = models.IntegerField(null=True, blank=True, db_index=True)
     operating_system_id = models.IntegerField(null=True, blank=True, db_index=True)
@@ -130,4 +144,5 @@ class SiteDomainPerformanceReport(models.Model):
     def TransformFields(self, metadata={}):
         if not metadata: return
         campaign_name_to_code = metadata["campaign_name_to_code"]
-        self.campaign=campaign_name_to_code.get(self.campaign,0)
+        self.campaign=campaign_name_to_code.get(self.campaign)
+        self.advertiser_id = metatada.get("advertiser_id")

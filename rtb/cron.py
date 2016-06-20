@@ -7,7 +7,7 @@ from django.conf import settings
 #import models
 import json
 from models import Advertiser
-from models_api import  Campaign, SiteDomainPerformanceReport
+from models_api import  API_Campaign, API_SiteDomainPerformanceReport
 from pytz import utc
 import re
 import requests
@@ -154,19 +154,21 @@ def hourly_task():
         token=reports.get_auth_token()
         advertisers=get_advertisers(token)        
         print 'There is %d advertisers'%len(advertisers)
-        advertiser_id = 992089
+        advertiser_id = 992089 # Need to change
+        advertiser_obj = Advertiser.objects.get(advertiser_id)
         #campaigns_for_sel_adv = get_campaigns(token, advertiser_id)
         campaigns_for_sel_adv = Nexus_get_objects(token,
                                 'https://api.appnexus.com/campaign',
                                 {'advertiser_id':advertiser_id},
-                                Campaign.objects.filter(advertiser=advertiser_id).order_by('fetch_date'), 
-                                Campaign, 'code')
+                                API_Campaign.objects.filter(advertiser=advertiser_id).order_by('fetch_date'), 
+                                API_Campaign, 'code')
         print 'There is %d campaigns '%len(campaigns_for_sel_adv)
         campaign_name_to_code = {i.name: i.code for i in campaigns_for_sel_adv}
         #f=reports.get_specifed_report('site_domain_performance',{'advertiser_id':advertiser_id}, token)
         f=open('rtb/logs/2016-06-18T18:42:42.861630_report_3dbaf1cab9c5870fa023e2492028aa58.csv','r')
         r=analize_csv(f, SiteDomainPerformanceReport, 
-                      metadata={"campaign_name_to_code": campaign_name_to_code})
+                      metadata={"campaign_name_to_code": campaign_name_to_code, 
+                                'advertiser_id':advertiser_obj})
         for i in r: i.save()
         print "Domain performance report saved to DB"
     except Exception as e:

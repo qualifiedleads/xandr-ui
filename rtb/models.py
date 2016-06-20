@@ -1124,10 +1124,10 @@ class Campaign(models.Model):
     #labels - see model CampaignLabel below
     #broker_fees - see CampaignBrokerFees below
     click_url = models.TextField(null=True, blank=True)
-    valuation_min_margin_rtb_pct = models.DecimalField(max_digits=35, decimal_places=10)
-    remaining_days_eap_multiplier = models.DecimalField(max_digits=35, decimal_places=10)
-    first_run = models.DateTimeField()
-    last_run = models.DateTimeField()
+    valuation_min_margin_rtb_pct = models.DecimalField(max_digits=35, decimal_places=10, null = True)
+    remaining_days_eap_multiplier = models.DecimalField(max_digits=35, decimal_places=10, null = True)
+    first_run = models.DateTimeField(null=True, blank=True)
+    last_run = models.DateTimeField(null=True, blank=True)
     alerts = models.TextField(null=True, blank=True)
     creative_distribution_type = models.TextField(
         choices=CREATIVE_DISTRIBUTUIN_TYPE_COICES,
@@ -1224,7 +1224,7 @@ class LineItem(models.Model):
         choices=STATE_CHOICES,
         null=True, blank=True)
     start_date = models.DateTimeField()
-    end_date = models.DateTimeField()
+    end_date = models.DateTimeField(null=True, blank = True)
     timezone = models.TextField(null=True, blank=True)
     revenue_value = models.FloatField(null=True, blank=True)
     revenue_type = models.TextField(
@@ -1247,7 +1247,7 @@ class LineItem(models.Model):
     flat_fee_status = models.TextField(
         choices=FLAT_FEE_STATUS_CHOICES,
         null=True, blank=True)
-    flat_fee_allocation_date = models.DateTimeField()
+    flat_fee_allocation_date = models.DateTimeField(null=True, blank=True)
     flat_fee_adjustment_id = models.IntegerField(null=True, blank=True)
     #labels = array - see model LineItemLabel below
     #broker_fees = array - see model LineItemBroker below
@@ -1278,8 +1278,8 @@ class LineItem(models.Model):
     insertion_order = models.ForeignKey("InsertionOrder", null=True, blank=True)
     #stats = object - late we'll decide if we need a model for stats
     #all_stats = array - may be we'll need this in separate model in the future
-    first_run = models.DateTimeField()
-    last_run = models.DateTimeField()
+    first_run = models.DateTimeField(null=True, blank=True)
+    last_run = models.DateTimeField(null=True, blank=True)
     expected_pacing = models.FloatField(null=True, blank=True)
     total_pacing = models.FloatField(null=True, blank=True)
     has_pacing_dollars = models.IntegerField(null=True, blank=True) #enum in origin

@@ -6,7 +6,8 @@ import csv
 from django.conf import settings
 import json
 from models import Advertiser, API_Campaign, API_SiteDomainPerformanceReport, \
-    Campaign, SiteDomainPerformanceReport, Profile, LineItem, InsertionOrder
+    Campaign, SiteDomainPerformanceReport, Profile, LineItem, InsertionOrder, \
+    OperatingSystem, OSFamily
 from pytz import utc
 import re
 import requests
@@ -43,7 +44,8 @@ def update_object_from_dict(o, d):
             errors.append(field)
     replace_tzinfo(o)
     if settings.DEBUG and errors > 0:
-        print "There is errors at settings fields %s in object %s" % (errors, repr(o))
+        pass
+        #print "There is errors at settings fields %s in object %s" % (errors, repr(o))
 
 
 def analize_csv(csvFile, modelClass, metadata={}):
@@ -57,9 +59,9 @@ def analize_csv(csvFile, modelClass, metadata={}):
         c.fetch_date = fetch_date
         update_object_from_dict(c, row)
         if hasattr(c, 'TransformFields'):
-            c.TransformFields(metadata)
+            c.TransformFields(row, metadata)
         result.append(c)
-        fields_in_row = row.keys
+        fields_in_row = row.keys()
         counter += 1
         if counter % 1000 == 0:
             print '%d rows fetched' % counter
@@ -88,7 +90,7 @@ def get_current_time():
 
 
 # https://api.appnexus.com/creative?start_element=0&num_elements=50'
-def Nexus_get_objects(token, url, params, query_set, object_class, key_field):
+def nexus_get_objects(token, url, params, query_set, object_class, key_field):
     print "Begin of Nexus_get_objects func"
     last_word = re.search(r'/(\w+)[^/]*$', url).group(1)
     print last_word
@@ -153,7 +155,7 @@ def hourly_task():
     # reports.get_specifed_report('network_analytics')
     try:
         token = reports.get_auth_token()
-        advertisers = Nexus_get_objects(token,
+        advertisers = nexus_get_objects(token,
                                         'https://api.appnexus.com/advertiser',
                                         {},
                                         Advertiser.objects.all().order_by('fetch_date'),
@@ -162,14 +164,14 @@ def hourly_task():
         advertiser_id = 992089  # Need to change
         advertiser_obj = Advertiser.objects.get(pk=advertiser_id)
         # Get all of the profiles for the advertiser
-        profiles = Nexus_get_objects(token,
+        profiles = nexus_get_objects(token,
                                      'https://api.appnexus.com/profile',
                                      {'advertiser_id': advertiser_id},
                                      Profile.objects.filter(advertiser=advertiser_id).order_by('fetch_date'),
                                      Profile, 'id')
         print 'There is %d profiles' % len(profiles)
         # Get all of the insertion orders for one of your advertisers:
-        insert_order = Nexus_get_objects(token,
+        insert_order = nexus_get_objects(token,
                                          'https://api.appnexus.com/insertion-order',
                                          {'advertiser_id': advertiser_id},
                                          InsertionOrder.objects.filter(advertiser=advertiser_id).order_by('fetch_date'),
@@ -180,7 +182,7 @@ def hourly_task():
             print insert_order[0]
             print '-' * 80
         # Get all of an advertiser's line items:
-        line_items = Nexus_get_objects(token,
+        line_items = nexus_get_objects(token,
                                        'https://api.appnexus.com/line-item',
                                        {'advertiser_id': advertiser_id},
                                        LineItem.objects.filter(advertiser=advertiser_id).order_by('fetch_date'),
@@ -190,24 +192,41 @@ def hourly_task():
             print 'First insertion order:'
             print insert_order[0]
             print '-' * 80
-        campaigns = Nexus_get_objects(token,
+        campaigns = nexus_get_objects(token,
                                       'https://api.appnexus.com/campaign',
                                       {'advertiser_id': advertiser_id},
                                       Campaign.objects.filter(advertiser=advertiser_id).order_by('fetch_date'),
                                       Campaign, 'id')
         print 'There is %d campaigns ' % len(campaigns)
+        #Get all operating system families:
+        operating_systems_families = nexus_get_objects(token,
+                                      'https://api.appnexus.com/operating-system-family',
+                                      {},
+                                      OSFamily.objects.all().order_by('fetch_date'),
+                                      OSFamily, 'id')
+        print 'There is %d operating system families' % len(operating_systems_families)
+        #Get all operating systems:
+        operating_systems = nexus_get_objects(token,
+                                      'https://api.appnexus.com/operating-system',
+                                              {},
+                                              OperatingSystem.objects.all().order_by('fetch_date'),
+                                              OperatingSystem, 'id')
+        print 'There is %d operating systems ' % len(operating_systems)
 
         campaign_name_to_code = {i.name: i.id for i in campaigns}
         # f=reports.get_specifed_report('site_domain_performance',{'advertiser_id':advertiser_id}, token)
         f = open('rtb/logs/2016-06-21T07-15-33.040_report_79aaef968e0cdcab3f24925c02d06908.csv', 'r')
         r = analize_csv(f, SiteDomainPerformanceReport,
                         metadata={"campaign_name_to_code": campaign_name_to_code,
-                                  "advertiser" : advertiser_id})
-        for i in r: i.save()
+                                  "advertiser_id" : advertiser_id})
+        for i in r:
+            try:
+                i.save()
+            except Exception as e:
+                print "Error by saving object %s (%s)"%(i,e)
         print "Domain performance report saved to DB"
     except Exception as e:
         print 'Error by fetching data: %s' % e
     print "There is %d rows fetched " % len(r)
-
 
 if __name__ == '__main__': hourly_task()

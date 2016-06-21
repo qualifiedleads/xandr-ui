@@ -858,7 +858,9 @@ PLATFORM_TYPE_CHOICE = (
 
 
 class OSFamily(models.Model):
+    id = models.IntegerField(primary_key=True) #No AutoIncrement
     name = models.TextField(null=True, blank=True, db_index=True)
+    fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
     last_modified = models.DateTimeField()
 
     class Meta:
@@ -866,6 +868,8 @@ class OSFamily(models.Model):
 
 
 class OperatingSystem(models.Model):
+    id = models.IntegerField(primary_key=True) #No AutoIncrement
+    fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
     name = models.TextField(null=True, blank=True, db_index=True)
     platform_type = models.TextField(
         choices=PLATFORM_TYPE_CHOICE,
@@ -1610,7 +1614,8 @@ class SiteDomainPerformanceReport(models.Model):
     gender = models.TextField(
         choices=GENDER,
         null=True, blank=True)
-    is_remarketing = models.IntegerField(null=True, blank=True)
+    #is_remarketing = models.IntegerField(null=True, blank=True)
+    is_remarketing = models.NullBooleanField()
     conversion_pixel = models.ForeignKey("ConversionPixel", null=True, blank=True)
     booked_revenue = models.DecimalField(max_digits=35, decimal_places=10)
     clicks = models.IntegerField(null=True, blank=True)
@@ -1641,14 +1646,20 @@ class SiteDomainPerformanceReport(models.Model):
         if not metadata: return
         #campaign_name_to_code = metadata["campaign_name_to_code"]
         #self.campaign=campaign_name_to_code.get(self.campaign)
+        self.campaign = None
         self.campaign_id = get_text_in_parentheses(data["campaign"])
+        self.advertiser = None
         self.advertiser_id = metadata.get("advertiser_id")
         #self.line_item_id = get_text_in_parentheses(data["line_item"])
+        self.operating_system = None
         self.operating_system_id = get_text_in_parentheses(data["operating_system"])
         if data["top_level_category"]=="--":
             self.top_level_category = None
         if data["second_level_category"]=="--":
             self.second_level_category = None
+        #if self.is_remarketing == 'no'
+        self.click_thru_pct = self.click_thru_pct.replace('%','')
+
 
 
 class API_Campaign(models.Model):

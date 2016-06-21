@@ -151,6 +151,11 @@ def nexus_get_objects(token, url, params, query_set, object_class, key_field):
             #print objects_by_api
     return objects_in_db
 
+def get_campaign(token, advertiser_id, id):
+    request = requests.get('https://api.appnexus.com/campaign', 
+                           params={'advertiser_id': advertiser_id, 'id': id},
+                           headers={"Authorization": token})
+    return json.loads(request.content)['response']
 
 # Task, executed twice in hour. Get new data from NexusApp
 def hourly_task():
@@ -222,6 +227,10 @@ def hourly_task():
         r = analize_csv(f, SiteDomainPerformanceReport,
                         metadata={"campaign_name_to_code": campaign_name_to_code,
                                   "advertiser_id" : advertiser_id})
+        print get_campaign(token, advertiser_id, 13458717)
+        print get_campaign(token, advertiser_id, 13458728)
+        print get_campaign(token, advertiser_id, 13458730)
+        return
         for i in r:
             try:
                 i.save()

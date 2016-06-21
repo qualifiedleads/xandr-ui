@@ -880,6 +880,20 @@ class OperatingSystem(models.Model):
     class Meta:
         db_table = "operating_system"
 
+class OperatingSystemExtended(models.Model):
+    id = models.IntegerField(primary_key=True) #No AutoIncrement
+    fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
+    name = models.TextField(null=True, blank=True, db_index=True)
+    os_family = models.ForeignKey("OSFamily", null=True, blank=True)
+    last_modified = models.DateTimeField()
+    search_string = models.TextField(null=True, blank=True)
+    
+    def TransformFields(self, data, metadata={}):
+		self.os_family_id = data["family"]["id"]
+
+    class Meta:
+        db_table = "operating_system_extended"
+
 
 TARGETS_OPERATOR_CHOICE = (
     ('and', 'and'),
@@ -1598,7 +1612,7 @@ class SiteDomainPerformanceReport(models.Model):
     advertiser = models.ForeignKey("Advertiser", null=True, blank=True)
     #campaign_group = campaign_group is a synonymous with line_item .
     buyer_member_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
-    operating_system = models.ForeignKey("OperatingSystem", null=True, blank=True)
+    operating_system = models.ForeignKey("OperatingSystemExtended", null=True, blank=True)
     supply_type = models.TextField(
         choices=SUPPLY_TYPE,
         null=True, blank=True)

@@ -7,7 +7,7 @@ from django.conf import settings
 import json
 from models import Advertiser, API_Campaign, API_SiteDomainPerformanceReport, \
     Campaign, SiteDomainPerformanceReport, Profile, LineItem, InsertionOrder, \
-    OperatingSystem, OSFamily
+    OperatingSystem, OSFamily, OperatingSystemExtended
 from pytz import utc
 import re
 import requests
@@ -135,6 +135,8 @@ def nexus_get_objects(token, url, params, query_set, object_class, key_field):
             update_object_from_dict(object_db, i)
             if hasattr(object_db, "fetch_date"):
                 object_db.fetch_date = current_date
+            if hasattr(object_db, "TransformFields"):
+				object_db.TransformFields(i)
             try:
                 object_db.save()
             except Exception as e:
@@ -146,6 +148,7 @@ def nexus_get_objects(token, url, params, query_set, object_class, key_field):
             field_set_json = set(objects_by_api[0])
             print "Uncommon fields in DB:", field_set_db - field_set_json
             print "Uncommon fields in API:", field_set_json - field_set_db
+            #print objects_by_api
     return objects_in_db
 
 
@@ -198,6 +201,7 @@ def hourly_task():
                                       Campaign.objects.filter(advertiser=advertiser_id).order_by('fetch_date'),
                                       Campaign, 'id')
         print 'There is %d campaigns ' % len(campaigns)
+        campaign_name_to_code = {i.name: i.id for i in campaigns}
         #Get all operating system families:
         operating_systems_families = nexus_get_objects(token,
                                       'https://api.appnexus.com/operating-system-family',
@@ -207,13 +211,12 @@ def hourly_task():
         print 'There is %d operating system families' % len(operating_systems_families)
         #Get all operating systems:
         operating_systems = nexus_get_objects(token,
-                                      'https://api.appnexus.com/operating-system',
-                                              {},
-                                              OperatingSystem.objects.all().order_by('fetch_date'),
-                                              OperatingSystem, 'id')
+							'https://api.appnexus.com/operating-system-extended',
+							{},
+							OperatingSystemExtended.objects.all().order_by('fetch_date'),
+							OperatingSystemExtended, 'id')
         print 'There is %d operating systems ' % len(operating_systems)
 
-        campaign_name_to_code = {i.name: i.id for i in campaigns}
         # f=reports.get_specifed_report('site_domain_performance',{'advertiser_id':advertiser_id}, token)
         f = open('rtb/logs/2016-06-21T07-15-33.040_report_79aaef968e0cdcab3f24925c02d06908.csv', 'r')
         r = analize_csv(f, SiteDomainPerformanceReport,

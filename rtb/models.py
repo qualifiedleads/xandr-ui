@@ -1,4 +1,4 @@
-import datetime
+import datetime, re
 
 
 from django.db import models
@@ -1577,9 +1577,13 @@ class NetworkAnalyticsReport(models.Model):
         index_together = ["publisher_id", "hour"]
         index_together = ["campaign_id", "hour"]
 
+num_in_p = re.compile(r'\((\d+)\)')
+def get_text_in_parentheses(s):
+    return  num_in_p.search(s).group(1)
 
 class SiteDomainPerformanceReport(models.Model):
     #https://wiki.appnexus.com/display/api/Site+Domain+Performance
+    fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
     day = models.DateTimeField(null=True, blank=True, db_index=True)
     site_domain = models.TextField(null=True, blank=True, db_index=True)
     campaign = models.ForeignKey("Campaign", null=True, blank=True)
@@ -1633,11 +1637,18 @@ class SiteDomainPerformanceReport(models.Model):
     class Meta:
         db_table = "site_domain_performance_report"
     #This function transform raw data, collected from csv, to value, saved into DB/
-    def TransformFields(self, metadata={}):
+    def TransformFields(self, data,  metadata={}):
         if not metadata: return
-        campaign_name_to_code = metadata["campaign_name_to_code"]
-        self.campaign=campaign_name_to_code.get(self.campaign)
-        #self.advertiser_id = metadata.get("advertiser_id")
+        #campaign_name_to_code = metadata["campaign_name_to_code"]
+        #self.campaign=campaign_name_to_code.get(self.campaign)
+        self.campaign_id = get_text_in_parentheses(data["campaign"])
+        self.advertiser_id = metadata.get("advertiser_id")
+        #self.line_item_id = get_text_in_parentheses(data["line_item"])
+        self.operating_system_id = get_text_in_parentheses(data["operating_system"])
+        if data["top_level_category"]=="--":
+            self.top_level_category = None
+        if data["second_level_category"]=="--":
+            self.second_level_category = None
 
 
 class API_Campaign(models.Model):

@@ -197,11 +197,12 @@ def hourly_task():
                                       Campaign, 'id')
         print 'There is %d campaigns ' % len(campaigns)
 
-        campaign_name_to_code = {i.name: i.code for i in campaigns}
+        campaign_name_to_code = {i.name: i.id for i in campaigns}
         # f=reports.get_specifed_report('site_domain_performance',{'advertiser_id':advertiser_id}, token)
         f = open('rtb/logs/2016-06-21T07-15-33.040_report_79aaef968e0cdcab3f24925c02d06908.csv', 'r')
         r = analize_csv(f, SiteDomainPerformanceReport,
-                        metadata={"campaign_name_to_code": campaign_name_to_code})
+                        metadata={"campaign_name_to_code": campaign_name_to_code,
+                                  "advertiser" : advertiser_id})
         for i in r: i.save()
         print "Domain performance report saved to DB"
     except Exception as e:

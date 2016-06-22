@@ -6,8 +6,36 @@
     .controller('MainController', MainController);
 
   /** @ngInject */
-  function MainController() {
+  function MainController($window) {
     var vm = this;
+    var products = [{
+      "ID": 0,
+      "Name": "Last day",
+      "dataStart": '',
+      "dataEnd": ''
+    }, {
+      "ID": 1,
+      "Name": "Current week"
+    }, {
+      "ID": 2,
+      "Name": "Last week"
+    }, {
+      "ID": 3,
+      "Name": "Current month"
+    }, {
+      "ID": 4,
+      "Name": "Last month"
+    }];
+
+    vm.datePiker = {
+      dataSource: new DevExpress.data.ArrayStore({
+        data: products,
+        key: "ID"
+      }),
+      displayExpr: "Name",
+      valueExpr: "ID",
+      value: products[0].ID
+    };
 
     vm.checkboxData = [];
 
@@ -109,68 +137,97 @@
       columns: ["Campaign", "spend", "conv", "imp", "clicks", "cpc", "cpm", "CVR", "CTR"]
       ,
       selection: {
-          mode: "multiple"
-        },
-        onSelectionChanged: function(data) {
-          vm.selectedItems = data.selectedRowsData;
-          vm.disabled = !vm.selectedItems.length;
-        }
+        mode: "multiple"
+      },
+      onSelectionChanged: function(data) {
+        vm.selectedItems = data.selectedRowsData;
+        vm.disabled = !vm.selectedItems.length;
+      }
     };
 
     vm.dataSource = [{
       day: "Sunday",
-      hydro: 59.8,
-      oil: 937.6,
-      gas: 582,
-      coal: 564.3,
-      nuclear: 187.9
-    }, {
+      impressions: 0,
+      CPA: 0,
+      CPC: 0,
+      clicks: 0,
+      media: 0,
+      conversions: 0,
+      CTR: 0
+    },{
       day: "Monday",
-      hydro: 74.2,
-      oil: 308.6,
-      gas: 35.1,
-      coal: 956.9,
-      nuclear: 11.3
+      impressions: 159.8,
+      CPA: 837.6,
+      CPC: 482,
+      clicks: 464.3,
+      media: 87.9,
+      conversions: 287.9,
+      CTR: 287.9
     }, {
       day: "Tuesday",
-      hydro: 40,
-      oil: 128.5,
-      gas: 361.8,
-      coal: 105,
-      nuclear: 32.4
+      impressions: 259.8,
+      CPA: 537.6,
+      CPC: 782,
+      clicks: 264.3,
+      media: 887.9,
+      conversions: 187.9,
+      CTR: 87.9
     }, {
       day: "Wednesday",
-      hydro: 22.6,
-      oil: 241.5,
-      gas: 64.9,
-      coal: 120.8,
-      nuclear: 64.8
+      impressions: 159.8,
+      CPA: 237.6,
+      CPC: 482,
+      clicks: 364.3,
+      media: 587.9,
+      conversions: 687.9,
+      CTR: 787.9
     }, {
       day: "Thursday",
-      hydro: 19,
-      oil: 119.3,
-      gas: 28.9,
-      coal: 204.8,
-      nuclear: 3.8
+      impressions: 359.8,
+      CPA: 737.6,
+      CPC: 482,
+      clicks: 364.3,
+      media: 187.9,
+      conversions: 187.9,
+      CTR: 187.9
     }, {
       day: "Friday",
-      hydro: 6.1,
-      oil: 123.6,
-      gas: 77.3,
-      coal: 85.7,
-      nuclear: 37.8
+      impressions: 59.8,
+      CPA: 937.6,
+      CPC: 582,
+      clicks: 564.3,
+      media: 287.9,
+      conversions: 387.9,
+      CTR: 487.9
     },
-      {
-        day: "Friday",
-        hydro: 6.1,
-        oil: 123.6,
-        gas: 77.3,
-        coal: 85.7,
-        nuclear: 37.8
+      { day: "Saturday",
+        impressions: 159.8,
+        CPA: 837.6,
+        CPC: 282,
+        clicks: 164.3,
+        media: 187.9,
+        conversions: 187.9,
+        CTR: 287.9
       }];
     vm.types = ["line", "stackedLine", "fullStackedLine"];
 
+
+
+    var series = [
+      { valueField: "impressions", name: "Impressions"},
+      { valueField: "CPA", name: "CPA" },
+      { valueField: "CPC", name: "CPC" },
+      { valueField: "clicks", name: "clicks" },
+      { valueField: "media", name: "media" },
+      { valueField: "conversions", name: "conversions" },
+      { valueField: "CTR", name: "CTR" }
+    ];
+
     vm.chartOptions = {
+      onInitialized: function (data) {
+        vm.chartOptionsFunc = data.component;
+        //console.log(data.component.series.length);
+      },
       size: {
         width: 500,
         height: 230
@@ -190,24 +247,12 @@
           visible: true
         }
       },
-      series: [
-        { valueField: "hydro", name: "Hydro-electric" },
-        { valueField: "oil", name: "Oil" },
-        { valueField: "gas", name: "Natural gas" },
-        { valueField: "coal", name: "Coal" },
-        { valueField: "nuclear", name: "Nuclear" }
-      ],
+      series: series,
       legend: {
         verticalAlignment: "bottom",
         horizontalAlignment: "center",
         itemTextPosition: "bottom"
       },
-      // title: {
-      //   text: "Energy Consumption in 2004",
-      //   subtitle: {
-      //     text: "(Millions of Tons, Oil Equivalent)"
-      //   }
-      // },
       tooltip: {
         enabled: true,
         customizeTooltip: function (arg) {
@@ -217,6 +262,97 @@
         }
       }
     };
-    
+    /** CheckBox Chart **/
+    vm.impressions = {
+      text: "Impressions",
+      value: true,
+      onValueChanged: function (e) {
+        if (e.value == true) {
+          vm.chartOptionsFunc.option("series[0].visible", true);
+        } else {
+          vm.chartOptionsFunc.option("series[0].visible", false);
+        }
+      }
+    };
+
+    vm.CPA = {
+      text: "CPA",
+      value: true,
+      onValueChanged: function (e) {
+        if (e.value == true) {
+          vm.chartOptionsFunc.option("series[1].visible", true);
+        } else {
+          vm.chartOptionsFunc.option("series[1].visible", false);
+        }
+      }
+    };
+
+    vm.CPC = {
+      text: "CPC",
+      value: true,
+      onValueChanged: function (e) {
+        if (e.value == true) {
+          vm.chartOptionsFunc.option("series[2].visible", true);
+        } else {
+          vm.chartOptionsFunc.option("series[2].visible", false);
+        }
+      }
+    };
+
+    vm.clicks = {
+      text: "clicks",
+      value: true,
+      onValueChanged: function (e) {
+        if (e.value == true) {
+          vm.chartOptionsFunc.option("series[3].visible", true);
+        } else {
+          vm.chartOptionsFunc.option("series[3].visible", false);
+        }
+      }
+    };
+
+    vm.media = {
+      text: "media spend",
+      value: true,
+      onValueChanged: function (e) {
+        if (e.value == true) {
+          vm.chartOptionsFunc.option("series[4].visible", true);
+        } else {
+          vm.chartOptionsFunc.option("series[4].visible", false);
+        }
+      }
+    };
+
+    vm.conversions = {
+      text: "conversions",
+      value: true,
+      onValueChanged: function (e) {
+        if (e.value == true) {
+          vm.chartOptionsFunc.option("series[5].visible", true);
+        } else {
+          vm.chartOptionsFunc.option("series[5].visible", false);
+        }
+      }
+    };
+
+    vm.CTR = {
+      text: "CTR",
+      value: true,
+      onValueChanged: function (e) {
+        if (e.value == true) {
+          vm.chartOptionsFunc.option("series[6].visible", true);
+        } else {
+          vm.chartOptionsFunc.option("series[6].visible", false);
+        }
+      }
+    };
+
+
+    //console.log(vm.chartOptions);
+    //console.log(vm.personalCountersGrid);
+
+
+
+
   }
 })();

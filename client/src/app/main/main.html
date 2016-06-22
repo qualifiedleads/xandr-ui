@@ -1,26 +1,29 @@
 <div class="container-home col-md-10 col-lg-offset-2 col-md-10 col-lg-offset-2">
-<h1>Home</h1>
+  <h1>Home</h1>
+  <div class="col-md-3 col-md-offset-8 piker">
+    <div dx-select-box="main.datePiker"></div>
+  </div>
+
   <div class="row">
 
     <div id="container">
       <div dx-chart="main.chartOptions" id="chart"></div>
     </div>
     <div class="checkbox-container">
-      <label class="label-checkbox"><input class="checkbox-data" type="checkbox">impressions</label>
-      <label class="label-checkbox"><input class="checkbox-data" type="checkbox">CPA</label>
-      <label class="label-checkbox"><input class="checkbox-data" type="checkbox">CPC</label>
-      <label class="label-checkbox"><input class="checkbox-data" type="checkbox">clicks</label>
+      <label class="label-checkbox"><div dx-check-box="main.impressions"></div></label>
+      <label class="label-checkbox"><div dx-check-box="main.CPA"></div></label>
+      <label class="label-checkbox"><div dx-check-box="main.CPC"></div></label>
+      <label class="label-checkbox"><div dx-check-box="main.clicks"></div></label>
     </div>
     <div class="checkbox-container">
-      <label class="label-checkbox"><input class="checkbox-data" type="checkbox">media spend</label>
-      <label class="label-checkbox"><input class="checkbox-data" type="checkbox">conversions</label>
-      <label class="label-checkbox"><input class="checkbox-data" type="checkbox">CTR</label>
-
+      <label class="label-checkbox"><div dx-check-box="main.media"></div></label>
+      <label class="label-checkbox"><div dx-check-box="main.conversions"></div></label>
+      <label class="label-checkbox"><div dx-check-box="main.CTR"></div></label>
     </div>
 
   </div>
   <div class="row first-grid">
-  <div cass="col-md-9 col-lg-9" id="gridContainer1" dx-data-grid="main.dataGridOptionsSingle"></div>
+    <div cass="col-md-9 col-lg-9" id="gridContainer1" dx-data-grid="main.dataGridOptionsSingle"></div>
   </div>
   <div class="row second-grid">
     <div cass="col-md-9 col-lg-9" id="gridContainer2" dx-data-grid="main.dataGridOptionsMultiple"></div>

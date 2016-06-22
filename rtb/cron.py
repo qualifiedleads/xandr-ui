@@ -166,7 +166,11 @@ def dayly_task():
         
         advertiser_id = 992089  # Need to change
         advertiser_obj = Advertiser.objects.get(pk=advertiser_id)
-        
+        # check - data exist?
+        last_record = SiteDomainPerformanceReport.objects.filter(advertiser=advertiser_id).order_by('-fetch_date')[0]
+        yesterday = get_current_time()-datetime.timedelta(days=1)
+        yesterday = yesterday.replace(hour=0,minute=0,second=0,microsecond=0)
+        if last_record.day == yesterday : return
         # Get all of the profiles for the advertiser
         profiles = nexus_get_objects(token,
                                      'https://api.appnexus.com/profile',

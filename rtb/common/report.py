@@ -23,10 +23,12 @@ def get_report(rid, token):
 
     response = requests.get(url, headers=headers)
 
-    with open('%s/%s_report_%s.csv'%(log_path, get_str_time(),rid), 'wb') as fd:
-        for chunk in response.iter_content(1024):
-            fd.write(chunk)
-
+    #Data saved to file to prevent using extra RAM (and debugging)
+    fd = open('%s/%s_report_%s.csv'%(log_path, get_str_time(),rid), 'wb+')
+    for chunk in response.iter_content(1024):
+        fd.write(chunk)
+    fd.flush()
+    fd.seek(0)
     #file-like object
     return response
 
@@ -128,7 +130,7 @@ column_sets_for_reports ={
         "view_measurement_rate" ,
     ]
 }
-no_hours_reports=sets.Set(["site_domain_performance"])
+no_hours_reports=set(["site_domain_performance"])
 
 
 def get_auth_token():
@@ -170,8 +172,9 @@ def get_specifed_report(report_type,query_data={}, token=None):
         print 'Error by analizing response: %s'%e
         print out
 
-    with open('%s/%s_report_response_%s.json'%(log_path, get_str_time(), report_id), 'wb') as f:
-        f.write(r.content)
+    if settings.DEBUG:
+        with open('%s/%s_report_response_%s.json'%(log_path, get_str_time(), report_id), 'wb') as f:
+            f.write(r.content)
     
     return get_report_status(report_id, token)
     

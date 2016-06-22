@@ -62,11 +62,10 @@ def analize_csv(csvFile, modelClass, metadata={}):
         if hasattr(c, 'TransformFields'):
             c.TransformFields(row, metadata)
         result.append(c)
-        fields_in_row = row.keys()
         counter += 1
         if counter % 1000 == 0:
             print '%d rows fetched' % counter
-    print 'There are these fields in row', fields_in_row
+    print 'There are these fields in row', reader.fieldnames
     return result
 
 

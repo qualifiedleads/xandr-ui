@@ -171,15 +171,6 @@ def daylyly_task():
                                         Advertiser, 'id')
         print 'There is %d advertisers' % len(advertisers)
         
-        #try to load campaigns(that not loaded) for all advertisers
-        for adv in advertisers:
-            advertiser_id = adv.id;
-            print 'For advertiser', advertiser_id
-            print get_campaign(token, advertiser_id, 13458717)
-            print get_campaign(token, advertiser_id, 13458728)
-            print get_campaign(token, advertiser_id, 13458730)            
-        return
-
         advertiser_id = 992089  # Need to change
         advertiser_obj = Advertiser.objects.get(pk=advertiser_id)
         
@@ -218,7 +209,6 @@ def daylyly_task():
                                       Campaign.objects.filter(advertiser=advertiser_id).order_by('fetch_date'),
                                       Campaign, 'id')
         print 'There is %d campaigns ' % len(campaigns)
-        campaign_name_to_code = {i.name: i.id for i in campaigns}
         #Get all operating system families:
         operating_systems_families = nexus_get_objects(token,
                                       'https://api.appnexus.com/operating-system-family',
@@ -238,9 +228,14 @@ def daylyly_task():
 
         # f=reports.get_specifed_report('site_domain_performance',{'advertiser_id':advertiser_id}, token)
         f = open('rtb/logs/2016-06-21T07-15-33.040_report_79aaef968e0cdcab3f24925c02d06908.csv', 'r')
+        
+        campaign_dict = {i.id: i for i in campaigns}
+        missed = set()
         r = analize_csv(f, SiteDomainPerformanceReport,
-                        metadata={"campaign_name_to_code": campaign_name_to_code,
-                                  "advertiser_id" : advertiser_id})
+                        metadata={"campaign_dict": campaign_dict,
+                                  "advertiser_id" : advertiser_id,
+                                  "missed_campaigns":missed})
+        print "There is some missed campaigns:",  missed
         return
         for i in r:
             try:

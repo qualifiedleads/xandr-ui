@@ -1595,7 +1595,7 @@ class NetworkAnalyticsReport(models.Model):
         index_together = ["publisher_id", "hour"]
         index_together = ["campaign_id", "hour"]
 
-num_in_p = re.compile(r'\((\d+)\)')
+num_in_p = re.compile(r'\((\d+)\)$')
 def get_text_in_parentheses(s):
     return  num_in_p.search(s).group(1)
 
@@ -1658,10 +1658,12 @@ class SiteDomainPerformanceReport(models.Model):
     #This function transform raw data, collected from csv, to value, saved into DB/
     def TransformFields(self, data,  metadata={}):
         if not metadata: return
-        #campaign_name_to_code = metadata["campaign_name_to_code"]
-        #self.campaign=campaign_name_to_code.get(self.campaign)
-        self.campaign = None
-        self.campaign_id = get_text_in_parentheses(data["campaign"])
+        campaign_dict = metadata["campaign_dict"]
+        #self.campaign = None
+        self.campaign_id = int(get_text_in_parentheses(data["campaign"]))
+        #self.campaign = campaign_dict.get(self.campaign_id) #This also change self.campaign_id
+        if self.campaign_id not in campaign_dict:
+			metadata["missed_campaigns"].add(self.campaign_id)
         self.advertiser = None
         self.advertiser_id = metadata.get("advertiser_id")
         #self.line_item_id = get_text_in_parentheses(data["line_item"])

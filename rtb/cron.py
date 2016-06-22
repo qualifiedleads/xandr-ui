@@ -90,7 +90,7 @@ def get_current_time():
 
 
 # https://api.appnexus.com/creative?start_element=0&num_elements=50'
-def nexus_get_objects(token, url, params, query_set, object_class, key_field):
+def nexus_get_objects(token, url, params, query_set, object_class, key_field, force_update=False):
     print "Begin of Nexus_get_objects func"
     last_word = re.search(r'/(\w+)[^/]*$', url).group(1)
     print last_word
@@ -101,7 +101,7 @@ def nexus_get_objects(token, url, params, query_set, object_class, key_field):
         last_date = objects_in_db[-1].fetch_date
     except:
         last_date = unix_epoch
-    if current_date - last_date > settings.INVALIDATE_TIME:
+    if force_update or current_date - last_date > settings.INVALIDATE_TIME:
         count, cur_records = -1, -2
         objects_by_api = []
         data_key_name = None
@@ -179,14 +179,14 @@ def daylyly_task():
                                      'https://api.appnexus.com/profile',
                                      {'advertiser_id': advertiser_id},
                                      Profile.objects.filter(advertiser=advertiser_id).order_by('fetch_date'),
-                                     Profile, 'id')
+                                     Profile, 'id', True)
         print 'There is %d profiles' % len(profiles)
         # Get all of the insertion orders for one of your advertisers:
         insert_order = nexus_get_objects(token,
                                          'https://api.appnexus.com/insertion-order',
                                          {'advertiser_id': advertiser_id},
                                          InsertionOrder.objects.filter(advertiser=advertiser_id).order_by('fetch_date'),
-                                         InsertionOrder, 'id')
+                                         InsertionOrder, 'id', True)
         print 'There is %d  insertion orders' % len(insert_order)
         if len(insert_order) > 0:
             print 'First insertion order:'
@@ -197,7 +197,7 @@ def daylyly_task():
                                        'https://api.appnexus.com/line-item',
                                        {'advertiser_id': advertiser_id},
                                        LineItem.objects.filter(advertiser=advertiser_id).order_by('fetch_date'),
-                                       LineItem, 'id')
+                                       LineItem, 'id', True)
         print 'There is %d  line items' % len(line_items)
         if len(insert_order) > 0:
             print 'First insertion order:'
@@ -207,21 +207,21 @@ def daylyly_task():
                                       'https://api.appnexus.com/campaign',
                                       {'advertiser_id': advertiser_id},
                                       Campaign.objects.filter(advertiser=advertiser_id).order_by('fetch_date'),
-                                      Campaign, 'id')
+                                      Campaign, 'id', True)
         print 'There is %d campaigns ' % len(campaigns)
         #Get all operating system families:
         operating_systems_families = nexus_get_objects(token,
                                       'https://api.appnexus.com/operating-system-family',
                                       {},
                                       OSFamily.objects.all().order_by('fetch_date'),
-                                      OSFamily, 'id')
+                                      OSFamily, 'id', True)
         print 'There is %d operating system families' % len(operating_systems_families)
         #Get all operating systems:
         operating_systems = nexus_get_objects(token,
                             'https://api.appnexus.com/operating-system-extended',
                             {},
                             OperatingSystemExtended.objects.all().order_by('fetch_date'),
-                            OperatingSystemExtended, 'id')
+                            OperatingSystemExtended, 'id', True)
         print 'There is %d operating systems ' % len(operating_systems)
 
         advertiser_id = 992089  # Need to change

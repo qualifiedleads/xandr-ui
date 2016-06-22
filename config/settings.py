@@ -136,4 +136,5 @@ NEXUS_AUTH_DATA= {
     "username": "stats_api", 
     "password": "API?1nsid3!"
 }
-INVALIDATE_TIME = datetime.timedelta(days=1)
+INVALIDATE_TIME = datetime.timedelta(hours=23,minutes=30)
+MAX_REPORT_WAIT = datetime.timedelta(hours=1)

@@ -4,7 +4,6 @@ import datetime
 import requests
 import time
 import os
-import sets
 from django.conf import settings
 
 log_path=os.path.join(os.path.dirname(os.path.dirname(__file__)),'logs')
@@ -12,10 +11,6 @@ log_path=os.path.join(os.path.dirname(os.path.dirname(__file__)),'logs')
 def get_str_time(): 
     return datetime.datetime.utcnow().isoformat()
     
-def import_to_db(csv):
-    pass
-
-
 def get_report(rid, token):
     print "Downloading report..."
     url = "https://api.appnexus.com/report-download?id={0}".format(rid)
@@ -30,7 +25,7 @@ def get_report(rid, token):
     fd.flush()
     fd.seek(0)
     #file-like object
-    return response
+    return fd
 
 
 def get_report_status(rid, token):
@@ -39,14 +34,16 @@ def get_report_status(rid, token):
     exec_stat = ""
     url = "https://api.appnexus.com/report?id={0}".format(rid)
     headers = {"Authorization": token}
-
+    start_time = datetime.datetime.utcnow()
     while exec_stat != "ready":
+        current_time = datetime.datetime.utcnow()
+        if current_time-start_time>settings.MAX_REPORT_WAIT : break
         # Continue making this GET call until the execution_status is "ready"
         response = requests.get(url, headers=headers)
         content = json.loads(response.content)
         exec_stat = content['response']['execution_status']
-        time.sleep(1000)
-
+        time.sleep(seconds=5)
+    if exec_stat!="ready" : return ""
     data = get_report(rid, token)
 
     return data

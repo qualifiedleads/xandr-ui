@@ -212,8 +212,8 @@ def dayly_task():
     # reports.get_specifed_report('network_analytics')
     try:
         token = reports.get_auth_token()
-        queie= Queue()
-        worker_pool = ThreadPool(8)
+        # 5 report service processes per user admitted
+        worker_pool = ThreadPool(4) # one thread reserved
         advertisers = nexus_get_objects(token,
                                         'https://api.appnexus.com/advertiser',
                                         {},

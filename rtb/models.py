@@ -386,7 +386,7 @@ class Publisher(models.Model):
     cpm_reselling_disabled = models.NullBooleanField(null=True, blank=True)
     cpc_reselling_disabled = models.NullBooleanField(null=True, blank=True)
     platform_ops_notes = models.TextField(null=True, blank=True)
-    pitbull_segment_id =  models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    pitbull_segment_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
     pitbull_segment_value = models.IntegerField(null=True, blank=True)
     #publisher_brand_exceptions = array - see model PublisherBrandExceptions below
     seller_page_cap_enabled = models.NullBooleanField(null=True, blank=True)
@@ -462,6 +462,315 @@ class ContentCategory(models.Model):
 
     class Meta:
         db_table = "content_category"
+
+
+CREATIVE_TYPE_CHOICES = (
+    ('standard', 'standard'),
+    ('html', 'html'),
+    ('video', 'video')
+)
+
+
+CLICK_TEST_RESULT_COICES = (
+    ('not_tested', 'not_tested'),
+    ('passed', 'passed'),
+    ('failed', 'failed')
+)
+
+
+SSL_STATUS_CHOICES = (
+    ('disabled', 'disabled'),
+    ('pending', 'pending'),
+    ('approved', 'approved'),
+    ('failed', 'failed')
+)
+
+
+GOOGLE_AUDIT_STATUS_CHOICES = (
+    ('approved', 'approved'),
+    ('rejected', 'rejected'),
+    ('pending', 'pending')
+)
+
+
+MSFT_AUDIT_STATUS_CHOICES = (
+    ('approved', 'approved'),
+    ('rejected', 'rejected'),
+    ('pending', 'pending')
+)
+
+
+FACEBOOK_AUDIT_STATUS_CHOICES = (
+    ('pending_pre_audit', 'pending_pre_audit'),
+    ('rejected_by_pre_audit', 'rejected_by_pre_audit'),
+    ('approved', 'approved'),
+    ('rejected', 'rejected'),
+    ('pending', 'pending')
+)
+
+
+CREATIVE_UPLOAD_STATUS_CHOICES = (
+    ('pending', 'pending'),
+    ('processing', 'processing'),
+    ('completed', 'completed'),
+    ('failed', 'failed')
+)
+
+
+CREATIVE_BACKUP_UPLOAD_STATUS_CHOICES = (
+    ('pending', 'pending'),
+    ('processing', 'processing'),
+    ('completed', 'completed'),
+    ('failed', 'failed')
+)
+
+
+CLICK_ACTION_CHOICES = (
+    ('click-to-web', 'click-to-web'),
+    ('click-to-web', 'click-to-web')
+)
+
+
+class Creative(models.Model):
+    #https://wiki.appnexus.com/display/api/Creative+Service
+    id = models.IntegerField(primary_key=True)  # No AutoIncrement
+    code = models.TextField(null=True, blank=True, db_index=True)
+    code2 = models.TextField(null=True, blank=True, db_index=True)
+    name = models.TextField(null=True, blank=True, db_index=True)
+    type = models.TextField(
+        choices=CREATIVE_TYPE_CHOICES,
+        null=True, blank=True)
+    advertiser_id = models.ForeignKey("Advertiser", null=True, blank=True)
+    publisher_id = models.ForeignKey("Publisher", null=True, blank=True)
+    brand_id = models.ForeignKey("Brand", null=True, blank=True)
+    state = models.TextField(
+        choices=STATE_CHOICES,
+        null=True, blank=True)
+    click_track_result = models.TextField(
+        choices=CLICK_TEST_RESULT_COICES,
+        null=True, blank=True)
+    #campaigns = array - see model CampaignCreative
+    template = models.ForeignKey("CteativeTemplate", null=True, blank=True)
+    thirdparty_page = object
+    custom_macros = models.TextField(
+        choices=CLICK_TEST_RESULT_COICES,
+        null=True, blank=True)
+    width = models.IntegerField(null=True, blank=True)
+    height = models.IntegerField(null=True, blank=True)
+    media_url = models.TextField(null=True, blank=True)
+    media_url_secure = models.TextField(null=True, blank=True)
+    click_url = models.TextField(null=True, blank=True)
+    file_name = models.TextField(null=True, blank=True)
+    flash_click_variable = models.TextField(null=True, blank=True)
+    content = models.TextField(null=True, blank=True)
+    content_secure = models.TextField(null=True, blank=True)
+    original_content = models.TextField(null=True, blank=True)
+    original_content_secure = models.TextField(null=True, blank=True)
+    macros = models.TextField(null=True, blank=True)
+    audit_status = models.TextField(null=True, blank=True) #array of object in origin. Later we can create separate model for it if needed
+    audit_feedback = models.TextField(null=True, blank=True)
+    allow_audit = models.NullBooleanField(null=True, blank=True)
+    ssl_status = models.TextField(
+        choices=SSL_STATUS_CHOICES,
+        null=True, blank=True)
+    allow_ssl_audit = models.NullBooleanField(null=True, blank=True)
+    google_audit_status = models.TextField(
+        choices=GOOGLE_AUDIT_STATUS_CHOICES,
+        null=True, blank=True)
+    google_audit_feedback = models.TextField(null=True, blank=True)
+    msft_audit_status = models.TextField(
+        choices=MSFT_AUDIT_STATUS_CHOICES,
+        null=True, blank=True)
+    msft_audit_feedback = models.TextField(null=True, blank=True)
+    facebook_audit_status = models.TextField(
+        choices=FACEBOOK_AUDIT_STATUS_CHOICES,
+        null=True, blank=True)
+    facebook_audit_feedback = models.TextField(null=True, blank=True)
+    is_self_audited = models.NullBooleanField(null=True, blank=True)
+    is_expired = models.NullBooleanField(null=True, blank=True)
+    is_prohibited = models.NullBooleanField(null=True, blank=True)
+    is_hosted = models.NullBooleanField(null=True, blank=True)
+    lifetime_budget = models.FloatField(null=True, blank=True)
+    lifetime_budget_imps = models.IntegerField(null=True, blank=True)
+    daily_budget = models.FloatField(null=True, blank=True)
+    daily_budget_imps = models.IntegerField(null=True, blank=True)
+    enable_pacing = models.NullBooleanField(null=True, blank=True)
+    allow_safety_pacing = models.NullBooleanField(null=True, blank=True)
+    profile_id = models.ForeignKey("Profile", null=True, blank=True)
+    folder = models.ForeignKey("CreativeFolder", null=True, blank=True)
+    #line_items = array - see model LineItemCreatives
+    #pixels = array - see model CreativePixel below
+    track_clicks = models.NullBooleanField(null=True, blank=True)
+    flash_backup_content = models.TextField(null=True, blank=True)
+    flash_backup_file_name = models.TextField(null=True, blank=True)
+    flash_backup_url = models.TextField(null=True, blank=True)
+    is_control = models.NullBooleanField(null=True, blank=True)
+    #segments = array - see model CreativeSegment below
+    created_on = models.DateTimeField()
+    last_modified = models.DateTimeField()
+    creative_upload_status = models.TextField(
+        choices=CREATIVE_UPLOAD_STATUS_CHOICES,
+        null=True, blank=True)
+    backup_upload_status = models.TextField(
+        choices=CREATIVE_BACKUP_UPLOAD_STATUS_CHOICES,
+        null=True, blank=True)
+    use_dynamic_click_url = models.NullBooleanField(null=True, blank=True)
+    size_in_bytes = models.IntegerField(null=True, blank=True)
+    text_title = models.TextField(null=True, blank=True)
+    text_description = models.TextField(null=True, blank=True)
+    text_display_url = models.TextField(null=True, blank=True)
+    click_action = models.TextField(
+        choices=CLICK_ACTION_CHOICES,
+        null=True, blank=True)
+    click_target = models.TextField(null=True, blank=True)
+    #categories = array - see model CreativeCategory below
+    #adservers = array - see model CreativeAdserver below
+#    technical_attributes = array
+#    language = object
+#    brand = object
+#    pop_values = array
+    sla = models.IntegerField(null=True, blank=True)
+    sla_eta = models.DateTimeField()
+    currency = models.TextField(null=True, blank=True)
+    first_run = models.DateTimeField()
+    last_run = models.DateTimeField()
+#    mobile = object
+#    video_attribute = object
+#    stats = object
+    content_source = models.TextField(null=True, blank=True)
+#    custom_request_template = multi - object
+#    competitive_brands = array
+#    competitive_categories = array
+#    thirdparty_pixels = array
+#    native = object
+#    adx_audit = object
+    flash_backup_url_secure = models.TextField(null=True, blank=True)
+    member_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+
+    class Meta:
+        db_table = "creative"
+
+
+PIXEL_FORMAT_CHOICES = (
+    ('raw-js', 'raw-js'),
+    ('url-html', 'url-html'),
+    ('url-js', 'url-js'),
+    ('url-image', 'url-image'),
+    ('raw-url', 'raw-url')
+)
+
+
+CREATIVE_SEGMENT_ACTION_CHOICES = (
+    ('add on view', 'add on view'),
+    ('add on click', 'add on click')
+)
+
+
+class CreativeAdserver(models.Model):
+    id = models.IntegerField(primary_key=True)  # No AutoIncrement
+    creative = models.ForeignKey("Creative", null=True, blank=True)
+    use_type = models.TextField(null=True, blank=True)
+    name = models.TextField(null=True, blank=True)
+
+    class Meta:
+        db_table = "creative_adserver"
+
+
+class CreativeCategory(models.Model):
+    creative = models.ForeignKey("Creative", null=True, blank=True)
+    category = models.ForeignKey("Category", null=True, blank=True)
+
+    class Meta:
+        db_table = "creative_category"
+
+
+class CreativeSegment(models.Model):
+    creative = models.ForeignKey("Creative", null=True, blank=True)
+    segment = models.ForeignKey("Segment", null=True, blank=True)
+    action = models.TextField(
+        choices=CREATIVE_SEGMENT_ACTION_CHOICES,
+        null=True, blank=True)
+
+    class Meta:
+        db_table = "creative_segment"
+
+
+class PixelTemplate(models.Model):
+    #https://wiki.appnexus.com/display/api/Pixel+Template+Service
+    id = models.IntegerField(primary_key=True)  # No AutoIncrement
+    name = models.TextField(null=True, blank=True, db_index=True)
+    format = models.TextField(
+        choices=PIXEL_FORMAT_CHOICES,
+        null=True, blank=True)
+    content = models.TextField(null=True, blank=True)
+    secure_content = models.TextField(null=True, blank=True)
+    url = models.TextField(null=True, blank=True)
+    secure_url = models.TextField(null=True, blank=True)
+    num_required_params = models.IntegerField(null=True, blank=True)
+    require_reaudit = models.NullBooleanField(null=True, blank=True)
+
+    class Meta:
+        db_table = "pixel_template"
+
+
+class CreativePixel(models.Model):
+    id = models.IntegerField(primary_key=True)  # No AutoIncrement
+    creative = models.ForeignKey("Creative", null=True, blank=True)
+    pixel_template = models.ForeignKey("PixelTemplate", null=True, blank=True)
+    param_1 = models.TextField(null=True, blank=True)
+    param_2 = models.TextField(null=True, blank=True)
+    param_3 = models.TextField(null=True, blank=True)
+    param_4 = models.TextField(null=True, blank=True)
+    param_5 = models.TextField(null=True, blank=True)
+    format = models.TextField(
+        choices=PIXEL_FORMAT_CHOICES,
+        null=True, blank=True)
+    content = models.TextField(null=True, blank=True)
+    secure_content = models.TextField(null=True, blank=True)
+    url = models.TextField(null=True, blank=True)
+    secure_url = models.TextField(null=True, blank=True)
+
+    class Meta:
+        db_table = "creative_pixel"
+
+
+class CreativeFolder(models.Model):
+    #https://wiki.appnexus.com/display/api/Creative+Folder+Service
+    name = models.TextField(null=True, blank=True, db_index=True)
+    advertiser = models.ForeignKey("Advertiser", null=True, blank=True)
+    last_modified = models.DateTimeField()
+
+    class Meta:
+        db_table = "creative_folder"
+
+
+class CteativeTemplate(models.Model):
+    #https://wiki.appnexus.com/display/api/Creative+Template+Service
+    name = models.TextField(null=True, blank=True, db_index=True)
+    description = models.TextField(null=True, blank=True)
+    member_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    media_subtype = models.ForeignKey("MediaSubType", null=True, blank=True)
+    format = models.ForeignKey("CteativeFormat", null=True, blank=True)
+    is_default = models.NullBooleanField(null=True, blank=True)
+    is_archived = models.NullBooleanField(null=True, blank=True)
+    content_js = models.TextField(null=True, blank=True)
+    content_html = models.TextField(null=True, blank=True)
+    content_xml = models.TextField(null=True, blank=True)
+    callback_content_html = models.TextField(null=True, blank=True)
+    macros = models.TextField(null=True, blank=True) #array of object in origin. Later we can create separate model for it if needed
+    last_modified = models.DateTimeField()
+
+    class Meta:
+        db_table = "creative_template"
+
+
+class CteativeFormat(models.Model):
+    #https://wiki.appnexus.com/display/api/Creative+Format+Service
+    name = models.TextField(null=True, blank=True, db_index=True)
+    last_modified = models.DateTimeField()
+
+    class Meta:
+        db_table = "creative_format"
 
 
 PLACEMENT_POSITION = (
@@ -628,6 +937,7 @@ class FilteredCampaigns(models.Model):
 
 
 class Segment(models.Model):
+    #https://wiki.appnexus.com/display/api/Segment+Service
     code = models.TextField(null=True, blank=True, db_index=True)
     state = models.TextField(
         choices=STATE_CHOICES,
@@ -670,7 +980,7 @@ class SegmentPiggybackPixels(models.Model):
 
 class AllowedSegments(models.Model):
     placement = models.ForeignKey("Placement", null=True, blank=True)
-    segment = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    segment = models.ForeignKey("Segment", null=True, blank=True)
 
     class Meta:
         db_table = "allowed_segments"
@@ -811,7 +1121,7 @@ class CampaignConversionPixel(models.Model):
 
 
 class ConversionPixelPiggybackPixels(models.Model):
-    segment = models.ForeignKey("ConversionPixel", null=True, blank=True)
+    conversion_pixel = models.ForeignKey("ConversionPixel", null=True, blank=True)
     url = models.TextField(null=True, blank=True)
     pixel_type = models.TextField(
         choices=PYGGYBACK_PIXEL_TYPE,
@@ -1123,7 +1433,7 @@ class Campaign(models.Model):
     line_item = models.ForeignKey("LineItem", null=True, blank=True)
     start_date = models.DateTimeField(db_index=True)
     end_date = models.DateTimeField(db_index=True, null=True, blank=True)
-    #creatives - see model CampaignCreatives below
+    #creatives - see model CampaignCreative below
     #creative_groups - se model CampaignLineItems below
     timezone = models.TextField(null=True, blank=True)
     last_modified = models.DateTimeField()
@@ -1526,12 +1836,12 @@ class CampaignLabel(models.Model):
         db_table = "campaign_label"
 
 
-class CampaignCreatives(models.Model):
+class CampaignCreative(models.Model):
     campaign = models.ForeignKey("Campaign", null=True, blank=True)
-    creative = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    creative = models.ForeignKey("Creative", null=True, blank=True)
 
     class Meta:
-        db_table = "campaign_creatives"
+        db_table = "campaign_creative"
 
 
 class CampaignLineItems(models.Model):

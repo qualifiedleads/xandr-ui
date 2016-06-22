@@ -130,7 +130,7 @@ REST_FRAMEWORK = {
 }
 # Periodic jobs
 CRONJOBS = [
-    ('5 0 * * *', 'rtb.cron.daylyly_task')
+    ('5 0 * * *', 'rtb.cron.dayly_task')
 ]
 NEXUS_AUTH_DATA= {
     "username": "stats_api", 

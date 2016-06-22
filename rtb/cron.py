@@ -151,15 +151,16 @@ def nexus_get_objects(token, url, params, query_set, object_class, key_field, fo
             #print objects_by_api
     return objects_in_db
 
-def get_campaign(token, advertiser_id, id):
+def get_campaign(token, id):
     request = requests.get('https://api.appnexus.com/campaign', 
-                           params={'advertiser_id': advertiser_id, 'id': id},
+                           params={'id': id},
                            headers={"Authorization": token})
     response = json.loads(request.content)['response']
-    return response.get('campaign', response.get('error', 'No error found'))
+    error = response.get('error')
+    return error if error else response["campaigns"]
 
 # Task, executed twice in hour. Get new data from NexusApp
-def daylyly_task():
+def dayly_task():
     print ('NexusApp API pooling...')
     # reports.get_specifed_report('network_analytics')
     try:
@@ -179,14 +180,14 @@ def daylyly_task():
                                      'https://api.appnexus.com/profile',
                                      {'advertiser_id': advertiser_id},
                                      Profile.objects.filter(advertiser=advertiser_id).order_by('fetch_date'),
-                                     Profile, 'id', True)
+                                     Profile, 'id', False)
         print 'There is %d profiles' % len(profiles)
         # Get all of the insertion orders for one of your advertisers:
         insert_order = nexus_get_objects(token,
                                          'https://api.appnexus.com/insertion-order',
                                          {'advertiser_id': advertiser_id},
                                          InsertionOrder.objects.filter(advertiser=advertiser_id).order_by('fetch_date'),
-                                         InsertionOrder, 'id', True)
+                                         InsertionOrder, 'id', False)
         print 'There is %d  insertion orders' % len(insert_order)
         if len(insert_order) > 0:
             print 'First insertion order:'
@@ -197,7 +198,7 @@ def daylyly_task():
                                        'https://api.appnexus.com/line-item',
                                        {'advertiser_id': advertiser_id},
                                        LineItem.objects.filter(advertiser=advertiser_id).order_by('fetch_date'),
-                                       LineItem, 'id', True)
+                                       LineItem, 'id', False)
         print 'There is %d  line items' % len(line_items)
         if len(insert_order) > 0:
             print 'First insertion order:'
@@ -207,26 +208,32 @@ def daylyly_task():
                                       'https://api.appnexus.com/campaign',
                                       {'advertiser_id': advertiser_id},
                                       Campaign.objects.filter(advertiser=advertiser_id).order_by('fetch_date'),
-                                      Campaign, 'id', True)
+                                      Campaign, 'id', False)
         print 'There is %d campaigns ' % len(campaigns)
         #Get all operating system families:
         operating_systems_families = nexus_get_objects(token,
                                       'https://api.appnexus.com/operating-system-family',
                                       {},
                                       OSFamily.objects.all().order_by('fetch_date'),
-                                      OSFamily, 'id', True)
+                                      OSFamily, 'id', False)
         print 'There is %d operating system families' % len(operating_systems_families)
         #Get all operating systems:
         operating_systems = nexus_get_objects(token,
                             'https://api.appnexus.com/operating-system-extended',
                             {},
                             OperatingSystemExtended.objects.all().order_by('fetch_date'),
-                            OperatingSystemExtended, 'id', True)
+                            OperatingSystemExtended, 'id', False)
         print 'There is %d operating systems ' % len(operating_systems)
 
         advertiser_id = 992089  # Need to change
 
-        # f=reports.get_specifed_report('site_domain_performance',{'advertiser_id':advertiser_id}, token)
+        #Search for campaigns with IDs or names containing certain characters:
+        #GET https://api.appnexus.com/campaign?search=SEARCH_TERM
+        #curl -bc -cc 'https://api.appnexus.com/campaign?id=1,2,3
+        print get_campaign(token, '13458728, 13458730, 13458717')
+        return
+
+        #f=reports.get_specifed_report('site_domain_performance',{'advertiser_id':advertiser_id}, token)
         f = open('rtb/logs/2016-06-21T07-15-33.040_report_79aaef968e0cdcab3f24925c02d06908.csv', 'r')
         
         campaign_dict = {i.id: i for i in campaigns}
@@ -236,7 +243,6 @@ def daylyly_task():
                                   "advertiser_id" : advertiser_id,
                                   "missed_campaigns":missed})
         print "There is some missed campaigns:",  missed
-        return
         for i in r:
             try:
                 i.save()
@@ -246,5 +252,5 @@ def daylyly_task():
     except Exception as e:
         print 'Error by fetching data: %s' % e
     print "There is %d rows fetched " % len(r)
-
-if __name__ == '__main__': daylyly_task()
+    
+if __name__ == '__main__': dayly_task()

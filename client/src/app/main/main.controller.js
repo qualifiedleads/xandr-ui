@@ -6,25 +6,33 @@
     .controller('MainController', MainController);
 
   /** @ngInject */
-  function MainController($window) {
+  function MainController($window,$state) {
     var vm = this;
     var products = [{
       "ID": 0,
       "Name": "Last day",
-      "dataStart": '',
-      "dataEnd": ''
+      "dataStart": moment({hour: "00"}).toDate(),
+      "dataEnd": moment().toDate()
     }, {
       "ID": 1,
-      "Name": "Current week"
+      "Name": "Current week",
+      "dataStart": moment().startOf('week').toDate(),
+      "dataEnd": moment().toDate()
     }, {
       "ID": 2,
-      "Name": "Last week"
+      "Name": "Last week",
+      "dataStart": moment().startOf('week').subtract(1,'week').toDate(),
+      "dataEnd": moment().startOf('week').toDate()
     }, {
       "ID": 3,
-      "Name": "Current month"
+      "Name": "Current month",
+      "dataStart": moment().startOf('month').toDate(),
+      "dataEnd": moment().toDate()
     }, {
       "ID": 4,
-      "Name": "Last month"
+      "Name": "Last month",
+      "dataStart": moment().subtract(1,'month').startOf('month').toDate(),
+      "dataEnd": moment().subtract(1,'month').endOf('month').toDate(),
     }];
 
     vm.datePiker = {
@@ -34,7 +42,16 @@
       }),
       displayExpr: "Name",
       valueExpr: "ID",
-      value: products[0].ID
+      value: products[0],
+      onInitialized: function (e) {
+        //console.log(e);
+      },
+      onValueChanged:function (e) {
+        // Запрос на бэкЭнд
+
+        console.log(e);
+        $state.reload();
+      }
     };
 
     vm.checkboxData = [];
@@ -47,8 +64,8 @@
       "clicks":"$1.15 | $0.98",
       "cpc":"0.4%",
       "cpm":"0.9%",
-      "CVR":"",
-      "CTR":""
+      "CVR":"2",
+      "CTR":"2"
     }
     ];
 
@@ -116,8 +133,12 @@
     vm.selectedItems = [];
 
 
-
+    vm.chartOptionsFuncgrid = [];
     vm.dataGridOptionsMultiple = {
+      onInitialized: function (data) {
+        vm.dataGridOptionsMultipleFunc = data.component;
+        vm.dataGridOptionsMultipleFunc._controllers.columns._commandColumns[1].visibleIndex = 15;
+      },
       dataSource: vm.dataCampaign,
       showBorders: true,
       alignment:"left",
@@ -134,12 +155,100 @@
       },
       howBorders: true,
       showRowLines: true,
-      columns: ["Campaign", "spend", "conv", "imp", "clicks", "cpc", "cpm", "CVR", "CTR"]
-      ,
+      columns: ["Campaign", "spend", "conv", "imp", "clicks", "cpc", "cpm", "CVR", "CTR",
+        {
+          width: 200,
+          dataField: "Stats",
+          cellTemplate: function (container, options) {
+
+            var types = ["line", "stackedLine", "fullStackedLine"];
+
+            var chartOptions = {
+              onInitialized: function (data) {
+                vm.chartOptionsFuncgrid[options.rowIndex] = data.component;
+              },
+
+              dataSource: vm.dataSource,
+              size:{
+                height:80
+              },
+              commonSeriesSettings: {
+                argumentField: "day",
+                type: vm.types[0],
+                point: {
+                  size: 2,
+                  hoverStyle: {
+                    border: {
+                      visible: true,
+                      width: 1
+                    },
+                    size: 4
+                  }
+                }
+              },
+              commonAxisSettings: {
+                label:{
+                  visible: false
+                },
+                grid: { visible: false }
+              },
+              argumentAxis: {
+                valueMarginsEnabled: false,
+                discreteAxisDivisionMode: "crossLabels",
+                grid: {
+                  visible: false
+                },
+                label:{
+                  visible: false
+                },
+                minorGrid:{
+                  visible: false
+                },
+                minorTick:{
+                  visible: false
+                },
+                tick: {
+                  visible: false
+                }
+              },
+              series: [
+                { valueField: "impressions", name: "Impressions"},
+                { valueField: "CPA", name: "CPA" },
+                { valueField: "CPC", name: "CPC" },
+                { valueField: "clicks", name: "clicks" },
+                { valueField: "media", name: "media" },
+                { valueField: "conversions", name: "conversions" },
+                { valueField: "CTR", name: "CTR" }
+              ],
+              legend: {
+                verticalAlignment: "bottom",
+                horizontalAlignment: "center",
+                itemTextPosition: "bottom"
+              },
+              tooltip: {
+                enabled: true,
+                customizeTooltip: function (arg) {
+                  return {
+                    text: arg.valueText
+                  };
+                }
+              }
+            };
+
+
+
+            container.addClass("img-container");
+            $('<div id="chartMulti'+options.rowIndex+'" ></div>')
+            //.attr("src", options.value)
+              .appendTo(container);
+            $("#chartMulti"+options.rowIndex).dxChart(chartOptions).dxChart("instance");
+          }
+        }],
       selection: {
         mode: "multiple"
       },
       onSelectionChanged: function(data) {
+        //console.log(vm.dataGridOptionsMultiple);
         vm.selectedItems = data.selectedRowsData;
         vm.disabled = !vm.selectedItems.length;
       }
@@ -226,7 +335,6 @@
     vm.chartOptions = {
       onInitialized: function (data) {
         vm.chartOptionsFunc = data.component;
-        //console.log(data.component.series.length);
       },
       size: {
         width: 500,
@@ -235,7 +343,18 @@
       dataSource: vm.dataSource,
       commonSeriesSettings: {
         argumentField: "day",
-        type: vm.types[0]
+        type: vm.types[0],
+        point: {
+          size: 3,
+          hoverStyle: {
+            border: {
+              visible: true,
+              width: 2
+            },
+            size: 5
+          }
+        }
+
       },
       margin: {
         bottom: 20
@@ -267,9 +386,16 @@
       text: "Impressions",
       value: true,
       onValueChanged: function (e) {
+        console.log(vm.chartOptionsFuncgrid);
         if (e.value == true) {
           vm.chartOptionsFunc.option("series[0].visible", true);
+          vm.chartOptionsFuncgrid.forEach(function (col) {
+            col.option("series[0].visible", true);
+          });
         } else {
+          vm.chartOptionsFuncgrid.forEach(function (col) {
+            col.option("series[0].visible", false);
+          });
           vm.chartOptionsFunc.option("series[0].visible", false);
         }
       }
@@ -281,8 +407,14 @@
       onValueChanged: function (e) {
         if (e.value == true) {
           vm.chartOptionsFunc.option("series[1].visible", true);
+          vm.chartOptionsFuncgrid.forEach(function (col) {
+            col.option("series[1].visible", true);
+          });
         } else {
           vm.chartOptionsFunc.option("series[1].visible", false);
+          vm.chartOptionsFuncgrid.forEach(function (col) {
+            col.option("series[1].visible", false);
+          });
         }
       }
     };
@@ -293,8 +425,14 @@
       onValueChanged: function (e) {
         if (e.value == true) {
           vm.chartOptionsFunc.option("series[2].visible", true);
+          vm.chartOptionsFuncgrid.forEach(function (col) {
+            col.option("series[2].visible", true);
+          });
         } else {
           vm.chartOptionsFunc.option("series[2].visible", false);
+          vm.chartOptionsFuncgrid.forEach(function (col) {
+            col.option("series[2].visible", false);
+          });
         }
       }
     };
@@ -305,8 +443,14 @@
       onValueChanged: function (e) {
         if (e.value == true) {
           vm.chartOptionsFunc.option("series[3].visible", true);
+          vm.chartOptionsFuncgrid.forEach(function (col) {
+            col.option("series[3].visible", true);
+          });
         } else {
           vm.chartOptionsFunc.option("series[3].visible", false);
+          vm.chartOptionsFuncgrid.forEach(function (col) {
+            col.option("series[3].visible", false);
+          });
         }
       }
     };
@@ -317,8 +461,14 @@
       onValueChanged: function (e) {
         if (e.value == true) {
           vm.chartOptionsFunc.option("series[4].visible", true);
+          vm.chartOptionsFuncgrid.forEach(function (col) {
+            col.option("series[4].visible", true);
+          });
         } else {
           vm.chartOptionsFunc.option("series[4].visible", false);
+          vm.chartOptionsFuncgrid.forEach(function (col) {
+            col.option("series[4].visible", false);
+          });
         }
       }
     };
@@ -329,8 +479,14 @@
       onValueChanged: function (e) {
         if (e.value == true) {
           vm.chartOptionsFunc.option("series[5].visible", true);
+          vm.chartOptionsFuncgrid.forEach(function (col) {
+            col.option("series[5].visible", true);
+          });
         } else {
           vm.chartOptionsFunc.option("series[5].visible", false);
+          vm.chartOptionsFuncgrid.forEach(function (col) {
+            col.option("series[5].visible", false);
+          });
         }
       }
     };
@@ -341,18 +497,77 @@
       onValueChanged: function (e) {
         if (e.value == true) {
           vm.chartOptionsFunc.option("series[6].visible", true);
+          vm.chartOptionsFuncgrid.forEach(function (col) {
+            col.option("series[6].visible", true);
+          });
         } else {
           vm.chartOptionsFunc.option("series[6].visible", false);
+          vm.chartOptionsFuncgrid.forEach(function (col) {
+            col.option("series[6].visible", false);
+          });
         }
       }
     };
 
+    /** map **/
+    var clicksByCountry = {
+      "China": 19,
+      "India": 123,
+      "United States": 3000,
+      "Indonesia": 200,
+      "Brazil": 5000,
+      "Nigeria": 30000,
+      "Bangladesh": 4000,
+      "Russia": 1000,
+      "Japan": 4,
+      "Mexico": 40,
+      "Philippines": 600,
+      "Germany": 3000,
+      "France": 20000,
+      "Thailand": 1000,
+      "United Kingdom": 200,
+      "Italy": 222,
+      "Ukraine": 600,
+      "Canada": 50
+    };
 
-    //console.log(vm.chartOptions);
-    //console.log(vm.personalCountersGrid);
-
-
-
+    vm.vectorMapOptions = {
+      layers: [{
+        name: "areas",
+        dataSource: $window.DevExpress.viz.map.sources.world,
+        palette:"blue",
+        colorGroups: [0, 100, 1000, 10000],
+        colorGroupingField: "clicks",
+        label: {
+          enabled: true,
+          dataField: "name"
+        },
+        customize: function (elements) {
+          elements.forEach(function (element) {
+            var name = element.attribute("name"),
+              clicks = clicksByCountry[name];
+            if (clicks) {
+              element.attribute("clicks", clicks);
+            }
+          });
+        }
+      }],
+      tooltip: {
+        enabled: true,
+        customizeTooltip: function (arg) {
+          return { text: arg.attribute("text") };
+        }
+      },
+      legends: [{
+        source: { layer: "areas", grouping: "color" },
+        horizontalAlignment: "left",
+        verticalAlignment: "bottom",
+        customizeText: function (arg) {
+          return arg.start + " to " + arg.end + " clicks";
+        }
+      }],
+      bounds: [-180, 85, 180, -75]
+    };
 
   }
 })();

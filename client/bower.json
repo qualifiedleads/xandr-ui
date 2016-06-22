@@ -13,7 +13,7 @@
     "angular-bootstrap": "~0.14.3",
     "malarkey": "yuanqing/malarkey#~1.3.1",
     "angular-toastr": "~1.5.0",
-    "moment": "~2.10.6",
+    "moment": "^2.13.0",
     "animate.css": "~3.4.0",
     "angular": "~1.5.3",
     "angular-chart.js": "^0.10.2",
@@ -40,22 +40,25 @@
         "lib/globalize.js",
         "lib/culture/globalize.culture.en-US.js"
       ]
+    },
+    "devextreme": {
+      "main": [
+        "js/localization/dx.all.ru.js",
+        "js/dx.all.js",
+        "js/vectormap-data/world.js",
+        "css/dx.spa.css",
+        "css/dx.common.css",
+        "css/dx.light.css",
+        "css/icons/dxicons.*",
+        "css/icons/dxiconsios.*"
+      ]
     }
   },
-  "devextreme": {
-    "main": [
-      "js/localization/dx.all.ru.js",
-      "js/dx.all.js",
-      "css/dx.spa.css",
-      "css/dx.common.css",
-      "css/dx.light.css",
-      "css/icons/dxicons.*",
-      "css/icons/dxiconsios.*"
-    ]
-  },
+
   "resolutions": {
     "jquery": "2.1.4",
     "angular": "~1.5.3",
-    "globalize": "0.1.1"
+    "globalize": "0.1.1",
+    "moment": "^2.13.0"
   }
 }

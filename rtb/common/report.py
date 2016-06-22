@@ -42,7 +42,7 @@ def get_report_status(rid, token):
         response = requests.get(url, headers=headers)
         content = json.loads(response.content)
         exec_stat = content['response']['execution_status']
-        time.sleep(seconds=5)
+        time.sleep(5)
     if exec_stat!="ready" : return ""
     data = get_report(rid, token)
 

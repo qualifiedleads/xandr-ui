@@ -242,6 +242,7 @@ def dayly_task():
                 camp.advertiser_id = advertiser_id
                 camp.comments = "created automatically"
                 camp.start_date = unix_epoch
+                camp.last_modified = fd
                 camp.save()
         for i in r:
             try:

@@ -151,14 +151,6 @@ def nexus_get_objects(token, url, params, query_set, object_class, key_field, fo
             #print objects_by_api
     return objects_in_db
 
-def get_campaign(token, id):
-    request = requests.get('https://api.appnexus.com/campaign', 
-                           params={'id': id},
-                           headers={"Authorization": token})
-    response = json.loads(request.content)['response']
-    error = response.get('error')
-    return error if error else response["campaigns"]
-
 # Task, executed twice in hour. Get new data from NexusApp
 def dayly_task():
     print ('NexusApp API pooling...')
@@ -227,22 +219,30 @@ def dayly_task():
 
         advertiser_id = 992089  # Need to change
 
-        #Search for campaigns with IDs or names containing certain characters:
-        #GET https://api.appnexus.com/campaign?search=SEARCH_TERM
-        #curl -bc -cc 'https://api.appnexus.com/campaign?id=1,2,3
-        print get_campaign(token, '13458728, 13458730, 13458717')
-        return
-
         #f=reports.get_specifed_report('site_domain_performance',{'advertiser_id':advertiser_id}, token)
         f = open('rtb/logs/2016-06-21T07-15-33.040_report_79aaef968e0cdcab3f24925c02d06908.csv', 'r')
         
         campaign_dict = {i.id: i for i in campaigns}
-        missed = set()
+        missed = []
         r = analize_csv(f, SiteDomainPerformanceReport,
                         metadata={"campaign_dict": campaign_dict,
                                   "advertiser_id" : advertiser_id,
                                   "missed_campaigns":missed})
-        print "There is some missed campaigns:",  missed
+        if missed:
+            print "We are finded some campaigns, those are missing in Nexus campaign list"
+            print "Probary, they have been removed."
+            print "We need to add them to internal DB to respect foreign keys check"
+            fd = campaigns[0].fetch_date if len(campaigns)>0 else get_current_time()
+            for c in missed:
+                camp = Campaign()
+                camp.id = c
+                camp.fetch_date = fd
+                camp.state = "Inactive"
+                camp.name = campaign_dict[c]
+                camp.advertiser_id = advertiser_id
+                camp.comments = "created automatically"
+                camp.start_date = unix_epoch
+                camp.save()
         for i in r:
             try:
                 i.save()

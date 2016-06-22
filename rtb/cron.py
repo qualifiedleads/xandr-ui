@@ -265,10 +265,12 @@ def dayly_task():
 
 #Check of existence of SiteDomainPerformanceReport in local DB (for yesterday)
 def check_SiteDomainPerformanceReport_exist(adv):
-    last_record = SiteDomainPerformanceReport.objects.filter(advertiser=adv).order_by('-fetch_date')[0]
+    last_record = SiteDomainPerformanceReport.objects.filter(advertiser=adv).order_by('-fetch_date')[:0]
+    if not last_record:
+        return False
     yesterday = get_current_time() - datetime.timedelta(days=1)
     yesterday = yesterday.replace(hour=0, minute=0, second=0, microsecond=0)
-    return last_record.day == yesterday
+    return last_record[0].day == yesterday
 
 
 if __name__ == '__main__': dayly_task()

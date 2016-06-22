@@ -136,7 +136,7 @@ def nexus_get_objects(token, url, params, query_set, object_class, key_field):
             if hasattr(object_db, "fetch_date"):
                 object_db.fetch_date = current_date
             if hasattr(object_db, "TransformFields"):
-				object_db.TransformFields(i)
+                object_db.TransformFields(i)
             try:
                 object_db.save()
             except Exception as e:
@@ -155,10 +155,11 @@ def get_campaign(token, advertiser_id, id):
     request = requests.get('https://api.appnexus.com/campaign', 
                            params={'advertiser_id': advertiser_id, 'id': id},
                            headers={"Authorization": token})
-    return json.loads(request.content)['response']
+    response = json.loads(request.content)['response']
+    return response.get('campaign', response.get('error', 'No error found'))
 
 # Task, executed twice in hour. Get new data from NexusApp
-def hourly_task():
+def daylyly_task():
     print ('NexusApp API pooling...')
     # reports.get_specifed_report('network_analytics')
     try:
@@ -169,8 +170,19 @@ def hourly_task():
                                         Advertiser.objects.all().order_by('fetch_date'),
                                         Advertiser, 'id')
         print 'There is %d advertisers' % len(advertisers)
+        
+        #try to load campaigns(that not loaded) for all advertisers
+        for adv in advertisers:
+            advertiser_id = adv.id;
+            print 'For advertiser', advertiser_id
+            print get_campaign(token, advertiser_id, 13458717)
+            print get_campaign(token, advertiser_id, 13458728)
+            print get_campaign(token, advertiser_id, 13458730)            
+        return
+
         advertiser_id = 992089  # Need to change
         advertiser_obj = Advertiser.objects.get(pk=advertiser_id)
+        
         # Get all of the profiles for the advertiser
         profiles = nexus_get_objects(token,
                                      'https://api.appnexus.com/profile',
@@ -216,20 +228,19 @@ def hourly_task():
         print 'There is %d operating system families' % len(operating_systems_families)
         #Get all operating systems:
         operating_systems = nexus_get_objects(token,
-							'https://api.appnexus.com/operating-system-extended',
-							{},
-							OperatingSystemExtended.objects.all().order_by('fetch_date'),
-							OperatingSystemExtended, 'id')
+                            'https://api.appnexus.com/operating-system-extended',
+                            {},
+                            OperatingSystemExtended.objects.all().order_by('fetch_date'),
+                            OperatingSystemExtended, 'id')
         print 'There is %d operating systems ' % len(operating_systems)
+
+        advertiser_id = 992089  # Need to change
 
         # f=reports.get_specifed_report('site_domain_performance',{'advertiser_id':advertiser_id}, token)
         f = open('rtb/logs/2016-06-21T07-15-33.040_report_79aaef968e0cdcab3f24925c02d06908.csv', 'r')
         r = analize_csv(f, SiteDomainPerformanceReport,
                         metadata={"campaign_name_to_code": campaign_name_to_code,
                                   "advertiser_id" : advertiser_id})
-        print get_campaign(token, advertiser_id, 13458717)
-        print get_campaign(token, advertiser_id, 13458728)
-        print get_campaign(token, advertiser_id, 13458730)
         return
         for i in r:
             try:
@@ -241,4 +252,4 @@ def hourly_task():
         print 'Error by fetching data: %s' % e
     print "There is %d rows fetched " % len(r)
 
-if __name__ == '__main__': hourly_task()
+if __name__ == '__main__': daylyly_task()

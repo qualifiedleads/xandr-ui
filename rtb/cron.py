@@ -7,7 +7,7 @@ from multiprocessing.pool import ThreadPool
 
 import common.report as reports
 import django.db.models as django_types
-from django.db import IntegrityError
+from django.db import IntegrityError, transaction
 import re
 import requests
 from django.conf import settings
@@ -255,17 +255,21 @@ def dayly_task():
                     camp.start_date = unix_epoch
                     camp.last_modified = fd
                     camp.save()
-            for i in r:
-                try:
-                    i.save()
-                except IntegrityError as ie:
-                    if ie.messege.endswith('"line_item". \n'):
-                        print "Clear line item on object "%i
-                        i.line_item = None
-                        try:i.save()
-                        except:pass
-                except Exception as e:
-                    print "Error by saving object %s (%s)"%(i,e)
+            all_line_items = set(LineItem.objects.values_list("id"))
+            with transaction.atomic():
+                for i in r:
+                    try:
+                        if i.line_item_id not in all_line_items:
+                            i.line_item=None
+                        i.save()
+                    # except IntegrityError as ie:
+                    #     if ie.messege.endswith('"line_item". \n'):
+                    #         print "Clear line item on object "%i
+                    #         i.line_item = None
+                    #         try:i.save()
+                    #         except:pass
+                    except Exception as e:
+                        print "Error by saving object %s (%s)"%(i,e)
             print "Domain performance report for advertiser %s saved to DB"%adv.name
     except Exception as e:
         print 'Error by fetching data: %s' % e

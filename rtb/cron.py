@@ -7,6 +7,7 @@ from multiprocessing.pool import ThreadPool
 
 import common.report as reports
 import django.db.models as django_types
+from django.db import IntegrityError
 import re
 import requests
 from django.conf import settings
@@ -207,7 +208,7 @@ def load_depending_data(advertiser_id, token):
 # Task, executed twice in hour. Get new data from NexusApp
 def dayly_task():
     old_stdout, old_error = sys.stdout, sys.stderr
-    log_file_name = 'logs/DomainPerformanceReport_%s.log' % datetime.datetime.utcnow().isoformat()
+    log_file_name = 'rtb/logs/DomainPerformanceReport_%s.log' % datetime.datetime.utcnow().isoformat()
     sys.stdout = open(log_file_name, 'w')
     print ('NexusApp API pooling...')
     # reports.get_specifed_report('network_analytics')
@@ -221,93 +222,51 @@ def dayly_task():
                                         Advertiser.objects.all().order_by('fetch_date'),
                                         Advertiser, 'id')
         print 'There is %d advertisers' % len(advertisers)
-        
-        advertiser_id = 992089  # Need to change
-        advertiser_obj = Advertiser.objects.get(pk=advertiser_id)
-        
-        # Get all of the profiles for the advertiser
-        profiles = nexus_get_objects(token,
-                                     'https://api.appnexus.com/profile',
-                                     {'advertiser_id': advertiser_id},
-                                     Profile.objects.filter(advertiser=advertiser_id).order_by('fetch_date'),
-                                     Profile, 'id', False)
-        print 'There is %d profiles' % len(profiles)
-        # Get all of the insertion orders for one of your advertisers:
-        insert_order = nexus_get_objects(token,
-                                         'https://api.appnexus.com/insertion-order',
-                                         {'advertiser_id': advertiser_id},
-                                         InsertionOrder.objects.filter(advertiser=advertiser_id).order_by('fetch_date'),
-                                         InsertionOrder, 'id', False)
-        print 'There is %d  insertion orders' % len(insert_order)
-        if len(insert_order) > 0:
-            print 'First insertion order:'
-            print insert_order[0]
-            print '-' * 80
-        # Get all of an advertiser's line items:
-        line_items = nexus_get_objects(token,
-                                       'https://api.appnexus.com/line-item',
-                                       {'advertiser_id': advertiser_id},
-                                       LineItem.objects.filter(advertiser=advertiser_id).order_by('fetch_date'),
-                                       LineItem, 'id', False)
-        print 'There is %d  line items' % len(line_items)
-        if len(insert_order) > 0:
-            print 'First insertion order:'
-            print insert_order[0]
-            print '-' * 80
-        campaigns = nexus_get_objects(token,
-                                      'https://api.appnexus.com/campaign',
-                                      {'advertiser_id': advertiser_id},
-                                      Campaign.objects.filter(advertiser=advertiser_id).order_by('fetch_date'),
-                                      Campaign, 'id', False)
-        print 'There is %d campaigns ' % len(campaigns)
-        #Get all operating system families:
-        operating_systems_families = nexus_get_objects(token,
-                                      'https://api.appnexus.com/operating-system-family',
-                                      {},
-                                      OSFamily.objects.all().order_by('fetch_date'),
-                                      OSFamily, 'id', False)
-        print 'There is %d operating system families' % len(operating_systems_families)
-        #Get all operating systems:
-        operating_systems = nexus_get_objects(token,
-                            'https://api.appnexus.com/operating-system-extended',
-                            {},
-                            OperatingSystemExtended.objects.all().order_by('fetch_date'),
-                            OperatingSystemExtended, 'id', False)
-        print 'There is %d operating systems ' % len(operating_systems)
 
-        advertiser_id = 992089  # Need to change
-
-        f=reports.get_specifed_report('site_domain_performance',{'advertiser_id':advertiser_id}, token)
-        #f = open('rtb/logs/2016-06-21T07-15-33.040_report_79aaef968e0cdcab3f24925c02d06908.csv', 'r')
-        
-        campaign_dict = {i.id: i for i in campaigns}
-        missed = []
-        r = analize_csv(f, SiteDomainPerformanceReport,
-                        metadata={"campaign_dict": campaign_dict,
-                                  "advertiser_id" : advertiser_id,
-                                  "missed_campaigns":missed})
-        if missed:
-            print "We are finded some campaigns, those are missing in Nexus campaign list"
-            print "Probary, they have been removed."
-            print "We need to add them to internal DB to respect foreign keys check"
-            fd = campaigns[0].fetch_date if len(campaigns)>0 else get_current_time()
-            for c in missed:
-                camp = Campaign()
-                camp.id = c
-                camp.fetch_date = fd
-                camp.state = "Inactive"
-                camp.name = campaign_dict[c]
-                camp.advertiser_id = advertiser_id
-                camp.comments = "created automatically"
-                camp.start_date = unix_epoch
-                camp.last_modified = fd
-                camp.save()
-        for i in r:
-            try:
-                i.save()
-            except Exception as e:
-                print "Error by saving object %s (%s)"%(i,e)
-        print "Domain performance report saved to DB"
+        #select advertisers, which do not have report data
+        advertisers = filter(lambda adv: not check_SiteDomainPerformanceReport_exist(adv), advertisers)
+        campaigns_by_advertiser = {adv.id:load_depending_data(adv.id, token) for adv in advertisers}
+        # Multithreading map
+        files = worker_pool.map(lambda adv: reports.get_specifed_report('site_domain_performance',{'advertiser_id':adv.id}, token),
+                                advertisers)
+        for ind, adv in enumerate(advertisers):
+            advertiser_id = adv.id
+            campaigns = campaigns_by_advertiser[adv.id]
+            campaign_dict = {i.id: i for i in campaigns}
+            f=files[ind]
+            missed = []
+            r = analize_csv(f, SiteDomainPerformanceReport,
+                            metadata={"campaign_dict": campaign_dict,
+                                      "advertiser_id" : advertiser_id,
+                                      "missed_campaigns":missed})
+            if missed:
+                print "We are finded some campaigns, those are missing in Nexus campaign list"
+                print "Probary, they have been removed."
+                print "We need to add them to internal DB to respect foreign keys check"
+                fd = campaigns[0].fetch_date if len(campaigns)>0 else get_current_time()
+                for c in missed:
+                    camp = Campaign()
+                    camp.id = c
+                    camp.fetch_date = fd
+                    camp.state = "Inactive"
+                    camp.name = campaign_dict[c]
+                    camp.advertiser_id = advertiser_id
+                    camp.comments = "created automatically"
+                    camp.start_date = unix_epoch
+                    camp.last_modified = fd
+                    camp.save()
+            for i in r:
+                try:
+                    i.save()
+                except IntegrityError as ie:
+                    if ie.messege.endswith('"line_item". \n'):
+                        print "Clear line item on object "%i
+                        i.line_item = None
+                        try:i.save()
+                        except:pass
+                except Exception as e:
+                    print "Error by saving object %s (%s)"%(i,e)
+            print "Domain performance report for advertiser %s saved to DB"%adv.name
     except Exception as e:
         print 'Error by fetching data: %s' % e
     finally:

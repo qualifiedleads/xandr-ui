@@ -464,6 +464,14 @@ class ContentCategory(models.Model):
         db_table = "content_category"
 
 
+class Language(models.Model):
+    id = models.IntegerField(primary_key=True)  # No AutoIncrement
+    name = models.TextField(null=True, blank=True, db_index=True)
+
+    class Meta:
+        db_table = "language"
+
+
 CREATIVE_TYPE_CHOICES = (
     ('standard', 'standard'),
     ('html', 'html'),
@@ -542,7 +550,7 @@ class Creative(models.Model):
         null=True, blank=True)
     advertiser_id = models.ForeignKey("Advertiser", null=True, blank=True)
     publisher_id = models.ForeignKey("Publisher", null=True, blank=True)
-    brand_id = models.ForeignKey("Brand", null=True, blank=True)
+    brand = models.ForeignKey("Brand", null=True, blank=True)
     state = models.TextField(
         choices=STATE_CHOICES,
         null=True, blank=True)
@@ -625,25 +633,24 @@ class Creative(models.Model):
     click_target = models.TextField(null=True, blank=True)
     #categories = array - see model CreativeCategory below
     #adservers = array - see model CreativeAdserver below
-#    technical_attributes = array
-#    language = object
-#    brand = object
-#    pop_values = array
+    technical_attributes = models.TextField(null=True, blank=True) #array in origin but we do not need it
+    language = models.ForeignKey("Language", null=True, blank=True)
+    pop_values = models.TextField(null=True, blank=True) #TODO JSON
     sla = models.IntegerField(null=True, blank=True)
     sla_eta = models.DateTimeField()
     currency = models.TextField(null=True, blank=True)
     first_run = models.DateTimeField()
     last_run = models.DateTimeField()
-#    mobile = object
-#    video_attribute = object
-#    stats = object
+    mobile = models.TextField(null=True, blank=True) #TODO JSON
+    video_attribute = models.TextField(null=True, blank=True) #TODO JSON
+    #stats = object # - will create another model in it will be needed
     content_source = models.TextField(null=True, blank=True)
-#    custom_request_template = multi - object
-#    competitive_brands = array
-#    competitive_categories = array
-#    thirdparty_pixels = array
-#    native = object
-#    adx_audit = object
+    custom_request_template = models.TextField(null=True, blank=True) #TODO JSON
+    #competitive_brands = array - see model CreativeCompetitiveBrand below
+    #competitive_categories = array - see model CreativeCompetitiveCategory below
+    #thirdparty_pixels = array
+    #native = models.TextField(null=True, blank=True) #TODO JSON
+    #adx_audit = models.TextField(null=True, blank=True) #TODO JSON
     flash_backup_url_secure = models.TextField(null=True, blank=True)
     member_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
 
@@ -664,6 +671,30 @@ CREATIVE_SEGMENT_ACTION_CHOICES = (
     ('add on view', 'add on view'),
     ('add on click', 'add on click')
 )
+
+
+class CreativeThirdpartyPixel(models.Model):
+    thirdparty_pixel = models.ForeignKey("ThirdPartyPixel", null=True, blank=True)
+    creative = models.ForeignKey("Creative", null=True, blank=True)
+
+    class Meta:
+        db_table = "creative_thirdparty_pixel"
+
+
+class CreativeCompetitiveBrand(models.Model):
+    creative = models.ForeignKey("Creative", null=True, blank=True)
+    brand = models.ForeignKey("Brand", null=True, blank=True)
+
+    class Meta:
+        db_table = "creative_competitive_brand"
+
+
+class CreativeCompetitiveCategory(models.Model):
+    creative = models.ForeignKey("Creative", null=True, blank=True)
+    category = models.ForeignKey("Category", null=True, blank=True)
+
+    class Meta:
+        db_table = "creative_competitive_category"
 
 
 class CreativeAdserver(models.Model):
@@ -841,7 +872,7 @@ class Placement(models.Model):
     #supported_media_types = array - see model PlacementMediaType below
     #supported_media_subtypes = array - see model PlacementMediaSubType below
     #pop_values = array - see model PlacementPopValues
-    default_creative_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    default_creative = models.ForeignKey("Creative", null=True, blank=True)
     reserve_price = models.FloatField(null=True, blank=True)
     hide_referer = models.NullBooleanField(null=True, blank=True)
     default_referrer_url = models.TextField(null=True, blank=True)
@@ -877,19 +908,17 @@ class Placement(models.Model):
     site_audit_status = models.TextField(
         choices=SITE_AUDIT_STATUS,
         null=True, blank=True)
-    toolbar = object
-    acb_code = models.TextField(null=True, blank=True)
-    tag_data = models.TextField(null=True, blank=True)
+    toolbar = models.TextField(null=True, blank=True) #TODO JSON
     cost_cpm = models.FloatField(null=True, blank=True)
     is_prohibited = models.NullBooleanField(null=True, blank=True)
     last_modified = models.DateTimeField(null=True, blank=True)
-    stats = object
+    #stats - will create another model in it will be needed
     content_retrieval_timeout_ms = models.IntegerField(null=True, blank=True)
     enable_for_mediation = models.NullBooleanField(null=True, blank=True)
     #private_sizes = array - see model PlacementPrivateSizes below
-    video = object
+    video = models.TextField(null=True, blank=True) #TODO JSON
     ad_types = models.TextField(null=True, blank=True) #TODO it is an array in origin but there is no description of it so we need to look at the API responce
-    use_detected_domain = bool
+    use_detected_domain = models.NullBooleanField(null=True, blank=True)
 
     class Meta:
         db_table = "placement"
@@ -1628,7 +1657,7 @@ class LineItem(models.Model):
 
 class LineItemCreatives(models.Model):
     line_item = models.ForeignKey("LineItem", null=True, blank=True)
-    creative = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    creative = models.ForeignKey("Creative", null=True, blank=True)
     code = models.TextField(null=True, blank=True, db_index=True)
 
     class Meta:
@@ -1786,12 +1815,12 @@ class LineItemInsertionOrder(models.Model):
         db_table = "line_item_insertion_order"
 
 
-#class LineItemConversionPixel(models.Model):
-#    pixel = models.ForeignKey("ConversionPixel", null=True, blank=True)
-#    line_item = models.ForeignKey("LineItem", null=True, blank=True)
+class LineItemConversionPixel(models.Model):
+    pixel = models.ForeignKey("ConversionPixel", null=True, blank=True)
+    line_item = models.ForeignKey("LineItem", null=True, blank=True)
 
-#    class Meta:
-#        db_table = "line_item_conversion_pixel"
+    class Meta:
+        db_table = "line_item_conversion_pixel"
 
 
 class LineItemLabel(models.Model):
@@ -1871,19 +1900,19 @@ class NetworkAnalyticsReport(models.Model):
     entity_member_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
     buyer_member_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
     seller_member_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
-    advertiser_id = models.ForeignKey("Advertiser", null=True, blank=True)
+    advertiser = models.ForeignKey("Advertiser", null=True, blank=True)
     adjustment_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
-    publisher_id = models.ForeignKey("Publisher", null=True, blank=True)
+    publisher = models.ForeignKey("Publisher", null=True, blank=True)
     pub_rule_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
     site_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
     pixel_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
-    placement_id = models.ForeignKey("Placement", null=True, blank=True)
-    insertion_order_id = models.ForeignKey("InsertionOrder", null=True, blank=True)
-    line_item_id = models.ForeignKey("LineItem", null=True, blank=True)
-    campaign_id = models.ForeignKey("Campaign", null=True, blank=True)
-    creative_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    placement = models.ForeignKey("Placement", null=True, blank=True)
+    insertion_order = models.ForeignKey("InsertionOrder", null=True, blank=True)
+    line_item = models.ForeignKey("LineItem", null=True, blank=True)
+    campaign = models.ForeignKey("Campaign", null=True, blank=True)
+    creative = models.ForeignKey("Creative", null=True, blank=True)
     size = models.TextField(null=True, blank=True)
-    brand_id = models.ForeignKey("Brand", null=True, blank=True)
+    brand = models.ForeignKey("Brand", null=True, blank=True)
     billing_period_start_date = models.DateTimeField(null=True, blank=True, db_index=True)
     billing_period_end_date = models.DateTimeField(null=True, blank=True, db_index=True)
     geo_country = models.TextField(null=True, blank=True)
@@ -1901,9 +1930,9 @@ class NetworkAnalyticsReport(models.Model):
 
     class Meta:
         db_table = "network_analytics_report"
-        index_together = ["advertiser_id", "hour"]
-        index_together = ["publisher_id", "hour"]
-        index_together = ["campaign_id", "hour"]
+        index_together = ["advertiser", "hour"]
+        index_together = ["publisher", "hour"]
+        index_together = ["campaign", "hour"]
 
 num_in_p = re.compile(r'\((\d+)\)$')
 def get_text_in_parentheses(s):

@@ -28,45 +28,42 @@ def stats(request):
 
     #query to db
     q = SiteDomainPerformanceReport.objects.values('campaign', 'day').annotate(
-      spend=Sum('post_view_convs'),
-      spend=Sum('post_view_convs'),
-      spend=Sum('post_view_convs'),
-      spend=Sum('post_view_convs'),
-      spend=Sum('post_view_convs'),
-      spend=Sum('post_view_convs'),
-      spend=Sum('post_view_convs'),
-      "conv": 8,
-      "imp": 5500,
-      "clicks": 21,
-      "cpc": "$0.31",
-      "cpm": "$1.38",
-      "cvr": 1,
-      "ctr": 2,
+      #spend=Sum('booked_revenue'),
+      spend=Sum('media_cost'),
+      #conv=Sum('convs_per_mm'),
+      conv=Sum('post_click_convs') + Sum('post_view_convs'),
+      imp=Sum('imps'),
+      clicks=Sum('clicks'),
+      cpc=Sum('media_cost')/Sum('clicks'), #Cost per click
+      #cpc=Avg('cost_ecpc'),
+      cpm=Sum('media_cost')/Sum('imps')*1000, #Cost per view
+      cvr=(Sum('post_click_convs') + Sum('post_view_convs'))/Sum('imps'),
+      ctr=Sum('clicks') / Sum('imps'),
     )
-    booked_revenue = models.DecimalField(max_digits=35, decimal_places=10)
-    clicks = models.IntegerField(null=True, blank=True)
-    click_thru_pct = models.FloatField(null=True, blank=True)
-    convs_per_mm = models.FloatField(null=True, blank=True)
-    convs_rate = models.FloatField(null=True, blank=True)
-    cost_ecpa = models.DecimalField(max_digits=35, decimal_places=10)
-    cost_ecpc = models.DecimalField(max_digits=35, decimal_places=10)
-    cpm = models.DecimalField(max_digits=35, decimal_places=10)
-    ctr = models.FloatField(null=True, blank=True)
-    imps = models.IntegerField(null=True, blank=True)
-    media_cost = models.DecimalField(max_digits=35, decimal_places=10)
-    post_click_convs = models.IntegerField(null=True, blank=True)
-    post_click_convs_rate = models.FloatField(null=True, blank=True)
-    post_view_convs = models.IntegerField(null=True, blank=True)
-    post_view_convs_rate = models.FloatField(null=True, blank=True)
-    profit = models.DecimalField(max_digits=35, decimal_places=10)
-    profit_ecpm = models.DecimalField(max_digits=35, decimal_places=10)
-    imps_viewed = models.IntegerField(null=True, blank=True)
-    view_measured_imps = models.IntegerField(null=True, blank=True)
-    view_rate = models.FloatField(null=True, blank=True)
-    view_measurement_rate = models.FloatField(null=True, blank=True)
-
+    # booked_revenue = models.DecimalField(max_digits=35, decimal_places=10)
+    # clicks = models.IntegerField(null=True, blank=True)
+    # click_thru_pct = models.FloatField(null=True, blank=True)
+    # convs_per_mm = models.FloatField(null=True, blank=True)
+    # convs_rate = models.FloatField(null=True, blank=True)
+    # cost_ecpa = models.DecimalField(max_digits=35, decimal_places=10)
+    # cost_ecpc = models.DecimalField(max_digits=35, decimal_places=10)
+    # cpm = models.DecimalField(max_digits=35, decimal_places=10)
+    # ctr = models.FloatField(null=True, blank=True)
+    # imps = models.IntegerField(null=True, blank=True)
+    # media_cost = models.DecimalField(max_digits=35, decimal_places=10)
+    # post_click_convs = models.IntegerField(null=True, blank=True)
+    # post_click_convs_rate = models.FloatField(null=True, blank=True)
+    # post_view_convs = models.IntegerField(null=True, blank=True)
+    # post_view_convs_rate = models.FloatField(null=True, blank=True)
+    # profit = models.DecimalField(max_digits=35, decimal_places=10)
+    # profit_ecpm = models.DecimalField(max_digits=35, decimal_places=10)
+    # imps_viewed = models.IntegerField(null=True, blank=True)
+    # view_measured_imps = models.IntegerField(null=True, blank=True)
+    # view_rate = models.FloatField(null=True, blank=True)
+    # view_measurement_rate = models.FloatField(null=True, blank=True)
+    #
     print q
-    return JsonResponse({"message":"hello, world", "from_date":from_date,"to_date":to_date,})
+    return JsonResponse({"message":list(q), "from_date":from_date,"to_date":to_date,})
 
 
 class NetworkAnalyticsRawSerializer(serializers.ModelSerializer):

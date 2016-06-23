@@ -1,8 +1,12 @@
 from rest_framework import filters
 from rest_framework import serializers
 from rest_framework import viewsets
+from django.http import JsonResponse
 
 from .models import NetworkAnalyticsRaw, User
+
+def stats(request):
+    return JsonResponse({"message":"hello, world"})
 
 
 class NetworkAnalyticsRawSerializer(serializers.ModelSerializer):
@@ -18,9 +22,6 @@ class UsersSerializer(serializers.ModelSerializer):
 
 
 class NetworkAnalyticsRawViewSet(viewsets.ModelViewSet):
-    """
-    List all trucks, or create a new truck.
-    """
     queryset = NetworkAnalyticsRaw.objects.all()
 
     serializer_class = NetworkAnalyticsRawSerializer

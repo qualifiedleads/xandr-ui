@@ -1,20 +1,19 @@
 #!/bin/python
-import datetime
-import common.report as reports
 import csv
-from django.conf import settings
+import datetime
 import json
-from models import Advertiser, API_Campaign, API_SiteDomainPerformanceReport, \
-    Campaign, SiteDomainPerformanceReport, Profile, LineItem, InsertionOrder, \
-    OperatingSystem, OSFamily, OperatingSystemExtended
-from pytz import utc
+import sys
+from multiprocessing.pool import ThreadPool
+
+import common.report as reports
+import django.db.models as django_types
 import re
 import requests
-import time
-import django.db.models as django_types
-from Queue import Queue
-from threading import Thread
-from multiprocessing.pool import ThreadPool
+from django.conf import settings
+from models import Advertiser, Campaign, SiteDomainPerformanceReport, Profile, LineItem, InsertionOrder, \
+    OSFamily, OperatingSystemExtended
+from pytz import utc
+
 
 def date_type(t):
     return isinstance(t, (django_types.DateField, django_types.TimeField, django_types.DateField))
@@ -207,6 +206,9 @@ def load_depending_data(advertiser_id, token):
 
 # Task, executed twice in hour. Get new data from NexusApp
 def dayly_task():
+    old_stdout, old_error = sys.stdout, sys.stderr
+    log_file_name = 'logs/DomainPerformanceReport_%s.log' % datetime.datetime.utcnow().isoformat()
+    sys.stdout = open(log_file_name, 'w')
     print ('NexusApp API pooling...')
     # reports.get_specifed_report('network_analytics')
     try:
@@ -307,8 +309,9 @@ def dayly_task():
                 print "Error by saving object %s (%s)"%(i,e)
         print "Domain performance report saved to DB"
     except Exception as e:
-
         print 'Error by fetching data: %s' % e
+    finally:
+        sys.stdout, sys.stderr = old_stdout, old_error
     print "There is %d rows fetched " % len(r)
 
 #Check of existence of SiteDomainPerformanceReport in local DB (for yesterday)

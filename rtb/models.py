@@ -1129,14 +1129,6 @@ class ConversionPixel(models.Model):
         db_table = "conversion_pixel"
 
 
-class LineItemConversionPixel(models.Model):
-    conversion_pixel = models.ForeignKey("ConversionPixel", null=True, blank=True)
-    line_item = models.ForeignKey("LineItem", null=True, blank=True)
-
-    class Meta:
-        db_table = "line_item_conversion_pixel"
-
-
 class CampaignConversionPixel(models.Model):
     conversion_pixel = models.ForeignKey("ConversionPixel", null=True, blank=True)
     campaign = models.ForeignKey("Campaign", null=True, blank=True)

@@ -1,3 +1,4 @@
+from django.contrib.admin.templatetags.admin_list import result_headers
 from rest_framework import filters
 from rest_framework import serializers
 from rest_framework import viewsets
@@ -6,16 +7,37 @@ from django.db.models import Avg, Count, Sum
 import time
 import datetime
 
-from .models import NetworkAnalyticsRaw, User, SiteDomainPerformanceReport
+from .models import NetworkAnalyticsRaw, User, SiteDomainPerformanceReport, Campaign
 
 def to_unix_timestamp(d):
     return str(int(time.mktime(d.timetuple())))
+
+def calc_another_fields(obj):
+    result={}
+    result['campaign'] = obj['campaign']
+    result['day'] = obj['day']
+    result['spend'] = obj['spend']
+    result['conv'] = (obj['conv_click'] or 0)+(obj['conv_view'] or 0)
+    result['imp'] = obj['imp']
+    result['clicks'] = obj['clicks']
+    result['cpc'] =   obj['spend'] / obj['clicks'] if obj['clicks'] else 0
+    result['cpm'] = obj["spend"] / obj['imp'] * 1000 if obj['imp'] else 0
+    result['cvr'] = result["conv"] / obj['imp']  if obj['imp'] else 0
+    result['cvr'] = obj["clicks"] / obj['imp']  if obj['imp'] else 0
+
+    return result
+
+def make_sum(dict1,dict2):
+    res = {}
+    for k in dict1:
+        res[k] = dict1.get(k,0)+dict2.get(k,0)
+    return res
 
 def stats(request):
     cur_dat = datetime.date.today()
     #from_date = request.GET.get('from_date', cur_dat - datetime.timedelta(days=8))
     #to_date = request.GET.get('to_date', cur_dat - datetime.timedelta(days=1))
-
+    result={}
     params = {
         "advertiser_id": "992089",
         "from_date" : [to_unix_timestamp(cur_dat - datetime.timedelta(days=8))],
@@ -28,6 +50,22 @@ def stats(request):
     to_date = datetime.date.fromtimestamp(int(params["to_date"][0]))
     advertiser_id = int(params["advertiser_id"])
     #query to db
+    #Calc total values for all campaigns
+    q = SiteDomainPerformanceReport.objects.filter(advertiser_id = advertiser_id).values('day').annotate(
+        spend=Sum('media_cost'),
+        conv_click=Sum('post_click_convs'),
+        conv_view=Sum('post_view_convs'),
+        imp=Sum('imps'),
+        clicks=Sum('clicks'),
+    ).order_by('day')
+    res = list(q)
+    result["total"] = reduce(make_sum, res)
+    result["chart"]= map(calc_another_fields, res)
+
+    #calc data for specific campaigns
+    #Apply pagination
+    all_campaigns = list(Campaign.objects.values('id', 'name').order_by('id'))
+    print all_campaigns
     q = SiteDomainPerformanceReport.objects.filter(advertiser_id = advertiser_id).values('campaign', 'day').annotate(
       #spend=Sum('booked_revenue'),
       spend=Sum('media_cost'),
@@ -43,9 +81,8 @@ def stats(request):
       #cvr=(Sum('post_click_convs') + Sum('post_view_convs'))/Sum('imps'),
       #ctr=Sum('clicks') / Sum('imps'),
     ).order_by('campaign', 'day')#.order_by('day')
-    r = list(q)
-    print r
-    return JsonResponse({"message":r, "from_date":from_date,"to_date":to_date,})
+    campaign_data = list(q)
+    return JsonResponse(result)
 
 
 class NetworkAnalyticsRawSerializer(serializers.ModelSerializer):

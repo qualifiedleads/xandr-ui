@@ -1,6 +1,7 @@
 import rtb.models as m
 
 from django.core.management import BaseCommand
+from rtb.cron import dayly_task
 
 class Command(BaseCommand):
     help = """
@@ -9,3 +10,4 @@ Call without params - load all data for last 48 days
 """
     def handle(self, *args, **options):
         self.stdout.write('loadreportdata called')
+        dayly_task()

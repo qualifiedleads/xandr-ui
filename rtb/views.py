@@ -49,7 +49,11 @@ def stats(request):
     advertiser_id = int(params["advertiser_id"])
     #query to db
     #Calc total values for all campaigns
-    q = SiteDomainPerformanceReport.objects.filter(advertiser_id = advertiser_id).values('day').annotate(
+    q = SiteDomainPerformanceReport.objects.filter(
+        advertiser_id = advertiser_id,
+        day__gte=from_date,
+        day__lte=to_date,
+    ).values('day').annotate(
         spend=Sum('media_cost'),
         conv_click=Sum('post_click_convs'),
         conv_view=Sum('post_view_convs'),
@@ -63,27 +67,25 @@ def stats(request):
 
     #calc data for specific campaigns
     #Apply pagination
-    all_campaigns = list(Campaign.objects.values('id', 'name').order_by('id'))
+    #all_campaigns = list(Campaign.objects.values('id', 'name').order_by('id'))
+    q = SiteDomainPerformanceReport.objects.filter(
+        advertiser_id=advertiser_id,
+        day__gte=from_date,
+        day__lte=to_date,
+    ).values_list('campaign_id',flat=True).distinct().order_by('campaign_id') #.distinct()
+    all_campaigns = list(q)
     skip = int(params["skip"][0])
     take = int(params["take"][0])
-
     all_campaigns = all_campaigns[skip:skip+take]
     if len(all_campaigns)<1:
         return JsonResponse({"error":"There is no campaigns by this request params"})
     #print all_campaigns
-    min_campaign = all_campaigns[0]["id"]
-    max_campaign = all_campaigns[-1]["id"]
+    min_campaign = all_campaigns[0]
+    max_campaign = all_campaigns[-1]
     q = SiteDomainPerformanceReport.objects.filter(
         advertiser_id = advertiser_id,
-        campaign_id__gte=min_campaign,
-        campaign_id__lte=max_campaign,
-    )
-    query = str(q.query)
-    print query
-    print list(q)
-    return None
-    q = SiteDomainPerformanceReport.objects.filter(
-        advertiser_id = advertiser_id,
+        day__gte=from_date,
+        day__lte=to_date,
         campaign_id__gte=min_campaign,
         campaign_id__lte=max_campaign,
     ).values('campaign', 'day').annotate(

@@ -153,86 +153,96 @@ def nexus_get_objects(token, url, params, query_set, object_class, key_field, fo
 
 #load data, needed for filling SiteDomainPerformanceReport
 #Data saved to local DB
-def load_depending_data(advertiser_id, token):
-    # Get all of the profiles for the advertiser
-    profiles = nexus_get_objects(token,
-                                 'https://api.appnexus.com/profile',
-                                 {'advertiser_id': advertiser_id},
-                                 Profile.objects.filter(advertiser=advertiser_id).order_by('fetch_date'),
-                                 Profile, 'id', False)
-    print 'There is %d profiles' % len(profiles)
-    # Get all of the insertion orders for one of your advertisers:
-    insert_order = nexus_get_objects(token,
-                                     'https://api.appnexus.com/insertion-order',
+def load_depending_data(token):
+    advertisers = nexus_get_objects(token,
+                                    'https://api.appnexus.com/advertiser',
+                                    {},
+                                    Advertiser.objects.all().order_by('fetch_date'),
+                                    Advertiser, 'id')
+    print 'There is %d advertisers' % len(advertisers)
+
+    for adv in advertisers:
+        advertiser_id = adv.id
+        # Get all of the profiles for the advertiser
+        profiles = nexus_get_objects(token,
+                                     'https://api.appnexus.com/profile',
                                      {'advertiser_id': advertiser_id},
-                                     InsertionOrder.objects.filter(advertiser=advertiser_id).order_by('fetch_date'),
-                                     InsertionOrder, 'id', False)
-    print 'There is %d  insertion orders' % len(insert_order)
-    if len(insert_order) > 0:
-        print 'First insertion order:'
-        print insert_order[0]
-        print '-' * 80
-    # Get all of an advertiser's line items:
-    line_items = nexus_get_objects(token,
-                                   'https://api.appnexus.com/line-item',
-                                   {'advertiser_id': advertiser_id},
-                                   LineItem.objects.filter(advertiser=advertiser_id).order_by('fetch_date'),
-                                   LineItem, 'id', False)
-    print 'There is %d  line items' % len(line_items)
-    if len(insert_order) > 0:
-        print 'First insertion order:'
-        print insert_order[0]
-        print '-' * 80
-    campaigns = nexus_get_objects(token,
-                                  'https://api.appnexus.com/campaign',
-                                  {'advertiser_id': advertiser_id},
-                                  Campaign.objects.filter(advertiser=advertiser_id).order_by('fetch_date'),
-                                  Campaign, 'id', False)
-    print 'There is %d campaigns ' % len(campaigns)
-    # Get all operating system families:
-    operating_systems_families = nexus_get_objects(token,
-                                                   'https://api.appnexus.com/operating-system-family',
-                                                   {},
-                                                   OSFamily.objects.all().order_by('fetch_date'),
-                                                   OSFamily, 'id', False)
-    print 'There is %d operating system families' % len(operating_systems_families)
-    # Get all operating systems:
-    operating_systems = nexus_get_objects(token,
-                                          'https://api.appnexus.com/operating-system-extended',
-                                          {},
-                                          OperatingSystemExtended.objects.all().order_by('fetch_date'),
-                                          OperatingSystemExtended, 'id', False)
-    print 'There is %d operating systems ' % len(operating_systems)
-    return campaigns
+                                     Profile.objects.filter(advertiser=advertiser_id).order_by('fetch_date'),
+                                     Profile, 'id', False)
+        print 'There is %d profiles' % len(profiles)
+        # Get all of the insertion orders for one of your advertisers:
+        insert_order = nexus_get_objects(token,
+                                         'https://api.appnexus.com/insertion-order',
+                                         {'advertiser_id': advertiser_id},
+                                         InsertionOrder.objects.filter(advertiser=advertiser_id).order_by('fetch_date'),
+                                         InsertionOrder, 'id', False)
+        print 'There is %d  insertion orders' % len(insert_order)
+        if len(insert_order) > 0:
+            print 'First insertion order:'
+            print insert_order[0]
+            print '-' * 80
+        # Get all of an advertiser's line items:
+        line_items = nexus_get_objects(token,
+                                       'https://api.appnexus.com/line-item',
+                                       {'advertiser_id': advertiser_id},
+                                       LineItem.objects.filter(advertiser=advertiser_id).order_by('fetch_date'),
+                                       LineItem, 'id', False)
+        print 'There is %d  line items' % len(line_items)
+        if len(insert_order) > 0:
+            print 'First insertion order:'
+            print insert_order[0]
+            print '-' * 80
+        campaigns = nexus_get_objects(token,
+                                      'https://api.appnexus.com/campaign',
+                                      {'advertiser_id': advertiser_id},
+                                      Campaign.objects.filter(advertiser=advertiser_id).order_by('fetch_date'),
+                                      Campaign, 'id', False)
+        print 'There is %d campaigns ' % len(campaigns)
+        # Get all operating system families:
+        operating_systems_families = nexus_get_objects(token,
+                                                       'https://api.appnexus.com/operating-system-family',
+                                                       {},
+                                                       OSFamily.objects.all().order_by('fetch_date'),
+                                                       OSFamily, 'id', False)
+        print 'There is %d operating system families' % len(operating_systems_families)
+        # Get all operating systems:
+        operating_systems = nexus_get_objects(token,
+                                              'https://api.appnexus.com/operating-system-extended',
+                                              {},
+                                              OperatingSystemExtended.objects.all().order_by('fetch_date'),
+                                              OperatingSystemExtended, 'id', False)
+        print 'There is %d operating systems ' % len(operating_systems)
 
 # Task, executed twice in hour. Get new data from NexusApp
-def dayly_task():
+def dayly_task(day=None, load_objects_from_services=True, output=None):
     old_stdout, old_error = sys.stdout, sys.stderr
-    log_file_name = 'rtb/logs/DomainPerformanceReport_%s.log' % datetime.datetime.utcnow().isoformat()
-    sys.stdout = open(log_file_name, 'w')
+    file_output = None
+    if not output:
+        log_file_name = 'rtb/logs/DomainPerformanceReport_%s.log' % get_current_time().strftime('%d-%m-%YT%h-%M-%s')
+        file_output = open(log_file_name, 'w')
+        output=file_output
+    sys.stdout, sys.stderr = output, output
     print ('NexusApp API pooling...')
     # reports.get_specifed_report('network_analytics')
     try:
         token = reports.get_auth_token()
+        fd = get_current_time()
+        if load_objects_from_services:
+            load_depending_data(token)
         # 5 report service processes per user admitted
         worker_pool = ThreadPool(4) # one thread reserved
-        advertisers = nexus_get_objects(token,
-                                        'https://api.appnexus.com/advertiser',
-                                        {},
-                                        Advertiser.objects.all().order_by('fetch_date'),
-                                        Advertiser, 'id')
-        print 'There is %d advertisers' % len(advertisers)
 
         #select advertisers, which do not have report data
-        advertisers = filter(lambda adv: not check_SiteDomainPerformanceReport_exist(adv), advertisers)
-        campaigns_by_advertiser = {adv.id:load_depending_data(adv.id, token) for adv in advertisers}
+        advertisers = filter(lambda adv: not check_SiteDomainPerformanceReport_exist(adv, day), Advertiser.objects.all())
+        campaigns_by_advertiser = dict(Campaign.objects.all().values_list() )
         # Multithreading map
-        files = worker_pool.map(lambda adv: reports.get_specifed_report('site_domain_performance',{'advertiser_id':adv.id}, token),
+        files = worker_pool.map(lambda adv:
+                                reports.get_specifed_report('site_domain_performance',{'advertiser_id':adv.id}, token, day),
                                 advertisers)
         for ind, adv in enumerate(advertisers):
             advertiser_id = adv.id
-            campaigns = campaigns_by_advertiser[adv.id]
-            campaign_dict = {i.id: i for i in campaigns}
+            #campaigns = campaigns_by_advertiser[adv.id]
+            campaign_dict = {i.id: i for i in Campaign.objects.all()}
             f=files[ind]
             missed = []
             r = analize_csv(f, SiteDomainPerformanceReport,
@@ -243,7 +253,6 @@ def dayly_task():
                 print "We are finded some campaigns, those are missing in Nexus campaign list"
                 print "Probary, they have been removed."
                 print "We need to add them to internal DB to respect foreign keys check"
-                fd = campaigns[0].fetch_date if len(campaigns)>0 else get_current_time()
                 for c in missed:
                     camp = Campaign()
                     camp.id = c
@@ -255,19 +264,13 @@ def dayly_task():
                     camp.start_date = unix_epoch
                     camp.last_modified = fd
                     camp.save()
-            all_line_items = set(LineItem.objects.values_list("id"))
+            all_line_items = set(LineItem.objects.values_list("id", flat=True))
             with transaction.atomic():
                 for i in r:
                     try:
                         if i.line_item_id not in all_line_items:
                             i.line_item=None
                         i.save()
-                    # except IntegrityError as ie:
-                    #     if ie.messege.endswith('"line_item". \n'):
-                    #         print "Clear line item on object "%i
-                    #         i.line_item = None
-                    #         try:i.save()
-                    #         except:pass
                     except Exception as e:
                         print "Error by saving object %s (%s)"%(i,e)
             print "Domain performance report for advertiser %s saved to DB"%adv.name
@@ -275,16 +278,15 @@ def dayly_task():
         print 'Error by fetching data: %s' % e
     finally:
         sys.stdout, sys.stderr = old_stdout, old_error
+        if file_output: file_output.close()
+        for f in files: f.close()
     print "OK"
 
 #Check of existence of SiteDomainPerformanceReport in local DB (for yesterday)
-def check_SiteDomainPerformanceReport_exist(adv):
-    last_record = SiteDomainPerformanceReport.objects.filter(advertiser=adv).order_by('-fetch_date')[:1]
-    if not last_record:
-        return False
-    yesterday = get_current_time() - datetime.timedelta(days=1)
-    yesterday = yesterday.replace(hour=0, minute=0, second=0, microsecond=0)
-    return last_record[0].day == yesterday
-
+def check_SiteDomainPerformanceReport_exist(adv, day=None):
+    if not day:
+        day = get_current_time() - datetime.timedelta(days=1)
+        day = day.replace(hour=0, minute=0, second=0, microsecond=0, tzinfo=utc)
+    return SiteDomainPerformanceReport.objects.filter(advertiser=adv,day=day).count()
 
 if __name__ == '__main__': dayly_task()

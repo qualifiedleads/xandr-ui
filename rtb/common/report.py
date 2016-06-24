@@ -6,7 +6,8 @@ import time
 import os
 from django.conf import settings
 
-log_path=os.path.join(os.path.dirname(os.path.dirname(__file__)),'logs')
+#log_path=os.path.join(os.path.dirname(os.path.dirname(__file__)),'logs')
+log_path='rtb/logs'
 
 def get_str_time(): 
     return datetime.datetime.utcnow().isoformat()
@@ -140,7 +141,7 @@ def get_auth_token():
     except:
         return None
 
-def get_specifed_report(report_type,query_data={}, token=None):
+def get_specifed_report(report_type, query_data={}, token=None, day = None):
     if not token:
         token=get_auth_token()
     url = "https://api.appnexus.com/report"
@@ -149,9 +150,13 @@ def get_specifed_report(report_type,query_data={}, token=None):
         "report_type": report_type,
         "columns": column_sets_for_reports[report_type],
         "timezone": "UTC",
-        "report_interval": "last_hour" if report_type not in no_hours_reports else "yesterday",
         "format": "csv"
     }
+    if not day:
+        report_data['report']['report_interval'] = "last_hour" if report_type not in no_hours_reports else "yesterday"
+    else:
+        report_data['report']["start_date"] = day.strftime("%Y-%m-%d")
+        report_data['report']["end_date"] = day.strftime("%Y-%m-%d")
     #report_data['report'].update(query_data)
     #report_data.update(query_data)
 

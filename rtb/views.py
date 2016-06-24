@@ -13,19 +13,17 @@ def to_unix_timestamp(d):
     return str(int(time.mktime(d.timetuple())))
 
 def calc_another_fields(obj):
-    result={}
-    result['campaign'] = obj['campaign']
-    result['day'] = obj['day']
-    result['spend'] = obj['spend']
-    result['conv'] = (obj['conv_click'] or 0)+(obj['conv_view'] or 0)
-    result['imp'] = obj['imp']
-    result['clicks'] = obj['clicks']
-    result['cpc'] =   obj['spend'] / obj['clicks'] if obj['clicks'] else 0
-    result['cpm'] = obj["spend"] / obj['imp'] * 1000 if obj['imp'] else 0
-    result['cvr'] = result["conv"] / obj['imp']  if obj['imp'] else 0
-    result['cvr'] = obj["clicks"] / obj['imp']  if obj['imp'] else 0
+    res = {}
+    res.update(obj)
+    res['conv'] = (obj.get('conv',0) or 0) + (obj.get('conv_click',0) or 0) + (obj.get('conv_view',0) or 0)
+    res['cpc'] = obj['spend'] / obj['clicks'] if obj['clicks'] else 0
+    res['cpm'] = obj["spend"] / obj['imp'] * 1000 if obj['imp'] else 0
+    res['cvr'] = res["conv"] / obj['imp']  if obj['imp'] else 0
+    res['cvr'] = obj["clicks"] / obj['imp']  if obj['imp'] else 0
+    res.pop('conv_click',None)
+    res.pop('conv_view',None)
 
-    return result
+    return res
 
 def make_sum(dict1,dict2):
     res = {}
@@ -42,8 +40,8 @@ def stats(request):
         "advertiser_id": "992089",
         "from_date" : [to_unix_timestamp(cur_dat - datetime.timedelta(days=8))],
         "to_date": [to_unix_timestamp(cur_dat - datetime.timedelta(days=1))],
-        "skip" : "0",
-        "take" :"20",
+        "skip" : ["0"],
+        "take" :["20"],
     }
     params.update(request.GET)
     from_date = datetime.date.fromtimestamp(int(params["from_date"][0]))
@@ -59,29 +57,52 @@ def stats(request):
         clicks=Sum('clicks'),
     ).order_by('day')
     res = list(q)
-    result["total"] = reduce(make_sum, res)
+    total = reduce(make_sum, res)
+    result["total"] = calc_another_fields(total)
     result["chart"]= map(calc_another_fields, res)
 
     #calc data for specific campaigns
     #Apply pagination
     all_campaigns = list(Campaign.objects.values('id', 'name').order_by('id'))
-    print all_campaigns
-    q = SiteDomainPerformanceReport.objects.filter(advertiser_id = advertiser_id).values('campaign', 'day').annotate(
-      #spend=Sum('booked_revenue'),
-      spend=Sum('media_cost'),
-      #conv=Sum('convs_per_mm'),
-      conv_click =Sum('post_click_convs'),
-      conv_view =Sum('post_view_convs'),
-      #conv=Sum('post_click_convs') + Sum('post_view_convs'),
-      imp=Sum('imps'),
-      clicks=Sum('clicks'),
-      #cpc=Sum('media_cost')/Sum('clicks'), #Cost per click
-      ###cpc=Avg('cost_ecpc'),
-      #cpm=Sum('media_cost')/Sum('imps')*1000, #Cost per view
-      #cvr=(Sum('post_click_convs') + Sum('post_view_convs'))/Sum('imps'),
-      #ctr=Sum('clicks') / Sum('imps'),
-    ).order_by('campaign', 'day')#.order_by('day')
+    skip = int(params["skip"][0])
+    take = int(params["take"][0])
+
+    all_campaigns = all_campaigns[skip:skip+take]
+    if len(all_campaigns)<1:
+        return JsonResponse({"error":"There is no campaigns by this request params"})
+    #print all_campaigns
+    min_campaign = all_campaigns[0]["id"]
+    max_campaign = all_campaigns[-1]["id"]
+    q = SiteDomainPerformanceReport.objects.filter(
+        advertiser_id = advertiser_id,
+        campaign_id__gte=min_campaign,
+        campaign_id__lte=max_campaign,
+    )
+    query = str(q.query)
+    print query
+    print list(q)
+    return None
+    q = SiteDomainPerformanceReport.objects.filter(
+        advertiser_id = advertiser_id,
+        campaign_id__gte=min_campaign,
+        campaign_id__lte=max_campaign,
+    ).values('campaign', 'day').annotate(
+        #spend=Sum('booked_revenue'),
+        spend=Sum('media_cost'),
+        #conv=Sum('convs_per_mm'),
+        conv_click =Sum('post_click_convs'),
+        conv_view =Sum('post_view_convs'),
+        #conv=Sum('post_click_convs') + Sum('post_view_convs'),
+        imp=Sum('imps'),
+        clicks=Sum('clicks'),
+        #cpc=Sum('media_cost')/Sum('clicks'), #Cost per click
+        ###cpc=Avg('cost_ecpc'),
+        #cpm=Sum('media_cost')/Sum('imps')*1000, #Cost per view
+        #cvr=(Sum('post_click_convs') + Sum('post_view_convs'))/Sum('imps'),
+        #ctr=Sum('clicks') / Sum('imps'),
+    ).order_by('campaign', 'day')
     campaign_data = list(q)
+    result["campaigns"] = campaign_data
     return JsonResponse(result)
 
 

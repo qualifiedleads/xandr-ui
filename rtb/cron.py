@@ -275,7 +275,7 @@ def dayly_task():
         print 'Error by fetching data: %s' % e
     finally:
         sys.stdout, sys.stderr = old_stdout, old_error
-    print "There is %d rows fetched " % len(r)
+    print "OK"
 
 #Check of existence of SiteDomainPerformanceReport in local DB (for yesterday)
 def check_SiteDomainPerformanceReport_exist(adv):

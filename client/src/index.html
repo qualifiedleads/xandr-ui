@@ -30,10 +30,10 @@
       <div class="row">
       <div class="left-nav col-lg-2 col-md-2 col-md-2">
         <ul class="nav nav-list">
-        <li class="nav-header"><a href="#/">Home</a></li>
-        <li class="active"><a href="#/">Campaign</a></li>
-        <li><a href="#/">Optimizer</a></li>
-        <li><a href="#/">Billing</a></li>
+        <li class="nav-header"><a href="#/" translate="INDEX.LEFT_NAV.HOME"></a></li>
+        <li class="active"><a ui-sref="campaign" translate="INDEX.LEFT_NAV.CAMPAIGN">Campaign</a></li>
+        <li><a href="#/" translate="INDEX.LEFT_NAV.OPTIMIZER">Optimizer</a></li>
+        <li><a href="#/" translate="INDEX.LEFT_NAV.BILLING">Billing</a></li>
       </ul>
         </div>
       <div class="main-nav navbar-header col-lg-10 col-md-10 col-sm-10">
@@ -43,10 +43,20 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a href="#" class="navbar-brand">Stats for {{root.advertiser.name}}</a>
+          <a href="#" class="navbar-brand" > {{ 'INDEX.ADVERTISER_TITLE' | translate }} {{root.advertiser.name}}</a>
+        <div class="location">
+          <a ng-click="root.changeLang('ru')">
+            <i class="fa fa-globe fa-fw"></i> Русский
+          </a>
+          /
+          <a ng-click="root.changeLang('en')">
+            <i class="fa fa-globe fa-fw"></i> English
+          </a>
+        </div>
         </div>
 
     </div>
+
       <div ui-view>
 
       </div>

@@ -104,6 +104,9 @@ def stats(request):
         #ctr=Sum('clicks') / Sum('imps'),
     ).order_by('campaign', 'day')
     campaign_data = list(q)
+    campaign_names = {x[0]:x[1] for x in Campaign.objects.filter(id__in=all_campaigns).values_list('id','name')}
+    for camp in campaign_data:
+        camp['campaign']=campaign_names[camp['campaign']]
     result["campaigns"] = campaign_data
     return JsonResponse(result)
 

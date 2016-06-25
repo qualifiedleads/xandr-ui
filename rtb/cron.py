@@ -218,7 +218,7 @@ def dayly_task(day=None, load_objects_from_services=True, output=None):
     old_stdout, old_error = sys.stdout, sys.stderr
     file_output = None
     if not output:
-        log_file_name = 'rtb/logs/DomainPerformanceReport_%s.log' % get_current_time().strftime('%d-%m-%YT%h-%M-%s')
+        log_file_name = 'rtb/logs/DomainPerformanceReport_%s.log' % get_current_time().strftime('%d-%m-%YT%H-%M-%S')
         file_output = open(log_file_name, 'w')
         output=file_output
     sys.stdout, sys.stderr = output, output

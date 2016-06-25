@@ -23,4 +23,7 @@ python manage.py crontab run <task_id>
 
 5. To load all data for the last month, type:
 python manage.py loadreportdata
+
+6. Create service table for cache:
+python manage.py createcachetable rtb_cache_table
 ````

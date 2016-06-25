@@ -13,3 +13,4 @@ django-cors-headers
 fabric
 django-contrib-postgres
 django-crontab
+uwsgi

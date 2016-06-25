@@ -1,7 +1,7 @@
 import itertools, time, datetime
 from django.http import JsonResponse
 from django.db.models import Avg, Count, Sum
-from models SiteDomainPerformanceReport, Campaign
+from models import SiteDomainPerformanceReport, Campaign
 
 def to_unix_timestamp(d):
     return str(int(time.mktime(d.timetuple())))

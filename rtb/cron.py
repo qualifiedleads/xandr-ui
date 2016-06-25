@@ -284,6 +284,7 @@ def dayly_task(day=None, load_objects_from_services=True, output=None):
             print "Domain performance report for advertiser %s saved to DB"%adv.name
     except Exception as e:
         print 'Error by fetching data: %s' % e
+        print traceback.print_last()
     finally:
         sys.stdout, sys.stderr = old_stdout, old_error
         if file_output: file_output.close()

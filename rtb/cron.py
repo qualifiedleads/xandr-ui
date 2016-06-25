@@ -2,7 +2,7 @@
 import csv
 import datetime
 import json
-import sys
+import sys, traceback
 from multiprocessing.pool import ThreadPool
 
 import common.report as reports
@@ -154,64 +154,69 @@ def nexus_get_objects(token, url, params, query_set, object_class, key_field, fo
 #load data, needed for filling SiteDomainPerformanceReport
 #Data saved to local DB
 def load_depending_data(token):
-    advertisers = nexus_get_objects(token,
-                                    'https://api.appnexus.com/advertiser',
-                                    {},
-                                    Advertiser.objects.all().order_by('fetch_date'),
-                                    Advertiser, 'id')
-    print 'There is %d advertisers' % len(advertisers)
+    try:
+        advertisers = nexus_get_objects(token,
+                                        'https://api.appnexus.com/advertiser',
+                                        {},
+                                        Advertiser.objects.all().order_by('fetch_date'),
+                                        Advertiser, 'id')
+        print 'There is %d advertisers' % len(advertisers)
 
-    for adv in advertisers:
-        advertiser_id = adv.id
-        # Get all of the profiles for the advertiser
-        profiles = nexus_get_objects(token,
-                                     'https://api.appnexus.com/profile',
-                                     {'advertiser_id': advertiser_id},
-                                     Profile.objects.filter(advertiser=advertiser_id).order_by('fetch_date'),
-                                     Profile, 'id', False)
-        print 'There is %d profiles' % len(profiles)
-        # Get all of the insertion orders for one of your advertisers:
-        insert_order = nexus_get_objects(token,
-                                         'https://api.appnexus.com/insertion-order',
+        for adv in advertisers:
+            advertiser_id = adv.id
+            # Get all of the profiles for the advertiser
+            profiles = nexus_get_objects(token,
+                                         'https://api.appnexus.com/profile',
                                          {'advertiser_id': advertiser_id},
-                                         InsertionOrder.objects.filter(advertiser=advertiser_id).order_by('fetch_date'),
-                                         InsertionOrder, 'id', False)
-        print 'There is %d  insertion orders' % len(insert_order)
-        if len(insert_order) > 0:
-            print 'First insertion order:'
-            print insert_order[0]
-            print '-' * 80
-        # Get all of an advertiser's line items:
-        line_items = nexus_get_objects(token,
-                                       'https://api.appnexus.com/line-item',
-                                       {'advertiser_id': advertiser_id},
-                                       LineItem.objects.filter(advertiser=advertiser_id).order_by('fetch_date'),
-                                       LineItem, 'id', False)
-        print 'There is %d  line items' % len(line_items)
-        if len(insert_order) > 0:
-            print 'First insertion order:'
-            print insert_order[0]
-            print '-' * 80
-        campaigns = nexus_get_objects(token,
-                                      'https://api.appnexus.com/campaign',
-                                      {'advertiser_id': advertiser_id},
-                                      Campaign.objects.filter(advertiser=advertiser_id).order_by('fetch_date'),
-                                      Campaign, 'id', False)
-        print 'There is %d campaigns ' % len(campaigns)
-        # Get all operating system families:
-        operating_systems_families = nexus_get_objects(token,
-                                                       'https://api.appnexus.com/operating-system-family',
-                                                       {},
-                                                       OSFamily.objects.all().order_by('fetch_date'),
-                                                       OSFamily, 'id', False)
-        print 'There is %d operating system families' % len(operating_systems_families)
-        # Get all operating systems:
-        operating_systems = nexus_get_objects(token,
-                                              'https://api.appnexus.com/operating-system-extended',
-                                              {},
-                                              OperatingSystemExtended.objects.all().order_by('fetch_date'),
-                                              OperatingSystemExtended, 'id', False)
-        print 'There is %d operating systems ' % len(operating_systems)
+                                         Profile.objects.filter(advertiser=advertiser_id).order_by('fetch_date'),
+                                         Profile, 'id', False)
+            print 'There is %d profiles' % len(profiles)
+            # Get all of the insertion orders for one of your advertisers:
+            insert_order = nexus_get_objects(token,
+                                             'https://api.appnexus.com/insertion-order',
+                                             {'advertiser_id': advertiser_id},
+                                             InsertionOrder.objects.filter(advertiser=advertiser_id).order_by('fetch_date'),
+                                             InsertionOrder, 'id', False)
+            print 'There is %d  insertion orders' % len(insert_order)
+            if len(insert_order) > 0:
+                print 'First insertion order:'
+                print insert_order[0]
+                print '-' * 80
+            # Get all of an advertiser's line items:
+            line_items = nexus_get_objects(token,
+                                           'https://api.appnexus.com/line-item',
+                                           {'advertiser_id': advertiser_id},
+                                           LineItem.objects.filter(advertiser=advertiser_id).order_by('fetch_date'),
+                                           LineItem, 'id', False)
+            print 'There is %d  line items' % len(line_items)
+            if len(insert_order) > 0:
+                print 'First insertion order:'
+                print insert_order[0]
+                print '-' * 80
+            campaigns = nexus_get_objects(token,
+                                          'https://api.appnexus.com/campaign',
+                                          {'advertiser_id': advertiser_id},
+                                          Campaign.objects.filter(advertiser=advertiser_id).order_by('fetch_date'),
+                                          Campaign, 'id', False)
+            print 'There is %d campaigns ' % len(campaigns)
+            # Get all operating system families:
+            operating_systems_families = nexus_get_objects(token,
+                                                           'https://api.appnexus.com/operating-system-family',
+                                                           {},
+                                                           OSFamily.objects.all().order_by('fetch_date'),
+                                                           OSFamily, 'id', False)
+            print 'There is %d operating system families' % len(operating_systems_families)
+            # Get all operating systems:
+            operating_systems = nexus_get_objects(token,
+                                                  'https://api.appnexus.com/operating-system-extended',
+                                                  {},
+                                                  OperatingSystemExtended.objects.all().order_by('fetch_date'),
+                                                  OperatingSystemExtended, 'id', False)
+            print 'There is %d operating systems ' % len(operating_systems)
+    except Exception as e:
+        print "There is error in load_depending_data:",e
+        print e.message
+        print traceback.print_last()
 
 # Task, executed twice in hour. Get new data from NexusApp
 def dayly_task(day=None, load_objects_from_services=True, output=None):
@@ -234,7 +239,7 @@ def dayly_task(day=None, load_objects_from_services=True, output=None):
 
         #select advertisers, which do not have report data
         advertisers = filter(lambda adv: not check_SiteDomainPerformanceReport_exist(adv, day), Advertiser.objects.all())
-        campaigns_by_advertiser = dict(Campaign.objects.all().values_list() )
+        campaigns_by_advertiser = dict(Campaign.objects.all().values_list('id', 'name') )
         # Multithreading map
         files = worker_pool.map(lambda adv:
                                 reports.get_specifed_report('site_domain_performance',{'advertiser_id':adv.id}, token, day),

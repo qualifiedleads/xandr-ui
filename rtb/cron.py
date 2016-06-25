@@ -261,6 +261,7 @@ def dayly_task(day=None, load_objects_from_services=True, output=None):
             missed = []
             r = analize_csv(f, SiteDomainPerformanceReport,
                             metadata={"campaign_dict": campaign_dict,
+                                      "all_line_items":all_line_items,
                                       "advertiser_id" : advertiser_id,
                                       "missed_campaigns":missed})
             if missed:
@@ -283,8 +284,6 @@ def dayly_task(day=None, load_objects_from_services=True, output=None):
             with tran():
                 for i in r:
                     try:
-                        if i.line_item_id not in all_line_items:
-                            i.line_item=None
                         i.save()
                     except Exception as e:
                         print "Error by saving object %s (%s)"%(i,e)

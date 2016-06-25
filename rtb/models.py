@@ -1989,6 +1989,7 @@ class SiteDomainPerformanceReport(models.Model):
     def TransformFields(self, data,  metadata={}):
         if not metadata: return
         campaign_dict = metadata["campaign_dict"]
+        all_line_items = metadata["all_line_items"]
         missed_campaigns = metadata["missed_campaigns"]
         #self.campaign = None
         text_in_parentheses = get_text_in_parentheses(data["campaign"])
@@ -2008,4 +2009,7 @@ class SiteDomainPerformanceReport(models.Model):
             self.second_level_category = None
         #if self.is_remarketing == 'no'
         self.click_thru_pct = self.click_thru_pct.replace('%','')
+        if self.line_item_id not in all_line_items:
+            self.line_item = None
+
 

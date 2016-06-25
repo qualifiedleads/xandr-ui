@@ -27,7 +27,7 @@ Call without params - load all data for last 48 days
         current_day-=one_day*31
         is_first = True
         p_line = '-'*79+'\n'
-        with open('rtb/logs/loadreportdata,log', 'w') as f:
+        with open('rtb/logs/loadreportdata.log', 'w') as f:
             t = tee (self.stdout, f)
             for i in xrange(0,20):
                 t.write(p_line)

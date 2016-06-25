@@ -279,14 +279,7 @@ def dayly_task(day=None, load_objects_from_services=True, output=None):
                     camp.start_date = unix_epoch
                     camp.last_modified = fd
                     camp.save()
-
-            tran = transaction.atomic if settings.USE_TRANSACTIONS else fakeWith
-            with tran():
-                for i in r:
-                    try:
-                        i.save()
-                    except Exception as e:
-                        print "Error by saving object %s (%s)"%(i,e)
+            SiteDomainPerformanceReport.objects.bulk_create(r)
             print "Domain performance report for advertiser %s saved to DB"%adv.name
     except Exception as e:
         print 'Error by fetching data: %s' % e

@@ -227,6 +227,7 @@ def dayly_task(day=None, load_objects_from_services=True, output=None):
         file_output = open(log_file_name, 'w')
         output=file_output
     sys.stdout, sys.stderr = output, output
+    files = []
     print ('NexusApp API pooling...')
     # reports.get_specifed_report('network_analytics')
     try:

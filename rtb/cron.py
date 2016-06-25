@@ -2,7 +2,7 @@
 import csv
 import datetime
 import json
-import sys, traceback
+import sys, traceback, os
 from multiprocessing.pool import ThreadPool
 
 import common.report as reports
@@ -285,7 +285,13 @@ def dayly_task(day=None, load_objects_from_services=True, output=None):
     finally:
         sys.stdout, sys.stderr = old_stdout, old_error
         if file_output: file_output.close()
-        for f in files: f.close()
+        for f in files:
+            f.close()
+            if not settings.DEBUG:
+                try:
+                    os.remove(f.name)
+                except:
+                    pass
     print "OK"
 
 #Check of existence of SiteDomainPerformanceReport in local DB (for yesterday)

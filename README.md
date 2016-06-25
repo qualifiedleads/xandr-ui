@@ -20,4 +20,7 @@ python manage.py crontab show
 look at task hash code (now there is exact one task)
 
 python manage.py crontab run <task_id>
+
+5. To load all data for the last month, type:
+python manage.py loadreportdata
 ````

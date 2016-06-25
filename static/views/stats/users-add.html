@@ -1,0 +1,45 @@
+<div class="row wrapper border-bottom white-bg page-heading">
+    <div class="col-lg-10">
+        <h2>Add User</h2>
+    </div>
+    <div class="col-lg-2">
+
+    </div>
+</div>
+<div class="row wrapper wrapper-content">
+    <div class="col-md-6 col-md-offset-3">
+        <div class="ibox">
+            <div class="ibox-title">
+                <h5>Add User</h5>
+            </div>
+            <div class="ibox-content">
+                <form class="form" ng-submit="vm.createUser()">
+                    <div class="form-group">
+                        <label>Username</label>
+                        <input type="text" class="form-control" ng-model="vm.formData.username">
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" class="form-control" ng-model="vm.formData.email">
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" class="form-control" ng-model="vm.formData.password">
+                    </div>
+                    <div class="form-group">
+                        <label>First Name</label>
+                        <input type="text" class="form-control" ng-model="vm.formData.first_name">
+                    </div>
+                    <div class="form-group">
+                        <label>Last Name</label>
+                        <input type="text" class="form-control" ng-model="vm.formData.last_name">
+                    </div>
+                    <div class="form-group">
+                        <input type="submit" class="btn btn-primary">
+                        <a ui-sref="users.all" class="btn btn-danger">Close</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

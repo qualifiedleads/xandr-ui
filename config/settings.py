@@ -138,3 +138,4 @@ NEXUS_AUTH_DATA= {
 }
 INVALIDATE_TIME = datetime.timedelta(hours=23,minutes=30)
 MAX_REPORT_WAIT = datetime.timedelta(hours=1)
+USE_TRANSACTIONS = False

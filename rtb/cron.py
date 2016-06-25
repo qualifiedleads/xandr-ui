@@ -241,6 +241,7 @@ def dayly_task(day=None, load_objects_from_services=True, output=None):
         #select advertisers, which do not have report data
         advertisers = filter(lambda adv: not check_SiteDomainPerformanceReport_exist(adv, day), Advertiser.objects.all())
         campaign_dict = dict(Campaign.objects.all().values_list('id', 'name') )
+        all_line_items = set(LineItem.objects.values_list("id", flat=True))
         # Multithreading map
         files = worker_pool.map(lambda adv:
                                 reports.get_specifed_report('site_domain_performance',{'advertiser_id':adv.id}, token, day),
@@ -270,8 +271,9 @@ def dayly_task(day=None, load_objects_from_services=True, output=None):
                     camp.start_date = unix_epoch
                     camp.last_modified = fd
                     camp.save()
-            all_line_items = set(LineItem.objects.values_list("id", flat=True))
-            with transaction.atomic():
+
+            tran = transaction.atomic if settings.USE_TRANSACTIONS else object
+            with tran():
                 for i in r:
                     try:
                         if i.line_item_id not in all_line_items:

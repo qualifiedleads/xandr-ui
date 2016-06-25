@@ -1749,10 +1749,10 @@ class InsertionOrder(models.Model):
     start_date = models.DateTimeField()
     end_date = models.DateTimeField()
     last_modified = models.DateTimeField()
-    timezone = models.FloatField(null=True, blank=True)
-    currency = models.FloatField(null=True, blank=True)
-    comments = models.FloatField(null=True, blank=True)
-    billing_code = models.FloatField(null=True, blank=True)
+    timezone = models.TextField(null=True, blank=True)  # enum
+    currency = models.TextField(null=True, blank=True)
+    comments = models.TextField(null=True, blank=True)
+    billing_code = models.IntegerField(null=True, blank=True)
     #spend_protection_pixels = array - it is in alpha-beta phase on AppNexus
     #labels = array - see model InsertionOrderLabel below
     #broker_fees = array - see model InsertionOrderBrokerFees below

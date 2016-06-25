@@ -9,8 +9,8 @@ from django.conf import settings
 #log_path=os.path.join(os.path.dirname(os.path.dirname(__file__)),'logs')
 log_path='rtb/logs'
 
-def get_str_time(): 
-    return datetime.datetime.utcnow().isoformat()
+def get_str_time():
+    return datetime.datetime.utcnow().strftime('%Y-%m-%dT%H-%M-%S')
     
 def get_report(rid, token):
     print "Downloading report..."

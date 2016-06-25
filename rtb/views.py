@@ -1,15 +1,7 @@
-from django.contrib.admin.templatetags.admin_list import result_headers
-from rest_framework import filters
-from rest_framework import serializers
-from rest_framework import viewsets
+import itertools, time, datetime
 from django.http import JsonResponse
 from django.db.models import Avg, Count, Sum
-import time
-import datetime
-
-from .models import NetworkAnalyticsRaw, User, SiteDomainPerformanceReport, Campaign
-import itertools
-
+from models SiteDomainPerformanceReport, Campaign
 
 def to_unix_timestamp(d):
     return str(int(time.mktime(d.timetuple())))
@@ -123,27 +115,3 @@ def stats(request):
     result["campaigns"] = campaigns
     return JsonResponse(result)
 
-
-class NetworkAnalyticsRawSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = NetworkAnalyticsRaw
-        fields = ()
-
-
-class UsersSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = '__all__'
-
-
-class NetworkAnalyticsRawViewSet(viewsets.ModelViewSet):
-    queryset = NetworkAnalyticsRaw.objects.all()
-
-    serializer_class = NetworkAnalyticsRawSerializer
-    filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter, filters.SearchFilter,)
-
-
-class UsersViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.all()
-
-    serializer_class = UsersSerializer

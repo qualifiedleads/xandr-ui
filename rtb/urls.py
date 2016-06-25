@@ -4,7 +4,7 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from rest_framework import routers
 
-from . import views
+from . import views, views_rest
 
 # router = routers.DefaultRouter()
 #

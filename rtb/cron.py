@@ -239,7 +239,7 @@ def dayly_task(day=None, load_objects_from_services=True, output=None):
 
         #select advertisers, which do not have report data
         advertisers = filter(lambda adv: not check_SiteDomainPerformanceReport_exist(adv, day), Advertiser.objects.all())
-        campaigns_by_advertiser = dict(Campaign.objects.all().values_list('id', 'name') )
+        campaign_dict = dict(Campaign.objects.all().values_list('id', 'name') )
         # Multithreading map
         files = worker_pool.map(lambda adv:
                                 reports.get_specifed_report('site_domain_performance',{'advertiser_id':adv.id}, token, day),
@@ -247,7 +247,7 @@ def dayly_task(day=None, load_objects_from_services=True, output=None):
         for ind, adv in enumerate(advertisers):
             advertiser_id = adv.id
             #campaigns = campaigns_by_advertiser[adv.id]
-            campaign_dict = {i.id: i for i in Campaign.objects.all()}
+            #campaign_dict = {i.id: i for i in Campaign.objects.all()}
             f=files[ind]
             missed = []
             r = analize_csv(f, SiteDomainPerformanceReport,

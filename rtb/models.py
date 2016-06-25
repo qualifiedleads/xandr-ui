@@ -1746,8 +1746,8 @@ class InsertionOrder(models.Model):
         choices=STATE_CHOICES,
         null=True, blank=True)
     advertiser = models.ForeignKey("Advertiser", null=True, blank=True)
-    start_date = models.DateTimeField()
-    end_date = models.DateTimeField()
+    start_date = models.DateTimeField(null=True, blank=True)
+    end_date = models.DateTimeField(null=True, blank=True)
     last_modified = models.DateTimeField()
     timezone = models.TextField(null=True, blank=True)  # enum
     currency = models.TextField(null=True, blank=True)

@@ -218,6 +218,13 @@ def load_depending_data(token):
         print e.message
         print traceback.print_last()
 
+import contextlib
+class fakeWith(object):
+    def __enter__(self):
+        pass
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        pass
+
 # Task, executed twice in hour. Get new data from NexusApp
 def dayly_task(day=None, load_objects_from_services=True, output=None):
     old_stdout, old_error = sys.stdout, sys.stderr
@@ -272,7 +279,7 @@ def dayly_task(day=None, load_objects_from_services=True, output=None):
                     camp.last_modified = fd
                     camp.save()
 
-            tran = transaction.atomic if settings.USE_TRANSACTIONS else object
+            tran = transaction.atomic if settings.USE_TRANSACTIONS else fakeWith
             with tran():
                 for i in r:
                     try:

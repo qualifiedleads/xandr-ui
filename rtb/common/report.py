@@ -141,6 +141,7 @@ def get_auth_token():
     except:
         return None
 
+one_day = datetime.timedelta(days=1)
 def get_specifed_report(report_type, query_data={}, token=None, day = None):
     if not token:
         token=get_auth_token()
@@ -156,7 +157,7 @@ def get_specifed_report(report_type, query_data={}, token=None, day = None):
         report_data['report']['report_interval'] = "last_hour" if report_type not in no_hours_reports else "yesterday"
     else:
         report_data['report']["start_date"] = day.strftime("%Y-%m-%d")
-        report_data['report']["end_date"] = day.strftime("%Y-%m-%d")
+        report_data['report']["end_date"] = (day + one_day).strftime("%Y-%m-%d")
     #report_data['report'].update(query_data)
     #report_data.update(query_data)
 

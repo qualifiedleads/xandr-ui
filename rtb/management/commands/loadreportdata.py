@@ -29,7 +29,7 @@ Call without params - load all data for last 48 days
         p_line = '-'*79+'\n'
         with open('rtb/logs/loadreportdata.log', 'w') as f:
             t = tee (self.stdout, f)
-            for i in xrange(0,20):
+            for i in xrange(0,30):
                 t.write(p_line)
                 t.write('Save data for %s \n'%current_day.strftime('%Y-%m-%d'))
                 t.write(p_line)

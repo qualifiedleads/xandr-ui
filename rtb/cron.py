@@ -216,7 +216,7 @@ def load_depending_data(token):
     except Exception as e:
         print "There is error in load_depending_data:",e
         print e.message
-        print traceback.print_last()
+        print traceback.print_exc()
 
 import contextlib
 class fakeWith(object):
@@ -279,7 +279,11 @@ def dayly_task(day=None, load_objects_from_services=True, output=None):
                     camp.start_date = unix_epoch
                     camp.last_modified = fd
                     camp.save()
-            SiteDomainPerformanceReport.objects.bulk_create(r)
+            counter = 0
+            for pack in (r[i:i+1000] for i in xrange(0,len(r),1000)):
+                SiteDomainPerformanceReport.objects.bulk_create(pack)
+                counter+=1000
+                print "Saved %d records"%counter
             print "Domain performance report for advertiser %s saved to DB"%adv.name
     except Exception as e:
         print 'Error by fetching data: %s' % e

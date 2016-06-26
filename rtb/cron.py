@@ -20,8 +20,8 @@ def date_type(t):
     return isinstance(t, (django_types.DateField, django_types.TimeField, django_types.DateField))
 
 
-def replace_tzinfo(o, time_fields=[]):
-    if not time_fields:
+def replace_tzinfo(o, time_fields=None):
+    if time_fields is None:
         time_fields = [field.name for field in o._meta.fields if date_type(field)]
     for name in time_fields:
         try:
@@ -246,7 +246,13 @@ def dayly_task(day=None, load_objects_from_services=True, output=None):
         worker_pool = ThreadPool(4) # one thread reserved
 
         #select advertisers, which do not have report data
-        advertisers = filter(lambda adv: not check_SiteDomainPerformanceReport_exist(adv, day), Advertiser.objects.all())
+        advertisers = [adv for adv in Advertiser.objects.all()
+                         if not check_SiteDomainPerformanceReport_exist(adv, day)] 
+
+        print "____________________________________________"
+        print "For day %s there is %d advertisers."%(day, len(advertisers))
+        print "____________________________________________"
+        
         campaign_dict = dict(Campaign.objects.all().values_list('id', 'name') )
         all_line_items = set(LineItem.objects.values_list("id", flat=True))
         # Multithreading map
@@ -305,6 +311,6 @@ def check_SiteDomainPerformanceReport_exist(adv, day=None):
     if not day:
         day = get_current_time() - datetime.timedelta(days=1)
         day = day.replace(hour=0, minute=0, second=0, microsecond=0, tzinfo=utc)
-    return SiteDomainPerformanceReport.objects.filter(advertiser=adv,day=day).count()
-
+    cnt = SiteDomainPerformanceReport.objects.filter(advertiser_id=adv.id,day=day).count()
+    return cnt > 0
 if __name__ == '__main__': dayly_task()

@@ -22,7 +22,7 @@ Call without params - load all data for last 48 days
 """
     def handle(self, *args, **options):
         self.stdout.write('loadreportdata called')
-        current_day = get_current_time().replace(hour=0, minute=0, second=0, microsecond = 0)
+        current_day = get_current_time().date()
         one_day = datetime.timedelta(days=1)
         current_day-=one_day*31
         is_first = True

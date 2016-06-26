@@ -310,7 +310,7 @@ def dayly_task(day=None, load_objects_from_services=True, output=None):
 def check_SiteDomainPerformanceReport_exist(adv, day=None):
     if not day:
         day = get_current_time() - datetime.timedelta(days=1)
-        day = day.replace(hour=0, minute=0, second=0, microsecond=0, tzinfo=utc)
+        day = day.date()
     cnt = SiteDomainPerformanceReport.objects.filter(advertiser_id=adv.id,day=day).count()
     return cnt > 0
 if __name__ == '__main__': dayly_task()

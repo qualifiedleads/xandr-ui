@@ -3,8 +3,18 @@ from rest_framework import filters
 from rest_framework import serializers
 from rest_framework import viewsets
 
-from .models import NetworkAnalyticsRaw, User
+from .models import NetworkAnalyticsRaw, User, Advertiser
 
+
+class AdvertiserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Advertiser
+        fields = '__all__'
+
+class AdvertiserViewSet(viewsets.ModelViewSet):
+    queryset = Advertiser.objects.all()
+
+    serializer_class = AdvertiserSerializer
 
 
 class NetworkAnalyticsRawSerializer(serializers.ModelSerializer):

@@ -1,7 +1,10 @@
 import itertools, time, datetime
+from urllib import addbase
+
 from django.http import JsonResponse
 from django.db.models import Avg, Count, Sum
 from models import SiteDomainPerformanceReport, Campaign
+from django.core.cache import cache
 
 def to_unix_timestamp(d):
     return str(int(time.mktime(d.timetuple())))
@@ -28,6 +31,44 @@ def make_sum(dict1, dict2):
         res[k] = dict1.get(k, 0) + dict2.get(k, 0)
     return res
 
+def get_campaigns_data(advertiser_id, from_date, to_date):
+    key = '_'.join('rtb_campaigns',(advertiser_id, from_date.strftime('%Y-%m-%d'),to_date.strftime('%Y-%m-%d'),))
+    res = cache.get(key)
+    if res:return res
+    #no cache hit
+    #calc campaigns data
+    q = SiteDomainPerformanceReport.objects.filter(
+        advertiser_id=advertiser_id,
+        day__gte=from_date,
+        day__lte=to_date,
+    ).values('campaign', 'day').annotate(
+        # spend=Sum('booked_revenue'),
+        spend=Sum('media_cost'),
+        # conv=Sum('convs_per_mm'),
+        conv_click=Sum('post_click_convs'),
+        conv_view=Sum('post_view_convs'),
+        # conv=Sum('post_click_convs') + Sum('post_view_convs'),
+        imp=Sum('imps'),
+        clicks=Sum('clicks'),
+        # cpc=Sum('media_cost')/Sum('clicks'), #Cost per click
+        ###cpc=Avg('cost_ecpc'),
+        # cpm=Sum('media_cost')/Sum('imps')*1000, #Cost per view
+        # cvr=(Sum('post_click_convs') + Sum('post_view_convs'))/Sum('imps'),
+        # ctr=Sum('clicks') / Sum('imps'),
+    ).order_by('campaign', 'day')
+    campaigns = []
+    campaign_names = dict(Campaign.objects.all().values_list('id', 'name'))
+    for camp, camp_data in itertools.groupby(q, lambda x: x['campaign']):
+        current_campaign = {}
+        current_campaign['chart'] = map(calc_another_fields, camp_data)
+        summary = reduce(make_sum, current_campaign['chart'])
+        summary = calc_another_fields(summary)
+        current_campaign.update(summary)
+        current_campaign['campaign'] = campaign_names[camp]
+        current_campaign.pop('day', None)
+        campaigns.append(current_campaign)
+    cache.set(key,campaigns)
+    return campaigns
 
 def stats(request):
     cur_dat = datetime.date.today()
@@ -80,38 +121,6 @@ def stats(request):
     # print all_campaigns
     min_campaign = all_campaigns[0]
     max_campaign = all_campaigns[-1]
-    q = SiteDomainPerformanceReport.objects.filter(
-        advertiser_id=advertiser_id,
-        day__gte=from_date,
-        day__lte=to_date,
-        campaign_id__gte=min_campaign,
-        campaign_id__lte=max_campaign,
-    ).values('campaign', 'day').annotate(
-        # spend=Sum('booked_revenue'),
-        spend=Sum('media_cost'),
-        # conv=Sum('convs_per_mm'),
-        conv_click=Sum('post_click_convs'),
-        conv_view=Sum('post_view_convs'),
-        # conv=Sum('post_click_convs') + Sum('post_view_convs'),
-        imp=Sum('imps'),
-        clicks=Sum('clicks'),
-        # cpc=Sum('media_cost')/Sum('clicks'), #Cost per click
-        ###cpc=Avg('cost_ecpc'),
-        # cpm=Sum('media_cost')/Sum('imps')*1000, #Cost per view
-        # cvr=(Sum('post_click_convs') + Sum('post_view_convs'))/Sum('imps'),
-        # ctr=Sum('clicks') / Sum('imps'),
-    ).order_by('campaign', 'day')
-    campaigns = []
-    campaign_names = dict(Campaign.objects.filter(id__in=all_campaigns).values_list('id', 'name'))
-    for camp, camp_data in itertools.groupby(q, lambda x: x['campaign']):
-        current_campaign = {}
-        current_campaign['chart'] = map(calc_another_fields, camp_data)
-        summary = reduce(make_sum, current_campaign['chart'])
-        summary = calc_another_fields(summary)
-        current_campaign.update(summary)
-        current_campaign['campaign'] = campaign_names[camp]
-        current_campaign.pop('day', None)
-        campaigns.append(current_campaign)
     result["campaigns"] = campaigns
     return JsonResponse(result)
 

@@ -32,18 +32,18 @@ def get_report(rid, token):
 def get_report_status(rid, token):
     print "Getting report status for rid %s with token %s" % (rid, token)
 
-    exec_stat = ""
     url = "https://api.appnexus.com/report?id={0}".format(rid)
     headers = {"Authorization": token}
     start_time = datetime.datetime.utcnow()
-    while exec_stat != "ready":
+    while True:
         current_time = datetime.datetime.utcnow()
         if current_time-start_time>settings.MAX_REPORT_WAIT : break
         # Continue making this GET call until the execution_status is "ready"
         response = requests.get(url, headers=headers)
         content = json.loads(response.content)
         exec_stat = content['response']['execution_status']
-        time.sleep(5)
+        if exec_stat == "ready": break
+        time.sleep(1)
     if exec_stat!="ready" : return ""
     data = get_report(rid, token)
 
@@ -175,9 +175,9 @@ def get_specifed_report(report_type, query_data={}, token=None, day = None):
         print 'Error by analizing response: %s'%e
         print out
 
-    if settings.DEBUG:
-        with open('%s/%s_report_response_%s.json'%(log_path, get_str_time(), report_id), 'wb') as f:
-            f.write(r.content)
+    #if settings.DEBUG:
+        #with open('%s/%s_report_response_%s.json'%(log_path, get_str_time(), report_id), 'wb') as f:
+            #f.write(r.content)
     
     return get_report_status(report_id, token)
     

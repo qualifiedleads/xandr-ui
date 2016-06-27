@@ -14,6 +14,7 @@ from django.conf import settings
 from models import Advertiser, Campaign, SiteDomainPerformanceReport, Profile, LineItem, InsertionOrder, \
     OSFamily, OperatingSystemExtended
 from pytz import utc
+import gc
 
 
 def date_type(t):
@@ -265,7 +266,7 @@ def dayly_task(day=None, load_objects_from_services=True, output=None):
             #campaign_dict = {i.id: i for i in Campaign.objects.all()}
             f=files[ind]
             missed = []
-            r = analize_csv(f, SiteDomainPerformanceReport,
+            obj_list = analize_csv(f, SiteDomainPerformanceReport,
                             metadata={"campaign_dict": campaign_dict,
                                       "all_line_items":all_line_items,
                                       "advertiser_id" : advertiser_id,
@@ -286,11 +287,12 @@ def dayly_task(day=None, load_objects_from_services=True, output=None):
                     camp.last_modified = fd
                     camp.save()
             counter = 0
-            for pack in (r[i:i+1000] for i in xrange(0,len(r),1000)):
-                SiteDomainPerformanceReport.objects.bulk_create(pack)
+            for i in xrange(0,len(obj_list),1000):
+                SiteDomainPerformanceReport.objects.bulk_create(obj_list[i:i+1000])
                 counter+=1000
                 print "Saved %d records"%counter
-            print "Domain performance report for advertiser %s saved to DB"%adv.name
+            print "Domain performance report for advertiser %s saved to DB"%adv.name            
+            del(obj_list)
     except Exception as e:
         print 'Error by fetching data: %s' % e
         print traceback.print_exc(file=output)
@@ -299,12 +301,10 @@ def dayly_task(day=None, load_objects_from_services=True, output=None):
         if file_output: file_output.close()
         for f in files:
             f.close()
-            if not settings.DEBUG:
-                try:
-                    os.remove(f.name)
-                except:
-                    pass
+            os.remove(f.name)
     print "OK"
+    gc.collect()
+    print "There is %d items of garbage"%len(gc.garbage)
 
 #Check of existence of SiteDomainPerformanceReport in local DB (for yesterday)
 def check_SiteDomainPerformanceReport_exist(adv, day=None):

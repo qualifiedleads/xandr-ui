@@ -113,6 +113,11 @@ def parse_get_params(params):
     except:
         res['stat_by'] = ''
     try:
+        res['by']= re.match(r"^(campaign|spend|conv|imp|clicks|cpc|cpm|cvr|ctr)(?:,(campaign|spend|conv|imp|clicks|cpc|cpm|cvr|ctr))+$",
+                                 params['stat_by']).group(0).split(',')
+    except:
+        res['by'] = ''
+    try:
         res['filter']= [x.split('=')  for x in params['filter'].split(';')]
     except:
         res['filter'] = []
@@ -141,11 +146,16 @@ def campaigns(request):
         for camp in result:
             for f in entries_to_remove:
                 camp.pop(f,None)
-    return JsonResponse(result, safe=False)
+    return JsonResponse({"campaigns":result})
 
-def stats(request):
-    # query to db
-    # Calc total values for all campaigns
+
+def get_days_data(advertiser_id, from_date, to_date):
+    key = '_'.join(('rtb_days',str(advertiser_id), from_date.strftime('%Y-%m-%d'),to_date.strftime('%Y-%m-%d'),))
+    res = cache.get(key)
+    if res:return res
+    res = {}
+    #no cache hit
+    #calc day data
     q = SiteDomainPerformanceReport.objects.filter(
         advertiser_id=advertiser_id,
         day__gte=from_date,
@@ -157,28 +167,33 @@ def stats(request):
         imp=Sum('imps'),
         clicks=Sum('clicks'),
     ).order_by('day')
-    res = list(q)
-    total = reduce(make_sum, res)
-    result["total"] = calc_another_fields(total)
-    result["chart"] = map(calc_another_fields, res)
+    days = map(calc_another_fields, q)
+    summary = reduce(make_sum, days)
+    summary = calc_another_fields(summary)
+    summary.pop('day', None)
+    res['days'] = days
+    res['totals'] = summary
+    cache.set(key,res)
+    return res
 
-    # calc data for specific campaigns
-    # Apply pagination
-    # all_campaigns = list(Campaign.objects.values('id', 'name').order_by('id'))
-    q = SiteDomainPerformanceReport.objects.filter(
-        advertiser_id=advertiser_id,
-        day__gte=from_date,
-        day__lte=to_date,
-    ).values_list('campaign_id', flat=True).distinct().order_by('campaign_id')  # .distinct()
-    all_campaigns = list(q)
-    skip = int(params["skip"][0])
-    take = int(params["take"][0])
-    all_campaigns = all_campaigns[skip:skip + take]
-    if len(all_campaigns) < 1:
-        return JsonResponse({"error": "There is no campaigns by this request params"})
-    # print all_campaigns
-    min_campaign = all_campaigns[0]
-    max_campaign = all_campaigns[-1]
-    result["campaigns"] = campaigns
-    return JsonResponse(result)
+#get symmary data for given period
+#http://private-anon-e1f78e3eb-rtbs.apiary-mock.com/api/v1/totals?from=from_date&to=to_date
+def totals(request):
+    params=parse_get_params(request.GET)
+    data = get_days_data(params['advertiser_id'],params['from_date'],params['to_date'])
+    return JsonResponse({"totals": data['totals']})
+
+
+#get statistics for period - day by day
+#http://private-anon-e1f78e3eb-rtbs.apiary-mock.com/api/v1/statistics?from=from_date&to=to_date&by=by
+
+def statistics(request):
+    params=parse_get_params(request.GET)
+    data = get_days_data(params['advertiser_id'],params['from_date'],params['to_date'])
+    if params['by'] and data:
+        entries_to_remove = set(data[0].keys())-set(params['by'])
+        for camp in data:
+            for f in entries_to_remove:
+                camp.pop(f,None)
+    return JsonResponse({'statistics':data['days']})
 

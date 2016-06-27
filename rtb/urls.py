@@ -16,5 +16,7 @@ urlpatterns = [
     url(r'^', include(router.urls)),
     url(r'^admin/', include(admin.site.urls)),
     url(r'^campaigns/',views.campaigns),
-    url(r'^stats/', views.stats),
+    url(r'^totals/', views.totals),
+    url(r'^statistics/', views.statistics),
+
 ]

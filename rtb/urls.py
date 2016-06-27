@@ -15,5 +15,6 @@ router.register('advertisers', views_rest.AdvertiserViewSet)
 urlpatterns = [
     url(r'^', include(router.urls)),
     url(r'^admin/', include(admin.site.urls)),
-    url(r'^stats/',views.stats),
+    url(r'^campaigns/',views.campaigns),
+    url(r'^stats/', views.stats),
 ]

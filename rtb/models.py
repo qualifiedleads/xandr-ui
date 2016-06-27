@@ -1,5 +1,5 @@
 import datetime, re
-
+from pytz import utc
 from django.db import models
 #from django.contrib.postgres.fields import ArrayField
 #from django.contrib.postgres.fields import JSONField
@@ -1990,14 +1990,23 @@ class SiteDomainPerformanceReport(models.Model):
         if not metadata: return
         campaign_dict = metadata["campaign_dict"]
         all_line_items = metadata["all_line_items"]
-        missed_campaigns = metadata["missed_campaigns"]
+        #missed_campaigns = metadata["missed_campaigns"]
         #self.campaign = None
         text_in_parentheses = get_text_in_parentheses(data["campaign"])
         self.campaign_id = int(text_in_parentheses)
         #self.campaign = campaign_dict.get(self.campaign_id) #This also change self.campaign_id
         if self.campaign_id not in campaign_dict:
             campaign_dict[self.campaign_id] = data["campaign"][:-len(text_in_parentheses)-2]
-            missed_campaigns.append(self.campaign_id)
+            camp = Campaign()
+            camp.id = self.campaign_id
+            camp.fetch_date = self.fetch_date
+            camp.state = "Inactive"
+            camp.name = campaign_dict[self.campaign_id]
+            camp.advertiser_id = metadata.get("advertiser_id")
+            camp.comments = "created automatically"
+            camp.start_date = datetime.datetime(1970,1,1,tzinfo=utc)
+            camp.last_modified = self.fetch_date
+            camp.save()
         self.advertiser = None
         self.advertiser_id = metadata.get("advertiser_id")
         #self.line_item_id = get_text_in_parentheses(data["line_item"])

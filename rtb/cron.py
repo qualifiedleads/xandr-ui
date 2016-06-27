@@ -15,6 +15,7 @@ from models import Advertiser, Campaign, SiteDomainPerformanceReport, Profile, L
     OSFamily, OperatingSystemExtended
 from pytz import utc
 import gc
+from itertools import imap,izip
 
 
 def date_type(t):
@@ -37,37 +38,36 @@ def replace_tzinfo(o, time_fields=None):
             # print "Error setting timezone for field %s in object %s (%s)"%(name, o, e)
 
 
-def update_object_from_dict(o, d):
+def update_object_from_dict(o, d, time_fields=None):
     errors = []
     for field in d:
         try:
             setattr(o, field, d[field])
-        except:
-            errors.append(field)
-    replace_tzinfo(o)
-    if settings.DEBUG and errors > 0:
-        pass
-        #print "There is errors at settings fields %s in object %s" % (errors, repr(o))
-
+        except:pass
+    replace_tzinfo(o, time_fields)
+    
 
 def analize_csv(csvFile, modelClass, metadata={}):
     reader = csv.DictReader(csvFile, delimiter=',')  # dialect='excel-tab' or excel ?
     print 'Begin analyzing csv file ...'
-    result = []
-    counter = 0
-    fetch_date = datetime.datetime.utcnow()
-    for row in reader:
+    #result = []
+    metadata['counter'] = 0
+    fetch_date = get_current_time()
+    time_fields = [field.name for field in modelClass._meta.fields if date_type(field)]
+    def create_object_from_dict(data):
         c = modelClass()
         c.fetch_date = fetch_date
-        update_object_from_dict(c, row)
+        update_object_from_dict(c, data, time_fields)
         if hasattr(c, 'TransformFields'):
-            c.TransformFields(row, metadata)
-        result.append(c)
-        counter += 1
-        if counter % 1000 == 0:
-            print '%d rows fetched' % counter
-    print 'There are these fields in row', reader.fieldnames
-    return result
+            c.TransformFields(data, metadata)
+        metadata['counter']+=1
+        return c
+    it=iter(imap(create_object_from_dict,reader))
+    for pack in izip(*[it]*1000):
+        modelClass.objects.bulk_create(pack)
+        print '%d rows fetched' % metadata['counter']
+    #print 'There are these fields in row', reader.fieldnames
+    #return result
 
 
 fields_for_site_domain_report = ['advertiser_name', 'commissions',
@@ -266,34 +266,11 @@ def dayly_task(day=None, load_objects_from_services=True, output=None):
             #campaigns = campaigns_by_advertiser[adv.id]
             #campaign_dict = {i.id: i for i in Campaign.objects.all()}
             f=files[ind]
-            missed = []
-            obj_list = analize_csv(f, SiteDomainPerformanceReport,
+            analize_csv(f, SiteDomainPerformanceReport,
                             metadata={"campaign_dict": campaign_dict,
                                       "all_line_items":all_line_items,
-                                      "advertiser_id" : advertiser_id,
-                                      "missed_campaigns":missed})
-            if missed:
-                print "We are finded some campaigns, those are missing in Nexus campaign list"
-                print "Probary, they have been removed."
-                print "We need to add them to internal DB to respect foreign keys check"
-                for c in missed:
-                    camp = Campaign()
-                    camp.id = c
-                    camp.fetch_date = fd
-                    camp.state = "Inactive"
-                    camp.name = campaign_dict[c]
-                    camp.advertiser_id = advertiser_id
-                    camp.comments = "created automatically"
-                    camp.start_date = unix_epoch
-                    camp.last_modified = fd
-                    camp.save()
-            counter = 0
-            for i in xrange(0,len(obj_list),1000):
-                SiteDomainPerformanceReport.objects.bulk_create(obj_list[i:i+1000])
-                counter+=1000
-                print "Saved %d records"%counter
+                                      "advertiser_id" : advertiser_id})
             print "Domain performance report for advertiser %s saved to DB"%adv.name            
-            del(obj_list)
     except Exception as e:
         print 'Error by fetching data: %s' % e
         print traceback.print_exc(file=output)

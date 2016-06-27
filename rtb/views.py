@@ -6,6 +6,8 @@ from django.db.models import Avg, Count, Sum
 from models import SiteDomainPerformanceReport, Campaign
 from django.core.cache import cache
 
+import operator
+
 def to_unix_timestamp(d):
     return str(int(time.mktime(d.timetuple())))
 
@@ -111,17 +113,25 @@ def parse_get_params(params):
     except:
         res['stat_by'] = ''
     try:
-        res['filter']= params['filter'].split(';')
+        res['filter']= [x.split('=')  for x in params['filter'].split(';')]
     except:
         res['filter'] = []
 
     return res
+
 # get campaign data as JSON
 #URL:
 #http://private-anon-e1f78e3eb-rtbs.apiary-mock.com/api/v1/campaigns?from=from_date&to=to_date&skip=skip&take=take&sort=sort&order=order&stat_by=stat_by&filter=filter
 def campaigns(request):
     params = parse_get_params(request.GET)
     result = get_campaigns_data(params['advertiser_id'],params['from_date'],params['to_date'])
+    #apply filter
+    if params['filter']:
+        clause_list = [(i[0],i[1].split(',')) for i in params['filter']]
+        def filter_function(camp):
+            return all(str(camp[clause[0]])in clause[1] for clause in clause_list)
+        result = filter(filter_function,result)
+
     reverse_order = params['order'] == 'desc'
     if params['sort']!='campaign':
         result.sort(key=lambda camp: camp[params['sort']], reverse=reverse_order)

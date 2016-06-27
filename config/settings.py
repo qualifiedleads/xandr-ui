@@ -114,11 +114,11 @@ STATICFILES_FINDERS = (
 )
 
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, "static"),
+    os.path.join(BASE_DIR, "client", "dist"),
 ]
 
-STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATIC_URL = '/client/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'client", "dist')
 MEDIA_URL = '/media/'
 
 # Django Rest Framework Additional Settings

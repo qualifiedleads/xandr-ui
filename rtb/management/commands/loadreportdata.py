@@ -27,6 +27,11 @@ Call without params - load all data for last 48 days
         current_day-=one_day*31
         is_first = True
         p_line = '-'*79+'\n'
+        if len(args)>0:
+            print args
+            print "Load data for day", args[0]
+            dayly_task(datetime.date.strptime(args[0],'%y-%m-%d'), is_first, t)
+            return
         with open('rtb/logs/loadreportdata.log', 'w') as f:
             t = tee (self.stdout, f)
             for i in xrange(0,30):

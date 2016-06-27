@@ -26,7 +26,7 @@ Call without params - load all data for last 48 days
 Call with one parameter -load data for specifed day. Date must provided as <Year>-<Month>-<Day>
 """
     def add_arguments(self, parser):
-        parser.add_argument('load_day', type=convert_date)
+        parser.add_argument('load_day', nargs='?', type=convert_date)
 
     def handle(self, **options):
         self.stdout.write('loadreportdata called')

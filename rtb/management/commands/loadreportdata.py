@@ -4,6 +4,7 @@ from django.core.management import BaseCommand
 from rtb.cron import dayly_task, get_current_time
 import datetime
 
+
 class tee(object):
     def __init__(self, _fd1, _fd2):
         self.fd1 =_fd1
@@ -14,24 +15,30 @@ class tee(object):
     def flush(self):
         self.fd1.flush()
         self.fd2.flush()
+        
+def convert_date(s):
+    return datetime.datetime.strptime(s,'%Y-%m-%d')
 
 class Command(BaseCommand):
     help = """
 Loads Site Domain Performance Report for specifed adversiter and period.
 Call without params - load all data for last 48 days
+Call with one parameter -load data for specifed day. Date must provided as <Year>-<Month>-<Day>
 """
-    def handle(self, *args, **options):
+    def add_arguments(self, parser):
+        parser.add_argument('load_day', type=convert_date)
+
+    def handle(self, **options):
         self.stdout.write('loadreportdata called')
+        is_first = True
+        p_line = '-'*79+'\n'
+        current_day = options.get('load_day')
+        if current_day:
+            dayly_task(current_day, True, self.stdout)
+            return
         current_day = get_current_time().date()
         one_day = datetime.timedelta(days=1)
         current_day-=one_day*31
-        is_first = True
-        p_line = '-'*79+'\n'
-        if len(args)>0:
-            print args
-            print "Load data for day", args[0]
-            dayly_task(datetime.date.strptime(args[0],'%y-%m-%d'), is_first, t)
-            return
         with open('rtb/logs/loadreportdata.log', 'w') as f:
             t = tee (self.stdout, f)
             for i in xrange(0,30):

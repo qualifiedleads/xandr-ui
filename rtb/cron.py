@@ -94,9 +94,9 @@ def get_current_time():
 def nexus_get_objects(token, url, params, query_set, object_class, key_field, force_update=False):
     print "Begin of Nexus_get_objects func"
     last_word = re.search(r'/(\w+)[^/]*$', url).group(1)
-    print last_word
+    #print last_word
     objects_in_db = list(query_set)
-    print "Objects succefully fetched from DB (%d records)" % len(objects_in_db)
+    #print "Objects succefully fetched from DB (%d records)" % len(objects_in_db)
     current_date = get_current_time()
     try:
         last_date = objects_in_db[-1].fetch_date
@@ -119,6 +119,7 @@ def nexus_get_objects(token, url, params, query_set, object_class, key_field, fo
                     data_key_name = [x for x in data_key_name if x.startswith(last_word)]
                 if len(data_key_name) > 0:
                     data_key_name = data_key_name[0]
+            print data_key_name
             pack_of_objects = response.get(data_key_name, [])
             if count < 0:  # first portion of objects
                 count = response["count"]

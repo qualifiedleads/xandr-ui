@@ -1985,6 +1985,7 @@ class SiteDomainPerformanceReport(models.Model):
 
     class Meta:
         db_table = "site_domain_performance_report"
+        api_report_name = "site_domain_performance"
     #This function transform raw data, collected from csv, to value, saved into DB/
     def TransformFields(self, data,  metadata={}):
         if not metadata: return

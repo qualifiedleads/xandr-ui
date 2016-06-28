@@ -232,11 +232,10 @@ def dayly_task(day=None, load_objects_from_services=True, output=None):
     old_stdout, old_error = sys.stdout, sys.stderr
     file_output = None
     if not output:
-        log_file_name = 'rtb/logs/DomainPerformanceReport_%s.log' % get_current_time().strftime('%Y-%m-%dT%H-%M-%S')
+        log_file_name = 'rtb/logs/Dayly_Task_%s.log' % get_current_time().strftime('%Y-%m-%dT%H-%M-%S')
         file_output = open(log_file_name, 'w')
         output=file_output
     sys.stdout, sys.stderr = output, output
-    files = []
     print ('NexusApp API pooling...')
     # reports.get_specifed_report('network_analytics')
     try:
@@ -244,33 +243,7 @@ def dayly_task(day=None, load_objects_from_services=True, output=None):
         fd = get_current_time()
         if load_objects_from_services:
             load_depending_data(token)
-        # 5 report service processes per user admitted
-        worker_pool = ThreadPool(4) # one thread reserved
-
-        #select advertisers, which do not have report data
-        advertisers = [adv for adv in Advertiser.objects.all()
-                         if not check_SiteDomainPerformanceReport_exist(adv, day)] 
-
-        print "____________________________________________"
-        print "For day %s there is %d advertisers."%(day, len(advertisers))
-        print "____________________________________________"
-        
-        campaign_dict = dict(Campaign.objects.all().values_list('id', 'name') )
-        all_line_items = set(LineItem.objects.values_list("id", flat=True))
-        # Multithreading map
-        files = worker_pool.map(lambda adv:
-                                reports.get_specifed_report('site_domain_performance',{'advertiser_id':adv.id}, token, day),
-                                advertisers)
-        for ind, adv in enumerate(advertisers):
-            advertiser_id = adv.id
-            #campaigns = campaigns_by_advertiser[adv.id]
-            #campaign_dict = {i.id: i for i in Campaign.objects.all()}
-            f=files[ind]
-            analize_csv(f, SiteDomainPerformanceReport,
-                            metadata={"campaign_dict": campaign_dict,
-                                      "all_line_items":all_line_items,
-                                      "advertiser_id" : advertiser_id})
-            print "Domain performance report for advertiser %s saved to DB"%adv.name            
+        files = load_reports_for_all_advertisers(day)
     except Exception as e:
         print 'Error by fetching data: %s' % e
         print traceback.print_exc(file=output)
@@ -283,6 +256,34 @@ def dayly_task(day=None, load_objects_from_services=True, output=None):
     print "OK"
     gc.collect()
     print "There is %d items of garbage"%len(gc.garbage)
+
+
+def load_reports_for_all_advertisers(day, ReportClass):
+    token = reports.get_auth_token()
+    # 5 report service processes per user admitted
+    worker_pool = ThreadPool(4)  # one thread reserved
+    # select advertisers, which do not have report data
+    advertisers = [adv for adv in Advertiser.objects.all()
+                   if not check_SiteDomainPerformanceReport_exist(adv, day)]
+    campaign_dict = dict(Campaign.objects.all().values_list('id', 'name'))
+    all_line_items = set(LineItem.objects.values_list("id", flat=True))
+    # Multithreading map
+    files = worker_pool.map(lambda adv:
+                            reports.get_specifed_report('site_domain_performance', {'advertiser_id': adv.id}, token,
+                                                        day),
+                            advertisers)
+    for ind, adv in enumerate(advertisers):
+        advertiser_id = adv.id
+        # campaigns = campaigns_by_advertiser[adv.id]
+        # campaign_dict = {i.id: i for i in Campaign.objects.all()}
+        f = files[ind]
+        analize_csv(f, SiteDomainPerformanceReport,
+                    metadata={"campaign_dict": campaign_dict,
+                              "all_line_items": all_line_items,
+                              "advertiser_id": advertiser_id})
+        print "Domain performance report for advertiser %s saved to DB" % adv.name
+    return files
+
 
 #Check of existence of SiteDomainPerformanceReport in local DB (for yesterday)
 def check_SiteDomainPerformanceReport_exist(adv, day=None):

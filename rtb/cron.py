@@ -15,7 +15,7 @@ from models import Advertiser, Campaign, SiteDomainPerformanceReport, Profile, L
     OSFamily, OperatingSystemExtended
 from pytz import utc
 import gc
-from itertools import imap,izip
+from itertools import imap,izip,izip_longest, takewhile
 
 
 def date_type(t):
@@ -63,8 +63,8 @@ def analize_csv(csvFile, modelClass, metadata={}):
         metadata['counter']+=1
         return c
     it=iter(imap(create_object_from_dict,reader))
-    for pack in izip(*[it]*1000):
-        modelClass.objects.bulk_create(pack)
+    for pack in izip_longest(*[it]*1000):
+        modelClass.objects.bulk_create(takewhile(lambda x:x, pack))
         print '%d rows fetched' % metadata['counter']
     #print 'There are these fields in row', reader.fieldnames
     #return result

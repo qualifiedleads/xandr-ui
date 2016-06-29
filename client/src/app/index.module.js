@@ -1,20 +1,21 @@
 (function() {
-  'use strict';
+    'use strict';
 
-  angular
-    .module('pjtLayout', [
-      'ngAnimate',
-      'ngCookies',
-      'ngTouch',
-      'ngSanitize',
-      'ngMessages',
-      'ngAria',
-      'ngStorage',
-      'ui.router',
-      'ui.bootstrap',
-      'toastr',
-      'dx',
-      'pascalprecht.translate',
-      "chart.js"]);
+    angular
+      .module('pjtLayout', [
+          'ngAnimate',
+          'ngCookies',
+          'ngTouch',
+          'ngSanitize',
+          'ngMessages',
+          'ngAria',
+          'ui.router',
+          'ui.bootstrap',
+          'toastr',
+          'dx',
+          'pascalprecht.translate',
+          'chart.js',
+          'ngStorage'
+      ]);
 
 })();

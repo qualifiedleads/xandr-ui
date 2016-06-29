@@ -38,7 +38,6 @@
 				params: {from: from, to: to,  skip: skip, take: take, sort: sort, order: order, stat_by: stat_by, filter: filter}
 			})
 				.then(function (res) {
-					res.data.totalCount = 34;
 					return res.data;
 				});
 		}

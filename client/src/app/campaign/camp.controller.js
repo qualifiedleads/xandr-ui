@@ -6,8 +6,10 @@
     .controller('CampaignController', CampaignController);
 
   /** @ngInject */
-  function CampaignController() {
-    //var vm = this;
+  function CampaignController($stateParams) {
+    var vm = this;
+
+    //console.log($stateParams.id);
 
   }
 })();

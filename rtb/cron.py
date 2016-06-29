@@ -6,7 +6,7 @@ import json
 import os
 import sys
 import traceback
-from itertools import imap, izip_longest, takewhile, islice
+from itertools import imap, izip, islice
 from multiprocessing.pool import ThreadPool
 from django.db.models import Avg, Count, Sum
 import django.db.models as django_types
@@ -15,7 +15,7 @@ import requests
 import report
 from django.conf import settings
 from models import Advertiser, Campaign, SiteDomainPerformanceReport, Profile, LineItem, InsertionOrder, \
-    OSFamily, OperatingSystemExtended
+    OSFamily, OperatingSystemExtended, NetworkAnalyticsReport
 from pytz import utc
 
 
@@ -231,69 +231,60 @@ def dayly_task(day=None, load_objects_from_services=True, output=None):
     # report.get_specifed_report('network_analytics')
     try:
         token = report.get_auth_token()
-        fd = get_current_time()
         if load_objects_from_services:
             pass
             # load_depending_data(token)
-        files = load_reports_for_all_advertisers(day, SiteDomainPerformanceReport)
+        load_reports_for_all_advertisers(token, day, SiteDomainPerformanceReport)
+        # load_reports_for_all_advertisers(token, day, NetworkAnalyticsReport)
     except Exception as e:
         print 'Error by fetching data: %s' % e
         print traceback.print_exc(file=output)
     finally:
         sys.stdout, sys.stderr = old_stdout, old_error
         if file_output: file_output.close()
-        for f in files:
-            f.close()
-            os.remove(f.name)
     print "OK"
     gc.collect()
     print "There is %d items of garbage"%len(gc.garbage)
 
 
-def load_reports_for_all_advertisers(day, ReportClass):
-    token = report.get_auth_token()
+def load_reports_for_all_advertisers(token, day, ReportClass):
+    if not token:
+        token = report.get_auth_token()
     # 5 report service processes per user admitted
     worker_pool = ThreadPool(4)  # one thread reserved
     # select advertisers, which do not have report data
-    if hasattr(ReportClass, 'day'):
-        date_field = 'day'
+    try:
+        ReportClass._meta.get_field('day')
         filter_params = {"day": day}
-    else:  # Hour
-        date_field = 'hour'
+    except:  # Hour
         filter_params = {"hour__date": day}
 
     q = ReportClass.objects.filter(**filter_params).values('advertiser_id') \
-        .annotate(cnt=Count()).filter(cnt_gt=0)
+        .annotate(cnt=Count('*')).filter(cnt__gt=0)
     print q.query
     advertisers_having_data = set(x['advertiser_id'] for x in q)
     print advertisers_having_data
-    advertisers = [adv for adv in Advertiser.objects.all()
-                   if not check_SiteDomainPerformanceReport_exist(adv, day)]
+    all_advertisers = dict(Advertiser.objects.all().values_list('id', 'name'))
+    advertisers_need_load = set(all_advertisers) - advertisers_having_data
     campaign_dict = dict(Campaign.objects.all().values_list('id', 'name'))
     all_line_items = set(LineItem.objects.values_list("id", flat=True))
     # Multithreading map
-    files = worker_pool.map(lambda adv:
-                            report.get_specifed_report('site_domain_performance', {'advertiser_id': adv.id}, token,
-                                                       day),
-                            advertisers)
-    for ind, adv in enumerate(advertisers):
-        advertiser_id = adv.id
-        # campaigns = campaigns_by_advertiser[adv.id]
-        # campaign_dict = {i.id: i for i in Campaign.objects.all()}
-        f = files[ind]
-        analize_csv(f, ReportClass,
-                    metadata={"campaign_dict": campaign_dict,
-                              "all_line_items": all_line_items,
-                              "advertiser_id": advertiser_id})
-        print "Domain performance report for advertiser %s saved to DB" % adv.name
-    return files
+    files = []
+    try:
+        files = worker_pool.map(lambda id:
+                                report.get_specifed_report(ReportClass.api_report_name, {'advertiser_id': id}, token,
+                                                           day),
+                                advertisers_need_load)
+        for f, advertiser_id in izip(files, advertisers_need_load):
+            analize_csv(f, ReportClass,
+                        metadata={"campaign_dict": campaign_dict,
+                                  "all_line_items": all_line_items,
+                                  "advertiser_id": advertiser_id})
+            print "Domain performance report for advertiser %s saved to DB" % all_advertisers[advertiser_id]
+    finally:
+        for f in files:
+            f.close()
+            os.remove(f.name)
 
 
-#Check of existence of SiteDomainPerformanceReport in local DB (for yesterday)
-def check_SiteDomainPerformanceReport_exist(adv, day=None):
-    if not day:
-        day = get_current_time() - datetime.timedelta(days=1)
-        day = day.date()
-    cnt = SiteDomainPerformanceReport.objects.filter(advertiser_id=adv.id,day=day).count()
-    return cnt > 0
 if __name__ == '__main__': dayly_task()

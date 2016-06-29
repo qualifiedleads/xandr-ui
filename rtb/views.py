@@ -30,7 +30,10 @@ def calc_another_fields(obj):
 def make_sum(dict1, dict2):
     res = {}
     for k in dict1:
-        res[k] = dict1.get(k, 0) + dict2.get(k, 0)
+        try:
+            res[k] = dict1.get(k, 0) + dict2.get(k, 0)
+        except:
+            res[k] = dict1[k]
     return res
 
 def get_campaigns_data(advertiser_id, from_date, to_date):

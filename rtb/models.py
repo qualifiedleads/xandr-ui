@@ -1919,6 +1919,7 @@ class NetworkAnalyticsReport(models.Model):
     deal_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
     media_type = models.ForeignKey("MediaType", null=True, blank=True)
 
+    api_report_name = "network_analytics"
     class Meta:
         db_table = "network_analytics_report"
         index_together = ["advertiser", "hour"]
@@ -1983,9 +1984,9 @@ class SiteDomainPerformanceReport(models.Model):
     view_rate = models.FloatField(null=True, blank=True)
     view_measurement_rate = models.FloatField(null=True, blank=True)
 
+    api_report_name = "site_domain_performance"
     class Meta:
         db_table = "site_domain_performance_report"
-        api_report_name = "site_domain_performance"
     #This function transform raw data, collected from csv, to value, saved into DB/
     def TransformFields(self, data,  metadata={}):
         if not metadata: return
@@ -2023,3 +2024,73 @@ class SiteDomainPerformanceReport(models.Model):
             self.line_item = None
 
 
+class GeoAnaliticsReport(models.Model):
+    # month = date  # Yes	The year and month in which the auction took place.
+    fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
+    day = models.DateField(null=True, blank=True,
+                           db_index=True)  # Yes	The year, month, and day in which the auction took place.
+    # member = models.ForeignField("Member", null=True, blank=True) # Yes	The ID of the member.
+    member_id = models.IntegerField(null=True, blank=True, db_index=True)  # Yes	The ID of the member.
+    advertiser_currency = models.TextField(null=True, blank=True)  # Yes	The type of currency used by the advertiser.
+    insertion_order = models.ForeignKey("InsertionOrder", null=True, blank=True)  # Yes	The insertion order ID.
+    campaign = models.ForeignKey("Campaign", null=True, blank=True)  # Yes	The campaign ID.
+    advertiser = models.ForeignKey("Advertiser", null=True,
+                                   blank=True)  # Yes	The advertiser ID. If the value is 0, either the impression was purchased by an external buyer, or a default or PSA was shown. For more information on defaults and PSAs, see Network Reporting.
+    line_item = models.ForeignKey("LineItem", null=True, blank=True)  # Yes	The line item ID.
+    geo_country_code = models.TextField(null=True,
+                                        blank=True)  # Yes	The country code of the user's location as defined by the Country Service.
+    geo_country_id = models.IntegerField(null=True, blank=True,
+                                         db_index=True)  # Yes	The country ID of the user's location as defined by the Country Service. 250 is shown in cases where we don't know the country or if the country doesn't map correctly to a location in our database.
+    geo_region_code = models.TextField(null=True,
+                                       blank=True)  # No	The region code of the user's location as defined by the Region Service.
+    geo_region_id = models.IntegerField(null=True, blank=True,
+                                        db_index=True)  # Yes	The region ID of the user's location as defined by the Region Service. 4291 is shown in cases where we don't know the region or if the region doesn't map correctly to a location in our database.
+    geo_dma_id = models.IntegerField(null=True, blank=True,
+                                     db_index=True)  # Yes	"The ID of the user's demographic area location as defined by the Demographic Area Service.(null=True, blank=True) # Why am I seeing a DMA ID of 1?(null=True, blank=True) # Our reporting derives DMA from the city logged for the auction. However, our geo provider is sometimes unable to determine a city from the IP address associated with the impression, even when DMA is determined. Therefore, there are cases where a campaign targeting a specific DMA has impressions in reporting showing a DMA of 1."
+    geo_dma_name = models.TextField(null=True,
+                                    blank=True)  # No	The name of the user's demographic area location as defined by the Demographic Area Service.
+    geo_country_name = models.TextField(null=True,
+                                        blank=True)  # No	The name of the user's country, as defined by the Country Service.
+    geo_region_name = models.TextField(null=True,
+                                       blank=True)  # No	The name of the region of the user's location as defined by the Region Service.
+    geo_country = models.TextField(null=True,
+                                   blank=True)  # No	The country name and code where the user is located, in the format "France (FR)". The string "250" can appear in cases where we don't know the country or if the country doesn't map correctly to a location in our database.
+    geo_region = models.TextField(null=True,
+                                  blank=True)  # No	The region name and country code of the users location, in the format "Bremen (DE)". The string "4192" can appear in cases where we don't know the region/state or if the region/state doesn't map correctly to a location in our database.
+    geo_dma = models.TextField(null=True,
+                               blank=True)  # No	The name and ID of the demographic area where the user is located, in the format "New York NY (501)". The string "unknown values (-1)" can appear in cases where we don't know the demographic area or if the demographic area doesn't map correctly to a location in our database.
+
+    pixel_id = models.IntegerField(null=True,
+                                   blank=True)  # Yes The unique identification number of the conversion pixel.
+    # pixel = models.ForeignKey("ConversionPixel",null=True, blank=True)
+
+    imps = models.IntegerField(null=True, blank=True)  # imps	The total number of impressions (served and resold).
+    clicks = models.IntegerField(null=True, blank=True)  # clicks	The total number of clicks across all impressions.
+    cost = models.DecimalField(max_digits=16, decimal_places=2, null=True,
+                               blank=True)  # cost	The total cost of the inventory purchased.
+    booked_revenue = models.DecimalField(max_digits=16, decimal_places=2, null=True,
+                                         blank=True)  # booked_revenue	The total revenue booked through direct advertisers (line item).
+    cpm = models.DecimalField(max_digits=16, decimal_places=2, null=True,
+                              blank=True)  # cpm	The cost per one thousand impressions.
+    total_convs = models.IntegerField(null=True,
+                                      blank=True)  # total_convs	The total number of post-view and post-click conversions.
+    convs_rate = models.FloatField(null=True, blank=True)  # total_convs / imps	The ratio of conversions to impressions.
+    post_view_convs = models.IntegerField(null=True,
+                                          blank=True)  # post_view_convs	The total number of recorded post-view conversions.
+    post_click_convs = models.IntegerField(null=True,
+                                           blank=True)  # post_click_convs	The total number of recorded post-click conversions.
+    profit = models.DecimalField(max_digits=16, decimal_places=2, null=True,
+                                 blank=True)  # booked_revenue - media_cost	The total revenue minus the cost.
+    click_thru_pct = models.FloatField(null=True,
+                                       blank=True)  # (clicks / imps) x 100	The rate of clicks to impressions, expressed as a percentage.
+    external_imps = models.IntegerField(null=True,
+                                        blank=True)  # external_imps	The number of external (non-network) impressions.
+    external_clicks = models.IntegerField(null=True,
+                                          blank=True)  # external_clicks	The number of external (non-network) clicks.
+    booked_revenue_adv_curr = models.DecimalField(max_digits=16, decimal_places=2, null=True,
+                                                  blank=True)  # booked_revenue_adv_curr	The total revenue booked through a direct advertiser, expressed in the currency of that advertiser.
+
+    api_report_name = "geo_analytics"
+
+    class Meta:
+        db_table = "geo_analytics_report"

@@ -5,7 +5,7 @@ from django.http import JsonResponse
 from django.db.models import Avg, Count, Sum
 from models import SiteDomainPerformanceReport, Campaign
 from django.core.cache import cache
-
+from pytz import utc
 import operator
 
 def to_unix_timestamp(d):
@@ -79,17 +79,13 @@ one_day = datetime.timedelta(days=1)
 def parse_get_params(params):
     res={}
     try:
-        res['from_date']= datetime.date.fromtimestamp(int(params["from_date"][0]))
+        res['from_date']= datetime.date.fromtimestamp(int(params["from_date"]))
     except:
         res['from_date']= datetime.date.today() - one_day * 8
     try:
-        res['to_date']=datetime.date.fromtimestamp(int(params["to_date"][0]))
+        res['to_date']=datetime.date.fromtimestamp(int(params["to_date"]))
     except:
         res['to_date']=datetime.date.today() - one_day * 1
-    try:
-        res['from_date']= params['from_date']
-    except:
-        res['from_date']=datetime.date.today() - one_day * 8
     try:
         res['advertiser_id']= int(params['advertiser_id'])
     except:

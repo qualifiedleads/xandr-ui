@@ -1,5 +1,5 @@
 import datetime, re
-
+from pytz import utc
 from django.db import models
 #from django.contrib.postgres.fields import ArrayField
 #from django.contrib.postgres.fields import JSONField
@@ -1571,7 +1571,7 @@ class LineItem(models.Model):
     state = models.TextField(
         choices=STATE_CHOICES,
         null=True, blank=True)
-    start_date = models.DateTimeField()
+    start_date = models.DateTimeField(null=True, blank=True)
     end_date = models.DateTimeField(null=True, blank = True)
     timezone = models.TextField(null=True, blank=True)
     revenue_value = models.FloatField(null=True, blank=True)
@@ -1746,13 +1746,13 @@ class InsertionOrder(models.Model):
         choices=STATE_CHOICES,
         null=True, blank=True)
     advertiser = models.ForeignKey("Advertiser", null=True, blank=True)
-    start_date = models.DateTimeField()
-    end_date = models.DateTimeField()
+    start_date = models.DateTimeField(null=True, blank=True)
+    end_date = models.DateTimeField(null=True, blank=True)
     last_modified = models.DateTimeField()
-    timezone = models.FloatField(null=True, blank=True)
-    currency = models.FloatField(null=True, blank=True)
-    comments = models.FloatField(null=True, blank=True)
-    billing_code = models.FloatField(null=True, blank=True)
+    timezone = models.TextField(null=True, blank=True)  # enum
+    currency = models.TextField(null=True, blank=True)
+    comments = models.TextField(null=True, blank=True)
+    billing_code = models.IntegerField(null=True, blank=True)
     #spend_protection_pixels = array - it is in alpha-beta phase on AppNexus
     #labels = array - see model InsertionOrderLabel below
     #broker_fees = array - see model InsertionOrderBrokerFees below
@@ -1989,14 +1989,24 @@ class SiteDomainPerformanceReport(models.Model):
     def TransformFields(self, data,  metadata={}):
         if not metadata: return
         campaign_dict = metadata["campaign_dict"]
-        missed_campaigns = metadata["missed_campaigns"]
+        all_line_items = metadata["all_line_items"]
+        #missed_campaigns = metadata["missed_campaigns"]
         #self.campaign = None
         text_in_parentheses = get_text_in_parentheses(data["campaign"])
         self.campaign_id = int(text_in_parentheses)
         #self.campaign = campaign_dict.get(self.campaign_id) #This also change self.campaign_id
         if self.campaign_id not in campaign_dict:
             campaign_dict[self.campaign_id] = data["campaign"][:-len(text_in_parentheses)-2]
-            missed_campaigns.append(self.campaign_id)
+            camp = Campaign()
+            camp.id = self.campaign_id
+            camp.fetch_date = self.fetch_date
+            camp.state = "Inactive"
+            camp.name = campaign_dict[self.campaign_id]
+            camp.advertiser_id = metadata.get("advertiser_id")
+            camp.comments = "created automatically"
+            camp.start_date = datetime.datetime(1970,1,1,tzinfo=utc)
+            camp.last_modified = self.fetch_date
+            camp.save()
         self.advertiser = None
         self.advertiser_id = metadata.get("advertiser_id")
         #self.line_item_id = get_text_in_parentheses(data["line_item"])
@@ -2008,145 +2018,7 @@ class SiteDomainPerformanceReport(models.Model):
             self.second_level_category = None
         #if self.is_remarketing == 'no'
         self.click_thru_pct = self.click_thru_pct.replace('%','')
+        if self.line_item_id not in all_line_items:
+            self.line_item = None
 
 
-
-class API_Campaign(models.Model):
-    #https://wiki.appnexus.com/display/api/Campaign+Service
-    id = models.IntegerField(primary_key=True) # No AutoIncrement
-    fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)    
-    code = models.IntegerField(null=True, blank=True)
-    advertiser = models.ForeignKey('Advertiser', null=True, blank=True)
-    pixel_id = models.IntegerField(null=True, blank=True, db_index=True)
-    optimization_version = models.TextField(null=True, blank=True)
-    profile_id = models.IntegerField(null=True, blank=True, db_index=True) #foreign field
-    lifetime_budget_imps = models.IntegerField(null=True, blank=True) #or float
-    inventory_type = models.TextField(null=True, blank=True)
-    lifetime_budget = models.DecimalField(null=True, blank=True, max_digits=15, decimal_places=2)
-    click_url = models.TextField(null=True, blank=True)
-    bid_modifier_model = models.TextField(null=True, blank=True)
-    enable_pacing = enable_pacing = models.NullBooleanField(null=True, blank=True)
-    allow_safety_pacing = models.NullBooleanField(null=True, blank=True)
-    timezone = models.TextField(null=True, blank=True)
-    cpc_goal = models.FloatField(null=True, blank=True)    
-    optimization_lookback = models.TextField(null=True, blank=True)
-    line_item_id = models.IntegerField(null=True, blank=True)
-    bid_model = models.TextField(null=True, blank=True)
-    
-    lifetime_pacing_pct = models.IntegerField(null=True, blank=True)
-    campaign_type = models.IntegerField(null=True, blank=True)
-    defer_to_li_prediction = models.IntegerField(null=True, blank=True)
-    impression_limit = models.IntegerField(null=True, blank=True)
-    short_name = models.IntegerField(null=True, blank=True)
-    cadence_modifier_enabled = models.IntegerField(null=True, blank=True)
-    creative_id = models.IntegerField(null=True, blank=True)
-    min_bid = models.IntegerField(null=True, blank=True)
-    roadblock_type = models.IntegerField(null=True, blank=True)
-    comments = models.IntegerField(null=True, blank=True)
-    priority = models.IntegerField(null=True, blank=True)
-    roadblock_creatives = models.IntegerField(null=True, blank=True)
-    state = models.IntegerField(null=True, blank=True)
-    max_learn_bid = models.IntegerField(null=True, blank=True)
-    allow_unverified_ecp = models.IntegerField(null=True, blank=True)
-    require_cookie_for_tracking = models.IntegerField(null=True, blank=True)
-    supply_type = models.IntegerField(null=True, blank=True)
-    start_date = models.IntegerField(null=True, blank=True)
-    bid_multiplier = models.IntegerField(null=True, blank=True)
-    daily_budget_imps = models.IntegerField(null=True, blank=True)
-    labels = models.IntegerField(null=True, blank=True)
-    base_cpm_bid_value = models.IntegerField(null=True, blank=True)
-    end_date = models.IntegerField(null=True, blank=True)
-    learn_override_type = models.IntegerField(null=True, blank=True)
-    valuation = models.IntegerField(null=True, blank=True)
-    cpm_bid_type = models.IntegerField(null=True, blank=True)
-    ecp_learn_divisor = models.IntegerField(null=True, blank=True)
-    creatives = models.IntegerField(null=True, blank=True)
-    last_modified = models.IntegerField(null=True, blank=True)
-    campaign_modifiers = models.IntegerField(null=True, blank=True)
-    creative_distribution_type = models.IntegerField(null=True, blank=True)
-    broker_fees = models.IntegerField(null=True, blank=True)
-    lifetime_pacing = models.IntegerField(null=True, blank=True)
-    remaining_days = models.IntegerField(null=True, blank=True)
-    pixels = models.IntegerField(null=True, blank=True)
-    supply_type_action = models.IntegerField(null=True, blank=True)
-    name = models.IntegerField(null=True, blank=True)
-    daily_budget = models.IntegerField(null=True, blank=True)
-    learn_threshold = models.IntegerField(null=True, blank=True)
-    base_bid = models.IntegerField(null=True, blank=True)
-    bid_margin = models.IntegerField(null=True, blank=True)
-    max_bid = models.IntegerField(null=True, blank=True)
-    cadence_type = models.IntegerField(null=True, blank=True)
-    projected_learn_events = models.IntegerField(null=True, blank=True)
-    total_days = models.IntegerField(null=True, blank=True)
-    lifetime_pacing_span = models.IntegerField(null=True, blank=True)
-    cpc_payout = models.IntegerField(null=True, blank=True)
-    class Meta:
-        db_table = "api_campaign"
-    #This function transform data
-    def TransformFields(self, metadata={}):
-        if not metadata: return
-
-
-#table for SiteDomainPerformanceReport. Data extracted from correspondent report
-class API_SiteDomainPerformanceReport(models.Model):
-    #https://wiki.appnexus.com/display/api/Site+Domain+Performance
-    fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
-    advertiser = models.ForeignKey('Advertiser', null=True, blank=True, db_index=True)
-    #advertiser_id = models.IntegerField(null=True, blank=True, db_index=True)
-    campaign = models.ForeignKey("API_Campaign",null=True, blank=True, db_index=True)  
-    day = models.DateTimeField(null=True, blank=True, db_index=True)
-    site_domain = models.TextField(null=True, blank=True, db_index=True)
-    line_item_id = models.IntegerField(null=True, blank=True, db_index=True)
-    top_level_category_id = models.IntegerField(null=True, blank=True, db_index=True)
-    second_level_category_id = models.IntegerField(null=True, blank=True, db_index=True)
-    deal_id = models.IntegerField(null=True, blank=True, db_index=True)
-    #campaign_group = campaign_group is a synonymous with line_item .
-    buyer_member_id = models.IntegerField(null=True, blank=True, db_index=True)
-    operating_system_id = models.IntegerField(null=True, blank=True, db_index=True)
-    supply_type = models.TextField(
-        choices=SUPPLY_TYPE,
-        null=True, blank=True)
-    mobile_application_id =  models.TextField(null=True, blank=True, db_index=True)
-    mobile_application_name = models.TextField(null=True, blank=True, db_index=True)
-    mobile_application = models.TextField(null=True, blank=True, db_index=True)
-    fold_position = models.TextField(
-        choices=FOLD_POSITION_CHOISE,
-        null=True, blank=True)
-    age_bucket = models.TextField(
-        choices=AGE_BUCKET_CHOISE,
-        null=True, blank=True)
-    gender = models.TextField(
-        choices=GENDER,
-        null=True, blank=True)
-    is_remarketing = models.IntegerField(null=True, blank=True)
-    conversion_pixel_id = models.IntegerField(null=True, blank=True, db_index=True)
-    booked_revenue = models.DecimalField(max_digits=35, decimal_places=10)
-    clicks = models.IntegerField(null=True, blank=True)
-    click_thru_pct = models.FloatField(null=True, blank=True)
-    convs_per_mm = models.FloatField(null=True, blank=True)
-    convs_rate = models.FloatField(null=True, blank=True)
-    cost_ecpa = models.DecimalField(max_digits=35, decimal_places=10)
-    cost_ecpc = models.DecimalField(max_digits=35, decimal_places=10)
-    cpm = models.DecimalField(max_digits=35, decimal_places=10)
-    ctr = models.FloatField(null=True, blank=True)
-    imps = models.IntegerField(null=True, blank=True)
-    media_cost = models.DecimalField(max_digits=35, decimal_places=10)
-    post_click_convs = models.IntegerField(null=True, blank=True)
-    post_click_convs_rate = models.FloatField(null=True, blank=True)
-    post_view_convs = models.IntegerField(null=True, blank=True)
-    post_view_convs_rate = models.FloatField(null=True, blank=True)
-    profit = models.DecimalField(max_digits=35, decimal_places=10)
-    profit_ecpm = models.DecimalField(max_digits=35, decimal_places=10)
-    imps_viewed = models.IntegerField(null=True, blank=True)
-    view_measured_imps = models.IntegerField(null=True, blank=True)
-    view_rate = models.FloatField(null=True, blank=True)
-    view_measurement_rate = models.FloatField(null=True, blank=True)
-
-    class Meta:
-        db_table = "api_site_domain_performance_report"
-    #This function transform raw data, collected from csv, to value, saved into DB
-    def TransformFields(self, metadata={}):
-        if not metadata: return
-        campaign_name_to_code = metadata["campaign_name_to_code"]
-        self.campaign=campaign_name_to_code.get(self.campaign)
-        #self.advertiser_id = metadata.get("advertiser_id")

@@ -2,7 +2,7 @@
 import csv
 import datetime
 import json
-import sys, traceback
+import sys, traceback, os
 from multiprocessing.pool import ThreadPool
 
 import common.report as reports
@@ -14,14 +14,16 @@ from django.conf import settings
 from models import Advertiser, Campaign, SiteDomainPerformanceReport, Profile, LineItem, InsertionOrder, \
     OSFamily, OperatingSystemExtended
 from pytz import utc
+import gc
+from itertools import imap,izip,izip_longest, takewhile
 
 
 def date_type(t):
     return isinstance(t, (django_types.DateField, django_types.TimeField, django_types.DateField))
 
 
-def replace_tzinfo(o, time_fields=[]):
-    if not time_fields:
+def replace_tzinfo(o, time_fields=None):
+    if time_fields is None:
         time_fields = [field.name for field in o._meta.fields if date_type(field)]
     for name in time_fields:
         try:
@@ -36,37 +38,36 @@ def replace_tzinfo(o, time_fields=[]):
             # print "Error setting timezone for field %s in object %s (%s)"%(name, o, e)
 
 
-def update_object_from_dict(o, d):
+def update_object_from_dict(o, d, time_fields=None):
     errors = []
     for field in d:
         try:
             setattr(o, field, d[field])
-        except:
-            errors.append(field)
-    replace_tzinfo(o)
-    if settings.DEBUG and errors > 0:
-        pass
-        #print "There is errors at settings fields %s in object %s" % (errors, repr(o))
-
+        except:pass
+    replace_tzinfo(o, time_fields)
+    
 
 def analize_csv(csvFile, modelClass, metadata={}):
     reader = csv.DictReader(csvFile, delimiter=',')  # dialect='excel-tab' or excel ?
     print 'Begin analyzing csv file ...'
-    result = []
-    counter = 0
-    fetch_date = datetime.datetime.utcnow()
-    for row in reader:
+    #result = []
+    metadata['counter'] = 0
+    fetch_date = get_current_time()
+    time_fields = [field.name for field in modelClass._meta.fields if date_type(field)]
+    def create_object_from_dict(data):
         c = modelClass()
         c.fetch_date = fetch_date
-        update_object_from_dict(c, row)
+        update_object_from_dict(c, data, time_fields)
         if hasattr(c, 'TransformFields'):
-            c.TransformFields(row, metadata)
-        result.append(c)
-        counter += 1
-        if counter % 1000 == 0:
-            print '%d rows fetched' % counter
-    print 'There are these fields in row', reader.fieldnames
-    return result
+            c.TransformFields(data, metadata)
+        metadata['counter']+=1
+        return c
+    it=iter(imap(create_object_from_dict,reader))
+    for pack in izip_longest(*[it]*1000):
+        modelClass.objects.bulk_create(takewhile(lambda x:x, pack))
+        print '%d rows fetched' % metadata['counter']
+    #print 'There are these fields in row', reader.fieldnames
+    #return result
 
 
 fields_for_site_domain_report = ['advertiser_name', 'commissions',
@@ -93,9 +94,9 @@ def get_current_time():
 def nexus_get_objects(token, url, params, query_set, object_class, key_field, force_update=False):
     print "Begin of Nexus_get_objects func"
     last_word = re.search(r'/(\w+)[^/]*$', url).group(1)
-    print last_word
+    #print last_word
     objects_in_db = list(query_set)
-    print "Objects succefully fetched from DB (%d records)" % len(objects_in_db)
+    #print "Objects succefully fetched from DB (%d records)" % len(objects_in_db)
     current_date = get_current_time()
     try:
         last_date = objects_in_db[-1].fetch_date
@@ -118,6 +119,7 @@ def nexus_get_objects(token, url, params, query_set, object_class, key_field, fo
                     data_key_name = [x for x in data_key_name if x.startswith(last_word)]
                 if len(data_key_name) > 0:
                     data_key_name = data_key_name[0]
+            print data_key_name
             pack_of_objects = response.get(data_key_name, [])
             if count < 0:  # first portion of objects
                 count = response["count"]
@@ -216,7 +218,14 @@ def load_depending_data(token):
     except Exception as e:
         print "There is error in load_depending_data:",e
         print e.message
-        print traceback.print_last()
+        print traceback.print_exc()
+
+import contextlib
+class fakeWith(object):
+    def __enter__(self):
+        pass
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        pass
 
 # Task, executed twice in hour. Get new data from NexusApp
 def dayly_task(day=None, load_objects_from_services=True, output=None):
@@ -239,8 +248,15 @@ def dayly_task(day=None, load_objects_from_services=True, output=None):
         worker_pool = ThreadPool(4) # one thread reserved
 
         #select advertisers, which do not have report data
-        advertisers = filter(lambda adv: not check_SiteDomainPerformanceReport_exist(adv, day), Advertiser.objects.all())
+        advertisers = [adv for adv in Advertiser.objects.all()
+                         if not check_SiteDomainPerformanceReport_exist(adv, day)] 
+
+        print "____________________________________________"
+        print "For day %s there is %d advertisers."%(day, len(advertisers))
+        print "____________________________________________"
+        
         campaign_dict = dict(Campaign.objects.all().values_list('id', 'name') )
+        all_line_items = set(LineItem.objects.values_list("id", flat=True))
         # Multithreading map
         files = worker_pool.map(lambda adv:
                                 reports.get_specifed_report('site_domain_performance',{'advertiser_id':adv.id}, token, day),
@@ -250,49 +266,29 @@ def dayly_task(day=None, load_objects_from_services=True, output=None):
             #campaigns = campaigns_by_advertiser[adv.id]
             #campaign_dict = {i.id: i for i in Campaign.objects.all()}
             f=files[ind]
-            missed = []
-            r = analize_csv(f, SiteDomainPerformanceReport,
+            analize_csv(f, SiteDomainPerformanceReport,
                             metadata={"campaign_dict": campaign_dict,
-                                      "advertiser_id" : advertiser_id,
-                                      "missed_campaigns":missed})
-            if missed:
-                print "We are finded some campaigns, those are missing in Nexus campaign list"
-                print "Probary, they have been removed."
-                print "We need to add them to internal DB to respect foreign keys check"
-                for c in missed:
-                    camp = Campaign()
-                    camp.id = c
-                    camp.fetch_date = fd
-                    camp.state = "Inactive"
-                    camp.name = campaign_dict[c]
-                    camp.advertiser_id = advertiser_id
-                    camp.comments = "created automatically"
-                    camp.start_date = unix_epoch
-                    camp.last_modified = fd
-                    camp.save()
-            all_line_items = set(LineItem.objects.values_list("id", flat=True))
-            with transaction.atomic():
-                for i in r:
-                    try:
-                        if i.line_item_id not in all_line_items:
-                            i.line_item=None
-                        i.save()
-                    except Exception as e:
-                        print "Error by saving object %s (%s)"%(i,e)
-            print "Domain performance report for advertiser %s saved to DB"%adv.name
+                                      "all_line_items":all_line_items,
+                                      "advertiser_id" : advertiser_id})
+            print "Domain performance report for advertiser %s saved to DB"%adv.name            
     except Exception as e:
         print 'Error by fetching data: %s' % e
+        print traceback.print_exc(file=output)
     finally:
         sys.stdout, sys.stderr = old_stdout, old_error
         if file_output: file_output.close()
-        for f in files: f.close()
+        for f in files:
+            f.close()
+            os.remove(f.name)
     print "OK"
+    gc.collect()
+    print "There is %d items of garbage"%len(gc.garbage)
 
 #Check of existence of SiteDomainPerformanceReport in local DB (for yesterday)
 def check_SiteDomainPerformanceReport_exist(adv, day=None):
     if not day:
         day = get_current_time() - datetime.timedelta(days=1)
-        day = day.replace(hour=0, minute=0, second=0, microsecond=0, tzinfo=utc)
-    return SiteDomainPerformanceReport.objects.filter(advertiser=adv,day=day).count()
-
+        day = day.date()
+    cnt = SiteDomainPerformanceReport.objects.filter(advertiser_id=adv.id,day=day).count()
+    return cnt > 0
 if __name__ == '__main__': dayly_task()

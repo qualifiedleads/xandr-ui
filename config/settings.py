@@ -114,11 +114,11 @@ STATICFILES_FINDERS = (
 )
 
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, "static"),
+    os.path.join(BASE_DIR, "client", "dist"),
 ]
 
-STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATIC_URL = '/client/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'client", "dist')
 MEDIA_URL = '/media/'
 
 # Django Rest Framework Additional Settings
@@ -136,5 +136,19 @@ NEXUS_AUTH_DATA= {
     "username": "stats_api", 
     "password": "API?1nsid3!"
 }
+
+CACHES={
+    'default':{
+        'BACKEND':'django.core.cache.backends.db.DatabaseCache',
+        'LOCATION':'rtb_cache_table',
+        'TIMEOUT':3600,
+        'OPTIONS':{
+            'MAX_ENTRIES':10240,
+            'CULL_FREQUENCY':4,
+        },
+    }
+}
+
 INVALIDATE_TIME = datetime.timedelta(hours=23,minutes=30)
 MAX_REPORT_WAIT = datetime.timedelta(hours=1)
+USE_TRANSACTIONS = False

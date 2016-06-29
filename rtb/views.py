@@ -1,15 +1,12 @@
-from django.contrib.admin.templatetags.admin_list import result_headers
-from rest_framework import filters
-from rest_framework import serializers
-from rest_framework import viewsets
+import itertools, time, datetime, re
+from urllib import addbase
+
 from django.http import JsonResponse
 from django.db.models import Avg, Count, Sum
-import time
-import datetime
-
-from .models import NetworkAnalyticsRaw, User, SiteDomainPerformanceReport, Campaign
-import itertools
-
+from models import SiteDomainPerformanceReport, Campaign
+from django.core.cache import cache
+from pytz import utc
+import operator
 
 def to_unix_timestamp(d):
     return str(int(time.mktime(d.timetuple())))
@@ -22,7 +19,7 @@ def calc_another_fields(obj):
     res['cpc'] = obj['spend'] / obj['clicks'] if obj['clicks'] else 0
     res['cpm'] = obj["spend"] / obj['imp'] * 1000 if obj['imp'] else 0
     res['cvr'] = res["conv"] / obj['imp'] if obj['imp'] else 0
-    res['cvr'] = obj["clicks"] / obj['imp'] if obj['imp'] else 0
+    res['ctr'] = obj["clicks"] / obj['imp'] if obj['imp'] else 0
     res.pop('conv_click', None)
     res.pop('conv_view', None)
     res.pop('campaign', None)
@@ -33,67 +30,22 @@ def calc_another_fields(obj):
 def make_sum(dict1, dict2):
     res = {}
     for k in dict1:
-        res[k] = dict1.get(k, 0) + dict2.get(k, 0)
+        try:
+            res[k] = dict1.get(k, 0) + dict2.get(k, 0)
+        except:
+            res[k] = dict1[k]
     return res
 
-
-def stats(request):
-    cur_dat = datetime.date.today()
-    # from_date = request.GET.get('from_date', cur_dat - datetime.timedelta(days=8))
-    # to_date = request.GET.get('to_date', cur_dat - datetime.timedelta(days=1))
-    result = {}
-    params = {
-        "advertiser_id": "992089",
-        "from_date": [to_unix_timestamp(cur_dat - datetime.timedelta(days=8))],
-        "to_date": [to_unix_timestamp(cur_dat - datetime.timedelta(days=1))],
-        "skip": ["0"],
-        "take": ["20"],
-    }
-    params.update(request.GET)
-    from_date = datetime.date.fromtimestamp(int(params["from_date"][0]))
-    to_date = datetime.date.fromtimestamp(int(params["to_date"][0]))
-    advertiser_id = int(params["advertiser_id"])
-    # query to db
-    # Calc total values for all campaigns
+def get_campaigns_data(advertiser_id, from_date, to_date):
+    key = '_'.join(('rtb_campaigns',str(advertiser_id), from_date.strftime('%Y-%m-%d'),to_date.strftime('%Y-%m-%d'),))
+    res = cache.get(key)
+    if res:return res
+    #no cache hit
+    #calc campaigns data
     q = SiteDomainPerformanceReport.objects.filter(
         advertiser_id=advertiser_id,
         day__gte=from_date,
         day__lte=to_date,
-    ).values('day').annotate(
-        spend=Sum('media_cost'),
-        conv_click=Sum('post_click_convs'),
-        conv_view=Sum('post_view_convs'),
-        imp=Sum('imps'),
-        clicks=Sum('clicks'),
-    ).order_by('day')
-    res = list(q)
-    total = reduce(make_sum, res)
-    result["total"] = calc_another_fields(total)
-    result["chart"] = map(calc_another_fields, res)
-
-    # calc data for specific campaigns
-    # Apply pagination
-    # all_campaigns = list(Campaign.objects.values('id', 'name').order_by('id'))
-    q = SiteDomainPerformanceReport.objects.filter(
-        advertiser_id=advertiser_id,
-        day__gte=from_date,
-        day__lte=to_date,
-    ).values_list('campaign_id', flat=True).distinct().order_by('campaign_id')  # .distinct()
-    all_campaigns = list(q)
-    skip = int(params["skip"][0])
-    take = int(params["take"][0])
-    all_campaigns = all_campaigns[skip:skip + take]
-    if len(all_campaigns) < 1:
-        return JsonResponse({"error": "There is no campaigns by this request params"})
-    # print all_campaigns
-    min_campaign = all_campaigns[0]
-    max_campaign = all_campaigns[-1]
-    q = SiteDomainPerformanceReport.objects.filter(
-        advertiser_id=advertiser_id,
-        day__gte=from_date,
-        day__lte=to_date,
-        campaign_id__gte=min_campaign,
-        campaign_id__lte=max_campaign,
     ).values('campaign', 'day').annotate(
         # spend=Sum('booked_revenue'),
         spend=Sum('media_cost'),
@@ -110,7 +62,7 @@ def stats(request):
         # ctr=Sum('clicks') / Sum('imps'),
     ).order_by('campaign', 'day')
     campaigns = []
-    campaign_names = dict(Campaign.objects.filter(id__in=all_campaigns).values_list('id', 'name'))
+    campaign_names = dict(Campaign.objects.all().values_list('id', 'name'))
     for camp, camp_data in itertools.groupby(q, lambda x: x['campaign']):
         current_campaign = {}
         current_campaign['chart'] = map(calc_another_fields, camp_data)
@@ -120,30 +72,152 @@ def stats(request):
         current_campaign['campaign'] = campaign_names[camp]
         current_campaign.pop('day', None)
         campaigns.append(current_campaign)
-    result["campaigns"] = campaigns
-    return JsonResponse(result)
+    cache.set(key,campaigns)
+    return campaigns
+
+one_day = datetime.timedelta(days=1)
+def parse_get_params(params):
+    res={}
+    try:
+        res['from_date']= datetime.date.fromtimestamp(int(params["from_date"]))
+    except:
+        res['from_date']= datetime.date.today() - one_day * 8
+    try:
+        res['to_date']=datetime.date.fromtimestamp(int(params["to_date"]))
+    except:
+        res['to_date']=datetime.date.today() - one_day * 1
+    try:
+        res['advertiser_id']= int(params['advertiser_id'])
+    except:
+        res['advertiser_id'] = 992089
+    try:
+        res['skip']= int(params['skip'])
+    except:
+        res['skip'] = 0
+    try:
+        res['take']= int(params['take'])
+    except:
+        res['take'] = 20
+    try:
+        res['order']= re.match(r"^(desc|asc)$", params['order']).group(1)
+    except:
+        res['order'] = 'desc'
+    try:
+        res['sort']= re.match(r"^(campaign|spend|conv|imp|clicks|cpc|cpm|cvr|ctr)$", params['sort']).group(1)
+    except:
+        res['sort'] = 'campaign'
+    try:
+        res['stat_by']= re.match(r"^(campaign|spend|conv|imp|clicks|cpc|cpm|cvr|ctr)(?:,(campaign|spend|conv|imp|clicks|cpc|cpm|cvr|ctr))+$",
+                                 params['stat_by']).group(0).split(',')
+    except:
+        res['stat_by'] = ''
+    try:
+        res['by']= re.match(r"^(campaign|spend|conv|imp|clicks|cpc|cpm|cvr|ctr)(?:,(campaign|spend|conv|imp|clicks|cpc|cpm|cvr|ctr))+$",
+                                 params['stat_by']).group(0).split(',')
+    except:
+        res['by'] = ''
+    try:
+        res['filter']= [x.split('=')  for x in params['filter'].split(';')]
+    except:
+        res['filter'] = []
+
+    return res
+
+# get campaign data as JSON
+#URL:
+#http://private-anon-e1f78e3eb-rtbs.apiary-mock.com/api/v1/campaigns?from=from_date&to=to_date&skip=skip&take=take&sort=sort&order=order&stat_by=stat_by&filter=filter
+def campaigns(request):
+    params = parse_get_params(request.GET)
+    result = get_campaigns_data(params['advertiser_id'],params['from_date'],params['to_date'])
+    #apply filter
+    if params['filter']:
+        clause_list = [(i[0],i[1].split(',')) for i in params['filter']]
+        def filter_function(camp):
+            return all(str(camp[clause[0]])in clause[1] for clause in clause_list)
+        result = filter(filter_function,result)
+
+    reverse_order = params['order'] == 'desc'
+    if params['sort']!='campaign':
+        result.sort(key=lambda camp: camp[params['sort']], reverse=reverse_order)
+    result=result[params['skip']:params['skip']+params['take']]
+    if params['stat_by'] and result:
+        entries_to_remove = set(result[0].keys())-set(params['stat_by'])
+        for camp in result:
+            for f in entries_to_remove:
+                camp.pop(f,None)
+    return JsonResponse({"campaigns": result, "totalCount": len(result)})
 
 
-class NetworkAnalyticsRawSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = NetworkAnalyticsRaw
-        fields = ()
+def get_days_data(advertiser_id, from_date, to_date):
+    key = '_'.join(('rtb_days',str(advertiser_id), from_date.strftime('%Y-%m-%d'),to_date.strftime('%Y-%m-%d'),))
+    res = cache.get(key)
+    if res:return res
+    res = {}
+    #no cache hit
+    #calc day data
+    q = SiteDomainPerformanceReport.objects.filter(
+        advertiser_id=advertiser_id,
+        day__gte=from_date,
+        day__lte=to_date,
+    ).values('day').annotate(
+        spend=Sum('media_cost'),
+        conv_click=Sum('post_click_convs'),
+        conv_view=Sum('post_view_convs'),
+        imp=Sum('imps'),
+        clicks=Sum('clicks'),
+    ).order_by('day')
+    days = map(calc_another_fields, q)
+    summary = reduce(make_sum, days)
+    summary = calc_another_fields(summary)
+    summary.pop('day', None)
+    res['days'] = days
+    res['totals'] = summary
+    cache.set(key,res)
+    return res
+
+#get symmary data for given period
+#http://private-anon-e1f78e3eb-rtbs.apiary-mock.com/api/v1/totals?from=from_date&to=to_date
+def totals(request):
+    params=parse_get_params(request.GET)
+    data = get_days_data(params['advertiser_id'],params['from_date'],params['to_date'])
+    return JsonResponse({"totals": data['totals']})
 
 
-class UsersSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = '__all__'
+#get statistics for period - day by day
+#http://private-anon-e1f78e3eb-rtbs.apiary-mock.com/api/v1/statistics?from=from_date&to=to_date&by=by
 
+def statistics(request):
+    params=parse_get_params(request.GET)
+    data = get_days_data(params['advertiser_id'],params['from_date'],params['to_date'])
+    if params['by'] and data:
+        entries_to_remove = set(data[0].keys())-set(params['by'])
+        for camp in data:
+            for f in entries_to_remove:
+                camp.pop(f,None)
+    return JsonResponse({'statistics':data['days']})
 
-class NetworkAnalyticsRawViewSet(viewsets.ModelViewSet):
-    queryset = NetworkAnalyticsRaw.objects.all()
+# Get clicks statistics by countries (for period)
+#http://private-anon-e1f78e3eb-rtbs.apiary-mock.com/api/v1/map/clicks?from=from_date&to=to_date
+def map_clicks(request):
+    params=parse_get_params(request.GET)
+    return JsonResponse({
+        "China": 19,
+        "India": 123,
+        "United States": 3000,
+        "Indonesia": 200,
+        "Brazil": 5000,
+        "Nigeria": 30000,
+        "Bangladesh": 4000,
+        "Russia": 1000,
+        "Japan": 4,
+        "Mexico": 40,
+        "Philippines": 600,
+        "Germany": 3000,
+        "France": 20000,
+        "Thailand": 1000,
+        "United Kingdom": 200,
+        "Italy": 222,
+        "Ukraine": 600,
+        "Canada": 50
+    })
 
-    serializer_class = NetworkAnalyticsRawSerializer
-    filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter, filters.SearchFilter,)
-
-
-class UsersViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.all()
-
-    serializer_class = UsersSerializer

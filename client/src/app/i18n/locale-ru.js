@@ -18,12 +18,14 @@
 
         'DATE_PICKER': {
           'YESTERDAY': 'Вчера',
-          'CURRENT_WEEK': 'Текущая неделя',
-          'LAST_WEEK': 'Прошлая неделя',
+          'LAST_3_DAYS': 'Последние 3 дня',
           'LAST_7_DAYS': 'Последние 7 дней',
+          'LAST_14_DAYS': 'Последние 14 дней',
+          'LAST_21_DAYS': 'Последние 21 дней',
           'CURRENT_MONTH': 'Текущий месяц',
           'LAST_MONTH': 'Прошлый месяц',
-          'CUSTOM': 'Другой диапазон'
+	        'LAST_90_DAYS': 'Последние 90 дней',
+          'ALL_TIME': 'Все время'
         },
         'TOTALS': {
           'COLUMNS':{

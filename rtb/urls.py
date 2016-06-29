@@ -4,15 +4,20 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from rest_framework import routers
 
-from . import views
+from . import views, views_rest
 
-# router = routers.DefaultRouter()
+router = routers.DefaultRouter()
 #
 # router.register('raw', views.NetworkAnalyticsRawViewSet)
 # router.register('users', views.UsersViewSet)
+router.register('advertisers', views_rest.AdvertiserViewSet)
 
 urlpatterns = [
-#    url(r'^', include(router.urls)),
+    url(r'^', include(router.urls)),
     url(r'^admin/', include(admin.site.urls)),
-    url(r'^stats/',views.stats),
+    url(r'^campaigns/',views.campaigns),
+    url(r'^totals/', views.totals),
+    url(r'^statistics/', views.statistics),
+    url(r'^map/clicks/', views.map_clicks),
+
 ]

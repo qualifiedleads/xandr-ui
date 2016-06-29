@@ -6,9 +6,9 @@ import json
 import os
 import sys
 import traceback
-from itertools import imap, izip_longest, takewhile
+from itertools import imap, izip_longest, takewhile, islice
 from multiprocessing.pool import ThreadPool
-
+from django.db.models import Avg, Count, Sum
 import django.db.models as django_types
 import re
 import requests
@@ -40,13 +40,11 @@ def replace_tzinfo(o, time_fields=None):
 
 
 def update_object_from_dict(o, d, time_fields=None):
-    errors = []
     for field in d:
         try:
             setattr(o, field, d[field])
         except:pass
     replace_tzinfo(o, time_fields)
-    
 
 def analize_csv(csvFile, modelClass, metadata={}):
     reader = csv.DictReader(csvFile, delimiter=',')  # dialect='excel-tab' or excel ?
@@ -56,34 +54,26 @@ def analize_csv(csvFile, modelClass, metadata={}):
     fetch_date = get_current_time()
     time_fields = [field.name for field in modelClass._meta.fields if date_type(field)]
     def create_object_from_dict(data):
-        c = modelClass()
+        try:
+            c = modelClass(**data)
+            # replace_tzinfo(c, time_fields)
+        except:
+            c = modelClass()
+            update_object_from_dict(c, data, time_fields)
         c.fetch_date = fetch_date
-        update_object_from_dict(c, data, time_fields)
+        #replace_tzinfo(c, time_fields)
         if hasattr(c, 'TransformFields'):
             c.TransformFields(data, metadata)
         metadata['counter']+=1
         return c
-    it=iter(imap(create_object_from_dict,reader))
-    for pack in izip_longest(*[it]*1000):
-        modelClass.objects.bulk_create(takewhile(lambda x:x, pack))
+
+    it = imap(create_object_from_dict, reader)
+    while True:
+        res = modelClass.objects.bulk_create(islice(it, 0, 1000))
         print '%d rows fetched' % metadata['counter']
-    #print 'There are these fields in row', reader.fieldnames
-    #return result
+        if not res: break
 
 
-fields_for_site_domain_report = ['advertiser_name', 'commissions',
-                                 'placement_id', 'site_id', 'campaign_id', 'serving_fees',
-                                 'campaign_name', 'cost', 'placement_name', 'site_name',
-                                 'line_item_id', 'geo_country', 'publisher_name', 'creative_id',
-                                 'creative_name', 'publisher_id', 'clicks', 'total_convs',
-                                 'advertiser_id', 'insertion_order_id', 'imps', 'hour',
-                                 'insertion_order_name', 'line_item_name']
-
-# hour,advertiser_id,advertiser_name,campaign_id,campaign_name,
-# creative_id,creative_name,geo_country,insertion_order_id,
-# insertion_order_name,line_item_id,line_item_name,site_id,site_name,
-# placement_id,placement_name,publisher_id,publisher_name,imps,clicks,
-# total_convs,cost,commissions,serving_fees
 unix_epoch = datetime.datetime.utcfromtimestamp(0).replace(tzinfo=utc)
 
 
@@ -243,8 +233,9 @@ def dayly_task(day=None, load_objects_from_services=True, output=None):
         token = report.get_auth_token()
         fd = get_current_time()
         if load_objects_from_services:
-            load_depending_data(token)
-        files = load_reports_for_all_advertisers(day)
+            pass
+            # load_depending_data(token)
+        files = load_reports_for_all_advertisers(day, SiteDomainPerformanceReport)
     except Exception as e:
         print 'Error by fetching data: %s' % e
         print traceback.print_exc(file=output)
@@ -264,6 +255,18 @@ def load_reports_for_all_advertisers(day, ReportClass):
     # 5 report service processes per user admitted
     worker_pool = ThreadPool(4)  # one thread reserved
     # select advertisers, which do not have report data
+    if hasattr(ReportClass, 'day'):
+        date_field = 'day'
+        filter_params = {"day": day}
+    else:  # Hour
+        date_field = 'hour'
+        filter_params = {"hour__date": day}
+
+    q = ReportClass.objects.filter(**filter_params).values('advertiser_id') \
+        .annotate(cnt=Count()).filter(cnt_gt=0)
+    print q.query
+    advertisers_having_data = set(x['advertiser_id'] for x in q)
+    print advertisers_having_data
     advertisers = [adv for adv in Advertiser.objects.all()
                    if not check_SiteDomainPerformanceReport_exist(adv, day)]
     campaign_dict = dict(Campaign.objects.all().values_list('id', 'name'))
@@ -278,7 +281,7 @@ def load_reports_for_all_advertisers(day, ReportClass):
         # campaigns = campaigns_by_advertiser[adv.id]
         # campaign_dict = {i.id: i for i in Campaign.objects.all()}
         f = files[ind]
-        analize_csv(f, SiteDomainPerformanceReport,
+        analize_csv(f, ReportClass,
                     metadata={"campaign_dict": campaign_dict,
                               "all_line_items": all_line_items,
                               "advertiser_id": advertiser_id})

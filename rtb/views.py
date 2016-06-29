@@ -149,7 +149,7 @@ def campaigns(request):
         for camp in result:
             for f in entries_to_remove:
                 camp.pop(f,None)
-    return JsonResponse({"campaigns":result})
+    return JsonResponse({"campaigns": result, "totalCount": len(result)})
 
 
 def get_days_data(advertiser_id, from_date, to_date):

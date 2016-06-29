@@ -65,6 +65,7 @@ def get_campaigns_data(advertiser_id, from_date, to_date):
     campaign_names = dict(Campaign.objects.all().values_list('id', 'name'))
     for camp, camp_data in itertools.groupby(q, lambda x: x['campaign']):
         current_campaign = {}
+        current_campaign['id']=camp
         current_campaign['chart'] = map(calc_another_fields, camp_data)
         summary = reduce(make_sum, current_campaign['chart'])
         summary = calc_another_fields(summary)
@@ -129,6 +130,7 @@ def parse_get_params(params):
 def campaigns(request):
     params = parse_get_params(request.GET)
     result = get_campaigns_data(params['advertiser_id'],params['from_date'],params['to_date'])
+    totalCount=len(result)
     #apply filter
     if params['filter']:
         clause_list = [(i[0],i[1].split(',')) for i in params['filter']]
@@ -141,11 +143,13 @@ def campaigns(request):
         result.sort(key=lambda camp: camp[params['sort']], reverse=reverse_order)
     result=result[params['skip']:params['skip']+params['take']]
     if params['stat_by'] and result:
-        entries_to_remove = set(result[0].keys())-set(params['stat_by'])
+        enabled_fields = set(params['stat_by'])
         for camp in result:
-            for f in entries_to_remove:
-                camp.pop(f,None)
-    return JsonResponse({"campaigns": result, "totalCount": len(result)})
+            for point in camp:
+                for f in point:
+                    if f not in enabled_fields:
+                        point.pop(f,None)
+    return JsonResponse({"campaigns": result, "totalCount": totalCount})
 
 
 def get_days_data(advertiser_id, from_date, to_date):

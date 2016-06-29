@@ -1,21 +1,22 @@
 #!/bin/python
 import csv
 import datetime
+import gc
 import json
-import sys, traceback, os
+import os
+import sys
+import traceback
+from itertools import imap, izip_longest, takewhile
 from multiprocessing.pool import ThreadPool
 
-import common.report as reports
 import django.db.models as django_types
-from django.db import IntegrityError, transaction
 import re
 import requests
+import rtb.report as reports
 from django.conf import settings
 from models import Advertiser, Campaign, SiteDomainPerformanceReport, Profile, LineItem, InsertionOrder, \
     OSFamily, OperatingSystemExtended
 from pytz import utc
-import gc
-from itertools import imap,izip,izip_longest, takewhile
 
 
 def date_type(t):
@@ -220,7 +221,7 @@ def load_depending_data(token):
         print e.message
         print traceback.print_exc()
 
-import contextlib
+
 class fakeWith(object):
     def __enter__(self):
         pass

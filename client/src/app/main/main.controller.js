@@ -6,10 +6,59 @@
     .controller('MainController', MainController);
 
   /** @ngInject */
-  function MainController($window, $state, $localStorage, $translate, $log, Main) {
+  function MainController($compile, $window, $state, $localStorage, $translate, $log, Main) {
     var vm = this;
     vm.Main = Main;
+    vm.multipleTotalCount = 0;
+    vm.checkChart = [];
+    vm.by = '';
     var LC = $translate.instant;
+    /** LOCAL STORAGE CHECKBOX - START **/
+
+
+
+    if ($localStorage.series == null ){
+      $localStorage.series = [
+        { valueField: 'impressions', name: 'Impressions' },
+        { valueField: 'cpa', name: 'CPA' },
+        { valueField: 'cpc', name: 'CPC' },
+        { valueField: 'clicks', name: 'clicks' },
+        { valueField: 'media', name: 'media' },
+        { valueField: 'conversions', name: 'conversions' },
+        { valueField: 'ctr', name: 'CTR' }
+      ];
+    }
+    //$localStorage.checkChart = null;
+    var tempIndex = [];
+    if ($localStorage.checkChart == null ){
+      $localStorage.checkChart = {
+        'impressions': true,
+        'cpa': true,
+        'cpc':true,
+        'clicks': true,
+        'media': true,
+        'conversions': true,
+        'ctr': true
+      };
+      tempIndex = [];
+      for(var index in $localStorage.checkChart) {
+        if ($localStorage.checkChart[index] == true) {
+          tempIndex.push(index);
+        }
+      }
+      vm.by = tempIndex.join();
+    } else {
+      tempIndex = [];
+      for(var index in $localStorage.checkChart) {
+        if ($localStorage.checkChart[index] == true) {
+          tempIndex.push(index);
+        }
+      }
+      vm.by = tempIndex.join();
+    }
+    /** LOCAL STORAGE CHECKBOX - END **/
+
+    /** DATE PIKER - START **/
     if ($localStorage.dataStart == null && $localStorage.dataEnd == null ){
       $localStorage.dataStart = $window.moment({ hour: '00' }).subtract(1, 'day').unix() ;
       $localStorage.dataEnd = $window.moment({ hour: '00' }).subtract(1, 'day').endOf('day').unix();
@@ -29,34 +78,44 @@
         dataEnd: $window.moment({ hour: '00' }).subtract(1, 'day').endOf('day').unix()
       }, {
         ID: 1,
+        Name: LC('MAIN.DATE_PICKER.LAST_3_DAYS'),
+        dataStart:  $window.moment({ hour: '00' }).subtract(3, 'day').unix(),
+        dataEnd: $window.moment({ hour: '00' }).unix()
+      }, {
+        ID: 2,
         Name: LC('MAIN.DATE_PICKER.LAST_7_DAYS'),
         dataStart:  $window.moment({ hour: '00' }).subtract(7, 'day').unix(),
         dataEnd: $window.moment({ hour: '00' }).unix()
       }, {
-        ID: 2,
-        Name: LC('MAIN.DATE_PICKER.CURRENT_WEEK'),
-        dataStart: $window.moment().startOf('week').unix(),
-        dataEnd: $window.moment().unix()
-      }, {
         ID: 3,
-        Name: LC('MAIN.DATE_PICKER.LAST_WEEK'),
-        dataStart: $window.moment().startOf('week').subtract(1, 'week').unix(),
-        dataEnd: $window.moment().startOf('week').unix()
+        Name: LC('MAIN.DATE_PICKER.LAST_14_DAYS'),
+        dataStart:  $window.moment({ hour: '00' }).subtract(14, 'day').unix(),
+        dataEnd: $window.moment({ hour: '00' }).unix()
       }, {
         ID: 4,
+        Name: LC('MAIN.DATE_PICKER.LAST_21_DAYS'),
+        dataStart:  $window.moment({ hour: '00' }).subtract(21, 'day').unix(),
+        dataEnd: $window.moment({ hour: '00' }).unix()
+      }, {
+        ID: 5,
         Name: LC('MAIN.DATE_PICKER.CURRENT_MONTH'),
         dataStart: $window.moment().startOf('month').unix(),
         dataEnd: $window.moment().unix()
       }, {
-        ID: 5,
+        ID: 6,
         Name: LC('MAIN.DATE_PICKER.LAST_MONTH'),
         dataStart: $window.moment().subtract(1, 'month').startOf('month').unix(),
         dataEnd: $window.moment().subtract(1, 'month').endOf('month').unix()
       }, {
-        ID: 6,
-        Name: LC('MAIN.DATE_PICKER.CUSTOM'),
-        dataStart: '',
-        dataEnd: ''
+        ID: 7,
+        Name: LC('MAIN.DATE_PICKER.LAST_90_DAYS'),
+        dataStart: $window.moment({ hour: '00' }).subtract(90, 'day').unix(),
+        dataEnd: $window.moment().unix()
+      }, {
+        ID: 8,
+        Name: LC('MAIN.DATE_PICKER.ALL_TIME'),
+        dataStart: 0,
+        dataEnd: $window.moment().unix()
       }];
     vm.datePiker = {
       items: products,
@@ -64,7 +123,7 @@
       valueExpr: 'ID',
       value: products[$localStorage.SelectedTime].ID,
       onValueChanged: function (e) {
-        $log.info(products[e.value]);
+        //$log.info(products[e.value]);
         $localStorage.SelectedTime = e.value;
         $localStorage.dataStart = products[e.value].dataStart;
         $localStorage.dataEnd = products[e.value].dataEnd;
@@ -74,97 +133,66 @@
         $state.reload();
       }
     };
+    /** DATE PIKER - END **/
 
-    vm.result = {};
+    /** BINDING OPTIONS - START **/
     vm.totals = [];
-
-    vm.totalsStore = new $window.DevExpress.data.CustomStore({
-      totalCount: function () {
-        return 0;
-      },
-      load: function () {
-        return vm.Main.statsTotals(vm.dataStart, vm.dataEnd)
-          .then(function (result) {
-            return [result];
-          });
-      }
-    });
-
-    vm.multipleStore = new $window.DevExpress.data.CustomStore({
-      totalCount: function () {
-        return 0;
-      },
-      load: function () {
-        return vm.Main.statsCampaigns(vm.dataStart, vm.dataEnd)
-          .then(function (result) {
-            return result.campaigns;
-          });
-      }
-    });
 
     vm.chartStore = new $window.DevExpress.data.CustomStore({
       totalCount: function () {
         return 0;
       },
       load: function () {
-        return vm.Main.statsChart(vm.dataStart, vm.dataEnd)
+        return vm.Main.statsChart(vm.dataStart, vm.dataEnd,vm.by)
           .then(function (result) {
             return result.statistics;
           });
       }
     });
 
-
-
-    vm.checkboxData = [];
-
-    vm.dataGridOptionsSingle = {
-      bindingOptions: {
-        dataSource: 'main.totalsStore'
+    vm.multipleStore = new $window.DevExpress.data.CustomStore({
+      totalCount: function () {
+        return vm.multipleTotalCount ;
       },
-      showBorders: true,
-      alignment: 'left',
-      howBorders: true,
-      columns: [
-        {
-          caption: LC('MAIN.TOTALS.COLUMNS.TOTALS'),
-          dataField: 'TOTALS'
-        },
-        {
-          caption: LC('MAIN.TOTALS.COLUMNS.SPENT'),
-          dataField: 'spend'
-        },
-        {
-          caption: LC('MAIN.TOTALS.COLUMNS.CONV'),
-          dataField: 'conv'
-        },
-        {
-          caption: LC('MAIN.TOTALS.COLUMNS.IMP'),
-          dataField: 'imp'
-        },
-        {
-          caption: LC('MAIN.TOTALS.COLUMNS.CLICKS'),
-          dataField: 'clicks'
-        },
-        {
-          caption: LC('MAIN.TOTALS.COLUMNS.CPC'),
-          dataField: 'cpc'
-        },
-        {
-          caption: LC('MAIN.TOTALS.COLUMNS.CPM'),
-          dataField: 'cpm'
-        },
-        {
-          caption: LC('MAIN.TOTALS.COLUMNS.CVR'),
-          dataField: 'cvr'
-        },
-        {
-          caption: LC('MAIN.TOTALS.COLUMNS.CTR'),
-          dataField: 'ctr'
-        }]
-    };
-    vm.selectedItems = [];
+      load: function (loadOptions) {
+        if(loadOptions.take == null) {
+          loadOptions.take = 20;
+        }
+        if(loadOptions.skip == null) {
+          loadOptions.skip = 0;
+        }
+        if(loadOptions.sort == null) {
+          loadOptions.sort = 'campaign';
+        }
+        if(loadOptions.order == null) {
+          loadOptions.order = 'DESC';
+        }
+        return vm.Main.statsCampaigns(vm.dataStart, vm.dataEnd, loadOptions.skip,
+          loadOptions.take, loadOptions.sort, loadOptions.order,
+          vm.by, loadOptions.filter)
+          .then(function (result) {
+            vm.multipleTotalCount = result.totalCount;
+            return result.campaigns;
+          });
+      }
+    });
+    /** BINDING OPTIONS - END **/
 
+    /** TOTALS - START **/
+    vm.Main.statsTotals(vm.dataStart, vm.dataEnd)
+      .then(function (result) {
+        vm.totals.spent = result.spend;
+        vm.totals.conv = result.conv;
+        vm.totals.imp = result.imp;
+        vm.totals.cpc = result.cpc;
+        vm.totals.cpm = result.cpm;
+        vm.totals.cvr = result.cvr;
+        vm.totals.ctr = result.ctr;
+      });
+    /** TOTALS - END **/
+
+    /** MULTIPLE - START **/
+    vm.selectedItems = [];
     vm.chartOptionsFuncgrid = [];
     vm.dataGridOptionsMultiple = {
       bindingOptions: {
@@ -179,24 +207,29 @@
       headerFilter: {
         visible: true
       },
-      paging: {
-        pageSize: 3
-      },
       pager: {
         showPageSizeSelector: true,
-        allowedPageSizes: [3, 10, 20],
-        showInfo: true
+        allowedPageSizes: [10, 30, 50],
+        visible: true,
+        showNavigationButtons: true
       },
       howBorders: true,
       showRowLines: true,
 
-      columns: [{
-        caption: LC('MAIN.CAMPAIGN.COLUMNS.CAMPAIGN'),
-        dataField: 'campaign'
-      }, {
-        caption: LC('MAIN.CAMPAIGN.COLUMNS.SPENT'),
-        dataField: 'spend'
-      },
+      columns: [
+        {
+          caption: LC('MAIN.CAMPAIGN.COLUMNS.CAMPAIGN'),
+          dataField: 'campaign',
+          cellTemplate: function (container, options) {
+            container.addClass('a-campaign');
+            $window.angular.element('<a href="#/campaign/'+ options.data.id +'">' + options.data.campaign + '</a>')
+              .appendTo(container);
+          }
+        },
+        {
+          caption: LC('MAIN.CAMPAIGN.COLUMNS.SPENT'),
+          dataField: 'spend'
+        },
         {
           caption: LC('MAIN.CAMPAIGN.COLUMNS.CONV'),
           dataField: 'conv'
@@ -273,15 +306,7 @@
                   visible: false
                 }
               },
-              series: [
-                { valueField: 'impressions', name: 'Impressions' },
-                { valueField: 'cpa', name: 'CPA' },
-                { valueField: 'cpc', name: 'CPC' },
-                { valueField: 'clicks', name: 'clicks' },
-                { valueField: 'media', name: 'media' },
-                { valueField: 'conversions', name: 'conversions' },
-                { valueField: 'ctr', name: 'CTR' }
-              ],
+              series: $localStorage.series,
               legend: {
                 visible: false
               },
@@ -307,12 +332,13 @@
         mode: 'multiple'
       },
       onSelectionChanged: function (data) {
-        //console.log(vm.dataGridOptionsMultiple);
         vm.selectedItems = data.selectedRowsData;
         vm.disabled = !vm.selectedItems.length;
       }
     };
+    /** MULTIPLE - END **/
 
+    /** BIG DIAGRAM  - START **/
     vm.types = ['line', 'stackedLine', 'fullStackedLine'];
 
     var series = [
@@ -329,6 +355,7 @@
       onInitialized: function (data) {
         vm.chartOptionsFunc = data.component;
       },
+      series: $localStorage.series,
       size: {
         width: 500,
         height: 230
@@ -361,7 +388,6 @@
           visible: true
         }
       },
-      series: series,
       legend: {
         verticalAlignment: 'bottom',
         horizontalAlignment: 'center',
@@ -376,128 +402,147 @@
         }
       }
     };
-    /** CheckBox Chart **/
+    /** BIG DIAGRAM  - END **/
+
+    /** CHECKBOX CHART - START **/
     vm.impressions = {
       text: LC('MAIN.CHECKBOX.IMPRESSIONS'),
-      value: true,
+      value: $localStorage.checkChart.impressions? true:false,
       onValueChanged: function (e) {
         if (e.value == true) {
-          vm.chartOptionsFunc.option('series[0].visible', true);
-          vm.chartOptionsFuncgrid.forEach(function (col) {
-            col.option('series[0].visible', true);
-          });
+          $localStorage.checkChart.impressions = true;
+          $localStorage.series.push({ valueField: 'impressions', name: 'Impressions' });
+          $state.reload();
         } else {
-          vm.chartOptionsFuncgrid.forEach(function (col) {
-            col.option('series[0].visible', false);
-          });
-
-          vm.chartOptionsFunc.option('series[0].visible', false);
+          $localStorage.checkChart.impressions = false;
+          for(var index in $localStorage.series) {
+            if ($localStorage.series[index].valueField == 'impressions') {
+              $localStorage.series.splice(index, 1);
+            }
+          }
+          $state.reload();
         }
       }
     };
+
     vm.CPA = {
       text: LC('MAIN.CHECKBOX.CPA'),
-      value: true,
+      value: $localStorage.checkChart.cpa? true:false,
       onValueChanged: function (e) {
         if (e.value == true) {
-          vm.chartOptionsFunc.option('series[1].visible', true);
-          vm.chartOptionsFuncgrid.forEach(function (col) {
-            col.option('series[1].visible', true);
-          });
+          $localStorage.checkChart.cpa = true;
+          $localStorage.series.push({ valueField: 'cpa', name: 'CPA' });
+          $state.reload();
         } else {
-          vm.chartOptionsFunc.option('series[1].visible', false);
-          vm.chartOptionsFuncgrid.forEach(function (col) {
-            col.option('series[1].visible', false);
-          });
+          $localStorage.checkChart.cpa = false;
+          for(var index in $localStorage.series) {
+            if ($localStorage.series[index].valueField == 'cpa') {
+              $localStorage.series.splice(index, 1);
+            }
+          }
+          $state.reload();
         }
       }
     };
+
     vm.CPC = {
       text: LC('MAIN.CHECKBOX.CPC'),
-      value: true,
+      value: $localStorage.checkChart.cpc? true:false,
       onValueChanged: function (e) {
         if (e.value == true) {
-          vm.chartOptionsFunc.option('series[2].visible', true);
-          vm.chartOptionsFuncgrid.forEach(function (col) {
-            col.option('series[2].visible', true);
-          });
+          $localStorage.checkChart.cpc = true;
+          $localStorage.series.push({ valueField: 'cpc', name: 'CPC' });
+          $state.reload();
         } else {
-          vm.chartOptionsFunc.option('series[2].visible', false);
-          vm.chartOptionsFuncgrid.forEach(function (col) {
-            col.option('series[2].visible', false);
-          });
+          $localStorage.checkChart.cpc = false;
+          for(var index in $localStorage.series) {
+            if ($localStorage.series[index].valueField == 'cpc') {
+              $localStorage.series.splice(index, 1);
+            }
+          }
+          $state.reload();
         }
       }
     };
     vm.clicks = {
       text: LC('MAIN.CHECKBOX.CLICKS'),
-      value: true,
+      value: $localStorage.checkChart.clicks? true:false,
       onValueChanged: function (e) {
         if (e.value == true) {
-          vm.chartOptionsFunc.option('series[3].visible', true);
-          vm.chartOptionsFuncgrid.forEach(function (col) {
-            col.option('series[3].visible', true);
-          });
+          $localStorage.checkChart.clicks = true;
+          $localStorage.series.push({ valueField: 'clicks', name: 'clicks' });
+          $state.reload();
         } else {
-          vm.chartOptionsFunc.option('series[3].visible', false);
-          vm.chartOptionsFuncgrid.forEach(function (col) {
-            col.option('series[3].visible', false);
-          });
+          $localStorage.checkChart.clicks = false;
+          for(var index in $localStorage.series) {
+            if ($localStorage.series[index].valueField == 'clicks') {
+              $localStorage.series.splice(index, 1);
+            }
+          }
+          $state.reload();
         }
       }
     };
     vm.media = {
       text: LC('MAIN.CHECKBOX.MEDIA_SPENT'),
-      value: true,
+      value: $localStorage.checkChart.media? true:false,
       onValueChanged: function (e) {
         if (e.value == true) {
-          vm.chartOptionsFunc.option('series[4].visible', true);
-          vm.chartOptionsFuncgrid.forEach(function (col) {
-            col.option('series[4].visible', true);
-          });
+          $localStorage.checkChart.media = true;
+          $localStorage.series.push({ valueField: 'media', name: 'media' });
+          $state.reload();
         } else {
-          vm.chartOptionsFunc.option('series[4].visible', false);
-          vm.chartOptionsFuncgrid.forEach(function (col) {
-            col.option('series[4].visible', false);
-          });
+          $localStorage.checkChart.media = false;
+          for(var index in $localStorage.series) {
+            if ($localStorage.series[index].valueField == 'media') {
+              $localStorage.series.splice(index, 1);
+            }
+          }
+          $state.reload();
         }
       }
     };
     vm.conversions = {
       text: LC('MAIN.CHECKBOX.CONVERSIONS'),
-      value: true,
+      value: $localStorage.checkChart.conversions? true:false,
       onValueChanged: function (e) {
         if (e.value == true) {
-          vm.chartOptionsFunc.option('series[5].visible', true);
-          vm.chartOptionsFuncgrid.forEach(function (col) {
-            col.option('series[5].visible', true);
-          });
+          $localStorage.checkChart.conversions = true;
+          $localStorage.series.push({ valueField: 'conversions', name: 'conversions' });
+          $state.reload();
         } else {
-          vm.chartOptionsFunc.option('series[5].visible', false);
-          vm.chartOptionsFuncgrid.forEach(function (col) {
-            col.option('series[5].visible', false);
-          });
+          $localStorage.checkChart.conversions = false;
+          for(var index in $localStorage.series) {
+            if ($localStorage.series[index].valueField == 'conversions') {
+              $localStorage.series.splice(index, 1);
+            }
+          }
+          $state.reload();
         }
       }
     };
     vm.CTR = {
       text: LC('MAIN.CHECKBOX.CTR'),
-      value: true,
+      value: $localStorage.checkChart.ctr? true:false,
       onValueChanged: function (e) {
         if (e.value == true) {
-          vm.chartOptionsFunc.option('series[6].visible', true);
-          vm.chartOptionsFuncgrid.forEach(function (col) {
-            col.option('series[6].visible', true);
-          });
+          $localStorage.checkChart.ctr = true;
+          $localStorage.series.push({ valueField: 'ctr', name: 'CTR' });
+          $state.reload();
         } else {
-          vm.chartOptionsFunc.option('series[6].visible', false);
-          vm.chartOptionsFuncgrid.forEach(function (col) {
-            col.option('series[6].visible', false);
-          });
+          $localStorage.checkChart.ctr = false;
+          for(var index in $localStorage.series) {
+            if ($localStorage.series[index].valueField == 'ctr') {
+              $localStorage.series.splice(index, 1);
+            }
+          }
+          $state.reload();
         }
       }
     };
-    /** map **/
+    /** CHECKBOX CHART - END **/
+
+    /** MAP CLICKS - START **/
     var clicksByCountry = {};
 
     vm.Main.statsMap(vm.dataStart, vm.dataEnd).then(function (res) {
@@ -546,5 +591,7 @@
       }],
       bounds: [-180, 85, 180, -75]
     };
+    /** MAP CLICKS - START **/
+
   }
 })();

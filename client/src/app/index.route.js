@@ -15,7 +15,7 @@
         controllerAs: 'main'
       })
       .state('campaign', {
-        url: '/campaign',
+        url: '/campaign/:id',
         templateUrl: 'app/campaign/camp.html',
         controller: 'CampaignController',
         controllerAs: 'camp'

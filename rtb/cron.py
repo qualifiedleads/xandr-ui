@@ -12,7 +12,7 @@ from multiprocessing.pool import ThreadPool
 import django.db.models as django_types
 import re
 import requests
-import rtb.report as reports
+import report
 from django.conf import settings
 from models import Advertiser, Campaign, SiteDomainPerformanceReport, Profile, LineItem, InsertionOrder, \
     OSFamily, OperatingSystemExtended
@@ -238,9 +238,9 @@ def dayly_task(day=None, load_objects_from_services=True, output=None):
         output=file_output
     sys.stdout, sys.stderr = output, output
     print ('NexusApp API pooling...')
-    # reports.get_specifed_report('network_analytics')
+    # report.get_specifed_report('network_analytics')
     try:
-        token = reports.get_auth_token()
+        token = report.get_auth_token()
         fd = get_current_time()
         if load_objects_from_services:
             load_depending_data(token)
@@ -260,7 +260,7 @@ def dayly_task(day=None, load_objects_from_services=True, output=None):
 
 
 def load_reports_for_all_advertisers(day, ReportClass):
-    token = reports.get_auth_token()
+    token = report.get_auth_token()
     # 5 report service processes per user admitted
     worker_pool = ThreadPool(4)  # one thread reserved
     # select advertisers, which do not have report data
@@ -270,8 +270,8 @@ def load_reports_for_all_advertisers(day, ReportClass):
     all_line_items = set(LineItem.objects.values_list("id", flat=True))
     # Multithreading map
     files = worker_pool.map(lambda adv:
-                            reports.get_specifed_report('site_domain_performance', {'advertiser_id': adv.id}, token,
-                                                        day),
+                            report.get_specifed_report('site_domain_performance', {'advertiser_id': adv.id}, token,
+                                                       day),
                             advertisers)
     for ind, adv in enumerate(advertisers):
         advertiser_id = adv.id

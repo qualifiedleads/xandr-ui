@@ -6,7 +6,6 @@ import time
 import os
 from django.conf import settings
 import utils
-import itertools
 #log_path=os.path.join(os.path.dirname(os.path.dirname(__file__)),'logs')
 log_path='rtb/logs'
 
@@ -22,8 +21,7 @@ def get_report(rid, token):
 
     #Data saved to file to prevent using extra RAM (and debugging)
     fd = open('%s/%s_report_%s.csv'%(log_path, get_str_time(),rid), 'wb+')
-    # for chunk in response.iter_content(4096):
-    for chunk, i in itertools.izip(response.iter_content(1024), xrange(0, 256)):
+    for chunk in response.iter_content(4096):
         fd.write(chunk)
     response.close()
     fd.flush()

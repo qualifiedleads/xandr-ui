@@ -18,5 +18,6 @@ urlpatterns = [
     url(r'^campaigns/',views.campaigns),
     url(r'^totals/', views.totals),
     url(r'^statistics/', views.statistics),
+    url(r'^map/clicks/', views.map_clicks),
 
 ]

@@ -5,7 +5,7 @@ from django.http import JsonResponse
 from django.db.models import Avg, Count, Sum
 from models import SiteDomainPerformanceReport, Campaign
 from django.core.cache import cache
-
+from pytz import utc
 import operator
 
 def to_unix_timestamp(d):
@@ -30,7 +30,10 @@ def calc_another_fields(obj):
 def make_sum(dict1, dict2):
     res = {}
     for k in dict1:
-        res[k] = dict1.get(k, 0) + dict2.get(k, 0)
+        try:
+            res[k] = dict1.get(k, 0) + dict2.get(k, 0)
+        except:
+            res[k] = dict1[k]
     return res
 
 def get_campaigns_data(advertiser_id, from_date, to_date):
@@ -62,6 +65,7 @@ def get_campaigns_data(advertiser_id, from_date, to_date):
     campaign_names = dict(Campaign.objects.all().values_list('id', 'name'))
     for camp, camp_data in itertools.groupby(q, lambda x: x['campaign']):
         current_campaign = {}
+        current_campaign['id']=camp
         current_campaign['chart'] = map(calc_another_fields, camp_data)
         summary = reduce(make_sum, current_campaign['chart'])
         summary = calc_another_fields(summary)
@@ -76,17 +80,13 @@ one_day = datetime.timedelta(days=1)
 def parse_get_params(params):
     res={}
     try:
-        res['from_date']= datetime.date.fromtimestamp(int(params["from_date"][0]))
+        res['from_date']= datetime.date.fromtimestamp(int(params["from_date"]))
     except:
         res['from_date']= datetime.date.today() - one_day * 8
     try:
-        res['to_date']=datetime.date.fromtimestamp(int(params["to_date"][0]))
+        res['to_date']=datetime.date.fromtimestamp(int(params["to_date"]))
     except:
         res['to_date']=datetime.date.today() - one_day * 1
-    try:
-        res['from_date']= params['from_date']
-    except:
-        res['from_date']=datetime.date.today() - one_day * 8
     try:
         res['advertiser_id']= int(params['advertiser_id'])
     except:
@@ -130,6 +130,7 @@ def parse_get_params(params):
 def campaigns(request):
     params = parse_get_params(request.GET)
     result = get_campaigns_data(params['advertiser_id'],params['from_date'],params['to_date'])
+    totalCount=len(result)
     #apply filter
     if params['filter']:
         clause_list = [(i[0],i[1].split(',')) for i in params['filter']]
@@ -142,11 +143,13 @@ def campaigns(request):
         result.sort(key=lambda camp: camp[params['sort']], reverse=reverse_order)
     result=result[params['skip']:params['skip']+params['take']]
     if params['stat_by'] and result:
-        entries_to_remove = set(result[0].keys())-set(params['stat_by'])
+        enabled_fields = set(params['stat_by'])
         for camp in result:
-            for f in entries_to_remove:
-                camp.pop(f,None)
-    return JsonResponse({"campaigns":result})
+            for point in camp:
+                for f in point:
+                    if f not in enabled_fields:
+                        point.pop(f,None)
+    return JsonResponse({"campaigns": result, "totalCount": totalCount})
 
 
 def get_days_data(advertiser_id, from_date, to_date):
@@ -196,4 +199,29 @@ def statistics(request):
             for f in entries_to_remove:
                 camp.pop(f,None)
     return JsonResponse({'statistics':data['days']})
+
+# Get clicks statistics by countries (for period)
+#http://private-anon-e1f78e3eb-rtbs.apiary-mock.com/api/v1/map/clicks?from=from_date&to=to_date
+def map_clicks(request):
+    params=parse_get_params(request.GET)
+    return JsonResponse({
+        "China": 19,
+        "India": 123,
+        "United States": 3000,
+        "Indonesia": 200,
+        "Brazil": 5000,
+        "Nigeria": 30000,
+        "Bangladesh": 4000,
+        "Russia": 1000,
+        "Japan": 4,
+        "Mexico": 40,
+        "Philippines": 600,
+        "Germany": 3000,
+        "France": 20000,
+        "Thailand": 1000,
+        "United Kingdom": 200,
+        "Italy": 222,
+        "Ukraine": 600,
+        "Canada": 50
+    })
 

@@ -7,6 +7,9 @@ from models import SiteDomainPerformanceReport, Campaign
 from django.core.cache import cache
 from pytz import utc
 import operator
+from rest_framework.decorators import api_view, parser_classes
+from rest_framework.response import Response
+from rest_framework.parsers import FormParser
 
 def to_unix_timestamp(d):
     return str(int(time.mktime(d.timetuple())))
@@ -127,7 +130,14 @@ def parse_get_params(params):
 # get campaign data as JSON
 #URL:
 #http://private-anon-e1f78e3eb-rtbs.apiary-mock.com/api/v1/campaigns?from=from_date&to=to_date&skip=skip&take=take&sort=sort&order=order&stat_by=stat_by&filter=filter
+@api_view()
+@parser_classes([])
 def campaigns(request):
+    """
+     Get acampaign data for given period
+     params:
+    """
+    print request.data
     params = parse_get_params(request.GET)
     result = get_campaigns_data(params['advertiser_id'],params['from_date'],params['to_date'])
     #apply filter
@@ -158,7 +168,8 @@ def campaigns(request):
             for camp in result:
                 camp.pop('chart', None)
 
-    return JsonResponse({"campaigns": result, "totalCount": totalCount})
+    #return JsonResponse({"campaigns": result, "totalCount": totalCount})
+    return Response({"campaigns": result, "totalCount": totalCount})
 
 
 def get_days_data(advertiser_id, from_date, to_date):

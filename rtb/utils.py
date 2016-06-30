@@ -28,16 +28,7 @@ column_sets_for_reports = {
         "commissions",
         "serving_fees"
     ],
-    "site_domain_performance_": [
-        "day",
-        "campaign",
-        "booked_revenue",
-        "imps",
-        "clicks",
-        "click_thru_pct",
-        "site_domain"
-    ],
-    "site_domain_performance_1": [
+    "site_domain_performance": [
         "day",
         "site_domain",
         "campaign",
@@ -91,4 +82,4 @@ def get_column_list_for_report(ReportClass):
     all_fields = [field.name + '_id' if isinstance(field, django_types.ForeignKey) else field.name
                   for field in ReportClass._meta.fields]
     meta_fields = (column['column'] for column in meta[ReportClass.api_report_name]['columns'])
-    return set(all_fields) * set(meta_fields)
+    return list(set(all_fields) & set(meta_fields))

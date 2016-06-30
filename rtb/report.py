@@ -18,13 +18,14 @@ def get_report(rid, token):
     url = "https://api.appnexus.com/report-download?id={0}".format(rid)
     headers = {"Authorization": token}
 
-    response = requests.get(url, headers=headers)
+    response = requests.get(url, headers=headers, stream=True)
 
     #Data saved to file to prevent using extra RAM (and debugging)
     fd = open('%s/%s_report_%s.csv'%(log_path, get_str_time(),rid), 'wb+')
     # for chunk in response.iter_content(4096):
-    for chunk, i in itertools.izip(response.iter_content(4096), xrange(0, 256)):
+    for chunk, i in itertools.izip(response.iter_content(1024), xrange(0, 256)):
         fd.write(chunk)
+    response.close()
     fd.flush()
     fd.seek(0)
     #file-like object

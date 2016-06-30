@@ -272,8 +272,7 @@ def load_reports_for_all_advertisers(token, day, ReportClass):
     files = []
     try:
         files = worker_pool.map(lambda id:
-                                report.get_specifed_report(ReportClass.api_report_name, {'advertiser_id': id}, token,
-                                                           day),
+                                report.get_specifed_report(ReportClass, {'advertiser_id': id}, token, day),
                                 advertisers_need_load)
         for f, advertiser_id in izip(files, advertisers_need_load):
             analize_csv(f, ReportClass,

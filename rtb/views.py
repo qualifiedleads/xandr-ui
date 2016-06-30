@@ -148,7 +148,7 @@ def campaigns(request):
         # if 'day' not in enabled_fields:
         enabled_fields.add('day')
         for camp in result:
-            for point in camp:
+            for point in camp['chart']:
                 for f in point:
                     if f not in enabled_fields:
                         point.pop(f,None)

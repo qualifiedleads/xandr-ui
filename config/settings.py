@@ -38,7 +38,8 @@ INSTALLED_APPS = (
 
     'corsheaders',
     'rest_framework',
-	'django_crontab',
+    'rest_framework_docs',
+    'django_crontab',
     'rtb',
 )
 

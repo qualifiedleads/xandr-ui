@@ -5,6 +5,7 @@ from django.views.generic import RedirectView
 
 urlpatterns = [
                   url(r'^api/v1/', include('rtb.urls')),
+                  url(r'^docs/', include('rest_framework_docs.urls')),
                   url(r'^$', RedirectView.as_view(url='/client/index.html'))
               ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 

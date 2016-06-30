@@ -14,3 +14,4 @@ fabric
 django-contrib-postgres
 django-crontab
 uwsgi
+drfdocs

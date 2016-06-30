@@ -146,12 +146,13 @@ def campaigns(request):
     if params['stat_by'] and result:
         enabled_fields = set(params['stat_by'])
         # if 'day' not in enabled_fields:
-        enabled_fields.add('day')
+        # enabled_fields.add('day')
+        all_fields = set(('conv', 'ctr', 'cpc', 'cvr', 'clicks', 'imp', 'spend', 'cpm'))  # ,'day')
+        remove_fields = all_fields - enabled_fields
         for camp in result:
             for point in camp['chart']:
-                for f in point:
-                    if f not in enabled_fields:
-                        point.pop(f,None)
+                for f in remove_fields:
+                    point.pop(f, None)
     return JsonResponse({"campaigns": result, "totalCount": totalCount})
 
 

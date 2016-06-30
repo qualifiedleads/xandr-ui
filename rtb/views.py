@@ -145,6 +145,8 @@ def campaigns(request):
     result=result[params['skip']:params['skip']+params['take']]
     if params['stat_by'] and result:
         enabled_fields = set(params['stat_by'])
+        # if 'day' not in enabled_fields:
+        enabled_fields.add('day')
         for camp in result:
             for point in camp:
                 for f in point:

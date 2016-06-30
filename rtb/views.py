@@ -130,13 +130,14 @@ def parse_get_params(params):
 def campaigns(request):
     params = parse_get_params(request.GET)
     result = get_campaigns_data(params['advertiser_id'],params['from_date'],params['to_date'])
-    totalCount=len(result)
     #apply filter
     if params['filter']:
         clause_list = [(i[0],i[1].split(',')) for i in params['filter']]
         def filter_function(camp):
             return all(str(camp[clause[0]])in clause[1] for clause in clause_list)
         result = filter(filter_function,result)
+
+    totalCount = len(result)
 
     reverse_order = params['order'] == 'desc'
     if params['sort']!='campaign':

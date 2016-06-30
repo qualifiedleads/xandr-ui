@@ -161,15 +161,12 @@
         if(loadOptions.skip == null) {
           loadOptions.skip = 0;
         }
-        if(loadOptions.sort == null) {
-          loadOptions.sort = 'campaign';
-        }
-        if(loadOptions.order == null) {
-          loadOptions.order = 'DESC';
-        }
+
+        
+        console.log(loadOptions.sort);
         return vm.Main.statsCampaigns(vm.dataStart, vm.dataEnd, loadOptions.skip,
           loadOptions.take, loadOptions.sort, loadOptions.order,
-          vm.by, loadOptions.filter)
+          vm.by ,loadOptions.filter)
           .then(function (result) {
             vm.multipleTotalCount = result.totalCount;
             return result.campaigns;
@@ -259,7 +256,7 @@
           width: 200,
           dataField: LC('MAIN.CAMPAIGN.COLUMNS.STATS'),
           cellTemplate: function (container, options) {
-            console.log(options);
+            //console.log(options);
             var chartOptions = {
               onInitialized: function (data) {
                 vm.chartOptionsFuncgrid[options.rowIndex] = data.component;
@@ -342,16 +339,6 @@
     /** BIG DIAGRAM  - START **/
     vm.types = ['line', 'stackedLine', 'fullStackedLine'];
 
-    var series = [
-      { valueField: 'imp', name: 'Impressions' },
-      { valueField: 'cvr', name: 'CVR' },
-      { valueField: 'cpc', name: 'CPC' },
-      { valueField: 'clicks', name: 'clicks' },
-      { valueField: 'spend', name: 'media' },
-      { valueField: 'conv', name: 'conversions' },
-      { valueField: 'ctr', name: 'CTR' }
-    ];
-
     vm.chartOptions = {
       onInitialized: function (data) {
         vm.chartOptionsFunc = data.component;
@@ -377,7 +364,6 @@
             size: 5
           }
         }
-
       },
       margin: {
         bottom: 20

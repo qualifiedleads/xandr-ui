@@ -27,6 +27,12 @@
     "angular-mocks": "~1.5.3"
   },
   "overrides": {
+    "moment": {
+      "main": [
+        "moment.js",
+        "locale/ru.js"
+      ]
+    },
     "bootstrap": {
       "main": [
         "less/bootstrap.less",

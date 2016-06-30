@@ -34,11 +34,15 @@ function browserSyncInit(baseDir, browser) {
    * For more details and option, https://github.com/chimurai/http-proxy-middleware/blob/v0.9.0/README.md
    */
   // server.middleware = proxyMiddleware('/users', {target: 'http://jsonplaceholder.typicode.com', changeOrigin: true});
-
+  var proxy = [
+    proxyMiddleware('/api/v1', {target: 'http://localhost:8000'})
+  ];
+  
   browserSync.instance = browserSync.init({
     startPath: '/',
     server: server,
-    browser: browser
+    browser: browser,
+    middleware: proxy
   });
 }
 

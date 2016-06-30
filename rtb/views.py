@@ -143,16 +143,21 @@ def campaigns(request):
     if params['sort']!='campaign':
         result.sort(key=lambda camp: camp[params['sort']], reverse=reverse_order)
     result=result[params['skip']:params['skip']+params['take']]
-    if params['stat_by'] and result:
-        enabled_fields = set(params['stat_by'])
-        # if 'day' not in enabled_fields:
-        # enabled_fields.add('day')
-        all_fields = set(('conv', 'ctr', 'cpc', 'cvr', 'clicks', 'imp', 'spend', 'cpm'))  # ,'day')
-        remove_fields = all_fields - enabled_fields
-        for camp in result:
-            for point in camp['chart']:
-                for f in remove_fields:
-                    point.pop(f, None)
+    if result:
+        if params['stat_by']:
+            enabled_fields = set(params['stat_by'])
+            # if 'day' not in enabled_fields:
+            # enabled_fields.add('day')
+            all_fields = set(('conv', 'ctr', 'cpc', 'cvr', 'clicks', 'imp', 'spend', 'cpm'))  # ,'day')
+            remove_fields = all_fields - enabled_fields
+            for camp in result:
+                for point in camp['chart']:
+                    for f in remove_fields:
+                        point.pop(f, None)
+        else:
+            for camp in result:
+                camp.pop('chart', None)
+
     return JsonResponse({"campaigns": result, "totalCount": totalCount})
 
 

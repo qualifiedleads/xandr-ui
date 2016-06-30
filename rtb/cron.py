@@ -15,7 +15,7 @@ import requests
 import report
 from django.conf import settings
 from models import Advertiser, Campaign, SiteDomainPerformanceReport, Profile, LineItem, InsertionOrder, \
-    OSFamily, OperatingSystemExtended, NetworkAnalyticsReport
+    OSFamily, OperatingSystemExtended, NetworkAnalyticsReport, GeoAnaliticsReport
 from pytz import utc
 
 
@@ -72,6 +72,9 @@ def analize_csv(csvFile, modelClass, metadata={}):
         res = modelClass.objects.bulk_create(islice(it, 0, 1000))
         print '%d rows fetched' % metadata['counter']
         if not res: break
+        if metadata['counter'] % 100000 == 0:
+            gc.collect()
+    gc.collect()
 
 
 unix_epoch = datetime.datetime.utcfromtimestamp(0).replace(tzinfo=utc)
@@ -234,7 +237,8 @@ def dayly_task(day=None, load_objects_from_services=True, output=None):
         if load_objects_from_services:
             pass
             # load_depending_data(token)
-        load_reports_for_all_advertisers(token, day, SiteDomainPerformanceReport)
+        load_reports_for_all_advertisers(token, day, GeoAnaliticsReport)
+        # load_reports_for_all_advertisers(token, day, SiteDomainPerformanceReport)
         # load_reports_for_all_advertisers(token, day, NetworkAnalyticsReport)
     except Exception as e:
         print 'Error by fetching data: %s' % e
@@ -243,8 +247,6 @@ def dayly_task(day=None, load_objects_from_services=True, output=None):
         sys.stdout, sys.stderr = old_stdout, old_error
         if file_output: file_output.close()
     print "OK"
-    gc.collect()
-    print "There is %d items of garbage"%len(gc.garbage)
 
 
 def load_reports_for_all_advertisers(token, day, ReportClass):

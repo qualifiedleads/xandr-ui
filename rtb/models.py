@@ -40,13 +40,23 @@ class Category(models.Model):
         db_table = "category"
 
 
+class Company(models.Model):
+    #https://wiki.appnexus.com/display/api/Brand+Company+Service
+    models.IntegerField(primary_key=True)  # No AutoIncrement
+    name = models.TextField(null=True, blank=True, db_index=True)
+    last_modified = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        db_table = "company"
+
+
 class Brand(models.Model):
     #https://wiki.appnexus.com/display/api/Brand+Service
     name = models.TextField(null=True, blank=True, db_index=True)
     urls = models.TextField(null=True, blank=True, db_index=True)#ArrayField(models.TextField(null=True, blank=True), null=True, blank=True)
     is_premium = models.NullBooleanField(null=True, blank=True)
     category = models.ForeignKey("Category", null=True, blank=True)
-    company_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    company = models.ForeignKey("Company", null=True, blank=True)
     num_creatives = models.IntegerField(null=True, blank=True)
     last_modified = models.DateTimeField(null=True, blank=True)
 
@@ -135,6 +145,7 @@ class Advertiser(models.Model):
     class Meta:
         db_table = "advertiser"
 
+
 class AdvertiserBrand(models.Model):
     advertiser = models.ForeignKey("Advertiser", null=True, blank=True)
     brand = models.ForeignKey("Brand", null=True, blank=True)
@@ -150,6 +161,7 @@ class AdvertiserCategory(models.Model):
     class Meta:
         db_table = "advertiser_category"
 
+
 LABELED_OBJECT_TYPE = (
     ('advertiser', 'Advertiser'),
     ('insertion_order', 'Insertion order'),
@@ -162,7 +174,7 @@ LABELED_OBJECT_TYPE = (
 class Label(models.Model):
     # 1 (Salesperson), 3 (Account Manager), 12 (Advertiser Type), 2 (Salesperson), 4 (Account Manager)
     name = models.TextField(null=True, blank=True, db_index=True)
-    member_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    member = models.ForeignKey("Member", null=True, blank=True)
     is_user_associated = models.NullBooleanField(null=True, blank=True)
     is_reporting_enabled = models.NullBooleanField(null=True, blank=True)
     object_type = models.TextField(
@@ -647,11 +659,11 @@ class Creative(models.Model):
     custom_request_template = models.TextField(null=True, blank=True) #TODO JSON
     #competitive_brands = array - see model CreativeCompetitiveBrand below
     #competitive_categories = array - see model CreativeCompetitiveCategory below
-    #thirdparty_pixels = array
+    #thirdparty_pixels = array - see model CreativeThirdpartyPixel
     #native = models.TextField(null=True, blank=True) #TODO JSON
     #adx_audit = models.TextField(null=True, blank=True) #TODO JSON
     flash_backup_url_secure = models.TextField(null=True, blank=True)
-    member_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    member = models.ForeignKey("Member", null=True, blank=True)
 
     class Meta:
         db_table = "creative"
@@ -778,7 +790,7 @@ class CteativeTemplate(models.Model):
     #https://wiki.appnexus.com/display/api/Creative+Template+Service
     name = models.TextField(null=True, blank=True, db_index=True)
     description = models.TextField(null=True, blank=True)
-    member_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    member = models.ForeignKey("Member", null=True, blank=True)
     media_subtype = models.ForeignKey("MediaSubType", null=True, blank=True)
     format = models.ForeignKey("CteativeFormat", null=True, blank=True)
     is_default = models.NullBooleanField(null=True, blank=True)
@@ -972,7 +984,7 @@ class Segment(models.Model):
         null=True, blank=True)
     short_name = models.TextField(null=True, blank=True, db_index=True)
     description = models.TextField(null=True, blank=True)
-    member_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    member = models.ForeignKey("Member", null=True, blank=True)
     price = models.FloatField(null=True, blank=True)
     expire_minutes = models.IntegerField(null=True, blank=True)
     enable_rm_piggyback = models.NullBooleanField(null=True, blank=True)
@@ -1587,7 +1599,7 @@ class LineItem(models.Model):
     currency = models.TextField(null=True, blank=True)
     require_cookie_for_tracking = models.NullBooleanField(null=True, blank=True)
     profile = models.ForeignKey("Profile", null=True, blank=True)
-    member_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    member = models.ForeignKey("Member", null=True, blank=True)
     comments = models.TextField(null=True, blank=True)
     remaining_days = models.IntegerField(null=True, blank=True)
     total_days = models.IntegerField(null=True, blank=True)
@@ -1657,7 +1669,7 @@ class LineItemCreatives(models.Model):
 
 class ClickTracker(models.Model):
     #https://wiki.appnexus.com/display/api/Click+Tracker+Service
-    member_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    member = models.ForeignKey("Member", null=True, blank=True)
     advertiser_id = models.ForeignKey("Advertiser", null=True, blank=True)
     name = models.TextField(null=True, blank=True, db_index=True)
     code = models.TextField(null=True, blank=True, db_index=True)
@@ -1685,7 +1697,7 @@ class ClickTrackerPlacement(models.Model):
 
 class ImpressionTracker(models.Model):
     #https://wiki.appnexus.com/display/api/Impression+Tracker+Service
-    member_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    member = models.ForeignKey("Member", null=True, blank=True)
     advertiser_id = models.ForeignKey("Advertiser", null=True, blank=True)
     name = models.TextField(null=True, blank=True, db_index=True)
     code = models.TextField(null=True, blank=True, db_index=True)
@@ -1877,7 +1889,7 @@ class NetworkAnalyticsRaw(models.Model):
     csv = models.TextField(null=True, blank=True)
     report_type = models.TextField(null=True, blank=True)
     report_id = models.TextField(null=True, blank=True) #TODO FK is needed in future
-    last_updated = models.DateTimeField()
+    last_updated = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         db_table = "network_analytics_raw"
@@ -1886,11 +1898,325 @@ class NetworkAnalyticsRaw(models.Model):
         return self.id
 
 
+class BuyerGroup(models.Model):
+    #https://wiki.appnexus.com/display/api/Buyer+Group+Service
+    id = models.IntegerField(primary_key=True)  # No AutoIncrement
+    code = models.TextField(null=True, blank=True, db_index=True)
+    name = models.TextField(null=True, blank=True, db_index=True)
+    description = models.TextField(null=True, blank=True)
+    last_modified = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        db_table = "buyer_group"
+
+
+MEMBER_ENTITY_TYPE = (
+    ('reseller', 'reseller'),
+    ('direct', 'direct')
+)
+
+
+MEMBER_RESELLING_EXPOSURE = (
+    ('public', 'public'),
+    ('private', 'private')
+)
+
+
+MEMBER_PLATFORM_EXPOSURE = (
+    ('public', 'public'),
+    ('private', 'private'),
+    ('hidden', 'hidden')
+)
+
+
+MEMBER_DEFAULT_CAMPAIGN_TRUST = (
+    ('seller', 'seller'),
+    ('appnexus', 'appnexus')
+)
+
+
+REPORTING_DECIMAL_TYPE = (
+    ('comma', 'comma'),
+    ('decimal', 'decimal')
+)
+
+
+class Developer(models.Model):
+    id = models.IntegerField(primary_key=True) # No AutoIncrement
+    name = models.TextField(null=True, blank=True, db_index=True)
+    entity_id = models.IntegerField(null=True, blank=True)
+    phone = models.TextField(null=True, blank=True)
+    email = models.TextField(null=True, blank=True)
+    billing_address_1 = models.TextField(null=True, blank=True)
+    billing_address_2 = models.TextField(null=True, blank=True)
+    billing_city = models.TextField(null=True, blank=True)
+    billing_region = models.TextField(null=True, blank=True)
+    billing_postal_code = models.TextField(null=True, blank=True)
+    billing_country = models.TextField(null=True, blank=True)
+    last_modified = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        db_table = "developer"
+
+
+class Member(models.Model):
+    #https://wiki.appnexus.com/display/api/Member+Service
+    id = models.IntegerField(primary_key=True) # No AutoIncrement
+    name = models.TextField(null=True, blank=True, db_index=True)
+    reselling_description = models.TextField(null=True, blank=True)
+    state = models.TextField(
+        choices=STATE_CHOICES,
+        null=True, blank=True)
+    no_reselling_priority = models.IntegerField(null=True, blank=True)
+    entity_type = models.TextField(
+        choices=MEMBER_ENTITY_TYPE,
+        null=True, blank=True)
+    buyer_clearing_fee_pct = models.FloatField(null=True, blank=True)
+    app_contract_accepted = models.NullBooleanField(null=True, blank=True)
+    default_buyer_group = models.ForeignKey("BuyerGroup", null=True, blank=True)
+    interface_domain = models.TextField(null=True, blank=True)
+    interface_domain_beta = models.TextField(null=True, blank=True)
+    creative_size_minimum_bytes = models.IntegerField(null=True, blank=True)
+    creative_size_fee_per_gb = models.FloatField(null=True, blank=True)
+    default_ad_profile_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    email_code = models.TextField(null=True, blank=True)
+    serving_domain = object
+    reselling_exposure = models.TextField(
+        choices=MEMBER_RESELLING_EXPOSURE,
+        null=True, blank=True)
+    reselling_exposed_on = models.TextField(null=True, blank=True)
+    last_modified = models.DateTimeField(null=True, blank=True)
+    standard_sizes = models.TextField(null=True, blank=True) #TODO JSON
+    buyer_credit_limit = models.FloatField(null=True, blank=True)
+    timezone = models.TextField(null=True, blank=True)  # enum
+    seller_revshare_pct = models.IntegerField(null=True, blank=True)
+    #default_country = array - see model MemberCountry below
+    dongle = models.TextField(null=True, blank=True)
+    platform_exposure = models.TextField(
+        choices=MEMBER_PLATFORM_EXPOSURE,
+        null=True, blank=True)
+    audit_notify_email = models.TextField(null=True, blank=True)
+    sherlock_notify_email = models.TextField(null=True, blank=True)
+    domain_blacklist_email = models.TextField(null=True, blank=True)
+    contact_email = models.TextField(null=True, blank=True)
+    allow_ad_profile_override = models.NullBooleanField(null=True, blank=True)
+    default_currency = models.TextField(null=True, blank=True)
+    use_insertion_orders = models.NullBooleanField(null=True, blank=True)
+    expose_optimization_levers = models.NullBooleanField(null=True, blank=True)
+    pops_enabled_UI = models.NullBooleanField(null=True, blank=True)
+    default_accept_supply_partner_usersync = models.NullBooleanField(null=True, blank=True)
+    default_accept_data_provider_usersync = models.NullBooleanField(null=True, blank=True)
+    default_accept_demand_partner_usersync = models.NullBooleanField(null=True, blank=True)
+    short_name = models.TextField(null=True, blank=True, db_index=True)
+    expose_eap_ecp_placement_settings = models.NullBooleanField(null=True, blank=True)
+    daily_imps_verified = models.IntegerField(null=True, blank=True)
+    daily_imps_self_audited = models.IntegerField(null=True, blank=True)
+    daily_imps_unaudited = models.IntegerField(null=True, blank=True)
+    is_iash_compliant = models.NullBooleanField(null=True, blank=True)
+    deal_types = models.TextField(null=True, blank=True) #TODO JSON or Model - no description in source
+    allow_non_cpm_payment = models.NullBooleanField(null=True, blank=True)
+    default_allow_cpc = models.NullBooleanField(null=True, blank=True)
+    default_allow_cpa = models.NullBooleanField(null=True, blank=True)
+    visibility_profile_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    default_campaign_trust = models.TextField(
+        choices=MEMBER_DEFAULT_CAMPAIGN_TRUST,
+        null=True, blank=True)
+    default_campaign_allow_unaudited = models.NullBooleanField(null=True, blank=True)
+    website_url = models.TextField(null=True, blank=True)
+    contract_allows_unaudited = models.NullBooleanField(null=True, blank=True)
+    reporting_decimal_type = models.TextField(
+        choices=REPORTING_DECIMAL_TYPE,
+        null=True, blank=True)
+    plugins_enabled = models.NullBooleanField(null=True, blank=True)
+    #plugins = array - see model MemberPlugin below
+    enable_click_and_imp_trackers = models.NullBooleanField(null=True, blank=True)
+    max_hosted_video_size = models.IntegerField(null=True, blank=True)
+    require_facebook_preaudit = models.NullBooleanField(null=True, blank=True)
+    developer = models.ForeignKey("Developer", null=True, blank=True)
+    pitbull_segment_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    pitbull_segment_value = models.IntegerField(null=True, blank=True)
+    #content_categories = array - see model MemberContentCategory below
+    #inventory_trust = array - see model MemberInventoryTrust below
+    #seller_member_groups = array - see model SellerMemberGroup below
+    default_content_retrieval_timeout_ms = models.IntegerField(null=True, blank=True)
+    default_enable_for_mediation = models.NullBooleanField(null=True, blank=True)
+    prioritize_margin = models.NullBooleanField(null=True, blank=True)
+    #member_brand_exceptions = array - see model MemberBrandException below
+    #thirdparty_pixels = array - see model MemberThirdpartyPixel below
+    #floor_optimization = array - see model MemberFloorOptimisation below
+    mediation_auto_bid_adjustment_enabled = models.NullBooleanField(null=True, blank=True)
+    reporting_sync_enabled = models.NullBooleanField(null=True, blank=True)
+    native_custom_keys = models.TextField(null=True, blank=True) #TODO JSON or Model - array in source
+    daily_budget = models.DecimalField(max_digits=35, decimal_places=10)
+    daily_budget_imps = models.IntegerField(null=True, blank=True)
+
+    class Meta:
+        db_table = "member"
+
+
+class MemberFloorOptimisation(models.Model):
+    member = models.ForeignKey("Member", null=True, blank=True)
+    active = models.NullBooleanField(null=True, blank=True)
+    bidder_id = models.IntegerField(null=True, blank=True) #TODO FK is needed in future - I have not found corespondent service in source
+
+    class Meta:
+        db_table = "member_floor_optimization"
+
+
+class MemberThirdpartyPixel(models.Model):
+    member = models.ForeignKey("Member", null=True, blank=True)
+    thirdparty_pixel = models.ForeignKey("ThirdPartyPixel", null=True, blank=True)
+
+    class Meta:
+        db_table = "member_thirdparty_pixel"
+
+
+class MemberBrandException(models.Model):
+    member = models.ForeignKey("Member", null=True, blank=True)
+    brand = models.ForeignKey("Brand", null=True, blank=True)
+
+    class Meta:
+        db_table = "member_brand_exception"
+
+
+class MemberCountry(models.Model):
+    member = models.ForeignKey("Member", null=True, blank=True)
+    country = models.ForeignKey("Country", null=True, blank=True)
+
+    class Meta:
+        db_table = "member_country"
+
+
+class MemberContentCategory(models.Model):
+    member = models.ForeignKey("Member", null=True, blank=True)
+    content_category = models.ForeignKey("ContentCategory", null=True, blank=True)
+
+    class Meta:
+        db_table = "member_content_category"
+
+
+class SellerMemberGroup(models.Model):
+    id = models.IntegerField(primary_key=True)  # No AutoIncrement
+    member = models.ForeignKey("Member", null=True, blank=True)
+    display_order = models.IntegerField(null=True, blank=True)
+    name = models.TextField(null=True, blank=True, db_index=True)
+    description = models.TextField(null=True, blank=True)
+    last_modified = models.DateTimeField(null=True, blank=True)
+    created_on = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        db_table = "seller_member_group"
+
+
+DEFAULT_TRUST_CHOICES = (
+    ('appnexus', 'appnexus'),
+    ('seller', 'seller')
+)
+
+
+class MemberInventoryTrust(models.Model):
+    member = models.ForeignKey("Member", null=True, blank=True)
+    members = models.TextField(null=True, blank=True) #TODO JSON
+    default_is_banned = models.NullBooleanField(null=True, blank=True)
+    default_trust = models.TextField(
+        choices=DEFAULT_TRUST_CHOICES,
+        null=True, blank=True)
+    default_allow_unaudited = models.NullBooleanField(null=True, blank=True)
+
+    class Meta:
+        db_table = "member_inventory_trust"
+
+
+class Plugin(models.Model):
+    #https://wiki.appnexus.com/display/api/Plugin+Service
+    id = models.IntegerField(primary_key=True)  # No AutoIncrement
+    name = models.TextField(null=True, blank=True, db_index=True)
+    description = models.TextField(null=True, blank=True)
+    public_key = models.TextField(null=True, blank=True)
+    moreinfo_url = models.TextField(null=True, blank=True)
+    log_level_data_fee = models.IntegerField(null=True, blank=True)
+    plugin_category = models.ForeignKey("Category", null=True, blank=True)
+    is_available = models.NullBooleanField(null=True, blank=True)
+    summary = models.TextField(null=True, blank=True)
+    contact_name = models.TextField(null=True, blank=True)
+    contact_phone = models.TextField(null=True, blank=True)
+    contact_email = models.TextField(null=True, blank=True)
+    contact_text = models.TextField(null=True, blank=True)
+    author_display_name = models.TextField(null=True, blank=True)
+    recommended = models.NullBooleanField(null=True, blank=True)
+    featured = models.NullBooleanField(null=True, blank=True)
+    has_payment_access = models.NullBooleanField(null=True, blank=True)
+    allowed_asset_count = models.IntegerField(null=True, blank=True)
+    addendum = models.TextField(null=True, blank=True)
+    click_to_install = models.NullBooleanField(null=True, blank=True)
+    video_url = models.TextField(null=True, blank=True)
+    developer = models.ForeignKey("Developer", null=True, blank=True)
+    #domains = array - see model PluginDomain below
+    permissions = models.TextField(null=True, blank=True) #TODO JSON or Model - array in source
+    #plugin_instances = array -  see model PluginInstance below
+    member_availabilities = models.TextField(null=True, blank=True) #TODO JSON or Model - array in source
+
+    class Meta:
+        db_table = "plugin"
+
+
+PLUGIN_STATE = (
+    ('available', 'available'),
+    ('installed', 'installedinstalled'),
+    ('accept_permissions', 'accept_permissions')
+)
+
+
+class PluginDomain(models.Model):
+    #https://wiki.appnexus.com/display/api/Plugin+Instance+Service
+    plugin = models.ForeignKey("Plugin", null=True, blank=True)
+    name = models.TextField(null=True, blank=True, db_index=True)
+
+    class Meta:
+        db_table = "plugin_domain"
+
+
+PLUGIN_INSTANCE_FLAVOUR_CHOICES = (
+    ('standalone', 'standalone'),
+    ('creative_action', 'creative_action'),
+    ('advertiser_menu', 'advertiser_menu'),
+    ('publisher_menu', 'publisher_menu'),
+    ('conversion_pixel', 'conversion_pixel')
+)
+
+
+class PluginInstance(models.Model):
+    id = models.IntegerField(primary_key=True)  # No AutoIncrement
+    plugin = models.ForeignKey("Plugin", null=True, blank=True)
+    name = models.TextField(null=True, blank=True, db_index=True)
+    flavor = models.TextField(
+        choices=PLUGIN_INSTANCE_FLAVOUR_CHOICES,
+        null=True, blank=True)
+    iframe_url = models.TextField(null=True, blank=True)
+    description = models.TextField(null=True, blank=True)
+    icon_url = models.TextField(null=True, blank=True)
+    proxy_url = models.TextField(null=True, blank=True)
+
+    class Meta:
+        db_table = "plugin_instance"
+
+
+class MemberPlugin(models.Model):
+    member = models.ForeignKey("Member", null=True, blank=True)
+    plugin = models.ForeignKey("Plugin", null=True, blank=True)
+    state = models.TextField(
+        choices=PLUGIN_STATE,
+        null=True, blank=True)
+
+    class Meta:
+        db_table = "member_plugin"
+
+
 class NetworkAnalyticsReport(models.Model):
     hour = models.DateTimeField(null=True, blank=True, db_index=True)
-    entity_member_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
-    buyer_member_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
-    seller_member_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    entity_member = models.ForeignKey("Member", related_name='entity_member_id', null=True, blank=True)
+    buyer_member = models.ForeignKey("Member", related_name='buyer_member_id', null=True, blank=True)
+    seller_member = models.ForeignKey("Member", related_name='seller_member_id', null=True, blank=True)
     advertiser = models.ForeignKey("Advertiser", null=True, blank=True)
     adjustment_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
     publisher = models.ForeignKey("Publisher", null=True, blank=True)
@@ -1942,7 +2268,7 @@ class SiteDomainPerformanceReport(models.Model):
     deal_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
     advertiser = models.ForeignKey("Advertiser", null=True, blank=True)
     #campaign_group = campaign_group is a synonymous with line_item .
-    buyer_member_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    buyer_member = models.ForeignKey("Member", null=True, blank=True)
     operating_system = models.ForeignKey("OperatingSystemExtended", null=True, blank=True)
     supply_type = models.TextField(
         choices=SUPPLY_TYPE,

@@ -37,7 +37,7 @@ column_sets_for_reports = {
         "click_thru_pct",
         "site_domain"
     ],
-    "site_domain_performance": [
+    "site_domain_performance_1": [
         "day",
         "site_domain",
         "campaign",

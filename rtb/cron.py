@@ -71,8 +71,8 @@ def analize_csv(csvFile, modelClass, metadata={}):
     while True:
         res = modelClass.objects.bulk_create(islice(it, 0, 1000))
         print '%d rows fetched' % metadata['counter']
-        if not res: break
-
+        # if not res: break
+        break
 
 unix_epoch = datetime.datetime.utcfromtimestamp(0).replace(tzinfo=utc)
 

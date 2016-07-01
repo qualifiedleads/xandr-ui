@@ -8,6 +8,7 @@
   /** @ngInject */
   function MainController($compile, $window, $state, $localStorage, $translate, $log, Main) {
     var vm = this;
+    vm.advertiser = $localStorage.advertiser;
     vm.Main = Main;
     vm.multipleTotalCount = 0;
     vm.checkChart = [];
@@ -15,7 +16,7 @@
     var LC = $translate.instant;
     /** LOCAL STORAGE CHECKBOX - START **/
 
-    
+
 
 
     if ($localStorage.series == null ){
@@ -144,7 +145,7 @@
         return 0;
       },
       load: function () {
-        return vm.Main.statsChart(vm.dataStart, vm.dataEnd,vm.by)
+        return vm.Main.statsChart(vm.advertiser.id, vm.dataStart, vm.dataEnd,vm.by)
           .then(function (result) {
 
             return result.statistics;
@@ -157,7 +158,7 @@
         return vm.multipleTotalCount ;
       },
       load: function (loadOptions) {
-        return vm.Main.statsCampaigns(vm.dataStart, vm.dataEnd, loadOptions.skip,
+        return vm.Main.statsCampaigns(vm.advertiser.id, vm.dataStart, vm.dataEnd, loadOptions.skip,
           loadOptions.take, loadOptions.sort, loadOptions.order,
           vm.by ,loadOptions.filter)
           .then(function (result) {
@@ -169,7 +170,7 @@
     /** BINDING OPTIONS - END **/
 
     /** TOTALS - START **/
-    vm.Main.statsTotals(vm.dataStart, vm.dataEnd)
+    vm.Main.statsTotals(vm.advertiser.id, vm.dataStart, vm.dataEnd)
       .then(function (result) {
         vm.totals.spent = result.spend;
         vm.totals.conv = result.conv;
@@ -542,7 +543,7 @@
     /** MAP CLICKS - START **/
     var clicksByCountry = {};
 
-    vm.Main.statsMap(vm.dataStart, vm.dataEnd).then(function (res) {
+    vm.Main.statsMap(vm.advertiser.id, vm.dataStart, vm.dataEnd).then(function (res) {
       clicksByCountry = res;
       $('#visualMap').dxVectorMap(vm.vectorMapOptions);
     });

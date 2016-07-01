@@ -8,10 +8,11 @@
   /** @ngInject */
   function AuthController($window, $state, $localStorage, $translate,  Auth) {
     var vm = this;
+    var LC = $translate.instant;
     vm.Auth = Auth;
 
     vm.addButton={
-      text: "Go",
+      text: LC('AUTH.GO_BUTTON'),
       onClick: function () {
         $localStorage.advertiser = vm.selectedService;
         $state.go('home.main');

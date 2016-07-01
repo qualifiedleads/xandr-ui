@@ -9,11 +9,11 @@
 	function Main($http, $translateLocalStorage) {
 		var _this = this;
 
-		function statsChart(from_date, to, by) {
+		function statsChart(advertiser_id, from_date, to, by) {
 			return $http({
 				method: 'GET',
 				url: '/api/v1/statistics',
-				params: {from_date: from_date, to: to, by: by}
+				params: {/*advertiser_id: advertiser_id,*/ from_date: from_date, to: to, by: by}
 			})
 				.then(function (res) {
 					for(var index in res.data.statistics) {
@@ -27,11 +27,11 @@
 				});
 		}
 
-		function statsTotals(from_date, to) {
+		function statsTotals(advertiser_id, from_date, to) {
 			return $http({
 				method: 'GET',
 				url: '/api/v1/totals',
-				params: {from_date: from_date, to: to}
+				params: {/*advertiser_id: advertiser_id,*/ from_date: from_date, to: to}
 			})
 				.then(function (res) {
 
@@ -43,7 +43,7 @@
 				});
 		}
 
-		function statsCampaigns(from_date, to, skip, take,sort,order,stat_by,filters) {
+		function statsCampaigns(advertiser_id, from_date, to, skip, take,sort,order,stat_by,filters) {
 			if(sort){
 				if (sort[0].desc === true){
 					order = 'desc'
@@ -95,7 +95,7 @@
 			return $http({
 				method: 'GET',
 				url: '/api/v1/campaigns',
-				params: {from_date: from_date, to: to,  skip: skip, take: take, sort: sort, order: order, stat_by: stat_by, filter: filters}
+				params: {/*advertiser_id: advertiser_id, */from_date: from_date, to: to,  skip: skip, take: take, sort: sort, order: order, stat_by: stat_by, filter: filters}
 			})
 				.then(function (res) {
 					for(var index in res.data.campaigns) {
@@ -107,11 +107,11 @@
 				});
 		}
 
-		function statsMap(from_date, to) {
+		function statsMap(advertiser_id, from_date, to) {
 			return $http({
 				method: 'GET',
 				url: 'http://private-anon-d71dffb7f-rtbs.apiary-mock.com/api/v1/map/clicks',
-				params: {from_date: from_date, to: to}
+				params: {advertiser_id: advertiser_id, from_date: from_date, to: to}
 			})
 				.then(function (res) {
 					return res.data;

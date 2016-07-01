@@ -633,7 +633,7 @@
               height:30,
               width: 89,
               onClick: function (e) {
-                console.log(e);
+                console.log(container, options);
                 var parentWhiteBtn = e.element[0].parentNode;
                 console.log(parentWhiteBtn);
                 if (parentWhiteBtn.classList.contains('active-white')) {
@@ -643,7 +643,6 @@
                   parentWhiteBtn.classList.remove('unactive-white');
                   parentWhiteBtn.classList.add('active-white');
                 }
-
               }
             }).addClass('white-list').appendTo(container);
 

@@ -38,7 +38,8 @@ INSTALLED_APPS = (
 
     'corsheaders',
     'rest_framework',
-	'django_crontab',
+    'rest_framework_docs',
+    'django_crontab',
     'rtb',
 )
 
@@ -86,7 +87,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'rtb',
         'USER': 'postgres',
-        'PASSWORD': 'postgres',
+        'PASSWORD': 'test123',
         'HOST': 'localhost',
         'PORT': '',
     }

@@ -7,6 +7,9 @@ from models import SiteDomainPerformanceReport, Campaign
 from django.core.cache import cache
 from pytz import utc
 import operator
+from rest_framework.decorators import api_view, parser_classes
+from rest_framework.response import Response
+from rest_framework.parsers import FormParser, MultiPartParser
 
 def to_unix_timestamp(d):
     return str(int(time.mktime(d.timetuple())))
@@ -108,13 +111,16 @@ def parse_get_params(params):
     except:
         res['sort'] = 'campaign'
     try:
-        res['stat_by']= re.match(r"^(campaign|spend|conv|imp|clicks|cpc|cpm|cvr|ctr)(?:,(campaign|spend|conv|imp|clicks|cpc|cpm|cvr|ctr))+$",
-                                 params['stat_by']).group(0).split(',')
+        m = re.match(
+            r"^(campaign|spend|conv|imp|clicks|cpc|cpm|cvr|ctr)(?:,(campaign|spend|conv|imp|clicks|cpc|cpm|cvr|ctr))*$",
+            params['stat_by'])
+        res['stat_by'] = m.group(0).split(',')
     except:
         res['stat_by'] = ''
     try:
-        res['by']= re.match(r"^(campaign|spend|conv|imp|clicks|cpc|cpm|cvr|ctr)(?:,(campaign|spend|conv|imp|clicks|cpc|cpm|cvr|ctr))+$",
-                                 params['stat_by']).group(0).split(',')
+        res['by'] = re.match(
+            r"^(campaign|spend|conv|imp|clicks|cpc|cpm|cvr|ctr)(?:,(campaign|spend|conv|imp|clicks|cpc|cpm|cvr|ctr))*$",
+            params['stat_by']).group(0).split(',')
     except:
         res['by'] = ''
     try:
@@ -124,13 +130,19 @@ def parse_get_params(params):
 
     return res
 
-# get campaign data as JSON
-#URL:
 #http://private-anon-e1f78e3eb-rtbs.apiary-mock.com/api/v1/campaigns?from=from_date&to=to_date&skip=skip&take=take&sort=sort&order=order&stat_by=stat_by&filter=filter
+@api_view()
+@parser_classes([FormParser, MultiPartParser])
 def campaigns(request):
+    """
+    Get campaigns data for given period
+    @from_date: start date for period. Data for this day included
+    @to_date: end date for period. Data for this day included
+    @advertiser_id: id of advertiser in system db
+    """
+    print request.query_params
     params = parse_get_params(request.GET)
     result = get_campaigns_data(params['advertiser_id'],params['from_date'],params['to_date'])
-    totalCount=len(result)
     #apply filter
     if params['filter']:
         clause_list = [(i[0],i[1].split(',')) for i in params['filter']]
@@ -138,18 +150,29 @@ def campaigns(request):
             return all(str(camp[clause[0]])in clause[1] for clause in clause_list)
         result = filter(filter_function,result)
 
+    totalCount = len(result)
+
     reverse_order = params['order'] == 'desc'
     if params['sort']!='campaign':
         result.sort(key=lambda camp: camp[params['sort']], reverse=reverse_order)
     result=result[params['skip']:params['skip']+params['take']]
-    if params['stat_by'] and result:
-        enabled_fields = set(params['stat_by'])
-        for camp in result:
-            for point in camp:
-                for f in point:
-                    if f not in enabled_fields:
-                        point.pop(f,None)
-    return JsonResponse({"campaigns": result, "totalCount": totalCount})
+    if result:
+        if params['stat_by']:
+            enabled_fields = set(params['stat_by'])
+            # if 'day' not in enabled_fields:
+            # enabled_fields.add('day')
+            all_fields = set(('conv', 'ctr', 'cpc', 'cvr', 'clicks', 'imp', 'spend', 'cpm'))  # ,'day')
+            remove_fields = all_fields - enabled_fields
+            for camp in result:
+                for point in camp['chart']:
+                    for f in remove_fields:
+                        point.pop(f, None)
+        else:
+            for camp in result:
+                camp.pop('chart', None)
+
+    #return JsonResponse({"campaigns": result, "totalCount": totalCount})
+    return Response({"campaigns": result, "totalCount": totalCount})
 
 
 def get_days_data(advertiser_id, from_date, to_date):

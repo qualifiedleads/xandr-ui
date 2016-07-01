@@ -179,6 +179,11 @@ def campaigns(request):
         clause_list = map(clause_evaluator, re.findall(clause,params['filter']))
         compile_string=re.sub(clause,'%s',params['filter'])
         filter_function = func_evaluator(compile_string, clause_list)
+        if not clause_list:
+            #simple clause
+            clause = re.compile(r"^(.*?)(>|<|=|!=|>=|<=)(.*)$")
+            m = re.match(clause,params['filter'])
+            filter_function = clause_evaluator(m) if m else None
         result = filter(filter_function,result)
 
     totalCount = len(result)

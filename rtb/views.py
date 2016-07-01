@@ -186,8 +186,9 @@ def campaigns(request):
         find_result = re.findall(clause,params['filter'])
         clause_list = map(clause_evaluator, find_result)
         compile_string=re.sub(clause,replace_func,params['filter'])
-        filter_function = func_evaluator(compile_string, clause_list)
-        if not clause_list:
+        if clause_list:
+            filter_function = func_evaluator(compile_string, clause_list)
+        else:
             #simple clause
             clause = re.compile(r"^(.*?)(>|<|=|!=|>=|<=)(.*)$")
             m = re.match(clause,params['filter'])

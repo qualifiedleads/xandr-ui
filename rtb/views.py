@@ -111,13 +111,16 @@ def parse_get_params(params):
     except:
         res['sort'] = 'campaign'
     try:
-        res['stat_by']= re.match(r"^(campaign|spend|conv|imp|clicks|cpc|cpm|cvr|ctr)(?:,(campaign|spend|conv|imp|clicks|cpc|cpm|cvr|ctr))+$",
-                                 params['stat_by']).group(0).split(',')
+        m = re.match(
+            r"^(campaign|spend|conv|imp|clicks|cpc|cpm|cvr|ctr)(?:,(campaign|spend|conv|imp|clicks|cpc|cpm|cvr|ctr))*$",
+            params['stat_by'])
+        res['stat_by'] = m.group(0).split(',')
     except:
         res['stat_by'] = ''
     try:
-        res['by']= re.match(r"^(campaign|spend|conv|imp|clicks|cpc|cpm|cvr|ctr)(?:,(campaign|spend|conv|imp|clicks|cpc|cpm|cvr|ctr))+$",
-                                 params['stat_by']).group(0).split(',')
+        res['by'] = re.match(
+            r"^(campaign|spend|conv|imp|clicks|cpc|cpm|cvr|ctr)(?:,(campaign|spend|conv|imp|clicks|cpc|cpm|cvr|ctr))*$",
+            params['stat_by']).group(0).split(',')
     except:
         res['by'] = ''
     try:
@@ -132,8 +135,10 @@ def parse_get_params(params):
 @parser_classes([FormParser, MultiPartParser])
 def campaigns(request):
     """
-     Get acampaign data for given period
-     params:
+    Get campaigns data for given period
+    @from_date: start date for period. Data for this day included
+    @to_date: end date for period. Data for this day included
+    @advertiser_id: id of advertiser in system db
     """
     print request.query_params
     params = parse_get_params(request.GET)

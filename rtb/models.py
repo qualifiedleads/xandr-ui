@@ -2020,5 +2020,3 @@ class SiteDomainPerformanceReport(models.Model):
         self.click_thru_pct = self.click_thru_pct.replace('%','')
         if self.line_item_id not in all_line_items:
             self.line_item = None
-
-

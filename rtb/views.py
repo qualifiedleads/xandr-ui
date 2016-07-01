@@ -152,7 +152,8 @@ def clause_evaluator(clause):
     return calc
 
 def func_evaluator(s, func_list):
-    node = ast.parse(s.strip(), mode='eval')
+    #node = ast.parse(s.strip(), mode='eval')
+    node = compile(s.strip(), filename='<unknown>', mode='eval')
     variable_names = ['a%d'%num for num in xrange(1,len(func_list)+1)]
     def calc(obj):
         local_vars = {name:f(obj) for name,f in itertools.izip(variable_names, func_list)}

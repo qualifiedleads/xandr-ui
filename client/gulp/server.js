@@ -35,7 +35,7 @@ function browserSyncInit(baseDir, browser) {
    */
   // server.middleware = proxyMiddleware('/users', {target: 'http://jsonplaceholder.typicode.com', changeOrigin: true});
   var proxy = [
-    proxyMiddleware('/api/v1', {target: 'http://localhost:8000'})
+    proxyMiddleware('/api/v1', {target: 'http://127.0.0.1:8000/'})
   ];
   
   browserSync.instance = browserSync.init({

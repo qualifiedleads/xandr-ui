@@ -145,10 +145,11 @@ def clause_evaluator(clause):
     field_name = clause[0]
     const = clause[2]
     def calc(obj):
-        left = obj.get(field_name)
-        if not left: return False
-        #left_type = type(left)
-        return oper(left,const)
+        left = obj.get(field_name,None)
+        if left is None: return False
+        left_type = type(left)
+        right = left_type(const)
+        return oper(left,right)
     return calc
 
 def func_evaluator(s, func_list):

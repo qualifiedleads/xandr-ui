@@ -145,6 +145,7 @@
       load: function () {
         return vm.Main.statsChart(vm.dataStart, vm.dataEnd,vm.by)
           .then(function (result) {
+
             return result.statistics;
           });
       }
@@ -155,15 +156,6 @@
         return vm.multipleTotalCount ;
       },
       load: function (loadOptions) {
-        if(loadOptions.take == null) {
-          loadOptions.take = 20;
-        }
-        if(loadOptions.skip == null) {
-          loadOptions.skip = 0;
-        }
-
-        
-        console.log(loadOptions.sort);
         return vm.Main.statsCampaigns(vm.dataStart, vm.dataEnd, loadOptions.skip,
           loadOptions.take, loadOptions.sort, loadOptions.order,
           vm.by ,loadOptions.filter)
@@ -204,6 +196,15 @@
       headerFilter: {
         visible: true
       },
+      allowColumnReordering: true,
+      allowColumnResizing: true,
+      columnAutoWidth: true,
+      columnChooser: {
+        enabled: true
+      },
+      columnFixing: {
+        enabled: true
+      },
       pager: {
         showPageSizeSelector: true,
         allowedPageSizes: [10, 30, 50],
@@ -212,11 +213,11 @@
       },
       howBorders: true,
       showRowLines: true,
-
       columns: [
         {
           caption: LC('MAIN.CAMPAIGN.COLUMNS.CAMPAIGN'),
           dataField: 'campaign',
+          fixed: true,
           cellTemplate: function (container, options) {
             container.addClass('a-campaign');
             $window.angular.element('<a href="#/campaign/'+ options.data.id +'">' + options.data.campaign + '</a>')
@@ -256,7 +257,7 @@
           width: 200,
           dataField: LC('MAIN.CAMPAIGN.COLUMNS.STATS'),
           cellTemplate: function (container, options) {
-            //console.log(options);
+            if (options.data.chart) {
             var chartOptions = {
               onInitialized: function (data) {
                 vm.chartOptionsFuncgrid[options.rowIndex] = data.component;
@@ -317,13 +318,21 @@
                 }
               }
             };
+              container.addClass('img-container');
+              $window.angular.element('<div id="chartMulti' + options.rowIndex + '" ></div>')
 
-            container.addClass('img-container');
-            $window.angular.element('<div id="chartMulti' + options.rowIndex + '" ></div>')
+              //.attr("src", options.value)
+                .appendTo(container);
+              $window.$('#chartMulti' + options.rowIndex).dxChart(chartOptions).dxChart('instance');
+            } else {
+              container.addClass('img-container');
+              $window.angular.element('<div id="chartMulti" ></div>')
 
-            //.attr("src", options.value)
-              .appendTo(container);
-            $window.$('#chartMulti' + options.rowIndex).dxChart(chartOptions).dxChart('instance');
+              //.attr("src", options.value)
+                .appendTo(container);
+            }
+
+
           }
         }],
       selection: {

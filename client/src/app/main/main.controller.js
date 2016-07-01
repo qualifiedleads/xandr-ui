@@ -8,12 +8,14 @@
   /** @ngInject */
   function MainController($compile, $window, $state, $localStorage, $translate, $log, Main) {
     var vm = this;
+    vm.advertiser = $localStorage.advertiser;
     vm.Main = Main;
     vm.multipleTotalCount = 0;
     vm.checkChart = [];
     vm.by = '';
     var LC = $translate.instant;
     /** LOCAL STORAGE CHECKBOX - START **/
+
 
 
 
@@ -143,8 +145,9 @@
         return 0;
       },
       load: function () {
-        return vm.Main.statsChart(vm.dataStart, vm.dataEnd,vm.by)
+        return vm.Main.statsChart(vm.advertiser.id, vm.dataStart, vm.dataEnd,vm.by)
           .then(function (result) {
+
             return result.statistics;
           });
       }
@@ -155,16 +158,7 @@
         return vm.multipleTotalCount ;
       },
       load: function (loadOptions) {
-        if(loadOptions.take == null) {
-          loadOptions.take = 20;
-        }
-        if(loadOptions.skip == null) {
-          loadOptions.skip = 0;
-        }
-
-        
-        console.log(loadOptions.sort);
-        return vm.Main.statsCampaigns(vm.dataStart, vm.dataEnd, loadOptions.skip,
+        return vm.Main.statsCampaigns(vm.advertiser.id, vm.dataStart, vm.dataEnd, loadOptions.skip,
           loadOptions.take, loadOptions.sort, loadOptions.order,
           vm.by ,loadOptions.filter)
           .then(function (result) {
@@ -176,7 +170,7 @@
     /** BINDING OPTIONS - END **/
 
     /** TOTALS - START **/
-    vm.Main.statsTotals(vm.dataStart, vm.dataEnd)
+    vm.Main.statsTotals(vm.advertiser.id, vm.dataStart, vm.dataEnd)
       .then(function (result) {
         vm.totals.spent = result.spend;
         vm.totals.conv = result.conv;
@@ -204,6 +198,15 @@
       headerFilter: {
         visible: true
       },
+      allowColumnReordering: true,
+      allowColumnResizing: true,
+      columnAutoWidth: true,
+      columnChooser: {
+        enabled: true
+      },
+      columnFixing: {
+        enabled: true
+      },
       pager: {
         showPageSizeSelector: true,
         allowedPageSizes: [10, 30, 50],
@@ -212,14 +215,14 @@
       },
       howBorders: true,
       showRowLines: true,
-
       columns: [
         {
           caption: LC('MAIN.CAMPAIGN.COLUMNS.CAMPAIGN'),
           dataField: 'campaign',
+          fixed: true,
           cellTemplate: function (container, options) {
             container.addClass('a-campaign');
-            $window.angular.element('<a href="#/campaign/'+ options.data.id +'">' + options.data.campaign + '</a>')
+            $window.angular.element('<a href="#/home/campaign/'+ options.data.id +'">' + options.data.campaign + '</a>')
               .appendTo(container);
           }
         },
@@ -256,7 +259,7 @@
           width: 200,
           dataField: LC('MAIN.CAMPAIGN.COLUMNS.STATS'),
           cellTemplate: function (container, options) {
-            //console.log(options);
+            if (options.data.chart) {
             var chartOptions = {
               onInitialized: function (data) {
                 vm.chartOptionsFuncgrid[options.rowIndex] = data.component;
@@ -317,13 +320,21 @@
                 }
               }
             };
+              container.addClass('img-container');
+              $window.angular.element('<div id="chartMulti' + options.rowIndex + '" ></div>')
 
-            container.addClass('img-container');
-            $window.angular.element('<div id="chartMulti' + options.rowIndex + '" ></div>')
+              //.attr("src", options.value)
+                .appendTo(container);
+              $window.$('#chartMulti' + options.rowIndex).dxChart(chartOptions).dxChart('instance');
+            } else {
+              container.addClass('img-container');
+              $window.angular.element('<div id="chartMulti" ></div>')
 
-            //.attr("src", options.value)
-              .appendTo(container);
-            $window.$('#chartMulti' + options.rowIndex).dxChart(chartOptions).dxChart('instance');
+              //.attr("src", options.value)
+                .appendTo(container);
+            }
+
+
           }
         }],
       selection: {
@@ -532,7 +543,7 @@
     /** MAP CLICKS - START **/
     var clicksByCountry = {};
 
-    vm.Main.statsMap(vm.dataStart, vm.dataEnd).then(function (res) {
+    vm.Main.statsMap(vm.advertiser.id, vm.dataStart, vm.dataEnd).then(function (res) {
       clicksByCountry = res;
       $('#visualMap').dxVectorMap(vm.vectorMapOptions);
     });

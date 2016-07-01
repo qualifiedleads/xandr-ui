@@ -4,6 +4,9 @@
 	angular
 		.module('pjtLayout')
 		.constant('EnglishTranslations', {
+			'AUTH':{
+				'GO_BUTTON':'GO'
+			},
 			'INDEX':{
 				'ADVERTISER_TITLE':'Stats for',
 				'LEFT_NAV':{

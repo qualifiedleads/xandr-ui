@@ -4,6 +4,9 @@
   angular
     .module('pjtLayout')
     .constant('RussianTranslations', {
+      'AUTH':{
+        'GO_BUTTON':'Дальше'
+      },
       'INDEX':{
         'ADVERTISER_TITLE':'Статистика для',
         'LEFT_NAV':{

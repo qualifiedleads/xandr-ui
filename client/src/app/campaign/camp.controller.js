@@ -688,7 +688,8 @@
         }
         ],
       selection: {
-        mode: 'multiple'
+        mode: 'multiple',
+        showCheckBoxesMode: 'always'
       },
       onSelectionChanged: function (data) {
         vm.selectedItems = data.selectedRowsData;

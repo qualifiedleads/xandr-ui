@@ -221,7 +221,7 @@
           fixed: true,
           cellTemplate: function (container, options) {
             container.addClass('a-campaign');
-            $window.angular.element('<a href="#/campaign/'+ options.data.id +'">' + options.data.campaign + '</a>')
+            $window.angular.element('<a href="#/home/campaign/'+ options.data.id +'">' + options.data.campaign + '</a>')
               .appendTo(container);
           }
         },

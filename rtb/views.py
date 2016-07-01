@@ -151,6 +151,15 @@ def clause_evaluator(clause):
         return oper(left,const)
     return calc
 
+def func_evaluator(s, func_list):
+    def calc(obj):
+        str_to_eval = s%tuple(f(obj) for f in func_list)
+        try:
+            return ast.literal_eval(s)
+        except:
+            return False
+    return calc
+
 #http://private-anon-e1f78e3eb-rtbs.apiary-mock.com/api/v1/campaigns?from=from_date&to=to_date&skip=skip&take=take&sort=sort&order=order&stat_by=stat_by&filter=filter
 @api_view()
 @parser_classes([FormParser, MultiPartParser])
@@ -166,15 +175,11 @@ def campaigns(request):
     result = get_campaigns_data(params['advertiser_id'],params['from_date'],params['to_date'])
     #apply filter
     if params['filter']:
-        logical_operators = re.compile(r"(and|or)",re.IGNORECASE)
-        clause = re.compile(r'\s*\[\s*"([^"])",\s*"([^"])",\s*"([^"])",\]')
-        clause_texts = re.split(logical_operators, params['filter'])
-        operator_list = re.findall(logical_operators,params['filter'])
-        clause_list = [ re.match(clause,i)  for i in clause_texts]
-        if all(clause_list):
-            def filter_function(camp):
-                return all(str(camp[clause[0]])in clause[1] for clause in clause_list)
-            result = filter(filter_function,result)
+        clause = re.compile(r'\s*\[\s*"([^"]*)",\s*"([^"]*)",\s*"([^"]*)"\s*\]')
+        clause_list = map(clause_evaluator, re.findall(clause,params['filter']))
+        compile_string=re.sub(clause,'%s',params['filter'])
+        filter_function = func_evaluator(compile_string, clause_list)
+        result = filter(filter_function,result)
 
     totalCount = len(result)
 

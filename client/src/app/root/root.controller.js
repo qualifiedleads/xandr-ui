@@ -15,6 +15,6 @@ function RootController($window, $state, $translate, $translateLocalStorage) {
     $state.reload();
   };
   
-  vm.advertiser = {"name":"Adam"};
+
 
 }

@@ -1,8 +1,20 @@
-/*
-
 .container-camp {
   position: absolute;
-  top: 5%;
+  top: 7%;
+
+  .camp-content1 {
+    margin-top: 4%;
+  }
+
+  .second-chart {
+    float: left;
+    .dxc-legend {
+      display: none;
+    }
+    .second-range {
+      margin-bottom: -10%;
+    }
+  }
 
   #gridContainer1 {
     height: auto;
@@ -25,21 +37,66 @@
     padding-top: 1%;
   }
 
-  #chart {
+  .first-chart {
     float: left;
-    margin-right: 2%;
+    margin-right: 3.5%;
+    .first-range {
+      margin-top:-20px;
+      margin-bottom: -10%;
+    }
   }
 
+  .dx-button {
+    margin: 2px;
+    font-size: 12px;
+    color: black;
+  }
+
+  .active-white {
+    .white-list {
+      background-color: rgba(0, 210, 212, 0.63);
+    }
+  }
+
+  .active-black {
+    .black-list {
+      background-color: rgba(0, 210, 212, 0.63);
+    }
+  }
+
+  .active-suspended {
+    .suspended {
+      background-color: rgba(0, 210, 212, 0.63);
+    }
+  }
+
+  .unactive-white {
+    .white-list {
+      background-color: #F5F5F5;
+    }
+  }
+
+  .unactive-black {
+    .black-list {
+      background-color: #F5F5F5;
+    }
+  }
+
+  .unactive-suspended {
+    .suspended {
+      background-color: #F5F5F5;
+    }
+  }
 
   .checkbox-container {
-    float: left;
-    margin-right: 6%;
-    margin-left: 10%;
+    float: right;
+    padding-top: 1%;
+    span {
+      font-size: 12px;
+      margin-bottom: 1px;
+    }
   }
 
-  .second-grid {
-    margin-top: 3%;
-  }
   .piker{
     top: 25px;
     position: absolute;
@@ -51,5 +108,9 @@
     float: left;
     margin-bottom: 30px;
   }
+  .camp-header {
+    font-size: 30px;
+    margin-left: 1.2%;
+  }
 }
-*/
+

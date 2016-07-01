@@ -15,6 +15,7 @@
     var LC = $translate.instant;
     /** LOCAL STORAGE CHECKBOX - START **/
 
+    
 
 
     if ($localStorage.series == null ){

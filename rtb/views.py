@@ -125,7 +125,7 @@ def parse_get_params(params):
     except:
         res['by'] = ''
     try:
-        res['filter'] = ''.join(params['filter'])
+        res['filter'] = ''.join(params.getlist('filter'))
     except:
         res['filter'] = ''
     return res
@@ -137,13 +137,13 @@ all_accepted_operators={
     "!=":operator.ne,
     ">":operator.gt,
     "<": operator.lt,
-    ">=": operator.gte,
-    "<=": operator.lte,
+    ">=": operator.ge,
+    "<=": operator.le,
 }
 def clause_evaluator(clause):
-    oper=all_accepted_operators[clause.group(2)]
-    field_name = clause.group(1)
-    const = clause.group(3)
+    oper=all_accepted_operators[clause[1]]
+    field_name = clause[0]
+    const = clause[2]
     def calc(obj):
         left = obj.get(field_name)
         if not left: return False
@@ -152,11 +152,14 @@ def clause_evaluator(clause):
     return calc
 
 def func_evaluator(s, func_list):
+    node = ast.parse(s.strip(), mode='eval')
+    variable_names = ['a%d'%num for num in xrange(1,len(func_list)+1)]
     def calc(obj):
-        str_to_eval = s%tuple(f(obj) for f in func_list)
+        local_vars = {name:f(obj) for name,f in itertools.izip(variable_names, func_list)}
         try:
-            return ast.literal_eval(s)
-        except:
+            return eval(node, local_vars)
+        except Exception as e:
+            print e
             return False
     return calc
 
@@ -170,20 +173,24 @@ def campaigns(request):
     @to_date: end date for period. Data for this day included
     @advertiser_id: id of advertiser in system db
     """
-    print request.query_params
     params = parse_get_params(request.GET)
     result = get_campaigns_data(params['advertiser_id'],params['from_date'],params['to_date'])
     #apply filter
     if params['filter']:
+        cnt = [0]
+        def replace_func(m):
+            cnt[0]+=1
+            return ' a%d '%cnt[0]
         clause = re.compile(r'\s*\[\s*"([^"]*)",\s*"([^"]*)",\s*"([^"]*)"\s*\]')
-        clause_list = map(clause_evaluator, re.findall(clause,params['filter']))
-        compile_string=re.sub(clause,'%s',params['filter'])
+        find_result = re.findall(clause,params['filter'])
+        clause_list = map(clause_evaluator, find_result)
+        compile_string=re.sub(clause,replace_func,params['filter'])
         filter_function = func_evaluator(compile_string, clause_list)
         if not clause_list:
             #simple clause
             clause = re.compile(r"^(.*?)(>|<|=|!=|>=|<=)(.*)$")
             m = re.match(clause,params['filter'])
-            filter_function = clause_evaluator(m) if m else None
+            filter_function = clause_evaluator(m.groups()) if m else None
         result = filter(filter_function,result)
 
     totalCount = len(result)

@@ -1,4 +1,4 @@
-import itertools, time, datetime, re, decimal, utils
+import itertools, time, datetime, re, decimal, filter_func
 from urllib import addbase
 
 from django.http import JsonResponse
@@ -144,7 +144,7 @@ def campaigns(request):
     result = get_campaigns_data(params['advertiser_id'],params['from_date'],params['to_date'])
     #apply filter
     if params['filter']:
-        filter_function = utils.get_filter_function(params['filter'])
+        filter_function = filter_func.get_filter_function(params['filter'])
         result = filter(filter_function,result)
 
     totalCount = len(result)

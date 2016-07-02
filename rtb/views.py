@@ -1,4 +1,4 @@
-import itertools, time, datetime, re
+import itertools, time, datetime, re, decimal, utils
 from urllib import addbase
 
 from django.http import JsonResponse
@@ -130,41 +130,6 @@ def parse_get_params(params):
         res['filter'] = ''
     return res
 
-all_accepted_operators={
-    #"AND":operator.mul,
-    #"OR":operator.add,
-    "=":operator.eq,
-    "!=":operator.ne,
-    ">":operator.gt,
-    "<": operator.lt,
-    ">=": operator.ge,
-    "<=": operator.le,
-}
-def clause_evaluator(clause):
-    oper=all_accepted_operators[clause[1]]
-    field_name = clause[0]
-    const = clause[2]
-    def calc(obj):
-        left = obj.get(field_name,None)
-        if left is None: return False
-        left_type = type(left)
-        right = left_type(const)
-        return oper(left,right)
-    return calc
-
-def func_evaluator(s, func_list):
-    #node = ast.parse(s.strip(), mode='eval')
-    node = compile(s.strip(), filename='<unknown>', mode='eval')
-    variable_names = ['a%d'%num for num in xrange(1,len(func_list)+1)]
-    def calc(obj):
-        local_vars = {name:f(obj) for name,f in itertools.izip(variable_names, func_list)}
-        try:
-            return eval(node, local_vars)
-        except Exception as e:
-            print e
-            return False
-    return calc
-
 #http://private-anon-e1f78e3eb-rtbs.apiary-mock.com/api/v1/campaigns?from=from_date&to=to_date&skip=skip&take=take&sort=sort&order=order&stat_by=stat_by&filter=filter
 @api_view()
 @parser_classes([FormParser, MultiPartParser])
@@ -179,21 +144,7 @@ def campaigns(request):
     result = get_campaigns_data(params['advertiser_id'],params['from_date'],params['to_date'])
     #apply filter
     if params['filter']:
-        cnt = [0]
-        def replace_func(m):
-            cnt[0]+=1
-            return ' a%d '%cnt[0]
-        clause = re.compile(r'\s*\[\s*"([^"]*)",\s*"([^"]*)",\s*"([^"]*)"\s*\]')
-        find_result = re.findall(clause,params['filter'])
-        clause_list = map(clause_evaluator, find_result)
-        compile_string=re.sub(clause,replace_func,params['filter'])
-        if clause_list:
-            filter_function = func_evaluator(compile_string, clause_list)
-        else:
-            #simple clause
-            clause = re.compile(r"^(.*?)(>|<|=|!=|>=|<=)(.*)$")
-            m = re.match(clause,params['filter'])
-            filter_function = clause_evaluator(m.groups()) if m else None
+        filter_function = utils.get_filter_function(params['filter'])
         result = filter(filter_function,result)
 
     totalCount = len(result)

@@ -1,6 +1,6 @@
 #!/bin/python
 import csv
-import datetime
+import datetime, time
 import gc
 import json
 import os
@@ -106,6 +106,10 @@ def nexus_get_objects(token, url, params, query_set, object_class, key_field, fo
                 params["num_elements"] = min(100, count - cur_records)
             r = requests.get(url, params=params, headers={"Authorization": token})
             response = json.loads(r.content)['response']
+            dbg_info = response['dbg_info']
+            limit = dbg_info['reads']/dbg_info['read_limit']
+            if limit>0.9:
+                time.sleep((limit-0.9)*300)
             if not data_key_name:
                 data_key_name = list(set(response.keys()) - \
                                      set([u'status', u'count', u'dbg_info', u'num_elements', u'start_element']))
@@ -115,6 +119,7 @@ def nexus_get_objects(token, url, params, query_set, object_class, key_field, fo
                     data_key_name = data_key_name[0]
             print data_key_name
             pack_of_objects = response.get(data_key_name, [])
+
             if count < 0:  # first portion of objects
                 count = response["count"]
                 cur_records = 0

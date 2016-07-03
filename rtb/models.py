@@ -253,7 +253,7 @@ class MediaSubType(models.Model):
     media_type = models.ForeignKey("MediaType", null=True, blank=True)
     #permitted_sizes - see model MediaSubTypePermittedSizes below
     #native_assets - see model MediaSubTypeNativeAssets below
-    last_modified = models.DateTimeField()
+    last_modified = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         db_table = "media_sub_type"
@@ -311,10 +311,250 @@ class MediaSubTypeNativeAssets(models.Model):
         db_table = "media_sub_type_native_assets"
 
 
+DEFAILT_MEMBER_STATUS_CHOICES = (
+    ('case-by-case', 'case-by-case'),
+    ('trusted', 'trusted'),
+    ('banned', 'banned')
+)
+
+
+DEFAILT_BRAND_STATUS_CHOICES = (
+    ('trusted', 'trusted'),
+    ('banned', 'banned')
+)
+
+
+DEFAILT_LANGUAGE_STATUS_CHOICES = (
+    ('trusted', 'trusted'),
+    ('banned', 'banned')
+)
+
+
+DEFAILT_AD_SERVER_STATUS_CHOICES = (
+    ('trusted', 'trusted'),
+    ('banned', 'banned')
+)
+
+
+DEFAILT_CATEGORY_STATUS_CHOICES = (
+    ('trusted', 'trusted'),
+    ('banned', 'banned')
+)
+
+
+DEFAILT_TECHNICAL_ATTRIBUTE_STATUS_CHOICES = (
+    ('trusted', 'trusted'),
+    ('banned', 'banned')
+)
+
+
+DEFAILT_AUDIT_TYPE_CHOICES = (
+    ('platform', 'platform'),
+    ('platform_or_self', 'platform_or_self')
+)
+
+
+class AdProfile(models.Model):
+    #https://wiki.appnexus.com/display/api/Ad+Profile+Service
+    id = models.IntegerField(primary_key=True)
+    state = models.TextField(
+        choices=STATE_CHOICES,
+        null=True, blank=True)
+    member = models.ForeignKey("Member", null=True, blank=True)
+    description = models.TextField(null=True, blank=True)
+    default_member_status = models.TextField(
+        choices=DEFAILT_MEMBER_STATUS_CHOICES,
+        null=True, blank=True)
+    default_brand_status = models.TextField(
+        choices=DEFAILT_BRAND_STATUS_CHOICES,
+        null=True, blank=True)
+    default_language_status = models.TextField(
+        choices=DEFAILT_LANGUAGE_STATUS_CHOICES,
+        null=True, blank=True)
+    default_ad_server_status = models.TextField(
+        choices=DEFAILT_AD_SERVER_STATUS_CHOICES,
+        null=True, blank=True)
+    default_category_status = models.TextField(
+        choices=DEFAILT_CATEGORY_STATUS_CHOICES,
+        null=True, blank=True)
+    default_technical_attribute_status = models.TextField(
+        choices=DEFAILT_TECHNICAL_ATTRIBUTE_STATUS_CHOICES,
+        null=True, blank=True)
+    default_audit_type = models.TextField(
+        choices=DEFAILT_AUDIT_TYPE_CHOICES,
+        null=True, blank=True)
+    #members = array - see model AdProfileMember below
+    #brands = array - see model AdProfileBrand below
+    #creatives = array - see model AdProfileCreative below
+    #languages = array - see model AdProfileLanguage below
+    #ad_servers = array - see model AdProfileAdServer below
+    #categories = array - see model AdProfileCategory below
+    #technical_attributes = array - see model AdProfileTechnicalAttribute below
+    #frequency_caps = array - see model AdProfileFrequencyCaps below
+    total_creative_count = models.IntegerField(null=True, blank=True)
+    approved_creative_count = models.IntegerField(null=True, blank=True)
+    banned_creative_count = models.IntegerField(null=True, blank=True)
+    creatives_approved_percent = models.FloatField(null=True, blank=True)
+    creatives_unreviewed = models.IntegerField(null=True, blank=True)
+    brands_unreviewed = models.IntegerField(null=True, blank=True)
+    exclude_unaudited = models.NullBooleanField(null=True, blank=True)
+    exclude_unaudited_direct = models.NullBooleanField(null=True, blank=True)
+    audit_type_direct = models.TextField(null=True, blank=True)
+    check_attributes_direct = models.NullBooleanField(null=True, blank=True)
+    excluded_landing_page_urls = models.TextField(null=True, blank=True) # it is array in origine but it is marked as Not available.
+    notes = models.TextField(null=True, blank=True)
+    publisher = models.ForeignKey("Publisher", null=True, blank=True)
+    last_modified = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        db_table = "ad_profile"
+
+
+class AdProfileFrequencyCaps(models.Model):
+    ad_profile = models.ForeignKey("AdProfile", null=True, blank=True)
+    member = models.ForeignKey("Member", null=True, blank=True)
+    max_session_imps = models.IntegerField(null=True, blank=True)
+    max_day_imps = models.IntegerField(null=True, blank=True)
+    min_minutes_per_imp = models.IntegerField(null=True, blank=True)
+    cap_user_without_cookie = models.NullBooleanField(null=True, blank=True)
+    #technical_attributes = array - see model AdProfileFrequencyCapsTechnicalAttribute below
+    #categories = array - see model AdProfileFrequencyCapsCategory below
+
+    class Meta:
+        db_table = "ad_profile_frequency_caps"
+
+
+class AdProfileMember(models.Model):
+    ad_profile = models.ForeignKey("AdProfile", null=True, blank=True)
+    member = models.ForeignKey("Member", null=True, blank=True)
+    status = models.TextField(
+        choices=DEFAILT_MEMBER_STATUS_CHOICES,
+        null=True, blank=True)
+    audit_type = models.TextField(
+        choices=DEFAILT_AUDIT_TYPE_CHOICES,
+        null=True, blank=True)
+    exclude_unaudited = models.NullBooleanField(null=True, blank=True)
+
+    class Meta:
+        db_table = "ad_profile_member"
+
+
+class AdProfileBrand(models.Model):
+    ad_profile = models.ForeignKey("AdProfile", null=True, blank=True)
+    brand = models.ForeignKey("Brand", null=True, blank=True)
+    status = models.TextField(
+        choices=DEFAILT_BRAND_STATUS_CHOICES,
+        null=True, blank=True)
+
+    class Meta:
+        db_table = "ad_profile_brand"
+
+
+class AdProfileCreative(models.Model):
+    ad_profile = models.ForeignKey("AdProfile", null=True, blank=True)
+    creative = models.ForeignKey("Creative", null=True, blank=True)
+    approved = models.NullBooleanField(null=True, blank=True)
+
+    class Meta:
+        db_table = "ad_profile_creative"
+
+
+class AdProfileLanguage(models.Model):
+    ad_profile = models.ForeignKey("AdProfile", null=True, blank=True)
+    language = models.ForeignKey("Language", null=True, blank=True)
+    status = models.TextField(
+        choices=DEFAILT_LANGUAGE_STATUS_CHOICES,
+        null=True, blank=True)
+
+    class Meta:
+        db_table = "ad_profile_language"
+
+
+class AdServer(models.Model):
+    #https://wiki.appnexus.com/display/api/Ad+Server+Service
+    id = models.IntegerField(primary_key=True)
+    name = models.TextField(null=True, blank=True, db_index=True)
+    description = models.TextField(null=True, blank=True)
+    declare_to_adx = models.NullBooleanField(null=True, blank=True)
+    last_modified = models.DateTimeField(null=True, blank=True)
+    #hostnames = array - see model AdServerHostname below
+
+    class Meta:
+        db_table = "ad_server"
+
+
+class AdServerHostname(models.Model):
+    ad_server = models.ForeignKey("AdServer", null=True, blank=True)
+    hostname = models.TextField(null=True, blank=True, db_index=True)
+
+    class Meta:
+        db_table = "ad_server_hostname"
+
+
+class AdProfileAdServer(models.Model):
+    ad_profile = models.ForeignKey("AdProfile", null=True, blank=True)
+    ad_server = models.ForeignKey("AdServer", null=True, blank=True)
+    status = models.TextField(
+        choices=DEFAILT_AD_SERVER_STATUS_CHOICES,
+        null=True, blank=True)
+
+    class Meta:
+        db_table = "ad_profile_ad_server"
+
+
+class AdProfileCategory(models.Model):
+    ad_profile = models.ForeignKey("AdProfile", null=True, blank=True)
+    category = models.ForeignKey("Category", null=True, blank=True)
+    status = models.TextField(
+        choices=DEFAILT_CATEGORY_STATUS_CHOICES,
+        null=True, blank=True)
+
+    class Meta:
+        db_table = "ad_profile_category"
+
+
+class TechnicalAttribute(models.Model):
+    #https://wiki.appnexus.com/display/api/Technical+Attribute+Service
+    id = models.IntegerField(primary_key=True)
+    name = models.TextField(null=True, blank=True, db_index=True)
+    last_activity = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        db_table = "technical_attribute"
+
+
+class AdProfileTechnicalAttribute(models.Model):
+    ad_profile = models.ForeignKey("AdProfile", null=True, blank=True)
+    technical_attribute = models.ForeignKey("TechnicalAttribute", null=True, blank=True)
+    status = models.TextField(
+        choices=DEFAILT_CATEGORY_STATUS_CHOICES,
+        null=True, blank=True)
+
+    class Meta:
+        db_table = "ad_profile_technical_attribute"
+
+
+class AdProfileFrequencyCapsTechnicalAttribute(models.Model):
+    frequency_caps = models.ForeignKey("AdProfileFrequencyCaps", null=True, blank=True)
+    technical_attribute = models.ForeignKey("TechnicalAttribute", null=True, blank=True)
+
+    class Meta:
+        db_table = "ad_profile_frequency_caps_technical_attribute"
+
+
+class AdProfileFrequencyCapsCategory(models.Model):
+    frequency_caps = models.ForeignKey("AdProfileFrequencyCaps", null=True, blank=True)
+    category = models.ForeignKey("Category", null=True, blank=True)
+
+    class Meta:
+        db_table = "ad_profile_frequency_caps_category"
+
+
 RESELLING_EXPOSURE_CHOICES = (
     ('public', 'public'),
     ('private', 'private')
 )
+
 
 INVENTORY_RELATIONSHIP = (
     ('unknown', 'unknown'),
@@ -324,6 +564,7 @@ INVENTORY_RELATIONSHIP = (
     ('indirect_multiple_publishers', 'indirect_multiple_publishers')
 )
 
+
 INVENTORY_SOURCE = (
     ('other', 'other'),
     ('rubicon', 'rubicon'),
@@ -332,12 +573,14 @@ INVENTORY_SOURCE = (
     ('aol', 'aol')
 )
 
+
 DISCLOSURE_STATUS = (
     ('undisclosed', 'undisclosed'),
     ('disclosed_pending', 'disclosed_pending'),
     ('disclosed_approved', 'disclosed_approved'),
     ('disclosed_rejected', 'disclosed_rejected')
 )
+
 
 class Publisher(models.Model):
     #https://wiki.appnexus.com/display/api/Publisher+Service
@@ -356,14 +599,14 @@ class Publisher(models.Model):
     description = models.TextField(null=True, blank=True)
     is_rtb = models.NullBooleanField(null=True, blank=True)
     timezone = models.TextField(null=True, blank=True) #originally it is enum
-    last_modified = models.DateTimeField()
+    last_modified = models.DateTimeField(null=True, blank=True)
     # stats	object #should be in sepparait model if needed
     max_learn_pct = models.IntegerField(null=True, blank=True)
     learn_bypass_cpm = models.IntegerField(null=True, blank=True)
     ad_quality_advanced_mode_enabled = models.NullBooleanField(null=True, blank=True)
     allow_report_on_default_imps = models.NullBooleanField(null=True, blank=True)
-    default_site_id =  models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
-    default_ad_profile_id =  models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    default_site_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    default_ad_profile_id = models.ForeignKey("AdProfile", null=True, blank=True, related_name='publisher_ad_profile')
     billing_dba = models.TextField(null=True, blank=True)
     billing_address1 = models.TextField(null=True, blank=True)
     billing_address2 = models.TextField(null=True, blank=True)
@@ -644,7 +887,7 @@ class Creative(models.Model):
     click_target = models.TextField(null=True, blank=True)
     #categories = array - see model CreativeCategory below
     #adservers = array - see model CreativeAdserver below
-    technical_attributes = models.TextField(null=True, blank=True) #array in origin but we do not need it
+    #technical_attributes - see model CreativeTechnicalAttribute
     language = models.ForeignKey("Language", null=True, blank=True)
     pop_values = models.TextField(null=True, blank=True) #TODO JSON
     sla = models.IntegerField(null=True, blank=True)
@@ -667,6 +910,14 @@ class Creative(models.Model):
 
     class Meta:
         db_table = "creative"
+
+
+class CreativeTechnicalAttribute(models.Model):
+    technical_attribute = models.ForeignKey("TechnicalAttribute", null=True, blank=True)
+    creative = models.ForeignKey("Creative", null=True, blank=True)
+
+    class Meta:
+        db_table = "creative_technical_attribute"
 
 
 PIXEL_FORMAT_CHOICES = (
@@ -711,6 +962,7 @@ class CreativeCompetitiveCategory(models.Model):
 class CreativeAdserver(models.Model):
     id = models.IntegerField(primary_key=True)  # No AutoIncrement
     creative = models.ForeignKey("Creative", null=True, blank=True)
+    ad_server = models.ForeignKey("AdServer", null=True, blank=True)
     use_type = models.TextField(null=True, blank=True)
     name = models.TextField(null=True, blank=True)
 
@@ -879,7 +1131,7 @@ class Placement(models.Model):
     publisher_id = models.ForeignKey("Publisher", null=True, blank=True)
     site_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
     inventory_source_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
-    ad_profile_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    ad_profile_id = models.ForeignKey("AdProfile", null=True, blank=True)
     #supported_media_types = array - see model PlacementMediaType below
     #supported_media_subtypes = array - see model PlacementMediaSubType below
     #pop_values = array - see model PlacementPopValues
@@ -1982,7 +2234,7 @@ class Member(models.Model):
     interface_domain_beta = models.TextField(null=True, blank=True)
     creative_size_minimum_bytes = models.IntegerField(null=True, blank=True)
     creative_size_fee_per_gb = models.FloatField(null=True, blank=True)
-    default_ad_profile_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    default_ad_profile_id = models.ForeignKey("AdProfile", null=True, blank=True, related_name='member_ad_profile')
     email_code = models.TextField(null=True, blank=True)
     serving_domain = object
     reselling_exposure = models.TextField(
@@ -2226,7 +2478,7 @@ class NetworkAnalyticsReport(models.Model):
     publisher = models.ForeignKey("Publisher", null=True, blank=True)
     pub_rule_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
     site_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
-    pixel_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    pixel = models.ForeignKey("ConversionPixel", null=True, blank=True)
     placement = models.ForeignKey("Placement", null=True, blank=True)
     insertion_order = models.ForeignKey("InsertionOrder", null=True, blank=True)
     line_item = models.ForeignKey("LineItem", null=True, blank=True)
@@ -2357,68 +2609,40 @@ class SiteDomainPerformanceReport(models.Model):
 class GeoAnaliticsReport(models.Model):
     # month = date  # Yes	The year and month in which the auction took place.
     fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
-    day = models.DateField(null=True, blank=True,
-                           db_index=True)  # Yes	The year, month, and day in which the auction took place.
-    # member = models.ForeignField("Member", null=True, blank=True) # Yes	The ID of the member.
-    member_id = models.IntegerField(null=True, blank=True, db_index=True)  # Yes	The ID of the member.
+    day = models.DateField(null=True, blank=True, db_index=True)  # Yes	The year, month, and day in which the auction took place.
+    member = models.ForeignKey("Member", null=True, blank=True) # Yes	The ID of the member.
     advertiser_currency = models.TextField(null=True, blank=True)  # Yes	The type of currency used by the advertiser.
     insertion_order = models.ForeignKey("InsertionOrder", null=True, blank=True)  # Yes	The insertion order ID.
     campaign = models.ForeignKey("Campaign", null=True, blank=True)  # Yes	The campaign ID.
-    advertiser = models.ForeignKey("Advertiser", null=True,
-                                   blank=True)  # Yes	The advertiser ID. If the value is 0, either the impression was purchased by an external buyer, or a default or PSA was shown. For more information on defaults and PSAs, see Network Reporting.
+    advertiser = models.ForeignKey("Advertiser", null=True, blank=True)  # Yes	The advertiser ID. If the value is 0, either the impression was purchased by an external buyer, or a default or PSA was shown. For more information on defaults and PSAs, see Network Reporting.
     line_item = models.ForeignKey("LineItem", null=True, blank=True)  # Yes	The line item ID.
-    geo_country_code = models.TextField(null=True,
-                                        blank=True)  # Yes	The country code of the user's location as defined by the Country Service.
-    geo_country_id = models.IntegerField(null=True, blank=True,
-                                         db_index=True)  # Yes	The country ID of the user's location as defined by the Country Service. 250 is shown in cases where we don't know the country or if the country doesn't map correctly to a location in our database.
-    geo_region_code = models.TextField(null=True,
-                                       blank=True)  # No	The region code of the user's location as defined by the Region Service.
-    geo_region_id = models.IntegerField(null=True, blank=True,
-                                        db_index=True)  # Yes	The region ID of the user's location as defined by the Region Service. 4291 is shown in cases where we don't know the region or if the region doesn't map correctly to a location in our database.
-    geo_dma_id = models.IntegerField(null=True, blank=True,
-                                     db_index=True)  # Yes	"The ID of the user's demographic area location as defined by the Demographic Area Service.(null=True, blank=True) # Why am I seeing a DMA ID of 1?(null=True, blank=True) # Our reporting derives DMA from the city logged for the auction. However, our geo provider is sometimes unable to determine a city from the IP address associated with the impression, even when DMA is determined. Therefore, there are cases where a campaign targeting a specific DMA has impressions in reporting showing a DMA of 1."
-    geo_dma_name = models.TextField(null=True,
-                                    blank=True)  # No	The name of the user's demographic area location as defined by the Demographic Area Service.
-    geo_country_name = models.TextField(null=True,
-                                        blank=True)  # No	The name of the user's country, as defined by the Country Service.
-    geo_region_name = models.TextField(null=True,
-                                       blank=True)  # No	The name of the region of the user's location as defined by the Region Service.
-    geo_country = models.TextField(null=True,
-                                   blank=True)  # No	The country name and code where the user is located, in the format "France (FR)". The string "250" can appear in cases where we don't know the country or if the country doesn't map correctly to a location in our database.
-    geo_region = models.TextField(null=True,
-                                  blank=True)  # No	The region name and country code of the users location, in the format "Bremen (DE)". The string "4192" can appear in cases where we don't know the region/state or if the region/state doesn't map correctly to a location in our database.
-    geo_dma = models.TextField(null=True,
-                               blank=True)  # No	The name and ID of the demographic area where the user is located, in the format "New York NY (501)". The string "unknown values (-1)" can appear in cases where we don't know the demographic area or if the demographic area doesn't map correctly to a location in our database.
-
-    pixel_id = models.IntegerField(null=True,
-                                   blank=True)  # Yes The unique identification number of the conversion pixel.
+    geo_country_code = models.TextField(null=True, blank=True)  # Yes	The country code of the user's location as defined by the Country Service.
+    geo_country_id = models.IntegerField(null=True, blank=True, db_index=True)  # Yes	The country ID of the user's location as defined by the Country Service. 250 is shown in cases where we don't know the country or if the country doesn't map correctly to a location in our database.
+    geo_region_code = models.TextField(null=True, blank=True)  # No	The region code of the user's location as defined by the Region Service.
+    geo_region_id = models.IntegerField(null=True, blank=True, db_index=True)  # Yes	The region ID of the user's location as defined by the Region Service. 4291 is shown in cases where we don't know the region or if the region doesn't map correctly to a location in our database.
+    geo_dma_id = models.IntegerField(null=True, blank=True, db_index=True)  # Yes	"The ID of the user's demographic area location as defined by the Demographic Area Service.(null=True, blank=True) # Why am I seeing a DMA ID of 1?(null=True, blank=True) # Our reporting derives DMA from the city logged for the auction. However, our geo provider is sometimes unable to determine a city from the IP address associated with the impression, even when DMA is determined. Therefore, there are cases where a campaign targeting a specific DMA has impressions in reporting showing a DMA of 1."
+    geo_dma_name = models.TextField(null=True, blank=True)  # No	The name of the user's demographic area location as defined by the Demographic Area Service.
+    geo_country_name = models.TextField(null=True, blank=True)  # No	The name of the user's country, as defined by the Country Service.
+    geo_region_name = models.TextField(null=True, blank=True)  # No	The name of the region of the user's location as defined by the Region Service.
+    geo_country = models.TextField(null=True, blank=True)  # No	The country name and code where the user is located, in the format "France (FR)". The string "250" can appear in cases where we don't know the country or if the country doesn't map correctly to a location in our database.
+    geo_region = models.TextField(null=True, blank=True)  # No	The region name and country code of the users location, in the format "Bremen (DE)". The string "4192" can appear in cases where we don't know the region/state or if the region/state doesn't map correctly to a location in our database.
+    geo_dma = models.TextField(null=True, blank=True)  # No	The name and ID of the demographic area where the user is located, in the format "New York NY (501)". The string "unknown values (-1)" can appear in cases where we don't know the demographic area or if the demographic area doesn't map correctly to a location in our database.
+    pixel_id = models.ForeignKey("ConversionPixel", null=True, blank=True)  # Yes The unique identification number of the conversion pixel.
     # pixel = models.ForeignKey("ConversionPixel",null=True, blank=True)
-
     imps = models.IntegerField(null=True, blank=True)  # imps	The total number of impressions (served and resold).
     clicks = models.IntegerField(null=True, blank=True)  # clicks	The total number of clicks across all impressions.
-    cost = models.DecimalField(max_digits=16, decimal_places=2, null=True,
-                               blank=True)  # cost	The total cost of the inventory purchased.
-    booked_revenue = models.DecimalField(max_digits=16, decimal_places=2, null=True,
-                                         blank=True)  # booked_revenue	The total revenue booked through direct advertisers (line item).
-    cpm = models.DecimalField(max_digits=16, decimal_places=2, null=True,
-                              blank=True)  # cpm	The cost per one thousand impressions.
-    total_convs = models.IntegerField(null=True,
-                                      blank=True)  # total_convs	The total number of post-view and post-click conversions.
+    cost = models.DecimalField(max_digits=16, decimal_places=2, null=True, blank=True)  # cost	The total cost of the inventory purchased.
+    booked_revenue = models.DecimalField(max_digits=16, decimal_places=2, null=True, blank=True)  # booked_revenue	The total revenue booked through direct advertisers (line item).
+    cpm = models.DecimalField(max_digits=16, decimal_places=2, null=True, blank=True)  # cpm	The cost per one thousand impressions.
+    total_convs = models.IntegerField(null=True, blank=True)  # total_convs	The total number of post-view and post-click conversions.
     convs_rate = models.FloatField(null=True, blank=True)  # total_convs / imps	The ratio of conversions to impressions.
-    post_view_convs = models.IntegerField(null=True,
-                                          blank=True)  # post_view_convs	The total number of recorded post-view conversions.
-    post_click_convs = models.IntegerField(null=True,
-                                           blank=True)  # post_click_convs	The total number of recorded post-click conversions.
-    profit = models.DecimalField(max_digits=16, decimal_places=2, null=True,
-                                 blank=True)  # booked_revenue - media_cost	The total revenue minus the cost.
-    click_thru_pct = models.FloatField(null=True,
-                                       blank=True)  # (clicks / imps) x 100	The rate of clicks to impressions, expressed as a percentage.
-    external_imps = models.IntegerField(null=True,
-                                        blank=True)  # external_imps	The number of external (non-network) impressions.
-    external_clicks = models.IntegerField(null=True,
-                                          blank=True)  # external_clicks	The number of external (non-network) clicks.
-    booked_revenue_adv_curr = models.DecimalField(max_digits=16, decimal_places=2, null=True,
-                                                  blank=True)  # booked_revenue_adv_curr	The total revenue booked through a direct advertiser, expressed in the currency of that advertiser.
+    post_view_convs = models.IntegerField(null=True, blank=True)  # post_view_convs	The total number of recorded post-view conversions.
+    post_click_convs = models.IntegerField(null=True, blank=True)  # post_click_convs	The total number of recorded post-click conversions.
+    profit = models.DecimalField(max_digits=16, decimal_places=2, null=True, blank=True)  # booked_revenue - media_cost	The total revenue minus the cost.
+    click_thru_pct = models.FloatField(null=True, blank=True)  # (clicks / imps) x 100	The rate of clicks to impressions, expressed as a percentage.
+    external_imps = models.IntegerField(null=True, blank=True)  # external_imps	The number of external (non-network) impressions.
+    external_clicks = models.IntegerField(null=True, blank=True)  # external_clicks	The number of external (non-network) clicks.
+    booked_revenue_adv_curr = models.DecimalField(max_digits=16, decimal_places=2, null=True, blank=True)  # booked_revenue_adv_curr	The total revenue booked through a direct advertiser, expressed in the currency of that advertiser.
 
     api_report_name = "geo_analytics"
 

@@ -174,11 +174,24 @@ def load_depending_data(token):
                                              InsertionOrder.objects.filter(advertiser=advertiser_id).order_by('fetch_date'),
                                              InsertionOrder, 'id', False)
             print 'There is %d  insertion orders' % len(insert_order)
-            if len(insert_order) > 0:
-                print 'First insertion order:'
-                print insert_order[0]
-                print '-' * 80
-            # Get all of an advertiser's line items:
+            developers = nexus_get_objects(token,
+                                           ' https://api.appnexus.com/developer',
+                                           {},
+                                           Developer.objects.all().order_by('fetch_date'),
+                                           Developer, 'id', False)
+            print 'There is %d developers ' % len(developers)
+            buyer_groups = nexus_get_objects(token,
+                                             'https://api.appnexus.com/buyer-group',
+                                             {},
+                                             BuyerGroup.objects.all().order_by('fetch_date'),
+                                             BuyerGroup, 'id', False)
+            print 'There is %d buyer groups ' % len(buyer_groups)
+            members = nexus_get_objects(token,
+                                        'https://api.appnexus.com/member',
+                                        {},
+                                        Member.objects.all().order_by('fetch_date'),
+                                        Member, 'id', False)
+            print 'There is %d members ' % len(members)  # Get all of an advertiser's line items:
             line_items = nexus_get_objects(token,
                                            'https://api.appnexus.com/line-item',
                                            {'advertiser_id': advertiser_id},
@@ -209,24 +222,6 @@ def load_depending_data(token):
                                                   OperatingSystemExtended.objects.all().order_by('fetch_date'),
                                                   OperatingSystemExtended, 'id', False)
             print 'There is %d operating systems ' % len(operating_systems)
-            developers = nexus_get_objects(token,
-                                        ' https://api.appnexus.com/developer',
-                                        {},
-                                        Developer.objects.all().order_by('fetch_date'),
-                                        Developer, 'id', False)
-            print 'There is %d developers ' % len(developers)
-            buyer_groups = nexus_get_objects(token,
-                                        'https://api.appnexus.com/buyer-group',
-                                        {},
-                                        BuyerGroup.objects.all().order_by('fetch_date'),
-                                        BuyerGroup, 'id', False)
-            print 'There is %d buyer groups ' % len(buyer_groups)
-            members = nexus_get_objects(token,
-                                        'https://api.appnexus.com/member',
-                                        {},
-                                        Member.objects.all().order_by('fetch_date'),
-                                        Member, 'id', False)
-            print 'There is %d members ' % len(members)
 
     except Exception as e:
             print "There is error in load_depending_data:",e
@@ -254,8 +249,7 @@ def dayly_task(day=None, load_objects_from_services=True, output=None):
     try:
         token = report.get_auth_token()
         if load_objects_from_services:
-            pass
-            # load_depending_data(token)
+            load_depending_data(token)
         #load_reports_for_all_advertisers(token, day, GeoAnaliticsReport)
         load_reports_for_all_advertisers(token, day, SiteDomainPerformanceReport)
         # load_reports_for_all_advertisers(token, day, NetworkAnalyticsReport)

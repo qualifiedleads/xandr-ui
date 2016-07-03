@@ -118,7 +118,10 @@ def nexus_get_objects(token, url, params, query_set, object_class, key_field, fo
             if count < 0:  # first portion of objects
                 count = response["count"]
                 cur_records = 0
-            objects_by_api.extend(pack_of_objects)
+            if isinstance(pack_of_objects,list):
+                objects_by_api.extend(pack_of_objects)
+            else:
+                objects_by_api.append(pack_of_objects)
             cur_records += response['num_elements']
 
         print "Objects succefully fetched from Nexus API (%d records)" % len(objects_by_api)

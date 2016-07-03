@@ -284,7 +284,7 @@ def load_reports_for_all_advertisers(token, day, ReportClass):
 
     q = ReportClass.objects.filter(**filter_params).values('advertiser_id') \
         .annotate(cnt=Count('*')).filter(cnt__gt=0)
-    print q.query
+    #print q.query
     advertisers_having_data = set(x['advertiser_id'] for x in q)
     print advertisers_having_data
     all_advertisers = dict(Advertiser.objects.all().values_list('id', 'name'))

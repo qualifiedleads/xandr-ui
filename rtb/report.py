@@ -99,8 +99,8 @@ def get_specifed_report(ReportClass, query_data={}, token=None, day=None):
             if response['error_id']=='LIMIT':
                 print "Max report count limit reached, waiting..."
                 time.sleep(30)
-            else: #Other error
-                print response['error']
+            else:
+                print 'Other error:', response['error']
                 time.sleep(10)
             continue
         try:

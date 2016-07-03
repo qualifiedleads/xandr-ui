@@ -175,7 +175,7 @@ def load_depending_data(token):
                                              InsertionOrder, 'id', False)
             print 'There is %d  insertion orders' % len(insert_order)
             developers = nexus_get_objects(token,
-                                           ' https://api.appnexus.com/developer',
+                                           'https://api.appnexus.com/developer',
                                            {},
                                            Developer.objects.all().order_by('fetch_date'),
                                            Developer, 'id', False)

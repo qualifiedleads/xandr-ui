@@ -291,7 +291,6 @@ def load_reports_for_all_advertisers(token, day, ReportClass):
     advertisers_need_load = set(all_advertisers) - advertisers_having_data
     campaign_dict = dict(Campaign.objects.all().values_list('id', 'name'))
     all_line_items = set(LineItem.objects.values_list("id", flat=True))
-    # Multithreading map
     files = []
     try:
         files = worker_pool.map(lambda id:

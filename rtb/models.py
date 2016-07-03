@@ -1901,6 +1901,7 @@ class NetworkAnalyticsRaw(models.Model):
 class BuyerGroup(models.Model):
     #https://wiki.appnexus.com/display/api/Buyer+Group+Service
     id = models.IntegerField(primary_key=True)  # No AutoIncrement
+    fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
     code = models.TextField(null=True, blank=True, db_index=True)
     name = models.TextField(null=True, blank=True, db_index=True)
     description = models.TextField(null=True, blank=True)
@@ -1942,7 +1943,9 @@ REPORTING_DECIMAL_TYPE = (
 
 
 class Developer(models.Model):
+    """Description at https://wiki.appnexus.com/display/api/Developer+Service"""
     id = models.IntegerField(primary_key=True) # No AutoIncrement
+    fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
     name = models.TextField(null=True, blank=True, db_index=True)
     entity_id = models.IntegerField(null=True, blank=True)
     phone = models.TextField(null=True, blank=True)
@@ -1962,6 +1965,7 @@ class Developer(models.Model):
 class Member(models.Model):
     #https://wiki.appnexus.com/display/api/Member+Service
     id = models.IntegerField(primary_key=True) # No AutoIncrement
+    fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
     name = models.TextField(null=True, blank=True, db_index=True)
     reselling_description = models.TextField(null=True, blank=True)
     state = models.TextField(

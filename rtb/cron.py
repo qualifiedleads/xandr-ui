@@ -15,7 +15,7 @@ import requests
 import report
 from django.conf import settings
 from models import Advertiser, Campaign, SiteDomainPerformanceReport, Profile, LineItem, InsertionOrder, \
-    OSFamily, OperatingSystemExtended, NetworkAnalyticsReport, GeoAnaliticsReport
+    OSFamily, OperatingSystemExtended, NetworkAnalyticsReport, GeoAnaliticsReport, Member, Developer, BuyerGroup
 from pytz import utc
 
 
@@ -209,10 +209,29 @@ def load_depending_data(token):
                                                   OperatingSystemExtended.objects.all().order_by('fetch_date'),
                                                   OperatingSystemExtended, 'id', False)
             print 'There is %d operating systems ' % len(operating_systems)
+            developers = nexus_get_objects(token,
+                                        ' https://api.appnexus.com/developer',
+                                        {},
+                                        Developer.objects.all().order_by('fetch_date'),
+                                        Developer, 'id', False)
+            print 'There is %d developers ' % len(developers)
+            buyer_groups = nexus_get_objects(token,
+                                        'https://api.appnexus.com/buyer-group',
+                                        {},
+                                        BuyerGroup.objects.all().order_by('fetch_date'),
+                                        BuyerGroup, 'id', False)
+            print 'There is %d buyer groups ' % len(buyer_groups)
+            members = nexus_get_objects(token,
+                                        'https://api.appnexus.com/member',
+                                        {},
+                                        Member.objects.all().order_by('fetch_date'),
+                                        Member, 'id', False)
+            print 'There is %d members ' % len(members)
+
     except Exception as e:
-        print "There is error in load_depending_data:",e
-        print e.message
-        print traceback.print_exc()
+            print "There is error in load_depending_data:",e
+            print e.message
+            print traceback.print_exc()
 
 
 class fakeWith(object):
@@ -237,8 +256,8 @@ def dayly_task(day=None, load_objects_from_services=True, output=None):
         if load_objects_from_services:
             pass
             # load_depending_data(token)
-        load_reports_for_all_advertisers(token, day, GeoAnaliticsReport)
-        # load_reports_for_all_advertisers(token, day, SiteDomainPerformanceReport)
+        #load_reports_for_all_advertisers(token, day, GeoAnaliticsReport)
+        load_reports_for_all_advertisers(token, day, SiteDomainPerformanceReport)
         # load_reports_for_all_advertisers(token, day, NetworkAnalyticsReport)
     except Exception as e:
         print 'Error by fetching data: %s' % e

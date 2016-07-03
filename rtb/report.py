@@ -36,18 +36,19 @@ def get_report_status(rid, token):
     url = "https://api.appnexus.com/report?id={0}".format(rid)
     headers = {"Authorization": token}
     start_time = datetime.datetime.utcnow()
+    sleep_time = 1
     while True:
         current_time = datetime.datetime.utcnow()
         if current_time-start_time>settings.MAX_REPORT_WAIT : break
         # Continue making this GET call until the execution_status is "ready"
         response = requests.get(url, headers=headers)
         content = json.loads(response.content)
-        exec_stat = content['response']['execution_status']
+        exec_stat = content['response'].get('execution_status')
         if exec_stat == "ready": break
-        time.sleep(1)
+        time.sleep(sleep_time)
+        sleep_time = min(120, sleep_time*2)
     if exec_stat!="ready" : return ""
     data = get_report(rid, token)
-
     return data
     
 no_hours_reports=set(["site_domain_performance"])
@@ -87,23 +88,34 @@ def get_specifed_report(ReportClass, query_data={}, token=None, day=None):
 
     headers = {"Authorization": token, 'Content-Type': 'application/json'}
 
-    r = requests.post(url, params=query_data, data=json.dumps(report_data), headers=headers)
-
-    out = json.loads(r.content)
-    
     report_id='Unassigned'
-    
-    try:
-        report_id = out['response']['report_id']
-    except Exception as e:
-        print 'Error by analizing response: %s'%e
-        print out
-
+    start_time = datetime.datetime.utcnow()
+    while report_id=='Unassigned':
+        current_time = datetime.datetime.utcnow()
+        if current_time-start_time>settings.MAX_REPORT_WAIT : break
+        r = requests.post(url, params=query_data, data=json.dumps(report_data), headers=headers)
+        response = json.loads(r.content)['response']
+        if response['status']=='error':
+            if response['error_id']=='LIMIT':
+                print "Max report count limit reached, waiting..."
+                time.sleep(30)
+            else: #Other error
+                print response['error']
+                time.sleep(10)
+            continue
+        try:
+            report_id = response['report_id']
+        except Exception as e:
+            print 'Error by getting report_id: %s'%e
+            print response
+            time.sleep(5)
     #if settings.DEBUG:
         #with open('%s/%s_report_response_%s.json'%(log_path, get_str_time(), report_id), 'wb') as f:
             #f.write(r.content)
-    
-    return get_report_status(report_id, token)
+    if report_id != 'Unassigned':
+        return get_report_status(report_id, token)
+    else:
+        return ''
     
 #function to get all advertisers with API
 def get_all_advertisers(token):    

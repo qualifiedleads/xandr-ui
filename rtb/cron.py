@@ -274,7 +274,7 @@ def load_reports_for_all_advertisers(token, day, ReportClass):
     if not token:
         token = report.get_auth_token()
     # 5 report service processes per user admitted
-    worker_pool = ThreadPool(4)  # one thread reserved
+    worker_pool = ThreadPool(8)  # one thread reserved
     # select advertisers, which do not have report data
     try:
         ReportClass._meta.get_field('day')

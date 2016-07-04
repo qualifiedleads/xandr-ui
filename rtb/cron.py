@@ -319,7 +319,7 @@ def load_reports_for_all_advertisers(token, day, ReportClass):
             print "Domain performance report for advertiser %s saved to DB" % all_advertisers[advertiser_id]
     finally:
         for f in filenames:
-            os.remove(f.name)
+            os.remove(f)
 
 
 if __name__ == '__main__': dayly_task()

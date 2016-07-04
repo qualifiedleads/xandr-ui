@@ -287,7 +287,7 @@ def dayly_task(day=None, load_objects_from_services=True, output=None):
     # report.get_specifed_report('network_analytics')
     try:
         token = report.get_auth_token()
-        if load_objects_from_services and False:
+        if load_objects_from_services:
             load_depending_data(token)
         load_reports_for_all_advertisers(token, day, SiteDomainPerformanceReport)
         load_reports_for_all_advertisers(token, day, GeoAnaliticsReport)

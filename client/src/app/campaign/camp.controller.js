@@ -549,16 +549,11 @@
       $localStorage.boxPlotData = vm.boxPlotData;
     }
     vm.dataGridOptionsCampaign = {
-      bindingOptions: {
-        allowColumnResizing: 'true',
-        'selection.allowSelectAll': false
-
-      },
       onInitialized: function (data) {
-        vm.dataGridOptionsMultipleFunc = data.component;
-        vm.dataGridOptionsMultipleFunc._controllers.columns._commandColumns[1].visibleIndex = 9;
-        //console.log(data);
-       },
+         vm.dataGridOptionsMultipleFunc = data.component;
+         vm.dataGridOptionsMultipleFunc._controllers.columns._commandColumns[1].visibleIndex = 9;
+         //console.log(data);
+        },
       onRowPrepared: function(data) {
         vm.objectData = data;
         if(vm.objectData.rowType == 'data') {
@@ -633,16 +628,23 @@
               height:30,
               width: 89,
               onClick: function (e) {
-                console.log(container, options);
+                console.log(options.data.state);
                 var parentWhiteBtn = e.element[0].parentNode;
                 console.log(parentWhiteBtn);
                 if (parentWhiteBtn.classList.contains('active-white')) {
                   parentWhiteBtn.classList.remove('active-white');
                   parentWhiteBtn.classList.add('unactive-white');
+                  options.data.state.whiteList = 'false';
                 } else if (!parentWhiteBtn.classList.contains('active-white')){
                   parentWhiteBtn.classList.remove('unactive-white');
                   parentWhiteBtn.classList.add('active-white');
+                  options.data.state.whiteList = 'true';
+                  options.data.state.suspended = 'false';
+                  options.data.state.blackList = 'false';
+                  parentWhiteBtn.classList.remove('active-black');
+                  parentWhiteBtn.classList.remove('active-suspended');
                 }
+
               }
             }).addClass('white-list').appendTo(container);
 
@@ -657,9 +659,15 @@
                 if (parentWhiteBtn.classList.contains('active-black')) {
                   parentWhiteBtn.classList.remove('active-black');
                   parentWhiteBtn.classList.add('unactive-black');
+                  options.data.state.blackList = 'false';
                 } else if (!parentWhiteBtn.classList.contains('active-black')){
                   parentWhiteBtn.classList.remove('unactive-black');
                   parentWhiteBtn.classList.add('active-black');
+                  options.data.state.blackList = 'true';
+                  options.data.state.suspended = 'false';
+                  options.data.state.whiteList = 'false';
+                  parentWhiteBtn.classList.remove('active-white');
+                  parentWhiteBtn.classList.remove('active-suspended');
                 }
 
               }
@@ -676,9 +684,16 @@
                  if (parentWhiteBtn.classList.contains('active-suspended')) {
                    parentWhiteBtn.classList.remove('active-suspended');
                    parentWhiteBtn.classList.add('unactive-suspended');
+                   options.data.state.suspended = 'false';
                  } else if (!parentWhiteBtn.classList.contains('active-suspended')){
                    parentWhiteBtn.classList.remove('unactive-suspended');
                    parentWhiteBtn.classList.add('active-suspended');
+                   options.data.state.suspended = 'true';
+                   options.data.state.whiteList = 'false';
+                   options.data.state.blackList = 'false';
+                   parentWhiteBtn.classList.remove('active-white');
+                   parentWhiteBtn.classList.remove('active-black');
+
                  }
 
                }
@@ -689,6 +704,9 @@
       selection: {
         mode: 'multiple',
         showCheckBoxesMode: 'always'
+      },
+      bindingOptions: {
+          allowColumnResizing: 'true'
       },
       onSelectionChanged: function (data) {
         vm.selectedItems = data.selectedRowsData;
@@ -758,6 +776,40 @@
     };
 
     /** RANGE SELECTOR SECOND - END **/
+
+
+    /** PIE CHART CONTAINER - START **/
+    vm.ctrlBbtns = {
+      placement:'Placement',
+      creativeId:'creative_id',
+      creativeSize:'creative_size',
+      viewability: 'viewability',
+      os:'OS',
+      carrier:'carrier',
+      networkSeller: 'network (seller)',
+      connectionType: 'connection_type',
+      device:'device',
+      extra:'extra',
+      publisher:'Publisher'
+  };
+    vm.pieChartHeader = $localStorage.pieChartHeader;
+   vm.btnsNodesArray = $('.label-container')[0].children;
+
+    vm.selectInfoBtn = function ($event, value) {
+      vm.pieChartHeader = value;
+        $localStorage.pieChartHeader = vm.pieChartHeader;
+
+      Array.prototype.forEach.call(vm.btnsNodesArray, function(node) {
+        if(node.classList.contains('nav-btn-active')){
+          node.classList.remove('nav-btn-active');
+        }
+      });
+      $localStorage.pieChartHeader = vm.pieChartHeader;
+      $event.currentTarget.classList.add('nav-btn-active');
+
+   
+    }
+
 
   }
 })();

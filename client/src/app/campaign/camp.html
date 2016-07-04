@@ -1,22 +1,22 @@
-<div class="container-camp col-md-10 col-lg-offset-2 col-md-10 col-lg-offset-2">
+<div class="container-camp col-md-10 col-sm-10 col-md-offset-2  col-sm-offset-2">
    <div class="row">
      <span translate="CAMP.NAME" class="camp-header"></span><span class="camp-header">: {{camp.campName}}</span>
    </div>
-  <div class="col-md-3 col-md-offset-8 piker">
+  <div class="col-md-3 col-md-offset-8 col-sm-3 col-sm-offset-8 piker">
     <div dx-select-box="camp.datePiker"></div>
   </div>
   <div class="row camp-content1">
     <div id="container">
-      <div class="col-md-12 contLeft">
-        <div class="first-chart">
+      <div class="row contLeft">
+        <div class="col-md-5 col-sm-4 first-chart">
           <div dx-chart="camp.chartOptions" id="chart"></div>
           <div  dx-range-selector="camp.rangeFirstChartOptions" class="first-range"></div>
         </div>
-        <div class="second-chart">
+        <div class="col-md-4 col-sm-4 second-chart">
           <div id="container-inner" dx-chart="camp.boxPlot"></div>
           <div  dx-range-selector="camp.rangeSecondChartOptions" class="second-range"></div>
         </div>
-        <div class="col-md-2 checkbox-container">
+        <div class="col-md-2 col-sm-2 checkbox-container">
           <div>
             <label class="label-checkbox"><div dx-check-box="camp.impressions"></div></label>
             <label class="label-checkbox"><div dx-check-box="camp.CPA"></div></label>
@@ -35,4 +35,27 @@
   <div class="row first-grid">
     <div  id="gridContainer2" dx-data-grid="camp.dataGridOptionsCampaign"></div>
   </div>
+
+  <div class="second-container">
+    <div class="label-container">
+      <input type="button" ng-click="camp.selectInfoBtn($event, 'placement')"  value="{{camp.ctrlBbtns.placement}}" class="nav-btn">
+      <input type="button" ng-click="camp.selectInfoBtn($event, 'creativeId')" value="{{camp.ctrlBbtns.creativeId}}" class="nav-btn">
+      <input type="button" ng-click="camp.selectInfoBtn($event, 'creativeSize')" value="{{camp.ctrlBbtns.creativeSize}}" class="nav-btn">
+      <input type="button" ng-click="camp.selectInfoBtn($event, 'creativeSize')" value="{{camp.ctrlBbtns.viewability}}" class="nav-btn">
+      <input type="button" ng-click="camp.selectInfoBtn($event, 'Operating System used')" value="{{camp.ctrlBbtns.os}}" class="nav-btn">
+      <input type="button" ng-click="camp.selectInfoBtn($event, 'carrier')" value="{{camp.ctrlBbtns.carrier}}" class="nav-btn">
+      <input type="button" ng-click="camp.selectInfoBtn($event, 'networkSeller')" value="{{camp.ctrlBbtns.networkSeller}}" class="nav-btn">
+      <input type="button" ng-click="camp.selectInfoBtn($event, 'connectionType')" value="{{camp.ctrlBbtns.connectionType}}" class="nav-btn">
+      <input type="button" ng-click="camp.selectInfoBtn($event, 'device')" value="{{camp.ctrlBbtns.device}}" class="nav-btn">
+      <input type="button" ng-click="camp.selectInfoBtn($event, 'extra')" value="{{camp.ctrlBbtns.extra}}" class="nav-btn">
+      <input type="button" ng-click="camp.selectInfoBtn($event, 'publisher')" value="{{camp.ctrlBbtns.publisher}}" class="nav-btn">
+    </div>
+    <div class="pie-chart-container" id="chart-container">
+      <div class="pie-chart-header"><h4>{{camp.pieChartHeader}}</h4></div>
+      <div class="target-cpa-container">
+        <input class="input-target-cpa" type="text" ng-model="camp.targetCpa">
+      </div>
+    </div>
+  </div>
 </div>
+

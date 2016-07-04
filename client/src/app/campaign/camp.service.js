@@ -13,7 +13,7 @@
     function nameCampaigns() {
       return $http({
         method: 'GET',
-        url: 'api/v1/campaigns'
+        url: 'http://private-anon-d71dffb7f-rtbs.apiary-mock.com/api/v1/campaigns'
       })
         .then(function (res) {
           return res.data.campaigns;
@@ -23,7 +23,7 @@
     function statsChart(from, to, by) {
       return $http({
         method: 'GET',
-        url: 'api/v1/statistics',
+        url: 'http://private-anon-d71dffb7f-rtbs.apiary-mock.com/api/v1/statistics',
         params: {from: from, to: to, by: by}
       })
         .then(function (res) {
@@ -34,7 +34,7 @@
     function statsCampaigns(from, to, skip, take,sort,order,stat_by,filter) {
       return $http({
         method: 'GET',
-        url: 'api/v1/campaigns',
+        url: 'http://private-anon-d71dffb7f-rtbs.apiary-mock.com/api/v1/campaigns',
         params: {from: from, to: to,  skip: skip, take: take, sort: sort, order: order, stat_by: stat_by, filter: filter}
       })
         .then(function (res) {

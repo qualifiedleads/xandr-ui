@@ -336,7 +336,7 @@ def load_reports_for_all_advertisers(token, day, ReportClass):
                         metadata={"campaign_dict": campaign_dict,
                                   "all_line_items": all_line_items,
                                   "advertiser_id": advertiser_id})
-            print "Domain performance report for advertiser %s saved to DB" % all_advertisers[advertiser_id]
+            print "%s for advertiser %s saved to DB" %(ReportClass, all_advertisers[advertiser_id])
     finally:
         for f in filenames:
             os.remove(f)

@@ -5,25 +5,95 @@ from django.db import models
 #from django.contrib.postgres.fields import JSONField
 
 
-class UserType(models.Model):
-    description = models.TextField()
+STATE_CHOICES = (
+    ('active', 'Active'),
+    ('inactive', 'Inactive'),
+)
 
-    class Meta:
-        db_table = "user_type"
+
+USER_TYPES_CHOICES = (
+    ('member', 'member'),
+    ('bidder', 'bidder'),
+    ('publisher', 'publisher'),
+    ('advertiser', 'advertiser'),
+    ('member_advertiser', 'member_advertiser'),
+    ('member_publisher', 'member_publisher')
+)
+
+
+REPORTING_DECIMAL_TYPE = (
+    ('comma', 'comma'),
+    ('decimal', 'decimal')
+)
+
+
+DECIMAL_MARK = (
+    ('comma', 'comma'),
+    ('period', 'period')
+)
+
+
+THOUSAND_SEPARATOR = (
+    ('comma', 'comma'),
+    ('space', 'space'),
+    ('period', 'period')
+)
 
 
 class User(models.Model):
-    is_active = models.BooleanField()
-    username = models.TextField(db_index=True)
-    email = models.TextField(db_index=True)
-    first_name = models.TextField()
-    last_name = models.TextField()
-    password = models.TextField()
-    date_added = models.DateTimeField(default=datetime.datetime.now)
-    user_type = models.ForeignKey('UserType', null=True, blank=True, db_index=True)
+    #https://wiki.appnexus.com/display/api/User+Service
+    id = models.IntegerField(primary_key=True)  # This prevent making automatic AutoIncrement field
+    state = models.TextField(
+        choices=STATE_CHOICES,
+        null=True, blank=True)
+    username = models.TextField(null=True, blank=True, db_index=True)
+    password = models.TextField(null=True, blank=True)
+    email = models.TextField(null=True, blank=True, db_index=True)
+    first_name = models.TextField(null=True, blank=True)
+    last_name = models.TextField(null=True, blank=True)
+    custom_data = models.TextField(null=True, blank=True)
+    phone = models.TextField(null=True, blank=True)
+    user_type = models.TextField(
+        choices=USER_TYPES_CHOICES,
+        null=True, blank=True)
+    read_only = models.NullBooleanField(null=True, blank=True)
+    api_login = models.NullBooleanField(null=True, blank=True)
+    entity = models.ForeignKey("Member", null=True, blank=True)
+    publisher = models.ForeignKey("Publisher", null=True, blank=True)
+    advertiser = models.ForeignKey("Advertiser", null=True, blank=True)
+    #advertiser_access = array - see model UserAdvertiserAccess below
+    #publisher_access = array - see model UserPubliserAccess below
+    reporting_decimal_type = models.TextField(
+        choices=REPORTING_DECIMAL_TYPE,
+        null=True, blank=True)
+    decimal_mark = models.TextField(
+        choices=DECIMAL_MARK,
+        null=True, blank=True)
+    thousand_separator = models.TextField(
+        choices=THOUSAND_SEPARATOR,
+        null=True, blank=True)
+    send_safety_budget_notifications = models.NullBooleanField(null=True, blank=True)
+    is_developer = models.NullBooleanField(null=True, blank=True)
+    last_modified = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         db_table = "user"
+
+
+class UserPubliserAccess(models.Model):
+    publisher = models.ForeignKey("Publisher", null=True, blank=True)
+    user = models.ForeignKey("User", null=True, blank=True)
+
+    class Meta:
+        db_table = "user_publisher_access"
+
+
+class UserAdvertiserAccess(models.Model):
+    advertiser = models.ForeignKey("Advertiser", null=True, blank=True)
+    user = models.ForeignKey("User", null=True, blank=True)
+
+    class Meta:
+        db_table = "user_advertiser_access"
 
 
 class Category(models.Model):
@@ -112,8 +182,7 @@ class Advertiser(models.Model):
     #competitive_categories	#see model AdvertiserCategories below
     enable_pacing = models.NullBooleanField(null=True, blank=True)
     allow_safety_pacing = models.NullBooleanField(null=True, blank=True)
-    # profile = models.ForeignKey("Profile", null=True, blank=True) Temporary changed
-    profile_id = models.IntegerField(null=True, blank=True, db_index=True)
+    profile = models.ForeignKey("Profile", null=True, blank=True, related_name='profile_id')
     control_pct = models.FloatField(null=True, blank=True)
     timezone = models.TextField(null=True, blank=True) #originally it is enum
     last_modified = models.DateTimeField(null=True, blank=True)
@@ -551,6 +620,187 @@ class AdProfileFrequencyCapsCategory(models.Model):
         db_table = "ad_profile_frequency_caps_category"
 
 
+TYPE_OF_INVENTORY_CHOICES = (
+    ('managed', 'managed'),
+    ('rtb', 'rtb')
+)
+
+
+class OptimizationZone(models.Model):
+    #https://wiki.appnexus.com/display/api/Optimization+Zone+Service
+    id = models.IntegerField(primary_key=True)
+    name = models.TextField(null=True, blank=True, db_index=True)
+    external_name = models.TextField(null=True, blank=True, db_index=True)
+    last_modified = models.DateTimeField(null=True, blank=True)
+    type = models.TextField(
+        choices=TYPE_OF_INVENTORY_CHOICES,
+        null=True, blank=True)
+    search = models.TextField(null=True, blank=True)
+    #sites = array - see model Site below
+    #manual_offer_rankings = array - see model ManualOfferRanking below
+
+    class Meta:
+        db_table = "optimization_zone"
+
+
+class ManualOfferRanking(models.Model):
+    #https://wiki.appnexus.com/display/api/Manual+Offer+Ranking+Service
+    id = models.IntegerField(primary_key=True)
+    managed_optimization_zone_id = models.ForeignKey("OptimizationZone", null=True, blank=True)
+    line_item_id = models.ForeignKey("LineItem", null=True, blank=True)
+    country_code = models.TextField(null=True, blank=True, db_index=True)
+    creative_height = models.IntegerField(null=True, blank=True)
+    creative_width = models.IntegerField(null=True, blank=True)
+
+    class Meta:
+        db_table = "manual_offer_ranking"
+
+
+class MobileAppInstance(models.Model):
+    #https://wiki.appnexus.com/display/api/Mobile+App+Instance+Service
+    id = models.IntegerField(primary_key=True)
+    #instance - bundle - see model MobileAppInstanceBundle below
+    mobile_app_store = models.ForeignKey("MobileAppStore", null=True, blank=True)
+    store_name = models.TextField(null=True, blank=True)
+    store_url = models.TextField(null=True, blank=True)
+    mobile_app_store = models.TextField(null=True, blank=True)
+    last_modified = models.DateTimeField(null=True, blank=True)
+    created_on = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        db_table = "mobile_app_instance"
+
+
+class MobileAppInstanceBundle(models.Model):
+    id = models.IntegerField(primary_key=True)
+    bundle_id = models.IntegerField(primary_key=True)
+    os_family = models.ForeignKey("OSFamily", null=True, blank=True)
+    last_modified = models.DateTimeField(null=True, blank=True)
+    created_on = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        db_table = "mobile_app_instance_bundle"
+
+
+class MobileAppStore(models.Model):
+    #https://wiki.appnexus.com/display/api/Mobile+App+Store+Service
+    id = models.IntegerField(primary_key=True)
+    name = models.TextField(null=True, blank=True, db_index=True)
+    url = models.TextField(null=True, blank=True)
+    os_family = models.ForeignKey("OSFamily", null=True, blank=True)
+    last_modified = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        db_table = "mobile_app_store"
+
+
+INTENDED_AUDIENCE = (
+    ('general', 'general'),
+    ('children', 'children'),
+    ('young_adult', 'young_adult'),
+    ('mature', 'mature'),
+
+)
+
+
+SUPPLY_TYPE = (
+    ('web', 'web'),
+    ('mobile_app', 'mobile_app'),
+    ('mobile_web', 'mobile_web'),
+    ('facebook_sidebar', 'facebook_sidebar')
+)
+
+
+class Site(models.Model):
+    #https://wiki.appnexus.com/display/api/Site+Service
+    id = models.IntegerField(primary_key=True)
+    code = models.TextField(null=True, blank=True, db_index=True)
+    name = models.TextField(null=True, blank=True, db_index=True)
+    state = models.TextField(
+        choices=STATE_CHOICES,
+        null=True, blank=True)
+    url = models.TextField(null=True, blank=True)
+    publisherd = models.ForeignKey("Publisher", null=True, blank=True)
+    primary_content_category_id = models.ForeignKey("ContentCategory", null=True, blank=True)
+    last_modified = models.DateTimeField(null=True, blank=True)
+    #placements = array - see model Placement below
+    #content_categories = array - see model SiteContentCategory below
+    intended_audience = models.TextField(
+        choices=INTENDED_AUDIENCE,
+        null=True, blank=True)
+    managed_optimization_zone_id = models.ForeignKey("OptimizationZone", null=True, blank=True, related_name='managed_optimization_zone_id')
+    rtb_optimization_zone_id = models.ForeignKey("OptimizationZone", null=True, blank=True, related_name='rtb_optimization_zone_id')
+    #inventory_attributes = array - see model SiteInventoryAttributes below
+    audited = models.NullBooleanField(null=True, blank=True)
+    publisher_join = models.TextField(null=True, blank=True) # it is an array in origin but there is no description
+    supply_type = models.TextField(
+        choices=SUPPLY_TYPE,
+        null=True, blank=True)
+    creative_format_action = models.NullBooleanField(null=True, blank=True)
+    creative_formats = models.TextField(null=True, blank=True) # array in origine - we need use Postgresql Array of string
+    allowed_click_actions = models.TextField(null=True, blank=True) #array in origine - we need use Postgresql Array of string
+    marketplace_map = models.TextField(null=True, blank=True) # it is an array in origin but there is no description
+    mobile_app_instance_id = models.ForeignKey("MobileAppInstance", null=True, blank=True)
+
+    class Meta:
+        db_table = "site"
+
+
+class SiteInventoryAttributes(models.Model):
+    site = models.ForeignKey("Site", null=True, blank=True)
+    inventory_attribute = models.ForeignKey("InventoryAttribute", null=True, blank=True)
+
+    class Meta:
+        db_table = "site_inventory_attributes"
+
+
+class SiteContentCategory(models.Model):
+    site = models.ForeignKey("Site", null=True, blank=True)
+    content_category = models.ForeignKey("ContentCategory", null=True, blank=True)
+
+    class Meta:
+        db_table = "site_content_category"
+
+
+class YieldManagementProfile(models.Model):
+    #https://wiki.appnexus.com/display/api/Yield+Management+Profile+Service
+    id = models.IntegerField(primary_key=True)
+    code = models.TextField(null=True, blank=True, db_index=True)
+    name = models.TextField(null=True, blank=True, db_index=True)
+    description = models.TextField(null=True, blank=True)
+    base_ym_bias_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    base_ym_floor_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    publisher = models.ForeignKey("Publisher", null=True, blank=True)
+    #modifiers = array - see model YieldManagementProfileModifiers below
+    biases = models.TextField(null=True, blank=True) #TODO JSON - may be in future we need modell here
+    floors = models.TextField(null=True, blank=True) #TODO JSON - may be in future we need modell here
+    last_modified = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        db_table = "yield_management_profile"
+
+
+YIELD_MANAGEMENT_PROFILE_MODIFIERS_CHOICES = (
+    ('bias-pct', 'bias-pct'),
+    ('bias-cpm', 'bias-cpm'),
+    ('floor-pct', 'floor-pct'),
+    ('floor-cpm', 'floor-cpm')
+)
+
+
+class YieldManagementProfileModifiers(models.Model):
+    yield_management_profile = models.ForeignKey("YieldManagementProfile", null=True, blank=True)
+    technical_attribute = models.ForeignKey("TechnicalAttribute", null=True, blank=True)
+    type = models.TextField(
+        choices=YIELD_MANAGEMENT_PROFILE_MODIFIERS_CHOICES,
+        null=True, blank=True)
+    amount_pct = models.FloatField(null=True, blank=True)
+    amount_cpm = models.FloatField(null=True, blank=True)
+
+    class Meta:
+        db_table = "yield_management_profile_modifiers"
+
+
 RESELLING_EXPOSURE_CHOICES = (
     ('public', 'public'),
     ('private', 'private')
@@ -606,8 +856,8 @@ class Publisher(models.Model):
     learn_bypass_cpm = models.IntegerField(null=True, blank=True)
     ad_quality_advanced_mode_enabled = models.NullBooleanField(null=True, blank=True)
     allow_report_on_default_imps = models.NullBooleanField(null=True, blank=True)
-    default_site_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
-    default_ad_profile_id = models.ForeignKey("AdProfile", null=True, blank=True, related_name='publisher_ad_profile')
+    default_site = models.ForeignKey("Site", null=True, blank=True)
+    default_ad_profile = models.ForeignKey("AdProfile", null=True, blank=True, related_name='publisher_ad_profile_id')
     billing_dba = models.TextField(null=True, blank=True)
     billing_address1 = models.TextField(null=True, blank=True)
     billing_address2 = models.TextField(null=True, blank=True)
@@ -618,7 +868,7 @@ class Publisher(models.Model):
     accept_supply_partner_usersync = models.NullBooleanField(null=True, blank=True)
     accept_demand_partner_usersync = models.NullBooleanField(null=True, blank=True)
     accept_data_provider_usersync = models.NullBooleanField(null=True, blank=True)
-    ym_profile_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    ym_profile = models.ForeignKey("YieldManagementProfile", null=True, blank=True, related_name='ym_profile_id')
     allow_cpm_managed = models.NullBooleanField(null=True, blank=True)
     allow_cpm_external = models.NullBooleanField(null=True, blank=True)
     allow_cpa_managed = models.NullBooleanField(null=True, blank=True)
@@ -630,8 +880,8 @@ class Publisher(models.Model):
     external_cpc_bias_pct = models.IntegerField(null=True, blank=True)
     external_cpa_bias_pct = models.IntegerField(null=True, blank=True)
     is_oo = models.NullBooleanField(null=True, blank=True)
-    base_payment_rule_id =  models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
-    base_ad_quality_rule_id =  models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    base_payment_rule = models.ForeignKey("PaymentRule", null=True, blank=True)
+    base_ad_quality_rule_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
     currency = models.TextField(null=True, blank=True)
     visibility_profile_id =  models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
     billing_internal_user = models.IntegerField(null=True, blank=True)
@@ -1087,15 +1337,6 @@ AUDIT_LEVEL = (
 )
 
 
-INTENDED_AUDIENCE = (
-    ('general', 'general'),
-    ('children', 'children'),
-    ('young_adult', 'young_adult'),
-    ('mature', 'mature'),
-
-)
-
-
 DEFAULT_CALCULATION_TYPE = (
     ('gross', 'gross'),
     ('net', 'net')
@@ -1115,6 +1356,13 @@ SITE_AUDIT_STATUS = (
 )
 
 
+DEMAND_FILTER_ACTION_CHOICES = (
+    ('include', 'include'),
+    ('exclude', 'exclude'),
+    ('default', 'default')
+)
+
+
 class Placement(models.Model):
     name = models.TextField(null=True, blank=True, db_index=True)
     code = models.TextField(null=True, blank=True, db_index=True)
@@ -1130,9 +1378,9 @@ class Placement(models.Model):
         choices=PLACEMENT_POSITION,
         null=True, blank=True)
     publisher_id = models.ForeignKey("Publisher", null=True, blank=True)
-    site_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    site = models.ForeignKey("Site", null=True, blank=True)
     inventory_source_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
-    ad_profile_id = models.ForeignKey("AdProfile", null=True, blank=True)
+    ad_profile = models.ForeignKey("AdProfile", null=True, blank=True)
     #supported_media_types = array - see model PlacementMediaType below
     #supported_media_subtypes = array - see model PlacementMediaSubType below
     #pop_values = array - see model PlacementPopValues
@@ -1164,7 +1412,9 @@ class Placement(models.Model):
         choices=DEFAULT_CALCULATION_TYPE,
         null=True, blank=True)
     apply_floor_to_direct = models.NullBooleanField(null=True, blank=True)
-    demand_filter_action = models.TextField(null=True, blank=True)
+    demand_filter_action = models.TextField(
+        choices=DEMAND_FILTER_ACTION_CHOICES,
+        null=True, blank=True)
     floor_application_target = models.TextField(
         choices=FLOOR_APPLICATION_TARGET,
         null=True, blank=True)
@@ -1347,13 +1597,6 @@ class PublisherPlacement(models.Model):
         db_table = "publisher_placement"
 
 
-SUPPLY_TYPE = (
-    ('web', 'web'),
-    ('mobile_app', 'mobile_app'),
-    ('mobile_web', 'mobile_web')
-)
-
-
 GENDER = (
     ('m', 'm'),
     ('f', 'f'),
@@ -1518,7 +1761,7 @@ class Profile(models.Model):
     #https://wiki.appnexus.com/display/api/Profile+Service
     id = models.IntegerField(primary_key=True) #No AutoIncrement
     fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
-    advertiser = models.ForeignKey("Advertiser", null=True, blank=True)
+    advertiser = models.ForeignKey("Advertiser", null=True, blank=True, related_name='advertiser_id')
     code = models.TextField(null=True, blank=True)
     description = models.TextField(null=True, blank=True, db_index=True)
     is_template = models.NullBooleanField(null=True, blank=True)
@@ -1765,7 +2008,6 @@ class Campaign(models.Model):
     has_pacing_imps = models.IntegerField(null=True, blank=True) #enum in origin
     imps_pacing_percent = models.IntegerField(null=True, blank=True)
     media_cost_pacing_percent = models.IntegerField(null=True, blank=True)
-
     cpm_bid_type = models.TextField(
         choices=CPM_BID_TYPE_COICES,
         null=True, blank=True)
@@ -1777,7 +2019,6 @@ class Campaign(models.Model):
     max_learn_bid = models.FloatField(null=True, blank=True)
     #pixels = array  - see model CampaignConversionPixel
     bid_model = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
-
     learn_threshold = models.IntegerField(null=True, blank=True)
     max_learn_bid = models.FloatField(null=True, blank=True)
     cadence_type = models.TextField(
@@ -1920,6 +2161,80 @@ class LineItemCreatives(models.Model):
         db_table = "line_item_creatives"
 
 
+PRICING_TYPE_CHOICES = (
+    ('cpm', 'cpm'),
+    ('revshare', 'revshare'),
+    ('dynamic', 'dynamic')
+)
+
+
+BUYER_TYPE_CHOICES = (
+    ('direct', 'direct'),
+    ('rtb', 'rtb'),
+    ('both', 'both')
+)
+
+
+class PaymentRule(models.Model):
+    #https://wiki.appnexus.com/display/api/Payment+Rule+Service
+    id = models.IntegerField(primary_key=True) # No AutoIncrement
+    name = models.TextField(null=True, blank=True, db_index=True)
+    code = models.TextField(null=True, blank=True, db_index=True)
+    state = models.TextField(
+        choices=STATE_CHOICES,
+        null=True, blank=True)
+    description = models.TextField(null=True, blank=True)
+    start_date = models.DateTimeField(null=True, blank=True)
+    end_date = models.DateTimeField(null=True, blank=True)
+    pricing_type = models.TextField(
+        choices=PRICING_TYPE_CHOICES,
+        null=True, blank=True)
+    cost_cpm = models.FloatField(null=True, blank=True)
+    revshare = models.FloatField(null=True, blank=True)
+    profile = models.ForeignKey("Profile", null=True, blank=True)
+    priority = models.IntegerField(null=True, blank=True)
+    timezone = models.TextField(null=True, blank=True)
+    last_modified = models.DateTimeField(null=True, blank=True)
+    #filtered_advertisers = array - see model FilteredPaymentRuleAdvertisers below
+    #filtered_line_items = array - see model FilteredPaymentRuleAdvertisers below
+    #filtered_campaigns = array - see model FilteredPaymentRuleAdvertisers below
+    buyer_type = models.TextField(
+        choices=BUYER_TYPE_CHOICES,
+        null=True, blank=True)
+    max_revshare = models.FloatField(null=True, blank=True)
+    apply_cost_on_default = models.NullBooleanField(null=True, blank=True)
+    demand_filter_action = models.TextField(
+        choices=DEMAND_FILTER_ACTION_CHOICES,
+        null=True, blank=True)
+
+    class Meta:
+        db_table = "payment_rule"
+
+
+class FilteredPaymentRuleAdvertisers(models.Model):
+    payment_rule = models.ForeignKey("PaymentRule", null=True, blank=True)
+    advertiser = models.ForeignKey("Advertiser", null=True, blank=True)
+
+    class Meta:
+        db_table = "filtered_payment_rule_advertisers"
+
+
+class FilteredPaymentRuleLineItems(models.Model):
+    payment_rule = models.ForeignKey("PaymentRule", null=True, blank=True)
+    line_item = models.ForeignKey("LineItem", null=True, blank=True)
+
+    class Meta:
+        db_table = "filtered_payment_rule_line_items"
+
+
+class FilteredPaymentRuleCampaigns(models.Model):
+    payment_rule = models.ForeignKey("PaymentRule", null=True, blank=True)
+    campaign = models.ForeignKey("Campaign", null=True, blank=True)
+
+    class Meta:
+        db_table = "filtered_payment_rule_campaigns"
+
+
 class ClickTracker(models.Model):
     #https://wiki.appnexus.com/display/api/Click+Tracker+Service
     member = models.ForeignKey("Member", null=True, blank=True)
@@ -1932,7 +2247,7 @@ class ClickTracker(models.Model):
     click_url = models.TextField(null=True, blank=True, db_index=True)
     publisher = models.ForeignKey("Publisher", null=True, blank=True)
     #tag = array - see model ClickTrackerPlacement below
-    payment_rule_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    payment_rule = models.ForeignKey("PaymentRule", null=True, blank=True)
     line_item = models.ForeignKey("LineItem", null=True, blank=True)
     last_modified = models.DateTimeField()
 
@@ -1951,7 +2266,7 @@ class ClickTrackerPlacement(models.Model):
 class ImpressionTracker(models.Model):
     #https://wiki.appnexus.com/display/api/Impression+Tracker+Service
     member = models.ForeignKey("Member", null=True, blank=True)
-    advertiser_id = models.ForeignKey("Advertiser", null=True, blank=True)
+    advertiser = models.ForeignKey("Advertiser", null=True, blank=True)
     name = models.TextField(null=True, blank=True, db_index=True)
     code = models.TextField(null=True, blank=True, db_index=True)
     state = models.TextField(
@@ -1959,7 +2274,7 @@ class ImpressionTracker(models.Model):
         null=True, blank=True)
     publisher = models.ForeignKey("Publisher", null=True, blank=True)
     #tag = array - see model ImpressionTrackerPlacement below
-    payment_rule_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    payment_rule = models.ForeignKey("PaymentRule", null=True, blank=True)
     line_item = models.ForeignKey("LineItem", null=True, blank=True)
     last_modified = models.DateTimeField()
 
@@ -2013,7 +2328,7 @@ class InsertionOrder(models.Model):
     advertiser = models.ForeignKey("Advertiser", null=True, blank=True)
     start_date = models.DateTimeField(null=True, blank=True)
     end_date = models.DateTimeField(null=True, blank=True)
-    last_modified = models.DateTimeField()
+    last_modified = models.DateTimeField(null=True, blank=True)
     timezone = models.TextField(null=True, blank=True)  # enum
     currency = models.TextField(null=True, blank=True)
     comments = models.TextField(null=True, blank=True)
@@ -2042,9 +2357,23 @@ PAYMENT_TYPE_CHOICES = (
 )
 
 
+class Broker(models.Model):
+    #https://wiki.appnexus.com/display/api/Broker+Service
+    id = models.IntegerField(primary_key=True)  # No AutoIncrement
+    name = models.TextField(null=True, blank=True, db_index=True)
+    state = models.TextField(
+        choices=STATE_CHOICES,
+        null=True, blank=True)
+    member = models.ForeignKey("Member", null=True, blank=True)
+    last_modified = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        db_table = "broker"
+
+
 class InsertionOrderBrokerFees(models.Model):
     insertion_order = models.ForeignKey("InsertionOrder", null=True, blank=True)
-    broker_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    broker = models.ForeignKey("Broker", null=True, blank=True)
     payment_type = models.TextField(
         choices=PAYMENT_TYPE_CHOICES,
         null=True, blank=True)
@@ -2088,7 +2417,7 @@ class LineItemLabel(models.Model):
 
 
 class LineItemBroker(models.Model):
-    broker_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    broker = models.ForeignKey("Broker", null=True, blank=True)
     line_item = models.ForeignKey("LineItem", null=True, blank=True)
     payment_type = models.TextField(
         choices=PAYMENT_TYPE_CHOICES,
@@ -2102,7 +2431,7 @@ class LineItemBroker(models.Model):
 
 class CampaignBrokerFees(models.Model):
     campaign = models.ForeignKey("Campaign", null=True, blank=True)
-    broker_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    broker = models.ForeignKey("Broker", null=True, blank=True)
     payment_type = models.TextField(
         choices=PAYMENT_TYPE_CHOICES,
         null=True, blank=True)
@@ -2189,12 +2518,6 @@ MEMBER_DEFAULT_CAMPAIGN_TRUST = (
 )
 
 
-REPORTING_DECIMAL_TYPE = (
-    ('comma', 'comma'),
-    ('decimal', 'decimal')
-)
-
-
 class Developer(models.Model):
     """Description at https://wiki.appnexus.com/display/api/Developer+Service"""
     id = models.IntegerField(primary_key=True) # No AutoIncrement
@@ -2235,7 +2558,7 @@ class Member(models.Model):
     interface_domain_beta = models.TextField(null=True, blank=True)
     creative_size_minimum_bytes = models.IntegerField(null=True, blank=True)
     creative_size_fee_per_gb = models.FloatField(null=True, blank=True)
-    default_ad_profile_id = models.ForeignKey("AdProfile", null=True, blank=True, related_name='member_ad_profile')
+    default_ad_profile = models.ForeignKey("AdProfile", null=True, blank=True, related_name='member_ad_profile_id')
     email_code = models.TextField(null=True, blank=True)
     serving_domain = object
     reselling_exposure = models.TextField(
@@ -2311,10 +2634,76 @@ class Member(models.Model):
         db_table = "member"
 
 
+PRIMARY_PLATFORM_MEMBER_TYPE_CHOICES = (
+    ('network', 'network'),
+    ('buyer', 'buyer'),
+    ('seller', 'seller'),
+    ('data_provider', 'data_provider')
+)
+
+
+SELLER_TYPE_CHOICES = (
+    ('platform', 'platform'),
+    ('partner', 'partner')
+)
+
+
+class MemberProfile(models.Model):
+    #https://wiki.appnexus.com/display/api/Member+Profile+Service
+    id = models.IntegerField(primary_key=True) # No AutoIncrement
+    domain_list_action = models.TextField(
+        choices=TARGETS_ACTION_CHOICE,
+        null=True, blank=True)
+    domain_list_targets = models.TextField(null=True, blank=True) #array of objects in origin TODO it is needed to be concidered if we need a sepparait model here
+    #country_targets - see model MemberProfileCountry below
+    last_modified = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        db_table = "member_profile"
+
+
+class MemberProfileCountry(models.Model):
+    member_profile = models.ForeignKey("MemberProfile", null=True, blank=True)
+    country = models.ForeignKey("Country", null=True, blank=True)
+
+    class Meta:
+        db_table = "member_profilecountry"
+
+
+class PlatformMember(models.Model):
+    #https://wiki.appnexus.com/display/api/Platform+Member+Service
+    id = models.IntegerField(primary_key=True) # No AutoIncrement
+    name = models.TextField(null=True, blank=True, db_index=True)
+    primary_type = models.TextField(
+        choices=PRIMARY_PLATFORM_MEMBER_TYPE_CHOICES,
+        null=True, blank=True)
+    platform_exposure = models.TextField(
+        choices=MEMBER_RESELLING_EXPOSURE,
+        null=True, blank=True)
+    email = models.TextField(null=True, blank=True)
+    daily_imps_any_audit_status = models.IntegerField(null=True, blank=True)
+    daily_imps_appnexus_reviewed = models.IntegerField(null=True, blank=True)
+    daily_imps_appnexus_seller_reviewed = models.IntegerField(null=True, blank=True)
+    is_iash_compliant = models.NullBooleanField(null=True, blank=True)
+    has_resold = models.NullBooleanField(null=True, blank=True)
+    visibility_rules = models.TextField(null=True, blank=True) #TODO JSON
+    bidder = models.ForeignKey('User', null=True, blank=True, db_index=True)
+    seller_type = models.TextField(
+        choices=SELLER_TYPE_CHOICES,
+        null=True, blank=True)
+    contact_info = models.TextField(null=True, blank=True) #TODO JSON
+    active = models.NullBooleanField(null=True, blank=True)
+    last_modified = models.DateTimeField(null=True, blank=True)
+    default_discrepancy_pct = models.FloatField(null=True, blank=True)
+
+    class Meta:
+        db_table = "platform_member"
+
+
 class MemberFloorOptimisation(models.Model):
     member = models.ForeignKey("Member", null=True, blank=True)
     active = models.NullBooleanField(null=True, blank=True)
-    bidder_id = models.IntegerField(null=True, blank=True) #TODO FK is needed in future - I have not found corespondent service in source
+    bidder = models.ForeignKey('User', null=True, blank=True, db_index=True)
 
     class Meta:
         db_table = "member_floor_optimization"
@@ -2471,14 +2860,14 @@ class MemberPlugin(models.Model):
 
 class NetworkAnalyticsReport(models.Model):
     hour = models.DateTimeField(null=True, blank=True, db_index=True)
-    entity_member = models.ForeignKey("Member", related_name='entity_member_id', null=True, blank=True)
-    buyer_member = models.ForeignKey("Member", related_name='buyer_member_id', null=True, blank=True)
-    seller_member = models.ForeignKey("Member", related_name='seller_member_id', null=True, blank=True)
+    entity_member = models.ForeignKey("Member", null=True, blank=True)
+    buyer_member = models.ForeignKey("PlatformMember", related_name='buyer_member_id', null=True, blank=True)
+    seller_member = models.ForeignKey("PlatformMember", related_name='seller_member_id', null=True, blank=True)
     advertiser = models.ForeignKey("Advertiser", null=True, blank=True)
     adjustment_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
     publisher = models.ForeignKey("Publisher", null=True, blank=True)
     pub_rule_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
-    site_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    site = models.ForeignKey("Site", null=True, blank=True)
     pixel = models.ForeignKey("ConversionPixel", null=True, blank=True)
     placement = models.ForeignKey("Placement", null=True, blank=True)
     insertion_order = models.ForeignKey("InsertionOrder", null=True, blank=True)
@@ -2493,8 +2882,12 @@ class NetworkAnalyticsReport(models.Model):
     inventory_class = models.TextField(null=True, blank=True)
     bid_type = models.TextField(null=True, blank=True)
     imp_type_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
-    buyer_type = models.TextField(null=True, blank=True)
-    seller_type = models.TextField(null=True, blank=True)
+    buyer_type = models.TextField(
+        choices=BUYER_TYPE_CHOICES,
+        null=True, blank=True)
+    seller_type = models.TextField(
+        choices=SELLER_TYPE_CHOICES,
+        null=True, blank=True)
     revenue_type_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
 
     supply_type = models.TextField(null=True, blank=True)

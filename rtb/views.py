@@ -154,10 +154,10 @@ def parse_get_params(params):
 @parser_classes([FormParser, MultiPartParser])
 def campaigns(request):
     """
-    Get campaigns data for given period
-## Campaigns [/api/v1/campaigns?from={from_date}&to={to_date}&skip={skip}&take={take}&sort={sort}&order={order}&stat_by={stat_by}&filter={filter}]
+Get campaigns data for given period
 
-### Get campaigns [GET]
+## Url format: /api/v1/campaigns?from={from_date}&to={to_date}&skip={skip}&take={take}&sort={sort}&order={order}&stat_by={stat_by}&filter={filter}
+
 
 + Parameters
 

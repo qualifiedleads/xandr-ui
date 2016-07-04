@@ -289,7 +289,7 @@ def dayly_task(day=None, load_objects_from_services=True, output=None):
         token = report.get_auth_token()
         if load_objects_from_services and False:
             load_depending_data(token)
-        #load_reports_for_all_advertisers(token, day, SiteDomainPerformanceReport)
+        load_reports_for_all_advertisers(token, day, SiteDomainPerformanceReport)
         load_reports_for_all_advertisers(token, day, GeoAnaliticsReport)
         # load_reports_for_all_advertisers(token, day, NetworkAnalyticsReport)
     except Exception as e:

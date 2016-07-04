@@ -59,8 +59,11 @@ def analize_csv(filename, modelClass, metadata={}):
         metadata['counter'] = 0
         fetch_date = get_current_time()
         time_fields = [field.name for field in modelClass._meta.fields if date_type(field)]
-
+        foreign_keys = [field.name for field in modelClass._meta.fields if isinstance(field, django_types.RelatedField)]
         def create_object_from_dict(data):
+            for k in foreign_keys:
+                if data.get(k)=='--':
+                    data[k]=None
             try:
                 c = modelClass(**data)
                 # replace_tzinfo(c, time_fields)
@@ -272,9 +275,9 @@ def dayly_task(day=None, load_objects_from_services=True, output=None):
     # report.get_specifed_report('network_analytics')
     try:
         token = report.get_auth_token()
-        if load_objects_from_services:
+        if load_objects_from_services and False:
             load_depending_data(token)
-        load_reports_for_all_advertisers(token, day, SiteDomainPerformanceReport)
+        #load_reports_for_all_advertisers(token, day, SiteDomainPerformanceReport)
         load_reports_for_all_advertisers(token, day, GeoAnaliticsReport)
         # load_reports_for_all_advertisers(token, day, NetworkAnalyticsReport)
     except Exception as e:
@@ -307,6 +310,11 @@ def load_reports_for_all_advertisers(token, day, ReportClass):
     advertisers_need_load = set(all_advertisers) - advertisers_having_data
     campaign_dict = dict(Campaign.objects.all().values_list('id', 'name'))
     all_line_items = set(LineItem.objects.values_list("id", flat=True))
+    analize_csv('/home/alex/rep.csv', ReportClass,
+                metadata={"campaign_dict": campaign_dict,
+                          "all_line_items": all_line_items,
+                          "advertiser_id": 992089})
+
     filenames = worker_pool.map(lambda id:
                                 report.get_specifed_report(ReportClass, {'advertiser_id': id}, token, day),
                                 advertisers_need_load)

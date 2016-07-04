@@ -215,7 +215,7 @@ def campaigns(request):
             for camp in result:
                 camp.pop('chart', None)
 
-    #return JsonResponse({"campaigns": result, "totalCount": totalCount})
+    # return JsonResponse({"campaigns": result, "totalCount": totalCount})
     return Response({"campaigns": result, "totalCount": totalCount})
 
 

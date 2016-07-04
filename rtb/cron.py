@@ -17,7 +17,8 @@ from django.conf import settings
 from models import Advertiser, Campaign, SiteDomainPerformanceReport, Profile, LineItem, InsertionOrder, \
     OSFamily, OperatingSystemExtended, NetworkAnalyticsReport, GeoAnaliticsReport, Member, Developer, BuyerGroup
 from pytz import utc
-
+import pympler
+from pympler.tracker import SummaryTracker
 
 def date_type(t):
     return isinstance(t, (django_types.DateField, django_types.TimeField, django_types.DateField))
@@ -47,6 +48,7 @@ def update_object_from_dict(o, d, time_fields=None):
     replace_tzinfo(o, time_fields)
 
 def analize_csv(csvFile, modelClass, metadata={}):
+    t = SummaryTracker()
     reader = csv.DictReader(csvFile, delimiter=',')  # dialect='excel-tab' or excel ?
     print 'Begin analyzing csv file ...'
     #result = []
@@ -73,6 +75,7 @@ def analize_csv(csvFile, modelClass, metadata={}):
         print '%d rows fetched' % metadata['counter']
         if not res: break
         if metadata['counter'] % 100000 == 0:
+            t.print_diff()
             gc.collect()
     gc.collect()
 
@@ -292,6 +295,12 @@ def load_reports_for_all_advertisers(token, day, ReportClass):
     campaign_dict = dict(Campaign.objects.all().values_list('id', 'name'))
     all_line_items = set(LineItem.objects.values_list("id", flat=True))
     files = []
+    # debug code
+    with open('/home/alex/report.csv', 'r') as cf:
+        analize_csv(cf, ReportClass, metadata={"campaign_dict": campaign_dict,
+                                               "all_line_items": all_line_items,
+                                               "advertiser_id": 992089})
+        return
     try:
         files = worker_pool.map(lambda id:
                                 report.get_specifed_report(ReportClass, {'advertiser_id': id}, token, day),

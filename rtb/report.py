@@ -20,14 +20,12 @@ def get_report(rid, token):
     response = requests.get(url, headers=headers, stream=True)
 
     #Data saved to file to prevent using extra RAM (and debugging)
-    fd = open('%s/%s_report_%s.csv'%(log_path, get_str_time(),rid), 'wb+')
+    fd = open('%s/%s_report_%s.csv' % (log_path, get_str_time(), rid), 'wb')
     for chunk in response.iter_content(4096):
         fd.write(chunk)
     response.close()
-    fd.flush()
-    fd.seek(0)
-    #file-like object
-    return fd
+    fd.close()
+    return fd.name
 
 
 def get_report_status(rid, token):

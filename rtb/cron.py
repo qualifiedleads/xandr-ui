@@ -47,37 +47,40 @@ def update_object_from_dict(o, d, time_fields=None):
         except:pass
     replace_tzinfo(o, time_fields)
 
-def analize_csv(csvFile, modelClass, metadata={}):
-    t = SummaryTracker()
-    reader = csv.DictReader(csvFile, delimiter=',')  # dialect='excel-tab' or excel ?
-    print 'Begin analyzing csv file ...'
-    #result = []
-    metadata['counter'] = 0
-    fetch_date = get_current_time()
-    time_fields = [field.name for field in modelClass._meta.fields if date_type(field)]
-    def create_object_from_dict(data):
-        try:
-            c = modelClass(**data)
-            # replace_tzinfo(c, time_fields)
-        except:
-            c = modelClass()
-            update_object_from_dict(c, data, time_fields)
-        c.fetch_date = fetch_date
-        #replace_tzinfo(c, time_fields)
-        if hasattr(c, 'TransformFields'):
-            c.TransformFields(data, metadata)
-        metadata['counter']+=1
-        return c
 
-    it = imap(create_object_from_dict, reader)
-    while True:
-        res = modelClass.objects.bulk_create(islice(it, 0, 1000))
-        print '%d rows fetched' % metadata['counter']
-        if not res: break
-        if metadata['counter'] % 100000 == 0:
-            t.print_diff()
-            gc.collect()
-    gc.collect()
+def analize_csv(filename, modelClass, metadata={}):
+    with open(filename, 'r') as csvFile:
+        t = SummaryTracker()
+        reader = csv.DictReader(csvFile, delimiter=',')  # dialect='excel-tab' or excel ?
+        print 'Begin analyzing csv file ...'
+        # result = []
+        metadata['counter'] = 0
+        fetch_date = get_current_time()
+        time_fields = [field.name for field in modelClass._meta.fields if date_type(field)]
+
+        def create_object_from_dict(data):
+            try:
+                c = modelClass(**data)
+                # replace_tzinfo(c, time_fields)
+            except:
+                c = modelClass()
+                update_object_from_dict(c, data, time_fields)
+            c.fetch_date = fetch_date
+            # replace_tzinfo(c, time_fields)
+            if hasattr(c, 'TransformFields'):
+                c.TransformFields(data, metadata)
+            metadata['counter'] += 1
+            return c
+
+        it = imap(create_object_from_dict, reader)
+        while True:
+            res = modelClass.objects.bulk_create(islice(it, 0, 1000))
+            print '%d rows fetched' % metadata['counter']
+            if not res: break
+            if metadata['counter'] % 100000 == 0:
+                t.print_diff()
+                gc.collect()
+        gc.collect()
 
 
 unix_epoch = datetime.datetime.utcfromtimestamp(0).replace(tzinfo=utc)
@@ -294,26 +297,18 @@ def load_reports_for_all_advertisers(token, day, ReportClass):
     advertisers_need_load = set(all_advertisers) - advertisers_having_data
     campaign_dict = dict(Campaign.objects.all().values_list('id', 'name'))
     all_line_items = set(LineItem.objects.values_list("id", flat=True))
-    files = []
-    # debug code
-    with open('/home/alex/report.csv', 'r') as cf:
-        analize_csv(cf, ReportClass, metadata={"campaign_dict": campaign_dict,
-                                               "all_line_items": all_line_items,
-                                               "advertiser_id": 992089})
-        return
-    try:
-        files = worker_pool.map(lambda id:
+    filenames = worker_pool.map(lambda id:
                                 report.get_specifed_report(ReportClass, {'advertiser_id': id}, token, day),
                                 advertisers_need_load)
-        for f, advertiser_id in izip(files, advertisers_need_load):
+    try:
+        for f, advertiser_id in izip(filenames, advertisers_need_load):
             analize_csv(f, ReportClass,
                         metadata={"campaign_dict": campaign_dict,
                                   "all_line_items": all_line_items,
                                   "advertiser_id": advertiser_id})
             print "Domain performance report for advertiser %s saved to DB" % all_advertisers[advertiser_id]
     finally:
-        for f in files:
-            f.close()
+        for f in filenames:
             os.remove(f.name)
 
 

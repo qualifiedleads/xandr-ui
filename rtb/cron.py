@@ -10,12 +10,14 @@ from itertools import imap, izip, islice
 from multiprocessing.pool import ThreadPool
 from django.db.models import Avg, Count, Sum
 import django.db.models as django_types
+from django.db import transaction
 import re
 import requests
 import report
 from django.conf import settings
 from models import Advertiser, Campaign, SiteDomainPerformanceReport, Profile, LineItem, InsertionOrder, \
-    OSFamily, OperatingSystemExtended, NetworkAnalyticsReport, GeoAnaliticsReport, Member, Developer, BuyerGroup
+    OSFamily, OperatingSystemExtended, NetworkAnalyticsReport, GeoAnaliticsReport, Member, Developer, BuyerGroup, \
+    AdProfile
 from pytz import utc
 import pympler
 from pympler.tracker import SummaryTracker
@@ -200,12 +202,20 @@ def load_depending_data(token):
                                              BuyerGroup.objects.all().order_by('fetch_date'),
                                              BuyerGroup, 'id', False)
             print 'There is %d buyer groups ' % len(buyer_groups)
-            members = nexus_get_objects(token,
-                                        'https://api.appnexus.com/member',
-                                        {},
-                                        Member.objects.all().order_by('fetch_date'),
-                                        Member, 'id', False)
-            print 'There is %d members ' % len(members)  # Get all of an advertiser's line items:
+            # There is mutual dependence
+            with transaction.atomic():
+                ad_profiles = nexus_get_objects(token,
+                                            'https://api.appnexus.com/ad-profile',
+                                            {},
+                                            AdProfile.objects.all().order_by('fetch_date'),
+                                            AdProfile, 'id', False)
+                print 'There is %d adware profiles ' % len(ad_profiles)  # Get all of an advertiser's line items:
+                members = nexus_get_objects(token,
+                                            'https://api.appnexus.com/member',
+                                            {},
+                                            Member.objects.all().order_by('fetch_date'),
+                                            Member, 'id', False)
+                print 'There is %d members ' % len(members)  # Get all of an advertiser's line items:
             line_items = nexus_get_objects(token,
                                            'https://api.appnexus.com/line-item',
                                            {'advertiser_id': advertiser_id},

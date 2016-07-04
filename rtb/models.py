@@ -357,6 +357,7 @@ DEFAILT_AUDIT_TYPE_CHOICES = (
 class AdProfile(models.Model):
     #https://wiki.appnexus.com/display/api/Ad+Profile+Service
     id = models.IntegerField(primary_key=True)
+    fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
     state = models.TextField(
         choices=STATE_CHOICES,
         null=True, blank=True)

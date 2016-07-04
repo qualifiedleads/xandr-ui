@@ -79,7 +79,9 @@ def get_column_list_for_report(ReportClass):
         return column_sets_for_reports[ReportClass.api_report_name]
     except:
         pass
-    all_fields = [field.name + '_id' if isinstance(field, django_types.ForeignKey) else field.name
+    all_fields = [field.name + '_id' if isinstance(field, django_types.ForeignObject) else field.name
                   for field in ReportClass._meta.fields]
-    meta_fields = (column['column'] for column in meta[ReportClass.api_report_name]['columns'])
+    #name_fields = [field.name + '_name' for field in ReportClass._meta.fields if isinstance(field, django_types.ForeignObject)]
+    meta_fields = [column['column'] for column in meta[ReportClass.api_report_name]['columns']]
+
     return list(set(all_fields) & set(meta_fields))

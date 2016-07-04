@@ -1,4 +1,4 @@
-#!/bin/python
+#!/bin/env python
 import csv
 import datetime, time
 import gc
@@ -58,33 +58,45 @@ def analize_csv(filename, modelClass, metadata={}):
         # result = []
         metadata['counter'] = 0
         fetch_date = get_current_time()
+        all_fields = set(field.name for field in modelClass._meta.fields) & set(reader.fieldnames)
         time_fields = [field.name for field in modelClass._meta.fields if date_type(field)]
-        foreign_keys = [field.name for field in modelClass._meta.fields if isinstance(field, django_types.RelatedField)]
-        def create_object_from_dict(data):
-            for k in foreign_keys:
+        nullable_keys = [field.name for field in modelClass._meta.fields
+                        if field.null and not isinstance(field, (django_types.CharField,django_types.TextField))]
+        float_keys =  [field.name for field in modelClass._meta.fields if isinstance(field,(django_types.FloatField,django_types.DecimalField))]
+        def create_object_from_dict(data_row):
+            data = {k:data_row[k] for k in all_fields}
+            for k in nullable_keys:
                 if data.get(k)=='--':
                     data[k]=None
+            for k in float_keys:
+                s=str(data.get(k,''))
+                if s.endswith('%'):
+                    data[k]=s[:-1]
             try:
                 c = modelClass(**data)
-                # replace_tzinfo(c, time_fields)
+                replace_tzinfo(c, time_fields)
             except:
                 c = modelClass()
                 update_object_from_dict(c, data, time_fields)
             c.fetch_date = fetch_date
-            # replace_tzinfo(c, time_fields)
             if hasattr(c, 'TransformFields'):
                 c.TransformFields(data, metadata)
             metadata['counter'] += 1
             return c
 
-        it = imap(create_object_from_dict, reader)
-        while True:
-            res = modelClass.objects.bulk_create(islice(it, 0, 1000))
-            print '%d rows fetched' % metadata['counter']
-            if not res: break
-            if metadata['counter'] % 100000 == 0:
-                t.print_diff()
-                gc.collect()
+        #it = imap(create_object_from_dict, reader)
+        worker = ThreadPool()
+        try:
+            while True:
+                objects_to_save = worker.map(create_object_from_dict, islice(reader, 0, 4000))
+                res = modelClass.objects.bulk_create(objects_to_save)
+                print '%d rows fetched' % metadata['counter']
+                if not res: break
+                if metadata['counter'] % 100000 == 0:
+                    t.print_diff()
+                    gc.collect()
+        except Exception as e:
+            print 'Error in main loop in analize_csv', e
         gc.collect()
 
 
@@ -310,10 +322,10 @@ def load_reports_for_all_advertisers(token, day, ReportClass):
     advertisers_need_load = set(all_advertisers) - advertisers_having_data
     campaign_dict = dict(Campaign.objects.all().values_list('id', 'name'))
     all_line_items = set(LineItem.objects.values_list("id", flat=True))
-    analize_csv('/home/alex/rep.csv', ReportClass,
-                metadata={"campaign_dict": campaign_dict,
-                          "all_line_items": all_line_items,
-                          "advertiser_id": 992089})
+    # analize_csv('/home/alex/rep.csv', ReportClass,
+    #             metadata={"campaign_dict": campaign_dict,
+    #                       "all_line_items": all_line_items,
+    #                       "advertiser_id": 992089})
 
     filenames = worker_pool.map(lambda id:
                                 report.get_specifed_report(ReportClass, {'advertiser_id': id}, token, day),

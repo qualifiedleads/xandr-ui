@@ -155,9 +155,33 @@ def parse_get_params(params):
 def campaigns(request):
     """
     Get campaigns data for given period
-    @from_date: start date for period. Data for this day included
-    @to_date: end date for period. Data for this day included
-    @advertiser_id: id of advertiser in system db
+## Campaigns [/api/v1/campaigns?from={from_date}&to={to_date}&skip={skip}&take={take}&sort={sort}&order={order}&stat_by={stat_by}&filter={filter}]
+
+### Get campaigns [GET]
+
++ Parameters
+
+    + from_date (date) - Date to select statistics from
+        + Format: Unixtime
+        + Example: 1466667274
+    + to_date (date) - Date to select statistics to
+        + Format: Unixtime
+        + Example: 1466667274
+    + skip (number, optional) - How much records need to skip (pagination)
+        + Default: 0
+    + take (number, optional) - How much records need to return (pagination)
+        + Default: 20
+    + sort (string, optional) - Field to sort by
+        + Default: campaign
+    + order (string, optional) - Order of sorting (ASC or DESC)
+        + Default: desc
+    + stat_by (string, optional) - statistic fields to select (select every field if param is empty)
+        + Format: comma separated
+        + Example: impressions,cpa,cpc
+    + filter (string, optional) - filter data by several fields
+        + Format: semicolon separated pairs
+        + Example: campaign=Campaign 1,Campaign 2;conv=3,8
+
     """
     params = parse_get_params(request.GET)
     result = get_campaigns_data(params['advertiser_id'],params['from_date'],params['to_date'])

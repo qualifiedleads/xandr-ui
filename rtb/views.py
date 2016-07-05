@@ -3,7 +3,7 @@ from urllib import addbase
 
 from django.http import JsonResponse
 from django.db.models import Avg, Count, Sum
-from models import SiteDomainPerformanceReport, Campaign
+from models import SiteDomainPerformanceReport, Campaign, GeoAnaliticsReport
 from django.core.cache import cache
 from pytz import utc
 import operator
@@ -267,7 +267,7 @@ def statistics(request):
 #http://private-anon-e1f78e3eb-rtbs.apiary-mock.com/api/v1/map/clicks?from=from_date&to=to_date
 def map_clicks(request):
     params=parse_get_params(request.GET)
-    q = SiteDomainPerformanceReport.objects.filter(
+    q = GeoAnaliticsReport.objects.filter(
         advertiser_id=params['advertiser_id'],
         day__gte=params['from_date'],
         day__lte=params['to_date'],

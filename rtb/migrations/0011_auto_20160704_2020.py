@@ -43,7 +43,6 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='MobileAppInstanceBundle',
             fields=[
-                ('id', models.IntegerField(primary_key=True)),
                 ('bundle_id', models.IntegerField(primary_key=True, serialize=False)),
                 ('last_modified', models.DateTimeField(blank=True, null=True)),
                 ('created_on', models.DateTimeField(blank=True, null=True)),

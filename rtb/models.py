@@ -672,7 +672,6 @@ class MobileAppInstance(models.Model):
 
 
 class MobileAppInstanceBundle(models.Model):
-    id = models.IntegerField(primary_key=True)
     bundle_id = models.IntegerField(primary_key=True)
     os_family = models.ForeignKey("OSFamily", null=True, blank=True)
     last_modified = models.DateTimeField(null=True, blank=True)

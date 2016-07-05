@@ -180,9 +180,7 @@
       value: $localStorage.checkChart.impressions? true:false,
       onValueChanged: function (e) {
         if (e.value == true) {
-          $localStorage.checkChart.impressions = true;
-          $localStorage.series.push({ valueField: 'impressions', name: 'Impressions' });
-          $state.reload();
+          vm.chartOptionsFunc.series
         } else {
           $localStorage.checkChart.impressions = false;
           for(var index in $localStorage.series) {

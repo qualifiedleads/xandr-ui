@@ -1717,6 +1717,7 @@ class OperatingSystem(models.Model):
     class Meta:
         db_table = "operating_system"
 
+
 class OperatingSystemExtended(models.Model):
     id = models.IntegerField(primary_key=True) #No AutoIncrement
     fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
@@ -1726,7 +1727,7 @@ class OperatingSystemExtended(models.Model):
     search_string = models.TextField(null=True, blank=True)
     
     def TransformFields(self, data, metadata={}):
-		self.os_family_id = data["family"]["id"]
+        self.os_family_id = data["family"]["id"]
 
     class Meta:
         db_table = "operating_system_extended"
@@ -1944,6 +1945,40 @@ LEARN_OVERRIDE_TYPE_COICES = (
 )
 
 
+MODEL_OUTPUT_CHOICES = (
+    ('bid', 'bid'),
+    ('bid_modifier', 'bid_modifier')
+)
+
+
+CUSTOM_MODEL_STRUCTURE_CHOICES = (
+    ('decision_tree', 'decision_tree'),
+    ('decision_tree', 'decision_tree')
+)
+
+
+class CustomModel(models.Model):
+    #https://wiki.appnexus.com/display/api/Custom+Model+Service
+    id = models.IntegerField(primary_key=True) #No AutoIncrement
+    fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
+    name = models.TextField(null=True, blank=True, db_index=True)
+    member = models.ForeignKey("Member", null=True, blank=True)
+    advertiser = models.ForeignKey("Advertiser", null=True, blank=True)
+    custom_model_structure = models.TextField(
+        choices=CUSTOM_MODEL_STRUCTURE_CHOICES,
+        null=True, blank=True)
+    model_output = models.TextField(
+        choices=MODEL_OUTPUT_CHOICES,
+        null=True, blank=True)
+    model_text = models.TextField(null=True, blank=True)
+    original_text = models.TextField(null=True, blank=True)
+    active = models.NullBooleanField(null=True, blank=True)
+    last_modified = models.DateTimeField()
+
+    class Meta:
+        db_table = "custom_model"
+
+
 class Campaign(models.Model):
     #https://wiki.appnexus.com/display/api/Campaign+Service
     id = models.IntegerField(primary_key=True) # No AutoIncrement
@@ -2017,7 +2052,7 @@ class Campaign(models.Model):
     cpc_goal = models.FloatField(null=True, blank=True)
     max_learn_bid = models.FloatField(null=True, blank=True)
     #pixels = array  - see model CampaignConversionPixel
-    bid_model = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    bid_model = models.ForeignKey("CustomModel", null=True, blank=True)
     learn_threshold = models.IntegerField(null=True, blank=True)
     max_learn_bid = models.FloatField(null=True, blank=True)
     cadence_type = models.TextField(

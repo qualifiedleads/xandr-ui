@@ -15,10 +15,12 @@ import re
 import requests
 import report
 from django.conf import settings
+import models
 from models import Advertiser, Campaign, SiteDomainPerformanceReport, Profile, LineItem, InsertionOrder, \
     OSFamily, OperatingSystemExtended, NetworkAnalyticsReport, GeoAnaliticsReport, Member, Developer, BuyerGroup, \
     AdProfile
 from pytz import utc
+from utils import get_all_classes_in_models
 import pympler
 from pympler.tracker import SummaryTracker
 
@@ -50,6 +52,8 @@ def update_object_from_dict(o, d, time_fields=None):
     replace_tzinfo(o, time_fields)
 
 
+table_names = {c._meta.db_table: c for c in get_all_classes_in_models(models)}
+
 # Error in main loop in analize_csv insert or update on table "geo_analytics_report" violates foreign key constraint "geo_analytics_insertion_order_id_d8499158_fk_insertion_order_id"
 # DETAIL:  Key (insertion_order_id)=(0) is not present in table "insertion_order".
 def try_resolve_foreign_key(objects, dicts, e):
@@ -59,8 +63,21 @@ def try_resolve_foreign_key(objects, dicts, e):
     if not m:
         return False
     key_field, key_value, table_name = m.groups()
-    for o in objects:
-        pass
+    try:
+        objectClass = table_names[table_name]
+        o = objectClass()
+        o.id = key_value
+        cd = get_current_time()
+        if hasattr(o, 'name'):
+            o.name = 'Unknown, autocreated at %s' % cd
+        if hasattr(o, 'fetch_date'):
+            o.fetch_date = cd
+        if hasattr(o, 'last_modified'):
+            o.last_modified = cd
+        o.save()
+    except Exception as e:
+        print "Failed try_resolve_foreign_key...", e
+        return False
     return True
 
 def analize_csv(filename, modelClass, metadata={}):

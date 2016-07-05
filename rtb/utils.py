@@ -78,7 +78,6 @@ def get_all_classes_in_models(module):
             for k in module.__dict__
             if isinstance(module.__dict__[k], django_types.base.ModelBase)]
 
-
 # Getting column list, which is possible to send to report service
 def get_column_list_for_report(ReportClass):
     try:

@@ -392,10 +392,6 @@ def load_reports_for_all_advertisers(token, day, ReportClass):
     advertisers_need_load = set(all_advertisers) - advertisers_having_data
     campaign_dict = dict(Campaign.objects.all().values_list('id', 'name'))
     all_line_items = set(LineItem.objects.values_list("id", flat=True))
-    # analize_csv('/home/alex/rep.csv', ReportClass,
-    #             metadata={"campaign_dict": campaign_dict,
-    #                       "all_line_items": all_line_items,
-    #                       "advertiser_id": 992089})
 
     filenames = worker_pool.map(lambda id:
                                 report.get_specifed_report(ReportClass, {'advertiser_id': id}, token, day),

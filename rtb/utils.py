@@ -28,7 +28,7 @@ column_sets_for_reports = {
         "commissions",
         "serving_fees"
     ],
-    "site_domain_performance": [
+    "site_domain_performance_": [
         "day",
         "site_domain",
         "campaign",

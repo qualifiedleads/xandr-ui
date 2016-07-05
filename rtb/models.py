@@ -2570,7 +2570,7 @@ class SiteDomainPerformanceReport(models.Model):
     class Meta:
         db_table = "site_domain_performance_report"
     #This function transform raw data, collected from csv, to value, saved into DB/
-    def TransformFields(self, data,  metadata={}):
+    def TransformFields1(self, data,  metadata={}):
         if not metadata: return
         campaign_dict = metadata["campaign_dict"]
         all_line_items = metadata["all_line_items"]
@@ -2580,17 +2580,9 @@ class SiteDomainPerformanceReport(models.Model):
         self.campaign_id = int(text_in_parentheses)
         #self.campaign = campaign_dict.get(self.campaign_id) #This also change self.campaign_id
         if self.campaign_id not in campaign_dict:
-            campaign_dict[self.campaign_id] = data["campaign"][:-len(text_in_parentheses)-2]
-            camp = Campaign()
-            camp.id = self.campaign_id
-            camp.fetch_date = self.fetch_date
-            camp.state = "Inactive"
-            camp.name = campaign_dict[self.campaign_id]
-            camp.advertiser_id = metadata.get("advertiser_id")
-            camp.comments = "created automatically"
-            camp.start_date = datetime.datetime(1970,1,1,tzinfo=utc)
-            camp.last_modified = self.fetch_date
-            camp.save()
+            #campaign_dict[self.campaign_id] = data["campaign"][:-len(text_in_parentheses)-2]
+            campaign_dict[self.campaign_id] = data["campaign_name"]
+            self.create_campaign(data["campaign_name"], metadata['advertiser_id'])
         self.advertiser = None
         self.advertiser_id = metadata.get("advertiser_id")
         #self.line_item_id = get_text_in_parentheses(data["line_item"])
@@ -2604,6 +2596,25 @@ class SiteDomainPerformanceReport(models.Model):
         self.click_thru_pct = self.click_thru_pct.replace('%','')
         if self.line_item_id not in all_line_items:
             self.line_item = None
+
+    def TransformFields(self, data,  metadata={}):
+        if not metadata: return
+        campaign_dict = metadata["campaign_dict"]
+        if self.campaign_id not in campaign_dict:
+            campaign_dict[self.campaign_id] = data["campaign_name"]
+            self.create_campaign(data["campaign_name"], metadata['advertiser_id'])
+
+    def create_campaign(self, campaign_name, advertiser_id):
+        camp = Campaign()
+        camp.id = self.campaign_id
+        camp.fetch_date = self.fetch_date
+        camp.state = "Inactive"
+        camp.name = campaign_name
+        camp.advertiser_id = advertiser_id
+        camp.comments = "created automatically"
+        camp.start_date = datetime.datetime(1970, 1, 1, tzinfo=utc)
+        camp.last_modified = self.fetch_date
+        camp.save()
 
 
 class GeoAnaliticsReport(models.Model):

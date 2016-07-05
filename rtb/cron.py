@@ -10,7 +10,7 @@ from itertools import imap, izip, islice
 from multiprocessing.pool import ThreadPool
 from django.db.models import Avg, Count, Sum
 import django.db.models as django_types
-from django.db import transaction
+from django.db import transaction, IntegrityError
 import re
 import requests
 import report
@@ -49,6 +49,19 @@ def update_object_from_dict(o, d, time_fields=None):
         except:pass
     replace_tzinfo(o, time_fields)
 
+
+# Error in main loop in analize_csv insert or update on table "geo_analytics_report" violates foreign key constraint "geo_analytics_insertion_order_id_d8499158_fk_insertion_order_id"
+# DETAIL:  Key (insertion_order_id)=(0) is not present in table "insertion_order".
+def try_resolve_foreign_key(objects, dicts, e):
+    if e.message.find('foreign key constraint') < 0:
+        return False
+    m = re.search(r'Key \((\w+)\)=\(([^\)]+)\) is not present in table "([^\"]+)"', e.message)
+    if not m:
+        return False
+    key_field, key_value, table_name = m.groups()
+    for o in objects:
+        pass
+    return True
 
 def analize_csv(filename, modelClass, metadata={}):
     with open(filename, 'r') as csvFile:
@@ -102,7 +115,18 @@ def analize_csv(filename, modelClass, metadata={}):
                     print "There are error in multithreaded map"
                 if not all(objects_to_save):
                     print "There are error objects"
-                modelClass.objects.bulk_create(objects_to_save)
+                objects_saved = False
+                errors = 0
+                while not objects_saved:
+                    try:
+                        modelClass.objects.bulk_create(objects_to_save)
+                        objects_saved = True
+                    except IntegrityError as e:
+                        errors += 1
+                        if errors > 1000:
+                            print 'Too many DB integrity errors'
+                            raise
+                        if not try_resolve_foreign_key(objects_to_save, rows, e): raise
                 print '%d rows fetched' % metadata['counter']
                 if metadata['counter'] % 100000 == 0:
                     t.print_diff()

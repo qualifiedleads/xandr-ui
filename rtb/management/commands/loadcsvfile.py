@@ -1,13 +1,10 @@
 from django.core.management import BaseCommand
 from rtb.cron import analize_csv
 from rtb import models
-import django.db.models as m
+from rtb.utils import get_all_classes_in_models
 import os
 
-all_classes = [models.__dict__[k]
-               for k in models.__dict__
-               if isinstance(models.__dict__[k], m.base.ModelBase)]
-
+all_classes = get_all_classes_in_models(models)
 all_report_types = {getattr(c, 'api_report_name'): c for c in all_classes if hasattr(c, 'api_report_name')}
 
 class Command(BaseCommand):

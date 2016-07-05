@@ -93,7 +93,6 @@ TIME_FORMAT_CHOICES = (
     ('24', '24-Hour'),
 )
 
-
 class Advertiser(models.Model):
     #https://wiki.appnexus.com/display/api/Advertiser+Service
     id = models.IntegerField(primary_key=True) #This prevent making automatic AutoIncrement field

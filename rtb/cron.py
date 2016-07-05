@@ -58,40 +58,49 @@ def analize_csv(filename, modelClass, metadata={}):
         # result = []
         metadata['counter'] = 0
         fetch_date = get_current_time()
-        all_fields = set(field.name for field in modelClass._meta.fields) & set(reader.fieldnames)
+        class_fields = set(field.name for field in modelClass._meta.fields)
+        csv_fields = set(reader.fieldnames)
+        all_fields = class_fields & csv_fields
+        need_filter_fields = bool(csv_fields - class_fields)
         time_fields = [field.name for field in modelClass._meta.fields if date_type(field)]
         nullable_keys = [field.name for field in modelClass._meta.fields
                         if field.null and not isinstance(field, (django_types.CharField,django_types.TextField))]
         float_keys =  [field.name for field in modelClass._meta.fields if isinstance(field,(django_types.FloatField,django_types.DecimalField))]
         def create_object_from_dict(data_row):
-            data = {k:data_row[k] for k in all_fields}
-            for k in nullable_keys:
-                if data.get(k)=='--':
-                    data[k]=None
-            for k in float_keys:
-                s=str(data.get(k,''))
-                if s.endswith('%'):
-                    data[k]=s[:-1]
             try:
-                c = modelClass(**data)
-                replace_tzinfo(c, time_fields)
+                data = {k: data_row[k] for k in all_fields} if need_filter_fields else data_row
+                for k in nullable_keys:
+                    if data.get(k) == '--':
+                        data[k] = None
+                for k in float_keys:
+                    s = str(data.get(k, ''))
+                    if s.endswith('%'):
+                        data[k] = s[:-1]
+                try:
+                    c = modelClass(**data)
+                    replace_tzinfo(c, time_fields)
+                except:
+                    c = modelClass()
+                    update_object_from_dict(c, data, time_fields)
+                c.fetch_date = fetch_date
+                if hasattr(c, 'TransformFields'):
+                    c.TransformFields(data, metadata)
+                metadata['counter'] += 1
+                return c
             except:
-                c = modelClass()
-                update_object_from_dict(c, data, time_fields)
-            c.fetch_date = fetch_date
-            if hasattr(c, 'TransformFields'):
-                c.TransformFields(data, metadata)
-            metadata['counter'] += 1
-            return c
+                return None
 
         #it = imap(create_object_from_dict, reader)
         worker = ThreadPool()
         try:
             while True:
-                objects_to_save = worker.map(create_object_from_dict, islice(reader, 0, 4000))
+                rows = list(islice(reader, 0, 4000))
+                if not rows: break
+                objects_to_save = worker.map(create_object_from_dict, rows)
+                if not all(objects_to_save):
+                    print "There are error objects"
                 res = modelClass.objects.bulk_create(objects_to_save)
                 print '%d rows fetched' % metadata['counter']
-                if not res: break
                 if metadata['counter'] % 100000 == 0:
                     t.print_diff()
                     gc.collect()

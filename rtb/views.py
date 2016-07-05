@@ -267,24 +267,32 @@ def statistics(request):
 #http://private-anon-e1f78e3eb-rtbs.apiary-mock.com/api/v1/map/clicks?from=from_date&to=to_date
 def map_clicks(request):
     params=parse_get_params(request.GET)
-    return JsonResponse({
-        "China": 19,
-        "India": 123,
-        "United States": 3000,
-        "Indonesia": 200,
-        "Brazil": 5000,
-        "Nigeria": 30000,
-        "Bangladesh": 4000,
-        "Russia": 1000,
-        "Japan": 4,
-        "Mexico": 40,
-        "Philippines": 600,
-        "Germany": 3000,
-        "France": 20000,
-        "Thailand": 1000,
-        "United Kingdom": 200,
-        "Italy": 222,
-        "Ukraine": 600,
-        "Canada": 50
-    })
-
+    q = SiteDomainPerformanceReport.objects.filter(
+        advertiser_id=params['advertiser_id'],
+        day__gte=params['from_date'],
+        day__lte=params['to_date'],
+    ).values_list('geo_country_name').annotate(
+        Sum('clicks'),
+    )
+    l = list(q)
+    print l
+    # return JsonResponse({
+    #     "China": 19,
+    #     "India": 123,
+    #     "United States": 3000,
+    #     "Indonesia": 200,
+    #     "Brazil": 5000,
+    #     "Nigeria": 30000,
+    #     "Bangladesh": 4000,
+    #     "Russia": 1000,
+    #     "Japan": 4,
+    #     "Mexico": 40,
+    #     "Philippines": 600,
+    #     "Germany": 3000,
+    #     "France": 20000,
+    #     "Thailand": 1000,
+    #     "United Kingdom": 200,
+    #     "Italy": 222,
+    #     "Ukraine": 600,
+    #     "Canada": 50
+    # })

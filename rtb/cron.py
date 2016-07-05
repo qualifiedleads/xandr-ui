@@ -20,7 +20,7 @@ from models import Advertiser, Campaign, SiteDomainPerformanceReport, Profile, L
     OSFamily, OperatingSystemExtended, NetworkAnalyticsReport, GeoAnaliticsReport, Member, Developer, BuyerGroup, \
     AdProfile
 from pytz import utc
-from utils import get_all_classes_in_models
+from utils import get_all_classes_in_models, column_sets_for_reports
 import pympler
 from pympler.tracker import SummaryTracker
 
@@ -66,7 +66,7 @@ def try_resolve_foreign_key(objects, dicts, e):
     try:
         objectClass = table_names[table_name]
         o = objectClass()
-        o.id = key_value
+        o.pk = key_value
         cd = get_current_time()
         if hasattr(o, 'name'):
             o.name = 'Unknown, autocreated at %s' % cd
@@ -92,7 +92,7 @@ def analize_csv(filename, modelClass, metadata={}):
                            for field in modelClass._meta.fields)
         csv_fields = set(reader.fieldnames)
         all_fields = class_fields & csv_fields
-        need_filter_fields = bool(csv_fields - class_fields)
+        need_filter_fields = bool(csv_fields - class_fields) and modelClass.api_report_name not in column_sets_for_reports
         time_fields = [field.name for field in modelClass._meta.fields if date_type(field)]
         nullable_keys = [field.name for field in modelClass._meta.fields
                         if field.null and not isinstance(field, (django_types.CharField,django_types.TextField))]
@@ -118,7 +118,8 @@ def analize_csv(filename, modelClass, metadata={}):
                     c.TransformFields(data, metadata)
                 metadata['counter'] += 1
                 return c
-            except:
+            except Exception as e:
+                print "Interest error", e
                 return None
 
         #it = imap(create_object_from_dict, reader)

@@ -3043,6 +3043,44 @@ class DealLanguage(models.Model):
         db_table = "deal_language"
 
 
+BID_TYPE_CHOICES = (
+    ('Manual', 'Manual'),
+    ('Learn', 'Learn'),
+    ('Optimized', 'Optimized'),
+    ('Unknown', 'Unknown'),
+    ('Optimized give up', 'Optimized give up'),
+    ('Learn give up', 'Learn give up'),
+    ('Manual give up', 'Manual give up')
+)
+
+
+IMPRESSION_TYPE_CHOICES = (
+    ('1', 'Blank'),
+    ('2', 'PSA'),
+    ('3', 'Default Error'),
+    ('4', 'Default'),
+    ('5', 'Kept'),
+    ('6', 'Resold'),
+    ('7', 'RTB'),
+    ('8', 'PSA Error'),
+    ('9', 'External Impression'),
+    ('10', 'External Click'),
+    ('11', 'Insertion')
+)
+
+
+REVENUE_TYPE_CHOICES = (
+    ('-1', 'No Payment'),
+    ('0', 'Flat CPM'),
+    ('1', 'Cost Plus CPM'),
+    ('2', 'Cost Plus Margin'),
+    ('3', 'CPC'),
+    ('4', 'CPA'),
+    ('5', 'Revshare'),
+    ('9', 'CPVM')
+)
+
+
 class NetworkAnalyticsReport(models.Model):
     #https://wiki.appnexus.com/display/api/Network+Analytics
     hour = models.DateTimeField(null=True, blank=True, db_index=True)
@@ -3066,15 +3104,21 @@ class NetworkAnalyticsReport(models.Model):
     billing_period_end_date = models.DateTimeField(null=True, blank=True, db_index=True)
     geo_country = models.TextField(null=True, blank=True)
     inventory_class = models.TextField(null=True, blank=True)
-    bid_type = models.TextField(null=True, blank=True)
-    imp_type_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    bid_type = models.TextField(
+        choices=BID_TYPE_CHOICES,
+        null=True, blank=True)
+    imp_type_id = models.IntegerField(
+        choices=BID_TYPE_CHOICES,
+        null=True, blank=True)
     buyer_type = models.TextField(
-        choices=BUYER_TYPE_CHOICES,
+        choices=IMPRESSION_TYPE_CHOICES,
         null=True, blank=True)
     seller_type = models.TextField(
         choices=SELLER_TYPE_CHOICES,
         null=True, blank=True)
-    revenue_type_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    revenue_type_id = models.IntegerField(
+        choices=REVENUE_TYPE_CHOICES,
+        null=True, blank=True)
 
     supply_type = models.TextField(null=True, blank=True)
     payment_type = models.TextField(null=True, blank=True)

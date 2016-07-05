@@ -6,8 +6,9 @@
     .controller('MainController', MainController);
 
   /** @ngInject */
-  function MainController($compile, $window, $state, $localStorage, $translate, $log, Main) {
+  function MainController($window, $state, $localStorage, $translate, Main) {
     var vm = this;
+    vm.advertiser = $localStorage.advertiser;
     vm.Main = Main;
     vm.multipleTotalCount = 0;
     vm.checkChart = [];
@@ -17,6 +18,7 @@
 
 
 
+    var index;
     if ($localStorage.series == null ){
       $localStorage.series = [
         { valueField: 'imp', name: 'Impressions' }, //yes
@@ -41,7 +43,7 @@
         'ctr': true
       };
       tempIndex = [];
-      for(var index in $localStorage.checkChart) {
+      for(index in $localStorage.checkChart) {
         if ($localStorage.checkChart[index] == true) {
           tempIndex.push(index);
         }
@@ -49,7 +51,7 @@
       vm.by = tempIndex.join();
     } else {
       tempIndex = [];
-      for(var index in $localStorage.checkChart) {
+      for(index in $localStorage.checkChart) {
         if ($localStorage.checkChart[index] == true) {
           tempIndex.push(index);
         }
@@ -143,7 +145,7 @@
         return 0;
       },
       load: function () {
-        return vm.Main.statsChart(vm.dataStart, vm.dataEnd,vm.by)
+        return vm.Main.statsChart(vm.advertiser.id, vm.dataStart, vm.dataEnd,vm.by)
           .then(function (result) {
 
             return result.statistics;
@@ -156,7 +158,7 @@
         return vm.multipleTotalCount ;
       },
       load: function (loadOptions) {
-        return vm.Main.statsCampaigns(vm.dataStart, vm.dataEnd, loadOptions.skip,
+        return vm.Main.statsCampaigns(vm.advertiser.id, vm.dataStart, vm.dataEnd, loadOptions.skip,
           loadOptions.take, loadOptions.sort, loadOptions.order,
           vm.by ,loadOptions.filter)
           .then(function (result) {
@@ -168,7 +170,7 @@
     /** BINDING OPTIONS - END **/
 
     /** TOTALS - START **/
-    vm.Main.statsTotals(vm.dataStart, vm.dataEnd)
+    vm.Main.statsTotals(vm.advertiser.id, vm.dataStart, vm.dataEnd)
       .then(function (result) {
         vm.totals.spent = result.spend;
         vm.totals.conv = result.conv;
@@ -196,6 +198,10 @@
       headerFilter: {
         visible: true
       },
+      export: {
+        enabled: true,
+        fileName: "Employees"
+      },
       allowColumnReordering: true,
       allowColumnResizing: true,
       columnAutoWidth: true,
@@ -220,7 +226,7 @@
           fixed: true,
           cellTemplate: function (container, options) {
             container.addClass('a-campaign');
-            $window.angular.element('<a href="#/campaign/'+ options.data.id +'">' + options.data.campaign + '</a>')
+            $window.angular.element('<a href="#/home/campaign/'+ options.data.id +'">' + options.data.campaign + '</a>')
               .appendTo(container);
           }
         },
@@ -541,9 +547,9 @@
     /** MAP CLICKS - START **/
     var clicksByCountry = {};
 
-    vm.Main.statsMap(vm.dataStart, vm.dataEnd).then(function (res) {
+    vm.Main.statsMap(vm.advertiser.id, vm.dataStart, vm.dataEnd).then(function (res) {
       clicksByCountry = res;
-      $('#visualMap').dxVectorMap(vm.vectorMapOptions);
+      $window.$('#visualMap').dxVectorMap(vm.vectorMapOptions);
     });
 
     vm.vectorMapOptions = {

@@ -4,6 +4,9 @@
 	angular
 		.module('pjtLayout')
 		.constant('EnglishTranslations', {
+			'AUTH':{
+				'GO_BUTTON':'GO'
+			},
 			'INDEX':{
 				'ADVERTISER_TITLE':'Stats for',
 				'LEFT_NAV':{
@@ -43,6 +46,8 @@
 				'CAMPAIGN': {
 					'COLUMNS':{
 						"CAMPAIGN":"Campaign",
+						"PLACEMENT": "Placement",
+						"NETWORK":"Network+Publisher",
 						"SPENT":"Spent",
 						"CONV":"Conv",
 						"IMP":"Imp",
@@ -63,6 +68,9 @@
 					"CONVERSIONS":"Conversions",
 					"CTR":"CTR"
 				}
+			},
+			"CAMP": {
+				"NAME":"Campaign"
 			}
 		})
 

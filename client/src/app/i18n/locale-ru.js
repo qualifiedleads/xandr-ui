@@ -4,6 +4,9 @@
   angular
     .module('pjtLayout')
     .constant('RussianTranslations', {
+      'AUTH':{
+        'GO_BUTTON':'Дальше'
+      },
       'INDEX':{
         'ADVERTISER_TITLE':'Статистика для',
         'LEFT_NAV':{
@@ -24,7 +27,7 @@
           'LAST_21_DAYS': 'Последние 21 дней',
           'CURRENT_MONTH': 'Текущий месяц',
           'LAST_MONTH': 'Прошлый месяц',
-	        'LAST_90_DAYS': 'Последние 90 дней',
+          'LAST_90_DAYS': 'Последние 90 дней',
           'ALL_TIME': 'Все время'
         },
         'TOTALS': {
@@ -43,6 +46,8 @@
         'CAMPAIGN': {
           'COLUMNS':{
             "CAMPAIGN":"Кампания",
+            "PLACEMENT":"Размещение",
+            "NETWORK":"Сеть_Издатель",
             "SPENT":"Потрачено",
             "CONV":"Конв",
             "IMP":"Показы",
@@ -63,7 +68,9 @@
           "CONVERSIONS":"Конверсии",
           "CTR":"CTR"
         }
+      },
+      "CAMP": {
+        "NAME":"Кампания"
       }
     })
-
 })();

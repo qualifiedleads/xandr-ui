@@ -1,4 +1,4 @@
-import itertools, time, datetime, re
+import itertools, time, datetime, re, decimal, filter_func
 from urllib import addbase
 
 from django.http import JsonResponse
@@ -10,19 +10,39 @@ import operator
 from rest_framework.decorators import api_view, parser_classes
 from rest_framework.response import Response
 from rest_framework.parsers import FormParser, MultiPartParser
+import ast
 
 def to_unix_timestamp(d):
     return str(int(time.mktime(d.timetuple())))
 
 
+zero_sum = {
+    'conv': None,
+    'cpc': None,
+    'cpm': None,
+    'cvr': None,
+    'ctr': None,
+    'media_cost': None,
+    'post_click_convs': None,
+    'post_view_convs': None,
+    'imps': None,
+    'clicks': None,
+}
 def calc_another_fields(obj):
     res = {}
     res.update(obj)
-    res['conv'] = (obj.get('conv', 0) or 0) + (obj.get('conv_click', 0) or 0) + (obj.get('conv_view', 0) or 0)
-    res['cpc'] = obj['spend'] / obj['clicks'] if obj['clicks'] else 0
-    res['cpm'] = obj["spend"] / obj['imp'] * 1000 if obj['imp'] else 0
-    res['cvr'] = res["conv"] / obj['imp'] if obj['imp'] else 0
-    res['ctr'] = obj["clicks"] / obj['imp'] if obj['imp'] else 0
+    try:
+        res['conv'] = (obj.get('conv', 0) or 0) + (obj.get('conv_click', 0) or 0) + (obj.get('conv_view', 0) or 0)
+        res['cpc'] = obj['spend'] / obj['clicks'] if obj['clicks'] else 0
+        res['cpm'] = obj["spend"] / obj['imp'] * 1000 if obj['imp'] else 0
+        res['cvr'] = res["conv"] / obj['imp'] if obj['imp'] else 0
+        res['ctr'] = obj["clicks"] / obj['imp'] if obj['imp'] else 0
+    except:
+        res['conv'] = None
+        res['cpc'] = None
+        res['cpm'] = None
+        res['cvr'] = None
+        res['ctr'] = None
     res.pop('conv_click', None)
     res.pop('conv_view', None)
     res.pop('campaign', None)
@@ -70,7 +90,7 @@ def get_campaigns_data(advertiser_id, from_date, to_date):
         current_campaign = {}
         current_campaign['id']=camp
         current_campaign['chart'] = map(calc_another_fields, camp_data)
-        summary = reduce(make_sum, current_campaign['chart'])
+        summary = reduce(make_sum, current_campaign['chart'], zero_sum)
         summary = calc_another_fields(summary)
         current_campaign.update(summary)
         current_campaign['campaign'] = campaign_names[camp]
@@ -124,10 +144,9 @@ def parse_get_params(params):
     except:
         res['by'] = ''
     try:
-        res['filter']= [x.split('=')  for x in params['filter'].split(';')]
+        res['filter'] = ''.join(params.getlist('filter'))
     except:
-        res['filter'] = []
-
+        res['filter'] = ''
     return res
 
 #http://private-anon-e1f78e3eb-rtbs.apiary-mock.com/api/v1/campaigns?from=from_date&to=to_date&skip=skip&take=take&sort=sort&order=order&stat_by=stat_by&filter=filter
@@ -140,14 +159,11 @@ def campaigns(request):
     @to_date: end date for period. Data for this day included
     @advertiser_id: id of advertiser in system db
     """
-    print request.query_params
     params = parse_get_params(request.GET)
     result = get_campaigns_data(params['advertiser_id'],params['from_date'],params['to_date'])
     #apply filter
     if params['filter']:
-        clause_list = [(i[0],i[1].split(',')) for i in params['filter']]
-        def filter_function(camp):
-            return all(str(camp[clause[0]])in clause[1] for clause in clause_list)
+        filter_function = filter_func.get_filter_function(params['filter'])
         result = filter(filter_function,result)
 
     totalCount = len(result)
@@ -194,7 +210,7 @@ def get_days_data(advertiser_id, from_date, to_date):
         clicks=Sum('clicks'),
     ).order_by('day')
     days = map(calc_another_fields, q)
-    summary = reduce(make_sum, days)
+    summary = reduce(make_sum, days, zero_sum)
     summary = calc_another_fields(summary)
     summary.pop('day', None)
     res['days'] = days

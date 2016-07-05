@@ -6,7 +6,7 @@ import json
 import os
 import sys
 import traceback
-from itertools import imap, izip, islice
+from itertools import imap, izip, islice,ifilter
 from multiprocessing.pool import ThreadPool
 from django.db.models import Avg, Count, Sum
 import django.db.models as django_types
@@ -68,8 +68,13 @@ def try_resolve_foreign_key(objects, dicts, e):
         o = objectClass()
         o.pk = key_value
         cd = get_current_time()
+        name = 'Unknown, autocreated at %s' % cd
+        if key_field.endswith('_id'):
+            first = list(islice(ifilter(lambda x:str(getattr(x[1],key_field))==key_value,enumerate(objects)),0,1))
+            if first:
+                name=dicts[first[0]].get(key_field[:-2]+'name',name)
         if hasattr(o, 'name'):
-            o.name = 'Unknown, autocreated at %s' % cd
+            o.name = name
         if hasattr(o, 'fetch_date'):
             o.fetch_date = cd
         if hasattr(o, 'last_modified'):
@@ -114,9 +119,9 @@ def analize_csv(filename, modelClass, metadata={}):
                     c = modelClass()
                     update_object_from_dict(c, data, time_fields)
                 c.fetch_date = fetch_date
-                if hasattr(c, 'TransformFields'):
-                    c.TransformFields(data, metadata)
                 metadata['counter'] += 1
+                if hasattr(c, 'TransformFields'):
+                    c.TransformFields(data_row, metadata)
                 return c
             except Exception as e:
                 print "Interest error", e
@@ -401,7 +406,7 @@ def load_reports_for_all_advertisers(token, day, ReportClass):
         for f, advertiser_id in izip(filenames, advertisers_need_load):
             analize_csv(f, ReportClass,
                         metadata={"campaign_dict": campaign_dict,
-                                  "all_line_items": all_line_items,
+                                  #"all_line_items": all_line_items,
                                   "advertiser_id": advertiser_id})
             print "%s for advertiser %s saved to DB" %(ReportClass, all_advertisers[advertiser_id])
     finally:

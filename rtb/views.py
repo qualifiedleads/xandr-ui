@@ -231,13 +231,13 @@ def totals(request):
 
 def statistics(request):
     params=parse_get_params(request.GET)
-    data = get_days_data(params['advertiser_id'],params['from_date'],params['to_date'])
+    data = get_days_data(params['advertiser_id'],params['from_date'],params['to_date'])['days']
     if params['by'] and data:
         entries_to_remove = set(data[0].keys())-set(params['by'])
         for camp in data:
             for f in entries_to_remove:
                 camp.pop(f,None)
-    return JsonResponse({'statistics':data['days']})
+    return JsonResponse({'statistics':data})
 
 # Get clicks statistics by countries (for period)
 #http://private-anon-e1f78e3eb-rtbs.apiary-mock.com/api/v1/map/clicks?from=from_date&to=to_date

@@ -342,8 +342,8 @@ def dayly_task(day=None, load_objects_from_services=True, output=None):
         token = report.get_auth_token()
         if load_objects_from_services:
             load_depending_data(token)
+        load_report(token, day, GeoAnaliticsReport)
         load_reports_for_all_advertisers(token, day, SiteDomainPerformanceReport)
-        load_reports_for_all_advertisers(token, day, GeoAnaliticsReport)
         # load_reports_for_all_advertisers(token, day, NetworkAnalyticsReport)
     except Exception as e:
         print 'Error by fetching data: %s' % e
@@ -353,6 +353,22 @@ def dayly_task(day=None, load_objects_from_services=True, output=None):
         if file_output: file_output.close()
     print "OK"
 
+
+# load report data, which is not linked with advertiser
+def load_report(token, day, ReportClass):
+    if not token:
+        token = report.get_auth_token()
+    try:
+        ReportClass._meta.get_field('day')
+        filter_params = {"day": day}
+    except:  # Hour
+        filter_params = {"hour__date": day}
+    q = ReportClass.objects.filter(**filter_params).count()
+    if q > 0:
+        print  "There is %d records in %s, nothing to do."(q, ReportClass._meta.db_table)
+    f_name = report.get_specifed_report(ReportClass, token, day)
+    analize_csv(f_name, ReportClass, {})
+    os.remove(f_name)
 
 def load_reports_for_all_advertisers(token, day, ReportClass):
     if not token:

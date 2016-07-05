@@ -366,6 +366,7 @@ def load_report(token, day, ReportClass):
     q = ReportClass.objects.filter(**filter_params).count()
     if q > 0:
         print  "There is %d records in %s, nothing to do."%(q, ReportClass._meta.db_table)
+        return
     f_name = report.get_specifed_report(ReportClass, {}, token, day)
     analize_csv(f_name, ReportClass, {})
     os.remove(f_name)

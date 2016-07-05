@@ -58,7 +58,8 @@ def analize_csv(filename, modelClass, metadata={}):
         # result = []
         metadata['counter'] = 0
         fetch_date = get_current_time()
-        class_fields = set(field.name for field in modelClass._meta.fields)
+        class_fields = set(field.name + '_id' if isinstance(field, django_types.ForeignObject) else field.name
+                           for field in modelClass._meta.fields)
         csv_fields = set(reader.fieldnames)
         all_fields = class_fields & csv_fields
         need_filter_fields = bool(csv_fields - class_fields)
@@ -97,9 +98,11 @@ def analize_csv(filename, modelClass, metadata={}):
                 rows = list(islice(reader, 0, 4000))
                 if not rows: break
                 objects_to_save = worker.map(create_object_from_dict, rows)
+                if len(rows) != len(objects_to_save):
+                    print "There are error in multithreaded map"
                 if not all(objects_to_save):
                     print "There are error objects"
-                res = modelClass.objects.bulk_create(objects_to_save)
+                modelClass.objects.bulk_create(objects_to_save)
                 print '%d rows fetched' % metadata['counter']
                 if metadata['counter'] % 100000 == 0:
                     t.print_diff()

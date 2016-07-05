@@ -1,12 +1,12 @@
 from django.core.management import BaseCommand
 from rtb.cron import analize_csv
 from rtb import models
-from django.db.models import Model
+import django.db.models as m
 import os
 
 all_classes = [models.__dict__[k]
                for k in models.__dict__
-               if issubclass(models.__dict__[k], Model)]
+               if isinstance(models.__dict__[k], m.base.ModelBase)]
 
 all_report_types = {getattr(c, 'api_report_name'): c for c in all_classes if hasattr(c, 'api_report_name')}
 
@@ -24,14 +24,13 @@ Need two params :
 
     def handle(self, **options):
         self.stdout.write('loadcsvfile called')
-        self.stdout.write(all_report_types)
         file_name = options.get('file_name')
         report_type = options.get('report_type')
         if report_type not in all_report_types:
             self.stdout.write('Unknown report type. Exit')
             return
         if os.path.isfile(file_name):
-            metadata = {}
+            metadata = {'counter': 0}
             analize_csv(file_name, all_report_types[report_type], metadata)
         else:
             self.stdout.write('File not found. Exit')

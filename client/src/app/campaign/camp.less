@@ -128,9 +128,8 @@
   }
 
   .label-container {
-   margin-top: 3%;
+    margin-top: 3%;
     width: 11%;
-    //border: 1px solid black;
     height: 600px;
     float: left;
     margin-left: 8.2%;
@@ -175,19 +174,69 @@
     float: left;
   }
 
-  .target-cpa-container {
-    width: 19%;
-    height: 14%;
-    border: 1px solid black;
-    border-top: none;
-    float: right;
-    margin-right: 4%;
-    .input-target-cpa {
-      width: 61%;
-      margin-left: 19%;
-      margin-top: 5%;
+
+    .target-cpa-container {
+      width: 19%;
+      height: 14%;
+      border: 1px solid black;
+      border-top: none;
+      float: right;
+      margin-right: 4%;
+      .input-target-cpa {
+        width: 61%;
+        margin-left: 19%;
+        margin-top: 5%;
+      }
     }
+    .pie-charts {
+      width: 100%;
+      height: 53%;
+      margin-top: 10%;
+      &:after{
+        clear: both;
+        content: '';
+      }
+
+    }
+    .buckets {
+      width: 100%;
+      height: 39%;
+      float: left;
+    }
+
+  .header-buckets {
+    text-align: center;
+    margin:0;
+
+  }
+
+  .bucket-item {
+     width: 21%;
+    float: left;
+    margin: 1% 2% 0 2%;
+    .first {
+      background-color: #ffffcc;
+    }
+    .second {
+      background-color: #b1c51a;
+    }
+    .third {
+      background-color: #f2a63f;
+    }
+    .fourth {
+      background-color: #d96666;
+    }
+  }
+  .bucket-item-list {
+    overflow: scroll;
+    border: 1px solid black;
+    height: 120px;
+  }
+
+  .chart-container {
+    margin: 0 13% 0 -3%;
   }
 
 }
+
 

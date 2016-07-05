@@ -6,7 +6,7 @@
     .controller('MainController', MainController);
 
   /** @ngInject */
-  function MainController($compile, $window, $state, $localStorage, $translate, $log, Main) {
+  function MainController($window, $state, $localStorage, $translate, Main) {
     var vm = this;
     vm.advertiser = $localStorage.advertiser;
     vm.Main = Main;
@@ -197,6 +197,10 @@
       alignment: 'left',
       headerFilter: {
         visible: true
+      },
+      export: {
+        enabled: true,
+        fileName: "Employees"
       },
       allowColumnReordering: true,
       allowColumnResizing: true,

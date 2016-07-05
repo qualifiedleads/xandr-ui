@@ -620,6 +620,7 @@
           dataField: 'ctr'
         },
         {
+          caption: 'State',
           width: 300,
           columnIndex: 16,
           cellTemplate: function (container, options) {
@@ -780,24 +781,70 @@
 
     /** PIE CHART CONTAINER - START **/
     vm.ctrlBbtns = {
-      placement:'Placement',
-      creativeId:'creative_id',
-      creativeSize:'creative_size',
-      viewability: 'viewability',
-      os:'OS',
-      carrier:'carrier',
-      networkSeller: 'network (seller)',
-      connectionType: 'connection_type',
-      device:'device',
-      extra:'extra',
-      publisher:'Publisher'
+      placement:{
+        btn:'Placement',
+        header:'Placement'
+      },
+      creativeId: {
+        btn:'creative_id',
+        header:'creative_id'},
+      creativeSize: {
+        btn:'creative_size',
+        header:'creative_size'
+
+      },
+      viewability: {
+        btn:'viewability',
+        header:'viewability'
+      },
+      os: {
+        btn:'OS',
+        header:'Operating System used'
+      },
+      carrier: {
+        btn:'carrier',
+        header:'carrier'
+      },
+      networkSeller: {
+        btn:'network (seller)',
+        header:'network (seller)'
+      },
+      connectionType: {
+        btn:'connection_type',
+        header:'connection_type'
+      },
+      device: {
+        btn:'device',
+        header:'device'
+      },
+      extra: {
+        btn:'extra',
+        header:'extra'
+      },
+      publisher: {
+        btn:'Publisher',
+        header:'Publisher'
+      }
   };
-    vm.pieChartHeader = $localStorage.pieChartHeader;
-   vm.btnsNodesArray = $('.label-container')[0].children;
+    vm.pieChartHeader = $localStorage.pieChartHeader || vm.ctrlBbtns.os.header;
+    vm.btnsNodesArray = $('.label-container')[0].children;
+
+    for(var key in vm.ctrlBbtns) {
+      if (vm.ctrlBbtns[key].header == vm.pieChartHeader) {
+        vm.selectedSection = vm.ctrlBbtns[key].btn
+      }
+    }
+
+    Array.prototype.forEach.call(vm.btnsNodesArray, function(node) {
+      if (node.value == vm.selectedSection) {
+        console.log(node)
+        node.classList.add('nav-btn-active');
+      }
+    })
 
     vm.selectInfoBtn = function ($event, value) {
       vm.pieChartHeader = value;
-        $localStorage.pieChartHeader = vm.pieChartHeader;
+      $localStorage.pieChartHeader = vm.pieChartHeader;
 
       Array.prototype.forEach.call(vm.btnsNodesArray, function(node) {
         if(node.classList.contains('nav-btn-active')){
@@ -807,9 +854,164 @@
       $localStorage.pieChartHeader = vm.pieChartHeader;
       $event.currentTarget.classList.add('nav-btn-active');
 
-   
+    };
+
+    if(!vm.targetCpa) {
+      vm.targetCpa = $localStorage.targetCpa || 3;
+      $localStorage.targetCpa = vm.targetCpa;
     }
 
+    vm.backetsRanges = {
+      first:{
+        min: 0,
+        max: Number(vm.targetCpa).toFixed(1)
+      },
+      second:{
+        min:Number(vm.targetCpa).toFixed(1),
+        max:Number(vm.targetCpa*2).toFixed(1)
+      },
+      third: {
+        min: Number(vm.targetCpa * 2).toFixed(1),
+        max: Number(vm.targetCpa * 3).toFixed(1)
+      },
+      fourth: {
+        min: Number(vm.targetCpa * 3).toFixed(1),
+        max: Number(vm.targetCpa * 1000).toFixed(1)
+      }
+    };
 
+    vm.targetCpaChange = function($event) {
+      var targetCpaInt = Number($event.currentTarget.value);
+      $localStorage.targetCpa = targetCpaInt;
+       vm.backetsRanges = {
+         first: {
+           min: 0,
+           max: (targetCpaInt).toFixed(1)
+         },
+         second: {
+           min: (targetCpaInt).toFixed(1),
+           max: (targetCpaInt * 2).toFixed(1)
+         },
+         third: {
+           min: (targetCpaInt * 2).toFixed(1),
+           max: (targetCpaInt * 3).toFixed(1)
+         },
+         fourth: {
+           min: (targetCpaInt * 3).toFixed(1),
+           max: (targetCpaInt * 1000).toFixed(1)
+         }
+       };
+      vm.cpaArrayFirst =  Camp.cpaBuckets(vm.backetsRanges.first.min, vm.backetsRanges.first.max);
+      vm.cpaArraySecond =  Camp.cpaBuckets(vm.backetsRanges.second.min, vm.backetsRanges.second.max);
+      vm.cpaArrayThird =  Camp.cpaBuckets(vm.backetsRanges.third.min, vm.backetsRanges.third.max);
+      vm.cpaArrayFourth =  Camp.cpaBuckets(vm.backetsRanges.fourth.min, vm.backetsRanges.fourth.max);
+
+
+      return vm.backetsRanges;
+    };
+
+    vm.cpaArrayFirst =  Camp.cpaBuckets(vm.backetsRanges.first.min, vm.backetsRanges.first.max);
+    vm.cpaArraySecond =  Camp.cpaBuckets(vm.backetsRanges.second.min, vm.backetsRanges.second.max);
+    vm.cpaArrayThird =  Camp.cpaBuckets(vm.backetsRanges.third.min, vm.backetsRanges.third.max);
+    vm.cpaArrayFourth =  Camp.cpaBuckets(vm.backetsRanges.fourth.min, vm.backetsRanges.fourth.max);
+
+
+    vm.pieChartFirst = {
+      title: {
+        text: "All",
+        font: {
+          size: 20
+        },
+        margin: {
+          bottom: 1
+        }
+      },
+      dataSource: [{
+        os: "Android",
+        data: 60
+      }, {
+        os: "iOs",
+        data: 30
+      }, {
+        os: "Windows",
+        data: 10
+      }],
+      series: [{
+        argumentField: "os",
+        valueField: "data",
+        label: {
+          visible: true,
+          connector: {
+            visible: true,
+            width: 0.5
+          },
+          format: "fixedPoint",
+          customizeText: function (point) {
+            return point.argumentText + ": " + point.valueText + "%";
+          }
+        },
+        smallValuesGrouping: {
+          mode: "smallValueThreshold",
+          threshold: 4.5
+        }
+      }],
+      legend: {
+        horizontalAlignment: "center",
+        verticalAlignment: "bottom"
+      },
+      size: {
+        width:370,
+        height:300
+      }
+    };
+
+    vm.pieChartSecond = {
+      title: {
+        text: "Conversions",
+        font: {
+          size: 20
+        },
+        margin: {
+          bottom: 1
+        }
+      },
+      dataSource: [{
+        os: "Android",
+        data: 23
+      }, {
+        os: "iOs",
+        data: 72
+      }, {
+        os: "Windows",
+        data:5
+      }],
+      series: [{
+        argumentField: "os",
+        valueField: "data",
+        label: {
+          visible: true,
+          connector: {
+            visible: true,
+            width: 0.5
+          },
+          format: "fixedPoint",
+          customizeText: function (point) {
+            return point.argumentText + ": " + point.valueText + "%";
+          }
+        },
+        smallValuesGrouping: {
+          mode: "smallValueThreshold",
+          threshold: 4.5
+        }
+      }],
+      legend: {
+        horizontalAlignment: "center",
+        verticalAlignment: "bottom"
+      },
+      size: {
+        width:370,
+        height:300
+      }
+    }
   }
 })();

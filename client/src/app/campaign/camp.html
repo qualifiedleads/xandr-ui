@@ -38,22 +38,48 @@
 
   <div class="second-container">
     <div class="label-container">
-      <input type="button" ng-click="camp.selectInfoBtn($event, 'placement')"  value="{{camp.ctrlBbtns.placement}}" class="nav-btn">
-      <input type="button" ng-click="camp.selectInfoBtn($event, 'creativeId')" value="{{camp.ctrlBbtns.creativeId}}" class="nav-btn">
-      <input type="button" ng-click="camp.selectInfoBtn($event, 'creativeSize')" value="{{camp.ctrlBbtns.creativeSize}}" class="nav-btn">
-      <input type="button" ng-click="camp.selectInfoBtn($event, 'creativeSize')" value="{{camp.ctrlBbtns.viewability}}" class="nav-btn">
-      <input type="button" ng-click="camp.selectInfoBtn($event, 'Operating System used')" value="{{camp.ctrlBbtns.os}}" class="nav-btn">
-      <input type="button" ng-click="camp.selectInfoBtn($event, 'carrier')" value="{{camp.ctrlBbtns.carrier}}" class="nav-btn">
-      <input type="button" ng-click="camp.selectInfoBtn($event, 'networkSeller')" value="{{camp.ctrlBbtns.networkSeller}}" class="nav-btn">
-      <input type="button" ng-click="camp.selectInfoBtn($event, 'connectionType')" value="{{camp.ctrlBbtns.connectionType}}" class="nav-btn">
-      <input type="button" ng-click="camp.selectInfoBtn($event, 'device')" value="{{camp.ctrlBbtns.device}}" class="nav-btn">
-      <input type="button" ng-click="camp.selectInfoBtn($event, 'extra')" value="{{camp.ctrlBbtns.extra}}" class="nav-btn">
-      <input type="button" ng-click="camp.selectInfoBtn($event, 'publisher')" value="{{camp.ctrlBbtns.publisher}}" class="nav-btn">
+      <input type="button" ng-click="camp.selectInfoBtn($event, camp.ctrlBbtns.placement.header)"  value="{{camp.ctrlBbtns.placement.btn}}" class="nav-btn">
+      <input type="button" ng-click="camp.selectInfoBtn($event, camp.ctrlBbtns.creativeId.header)" value="{{camp.ctrlBbtns.creativeId.btn}}" class="nav-btn">
+      <input type="button" ng-click="camp.selectInfoBtn($event, camp.ctrlBbtns.creativeSize.header)" value="{{camp.ctrlBbtns.creativeSize.btn}}" class="nav-btn">
+      <input type="button" ng-click="camp.selectInfoBtn($event, camp.ctrlBbtns.viewability.header)" value="{{camp.ctrlBbtns.viewability.btn}}" class="nav-btn">
+      <input type="button" ng-click="camp.selectInfoBtn($event, camp.ctrlBbtns.os.header)" value="{{camp.ctrlBbtns.os.btn}}" class="nav-btn">
+      <input type="button" ng-click="camp.selectInfoBtn($event, camp.ctrlBbtns.carrier.header)" value="{{camp.ctrlBbtns.carrier.btn}}" class="nav-btn">
+      <input type="button" ng-click="camp.selectInfoBtn($event, camp.ctrlBbtns.networkSeller.header)" value="{{camp.ctrlBbtns.networkSeller.btn}}" class="nav-btn">
+      <input type="button" ng-click="camp.selectInfoBtn($event, camp.ctrlBbtns.connectionType.header)" value="{{camp.ctrlBbtns.connectionType.btn}}" class="nav-btn">
+      <input type="button" ng-click="camp.selectInfoBtn($event, camp.ctrlBbtns.device.header)" value="{{camp.ctrlBbtns.device.btn}}" class="nav-btn">
+      <input type="button" ng-click="camp.selectInfoBtn($event, camp.ctrlBbtns.extra.header)" value="{{camp.ctrlBbtns.extra.btn}}" class="nav-btn">
+      <input type="button" ng-click="camp.selectInfoBtn($event, camp.ctrlBbtns.publisher.header)" value="{{camp.ctrlBbtns.publisher.btn}}" class="nav-btn">
     </div>
-    <div class="pie-chart-container" id="chart-container">
-      <div class="pie-chart-header"><h4>{{camp.pieChartHeader}}</h4></div>
-      <div class="target-cpa-container">
-        <input class="input-target-cpa" type="text" ng-model="camp.targetCpa">
+    <div class="pie-chart-container">
+      <div class="header-pie-chart">
+        <div class="pie-chart-header"><h4>{{camp.pieChartHeader}}</h4></div>
+        <div class="target-cpa-container">
+        <input class="input-target-cpa" type="text" ng-blur="camp.targetCpaChange($event)" ng-model="camp.targetCpa" maxlength="5">
+        <p class="input-target-cpa">target CPA</p>
+      </div>
+      </div>
+      <div class="pie-charts">
+        <div class="chart-container" dx-pie-chart="camp.pieChartFirst"></div>
+        <div class="chart-container" dx-pie-chart="camp.pieChartSecond"></div>
+      </div>
+      <div class="buckets">
+        <div><h3 class="header-buckets">CPA buckets</h3></div>
+        <div class="bucket-item">
+          <div><span class="first">${{camp.backetsRanges.first.min}}-${{camp.backetsRanges.first.max}}</span></div>
+          <div class="bucket-item-list"><div ng-repeat="item in camp.cpaArrayFirst">{{item}}</div></div>
+        </div>
+        <div class="bucket-item">
+          <div><span class="second">${{camp.backetsRanges.second.min}}-${{camp.backetsRanges.second.max}}</span></div>
+          <div class="bucket-item-list"><div ng-repeat="item in camp.cpaArraySecond">{{item}}</div></div>
+        </div>
+        <div class="bucket-item">
+          <div><span class="third">${{camp.backetsRanges.third.min}}-${{camp.backetsRanges.third.max}}</span></div>
+          <div class="bucket-item-list"><div ng-repeat="item in camp.cpaArrayThird">{{item}}</div></div>
+        </div>
+        <div class="bucket-item">
+          <div><span class="fourth">${{camp.backetsRanges.fourth.min}}+</span></div>
+          <div class="bucket-item-list"><div ng-repeat="item in camp.cpaArrayFourth">{{item}}</div></div>
+        </div>
       </div>
     </div>
   </div>

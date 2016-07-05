@@ -42,12 +42,37 @@
         });
     }
 
-  
+    function cpaBuckets(min, max) {
+
+        var arrayOfCpa = {
+          "cnn.com": "34.12",
+          "lion.com": "3.76",
+          "tiger.com": "7.97",
+          "cat.com": "1.23",
+          "dog.com": "16.11",
+          "mouse.com": "6.53",
+          "rabbit.com": "0.91",
+          "bear.com": "1.9",
+          "snake.com": "3.7",
+          "squirrel.com": "4.78",
+          "hamster.com": "0.62"
+        };
+      var a = [];
+      for (var i in arrayOfCpa) {
+           if ((Number(arrayOfCpa[i])>=Number(min)) && (arrayOfCpa[i]<Number(max))) {
+           a.push(i);
+        }
+      }
+  return a;
+      }
+
+
+
 
     _this.nameCampaigns = nameCampaigns;
     _this.statsCampaigns = statsCampaigns;
     _this.statsChart = statsChart;
-    // _this.statsMap = statsMap;
+    _this.cpaBuckets = cpaBuckets;
 
   }
 })();

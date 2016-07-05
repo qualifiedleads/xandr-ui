@@ -134,6 +134,14 @@ class Brand(models.Model):
         db_table = "brand"
 
 
+class DemographicArea(models.Model):
+    #https://wiki.appnexus.com/display/api/Demographic+Area+Service
+    name = models.TextField(null=True, blank=True, db_index=True)
+
+    class Meta:
+        db_table = "demographic_area"
+
+
 class Country(models.Model):
     #https://wiki.appnexus.com/display/api/Country+Service
     name = models.TextField(null=True, blank=True, db_index=True)
@@ -141,6 +149,16 @@ class Country(models.Model):
 
     class Meta:
         db_table = "country"
+
+
+class Region(models.Model):
+    #https://wiki.appnexus.com/display/api/Region+Service
+    name = models.TextField(null=True, blank=True, db_index=True)
+    code = models.TextField(null=True, blank=True) #enum in origin
+    country = models.ForeignKey("Country", null=True, blank=True)
+
+    class Meta:
+        db_table = "region"
 
 
 class BrandInCountry(models.Model):
@@ -882,7 +900,7 @@ class Publisher(models.Model):
     base_payment_rule = models.ForeignKey("PaymentRule", null=True, blank=True)
     base_ad_quality_rule_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
     currency = models.TextField(null=True, blank=True)
-    visibility_profile_id =  models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    visibility_profile_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
     billing_internal_user = models.IntegerField(null=True, blank=True)
     # labels	array - see model PublisherLabel below
     # placements = array - see model PublisherPlacements below
@@ -1363,6 +1381,7 @@ DEMAND_FILTER_ACTION_CHOICES = (
 
 
 class Placement(models.Model):
+    #https://wiki.appnexus.com/display/api/Placement+Service?src=search
     name = models.TextField(null=True, blank=True, db_index=True)
     code = models.TextField(null=True, blank=True, db_index=True)
     code2 = models.TextField(null=True, blank=True, db_index=True)
@@ -2892,7 +2911,140 @@ class MemberPlugin(models.Model):
         db_table = "member_plugin"
 
 
+DEAL_PAYMENT_TYPE_CHOICES = (
+    ('default', 'default'),
+    ('cpvm', 'cpvm')
+)
+
+
+DEAL_TYPE_CHOICES = (
+    ('1', 'Open Auction'),
+    ('2', 'Private Auction')
+)
+
+
+class Deal(models.Model):
+    #https://wiki.appnexus.com/display/api/Deal+Service
+    id = models.IntegerField(primary_key=True)  # No AutoIncrement
+    code = models.TextField(null=True, blank=True, db_index=True)
+    name = models.TextField(null=True, blank=True, db_index=True)
+    description = models.TextField(null=True, blank=True)
+    active = models.NullBooleanField(null=True, blank=True)
+    start_date = models.DateTimeField(null=True, blank=True)
+    end_date = models.DateTimeField(null=True, blank=True)
+    profile = models.ForeignKey("Profile", null=True, blank=True)
+    package_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    floor_price = models.FloatField(null=True, blank=True)
+    currency = models.TextField(null=True, blank=True)
+    use_deal_floor = models.NullBooleanField(null=True, blank=True)
+    last_modified = models.DateTimeField(null=True, blank=True)
+    data_protected = models.NullBooleanField(null=True, blank=True)
+    allow_creative_add_on_view = models.NullBooleanField(null=True, blank=True)
+    allow_creative_add_on_click = models.NullBooleanField(null=True, blank=True)
+    visibility_profile_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    size_preference = models.TextField(null=True, blank=True)
+    audit_status_option = models.TextField(null=True, blank=True)
+    brand_restrict = models.NullBooleanField(null=True, blank=True)
+    category_restrict = models.NullBooleanField(null=True, blank=True)
+    language_restrict = models.NullBooleanField(null=True, blank=True)
+    technical_attribute_restrict = models.NullBooleanField(null=True, blank=True)
+    created_by = models.TextField(null=True, blank=True)
+    seller = models.ForeignKey("PlatformMember", related_name='seller_id', null=True, blank=True)
+    buyer = models.ForeignKey("PlatformMember", related_name='buyer_id', null=True, blank=True)
+    type = models.TextField(
+        choices=DEAL_TYPE_CHOICES,
+        null=True, blank=True)
+    #brands = array - see model DealBrand below
+    #categories = array - see model DealCategory below
+    #languages = array - see model DealLanguage below
+    #technical_attributes = array - see model DealTechnicalAtribute below
+    #creatives = array - see model DealCreative below
+    ask_price = models.FloatField(null=True, blank=True)
+    priority = models.IntegerField(null=True, blank=True)
+    payment_type = models.TextField(
+        choices=DEAL_PAYMENT_TYPE_CHOICES,
+        null=True, blank=True)
+    #allowed_media_types = array - see model DealAllowedMediaType below
+    #allowed_media_subtypes = array - see model DealAllowedMediaSubType below
+    media_preference = models.TextField(null=True, blank=True)
+
+    class Meta:
+        db_table = "deal"
+
+
+class DealAllowedMediaSubType(models.Model):
+    deal = models.ForeignKey("Deal", null=True, blank=True)
+    media_sub_type = models.ForeignKey("MediaSubType", null=True, blank=True)
+    last_modified = models.DateTimeField()
+
+    class Meta:
+        db_table = "deal_allowed_media_sub_type"
+
+
+class DealAllowedMediaType(models.Model):
+    deal = models.ForeignKey("Deal", null=True, blank=True)
+    media_type = models.ForeignKey("MediaType", null=True, blank=True)
+    last_modified = models.DateTimeField()
+
+    class Meta:
+        db_table = "deal_allowed_media_type"
+
+
+CREATIVE_STATUS_CHOICES = (
+    ('banned', 'banned'),
+    ('approved', 'approved')
+)
+
+
+class DealCreative(models.Model):
+    deal = models.ForeignKey("Deal", null=True, blank=True)
+    creative = models.ForeignKey("Creative", null=True, blank=True)
+    status = models.TextField(
+        choices=CREATIVE_STATUS_CHOICES,
+        null=True, blank=True)
+
+    class Meta:
+        db_table = "deal_creative"
+
+
+class DealBrand(models.Model):
+    deal = models.ForeignKey("Deal", null=True, blank=True)
+    brand = models.ForeignKey("Brand", null=True, blank=True)
+    override = models.NullBooleanField(null=True, blank=True)
+
+    class Meta:
+        db_table = "deal_brand"
+
+
+class DealCategory(models.Model):
+    deal = models.ForeignKey("Deal", null=True, blank=True)
+    category = models.ForeignKey("Category", null=True, blank=True)
+    override = models.NullBooleanField(null=True, blank=True)
+
+    class Meta:
+        db_table = "deal_category"
+
+
+class DealTechnicalAtribute(models.Model):
+    deal = models.ForeignKey("Deal", null=True, blank=True)
+    technical_attribute = models.ForeignKey("TechnicalAttribute", null=True, blank=True)
+    override = models.NullBooleanField(null=True, blank=True)
+
+    class Meta:
+        db_table = "deal_technical_attribute"
+
+
+class DealLanguage(models.Model):
+    deal = models.ForeignKey("Deal", null=True, blank=True)
+    language = models.ForeignKey("Language", null=True, blank=True)
+    override = models.NullBooleanField(null=True, blank=True)
+
+    class Meta:
+        db_table = "deal_language"
+
+
 class NetworkAnalyticsReport(models.Model):
+    #https://wiki.appnexus.com/display/api/Network+Analytics
     hour = models.DateTimeField(null=True, blank=True, db_index=True)
     entity_member = models.ForeignKey("Member", null=True, blank=True)
     buyer_member = models.ForeignKey("PlatformMember", related_name='buyer_member_id', null=True, blank=True)
@@ -2926,7 +3078,7 @@ class NetworkAnalyticsReport(models.Model):
 
     supply_type = models.TextField(null=True, blank=True)
     payment_type = models.TextField(null=True, blank=True)
-    deal_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    deal = models.ForeignKey("Deal", null=True, blank=True)
     media_type = models.ForeignKey("MediaType", null=True, blank=True)
 
     api_report_name = "network_analytics"
@@ -2949,7 +3101,7 @@ class SiteDomainPerformanceReport(models.Model):
     line_item = models.ForeignKey("LineItem", null=True, blank=True)
     top_level_category = models.ForeignKey("ContentCategory", related_name='top_level_category_id', null=True, blank=True)
     second_level_category = models.ForeignKey("ContentCategory", related_name='second_level_category_id', null=True, blank=True)
-    deal_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    deal = models.ForeignKey("Deal", null=True, blank=True)
     advertiser = models.ForeignKey("Advertiser", null=True, blank=True)
     #campaign_group = campaign_group is a synonymous with line_item .
     buyer_member = models.ForeignKey("Member", null=True, blank=True)
@@ -3044,18 +3196,14 @@ class GeoAnaliticsReport(models.Model):
     campaign = models.ForeignKey("Campaign", null=True, blank=True)  # Yes	The campaign ID.
     advertiser = models.ForeignKey("Advertiser", null=True, blank=True)  # Yes	The advertiser ID. If the value is 0, either the impression was purchased by an external buyer, or a default or PSA was shown. For more information on defaults and PSAs, see Network Reporting.
     line_item = models.ForeignKey("LineItem", null=True, blank=True)  # Yes	The line item ID.
-    geo_country_code = models.TextField(null=True, blank=True)  # Yes	The country code of the user's location as defined by the Country Service.
-    geo_country_id = models.IntegerField(null=True, blank=True, db_index=True)  # Yes	The country ID of the user's location as defined by the Country Service. 250 is shown in cases where we don't know the country or if the country doesn't map correctly to a location in our database.
-    geo_region_code = models.TextField(null=True, blank=True)  # No	The region code of the user's location as defined by the Region Service.
-    geo_region_id = models.IntegerField(null=True, blank=True, db_index=True)  # Yes	The region ID of the user's location as defined by the Region Service. 4291 is shown in cases where we don't know the region or if the region doesn't map correctly to a location in our database.
-    geo_dma_id = models.IntegerField(null=True, blank=True, db_index=True)  # Yes	"The ID of the user's demographic area location as defined by the Demographic Area Service.(null=True, blank=True) # Why am I seeing a DMA ID of 1?(null=True, blank=True) # Our reporting derives DMA from the city logged for the auction. However, our geo provider is sometimes unable to determine a city from the IP address associated with the impression, even when DMA is determined. Therefore, there are cases where a campaign targeting a specific DMA has impressions in reporting showing a DMA of 1."
-    geo_dma_name = models.TextField(null=True, blank=True)  # No	The name of the user's demographic area location as defined by the Demographic Area Service.
+    geo_country = models.ForeignKey("Country", null=True, blank=True)  # Yes	The country ID of the user's location as defined by the Country Service. 250 is shown in cases where we don't know the country or if the country doesn't map correctly to a location in our database.
+    geo_region = models.ForeignKey("Region", null=True, blank=True)  # Yes	The region ID of the user's location as defined by the Region Service. 4291 is shown in cases where we don't know the region or if the region doesn't map correctly to a location in our database.
     geo_country_name = models.TextField(null=True, blank=True)  # No	The name of the user's country, as defined by the Country Service.
     geo_region_name = models.TextField(null=True, blank=True)  # No	The name of the region of the user's location as defined by the Region Service.
     geo_country = models.TextField(null=True, blank=True)  # No	The country name and code where the user is located, in the format "France (FR)". The string "250" can appear in cases where we don't know the country or if the country doesn't map correctly to a location in our database.
     geo_region = models.TextField(null=True, blank=True)  # No	The region name and country code of the users location, in the format "Bremen (DE)". The string "4192" can appear in cases where we don't know the region/state or if the region/state doesn't map correctly to a location in our database.
-    geo_dma = models.TextField(null=True, blank=True)  # No	The name and ID of the demographic area where the user is located, in the format "New York NY (501)". The string "unknown values (-1)" can appear in cases where we don't know the demographic area or if the demographic area doesn't map correctly to a location in our database.
-    pixel_id = models.ForeignKey("ConversionPixel", null=True, blank=True)  # Yes The unique identification number of the conversion pixel.
+    geo_dma = models.ForeignKey("DemographicArea", null=True, blank=True) # No	The name and ID of the demographic area where the user is located, in the format "New York NY (501)". The string "unknown values (-1)" can appear in cases where we don't know the demographic area or if the demographic area doesn't map correctly to a location in our database.
+    pixel = models.ForeignKey("ConversionPixel", null=True, blank=True)  # Yes The unique identification number of the conversion pixel.
     # pixel = models.ForeignKey("ConversionPixel",null=True, blank=True)
     imps = models.IntegerField(null=True, blank=True)  # imps	The total number of impressions (served and resold).
     clicks = models.IntegerField(null=True, blank=True)  # clicks	The total number of clicks across all impressions.

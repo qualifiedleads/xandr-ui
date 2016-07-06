@@ -8,6 +8,7 @@ import sys
 import traceback
 from itertools import imap, izip, islice,ifilter
 from multiprocessing.pool import ThreadPool
+from multiprocessing import Pool
 from django.db.models import Avg, Count, Sum
 import django.db.models as django_types
 from django.db import transaction, IntegrityError, reset_queries, connection
@@ -137,8 +138,7 @@ def analize_csv(filename, modelClass, metadata={}):
                 print "Interest error", e
                 return None
 
-        #it = imap(create_object_from_dict, reader)
-        worker = ThreadPool()
+        worker = Pool()
         counter = 0
         reset_queries()
         try:

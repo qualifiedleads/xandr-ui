@@ -54,8 +54,6 @@ def update_object_from_dict(o, d, time_fields=None):
 
 table_names = {c._meta.db_table: c for c in get_all_classes_in_models(models)}
 
-# Error in main loop in analize_csv insert or update on table "geo_analytics_report" violates foreign key constraint "geo_analytics_insertion_order_id_d8499158_fk_insertion_order_id"
-# DETAIL:  Key (insertion_order_id)=(0) is not present in table "insertion_order".
 def try_resolve_foreign_key(objects, dicts, e):
     if e.message.find('foreign key constraint') < 0:
         return False
@@ -72,7 +70,9 @@ def try_resolve_foreign_key(objects, dicts, e):
         if key_field.endswith('_id'):
             first = list(islice(ifilter(lambda x:str(getattr(x[1],key_field))==key_value,enumerate(objects)),0,1))
             if first:
-                name = dicts[first[0][0]].get(key_field[:-2] + 'name', name)
+                new_name = dicts[first[0][0]].get(key_field[:-2] + 'name', '--')
+                if new_name != '--':
+                    name = new_name
         if hasattr(o, 'name'):
             o.name = name
         if hasattr(o, 'fetch_date'):

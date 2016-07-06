@@ -2984,7 +2984,7 @@ class DealAllowedMediaSubType(models.Model):
 class DealAllowedMediaType(models.Model):
     deal = models.ForeignKey("Deal", null=True, blank=True)
     media_type = models.ForeignKey("MediaType", null=True, blank=True)
-    last_modified = models.DateTimeField()
+    last_modified = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         db_table = "deal_allowed_media_type"
@@ -3077,20 +3077,39 @@ REVENUE_TYPE_CHOICES = (
     ('3', 'CPC'),
     ('4', 'CPA'),
     ('5', 'Revshare'),
+    ('6', 'Flat Fee'),
     ('9', 'CPVM')
 )
+
+
+class AdQualityRule(models.Model):
+    #https://wiki.appnexus.com/display/api/Ad+Quality+Rule+Service
+    id = models.IntegerField(primary_key=True)  # No AutoIncrement
+    code = models.TextField(null=True, blank=True, db_index=True)
+    name = models.TextField(null=True, blank=True, db_index=True)
+    description = models.TextField(null=True, blank=True)
+    ad_profile = models.ForeignKey("AdProfile", null=True, blank=True)
+    publisher = models.ForeignKey("Publisher", null=True, blank=True)
+    member = models.ForeignKey("Member", null=True, blank=True)
+    profile = models.ForeignKey("Profile", null=True, blank=True)
+    priority = models.IntegerField(null=True, blank=True)
+    last_modified = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        db_table = "ad_quality_rule"
 
 
 class NetworkAnalyticsReport(models.Model):
     #https://wiki.appnexus.com/display/api/Network+Analytics
     hour = models.DateTimeField(null=True, blank=True, db_index=True)
-    entity_member = models.ForeignKey("Member", null=True, blank=True)
+    entity_member = models.IntegerField(null=True, blank=True, db_index=True) #target model depends on imp_type buyer_member or seller_member
     buyer_member = models.ForeignKey("PlatformMember", related_name='buyer_member_id', null=True, blank=True)
     seller_member = models.ForeignKey("PlatformMember", related_name='seller_member_id', null=True, blank=True)
     advertiser = models.ForeignKey("Advertiser", null=True, blank=True)
-    adjustment_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    adjustment_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future - there is no description in documentation
+    adjustment_hour = models.DateTimeField(null=True, blank=True)
     publisher = models.ForeignKey("Publisher", null=True, blank=True)
-    pub_rule_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
+    pub_rule = models.ForeignKey("AdQualityRule", null=True, blank=True)
     site = models.ForeignKey("Site", null=True, blank=True)
     pixel = models.ForeignKey("ConversionPixel", null=True, blank=True)
     placement = models.ForeignKey("Placement", null=True, blank=True)
@@ -3108,10 +3127,10 @@ class NetworkAnalyticsReport(models.Model):
         choices=BID_TYPE_CHOICES,
         null=True, blank=True)
     imp_type_id = models.IntegerField(
-        choices=BID_TYPE_CHOICES,
+        choices=IMPRESSION_TYPE_CHOICES,
         null=True, blank=True)
     buyer_type = models.TextField(
-        choices=IMPRESSION_TYPE_CHOICES,
+        choices=BUYER_TYPE_CHOICES,
         null=True, blank=True)
     seller_type = models.TextField(
         choices=SELLER_TYPE_CHOICES,
@@ -3121,7 +3140,9 @@ class NetworkAnalyticsReport(models.Model):
         null=True, blank=True)
 
     supply_type = models.TextField(null=True, blank=True)
-    payment_type = models.TextField(null=True, blank=True)
+    payment_type = models.TextField(
+        choices=DEAL_PAYMENT_TYPE_CHOICES,
+        null=True, blank=True)
     deal = models.ForeignKey("Deal", null=True, blank=True)
     media_type = models.ForeignKey("MediaType", null=True, blank=True)
 
@@ -3268,3 +3289,178 @@ class GeoAnaliticsReport(models.Model):
 
     class Meta:
         db_table = "geo_analytics_report"
+
+
+class DeviceMake(models.Model):
+    #https://wiki.appnexus.com/display/api/Device+Make+Service
+    id = models.IntegerField(primary_key=True)  # No AutoIncrement
+    name = models.TextField(null=True, blank=True, db_index=True)
+    #codes = array - see model DeviceMakeCodes below
+
+    class Meta:
+        db_table = "device_make"
+
+
+class DeviceMakeCodes(models.Model):
+    #https://wiki.appnexus.com/display/api/Device+Make+Service
+    id = models.IntegerField(primary_key=True)  # No AutoIncrement
+    code = models.TextField(null=True, blank=True, db_index=True)
+    notes = models.TextField(null=True, blank=True)
+    device_make = models.ForeignKey("DeviceMake", null=True, blank=True)
+
+    class Meta:
+        db_table = "device_make_codes"
+
+
+DEVICE_TYPE_CHOICES = (
+    ('Phone', 'Phone'),
+    ('Tablet', 'Tablet'),
+    ('Other Devices', 'Other Devices')
+)
+
+
+class DeviceModel(models.Model):
+    #https://wiki.appnexus.com/display/api/Device+Model+Service
+    id = models.IntegerField(primary_key=True)  # No AutoIncrement
+    name = models.TextField(null=True, blank=True, db_index=True)
+    device_make = models.ForeignKey("DeviceMake", null=True, blank=True)
+    device_type = models.TextField(
+        choices=DEVICE_TYPE_CHOICES,
+        null=True, blank=True)
+    screen_width = models.IntegerField(null=True, blank=True)
+    screen_height = models.IntegerField(null=True, blank=True)
+    supports_js = models.IntegerField(null=True, blank=True)
+    supports_cookies = models.IntegerField(null=True, blank=True)
+    supports_flash = models.IntegerField(null=True, blank=True)
+    supports_geo = models.IntegerField(null=True, blank=True)
+    supports_html_video = models.IntegerField(null=True, blank=True)
+    supports_html_audio = models.IntegerField(null=True, blank=True)
+    #codes = array - see model DeviceMakeCodes below
+
+    class Meta:
+        db_table = "device_model"
+
+
+class DeviceMakeCodes(models.Model):
+    #https://wiki.appnexus.com/display/api/Device+Model+Service
+    id = models.IntegerField(primary_key=True)  # No AutoIncrement
+    code = models.TextField(null=True, blank=True, db_index=True)
+    notes = models.TextField(null=True, blank=True)
+    device_model = models.ForeignKey("DeviceMake", null=True, blank=True)
+
+    class Meta:
+        db_table = "device_model_codes"
+
+
+class Browser(models.Model):
+    #https://wiki.appnexus.com/display/api/Browser+Service
+    id = models.IntegerField(primary_key=True)  # No AutoIncrement
+    name = models.TextField(null=True, blank=True, db_index=True)
+    last_modified = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        db_table = "browser"
+
+
+DEVICE_TYPE_INREPORT_CHOICES = (
+    ('pc', 'pc'),
+    ('phone', 'phone'),
+    ('tablet', 'tablet')
+)
+
+
+BUYER_TYPE_NetworkDeviceReport_CHOICES = (
+    ('Real Time', 'Real Time'),
+    ('Direct', 'Direct')
+)
+
+
+SELLER_TYPE_NetworkDeviceReport_CHOICES = (
+    ('Real Time', 'Real Time'),
+    ('Direct', 'Direct')
+)
+
+
+CONNECTION_TYPE_CHOICES = (
+    ('Carrier-based', 'Carrier-based'),
+    ('Wifi or Static', 'Wifi or Static')
+)
+
+
+class NetworkDeviceReport(models.Model):
+    #https://wiki.appnexus.com/display/api/Network+Device+Analytics
+    fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
+    #month = time
+    day = models.DateTimeField(null=True, blank=True, db_index=True)
+    device_make = models.ForeignKey("DeviceMake", null=True, blank=True)
+    device_model = models.ForeignKey("DeviceModel", null=True, blank=True)
+    device_type = models.TextField(
+        choices=DEVICE_TYPE_INREPORT_CHOICES,
+        null=True, blank=True)
+    connection_type = models.TextField(
+        choices=CONNECTION_TYPE_CHOICES,
+        null=True, blank=True)
+    operating_system = models.ForeignKey("OperatingSystem", null=True, blank=True)
+    browser = models.ForeignKey("Browser", null=True, blank=True)
+    entity_member = models.IntegerField(null=True, blank=True, db_index=True) #target model depends on imp_type buyer_member or seller_member
+    buyer_member = models.ForeignKey("PlatformMember", related_name='+', null=True, blank=True)
+    seller_member = models.ForeignKey("PlatformMember", related_name='+', null=True, blank=True)
+    buyer_type = models.TextField(
+        choices=BUYER_TYPE_NetworkDeviceReport_CHOICES,
+        null=True, blank=True)
+    seller_type = models.TextField(
+        choices=SELLER_TYPE_NetworkDeviceReport_CHOICES,
+        null=True, blank=True)
+    advertiser = models.ForeignKey("Advertiser", null=True, blank=True)
+    insertion_order = models.ForeignKey("InsertionOrder", null=True, blank=True)
+    line_item = models.ForeignKey("LineItem", null=True, blank=True)
+    campaign = models.ForeignKey("Campaign", null=True, blank=True)
+    pixel = models.ForeignKey("ConversionPixel", null=True, blank=True)
+    media_type = models.ForeignKey("MediaType", null=True, blank=True)
+    size = models.TextField(null=True, blank=True)
+    geo_country = models.ForeignKey("Country", null=True, blank=True)
+    payment_type = models.TextField(
+        choices=DEAL_PAYMENT_TYPE_CHOICES,
+        null=True, blank=True)
+    revenue_type_id = models.IntegerField(
+        choices=REVENUE_TYPE_CHOICES,
+        null=True, blank=True)
+    publisher = models.ForeignKey("Publisher", null=True, blank=True)
+    pub_rule = models.ForeignKey("AdQualityRule", null=True, blank=True)
+    bid_type = models.TextField(
+        choices=BID_TYPE_CHOICES,
+        null=True, blank=True)
+    imp_type_id = models.IntegerField(
+        choices=IMPRESSION_TYPE_CHOICES,
+        null=True, blank=True)
+    venue = models.TextField(null=True, blank=True, db_index=True)
+    imps = models.IntegerField(null=True, blank=True)
+    imps_blank = models.IntegerField(null=True, blank=True)
+    imps_psa = models.IntegerField(null=True, blank=True)
+    imps_default_error = models.IntegerField(null=True, blank=True)
+    imps_default_bidder = models.IntegerField(null=True, blank=True)
+    imps_kept = models.IntegerField(null=True, blank=True)
+    imps_resold = models.IntegerField(null=True, blank=True)
+    imps_rtb = models.IntegerField(null=True, blank=True)
+    clicks = models.IntegerField(null=True, blank=True)
+    click_thru_pct = models.FloatField(null=True, blank=True)
+    ctr = models.FloatField(null=True, blank=True)
+    total_convs = models.IntegerField(null=True, blank=True)
+    post_view_convs = models.IntegerField(null=True, blank=True)
+    post_click_convs = models.IntegerField(null=True, blank=True)
+    convs_per_mm = models.FloatField(null=True, blank=True)
+    convs_rate = models.FloatField(null=True, blank=True)
+    cost = models.DecimalField(max_digits=35, decimal_places=10)
+    cpm = models.DecimalField(max_digits=35, decimal_places=10)
+    revenue = models.DecimalField(max_digits=35, decimal_places=10)
+    booked_revenue = models.DecimalField(max_digits=35, decimal_places=10)
+    reseller_revenue = models.DecimalField(max_digits=35, decimal_places=10)
+    rpm = models.DecimalField(max_digits=35, decimal_places=10)
+    profit = models.DecimalField(max_digits=35, decimal_places=10)
+    ppm = models.DecimalField(max_digits=35, decimal_places=10)
+    total_publisher_rpm = models.DecimalField(max_digits=35, decimal_places=10)
+    sold_publisher_rpm = models.FloatField(null=True, blank=True)
+    sold_network_rpm = models.FloatField(null=True, blank=True)
+
+    class Meta:
+        db_table = "network_device_report"

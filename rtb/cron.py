@@ -85,10 +85,53 @@ def try_resolve_foreign_key(objects, dicts, e):
         return False
     return True
 
+_create_execute_context_={
+    # 'all_fields':None,
+    # 'need_filter_fields':None,
+    # 'foreign_fields':None,
+    # 'nullable_keys':None,
+    # 'float_keys':None,
+    # 'modelClass':None,
+    # 'time_fields':None,
+    # 'fetch_date':None,
+}
 
-def external_function(x):
-    print x
-    return x
+def context_initializer(context):
+    global _create_execute_context_
+    _create_execute_context_ = context
+
+def create_object_from_dict(data_row):
+    try:
+        data = {k: data_row[k] for k in _create_execute_context_['all_fields']} \
+            if _create_execute_context_['need_filter_fields'] else data_row
+        for k in _create_execute_context_['foreign_fields']:
+            try:
+                data[k] = int(data.get(k))
+            except:
+                data[k] = None
+        for k in _create_execute_context_['nullable_keys']:
+            val = data.get(k)
+            if val[:2] == '--' or val == 'Undisclosed':
+                data[k] = None
+        for k in _create_execute_context_['float_keys']:
+            s = str(data.get(k, ''))
+            if s.endswith('%'):
+                data[k] = s[:-1]
+        modelClass = _create_execute_context_['modelClass']
+        try:
+            c = modelClass(**data)
+            replace_tzinfo(c, _create_execute_context_['time_fields'])
+        except:
+            c = modelClass()
+            update_object_from_dict(c, data, _create_execute_context_['time_fields'])
+        c.fetch_date = _create_execute_context_['fetch_date']
+        if hasattr(c, 'TransformFields'):
+            c.TransformFields(data_row, _create_execute_context_)
+        return c
+    except Exception as e:
+        print "Interest error", e
+        return None
+
 
 def analize_csv(filename, modelClass, metadata={}):
     with open(filename, 'r') as csvFile:
@@ -96,61 +139,31 @@ def analize_csv(filename, modelClass, metadata={}):
         reader = csv.DictReader(csvFile, delimiter=',')  # dialect='excel-tab' or excel ?
         print 'Begin analyzing csv file ...'
         # result = []
-        metadata['counter'] = 0
-        fetch_date = get_current_time()
+        context = {}
+        context['modelClass'] = modelClass
+        context['fetch_date'] = get_current_time()
         class_fields = set(field.name + '_id' if isinstance(field, django_types.ForeignObject) else field.name
                            for field in modelClass._meta.fields)
         csv_fields = set(reader.fieldnames)
-        all_fields = class_fields & csv_fields
-        need_filter_fields = bool(csv_fields - class_fields) and modelClass.api_report_name not in column_sets_for_reports
-        time_fields = [field.name for field in modelClass._meta.fields if date_type(field)]
-        nullable_keys = [field.name for field in modelClass._meta.fields
+        context['all_fields'] = class_fields & csv_fields
+        context['need_filter_fields'] = bool(csv_fields - class_fields) and modelClass.api_report_name not in column_sets_for_reports
+        context['time_fields'] = [field.name for field in modelClass._meta.fields if date_type(field)]
+        context['nullable_keys'] = [field.name for field in modelClass._meta.fields
                          if field.null and not isinstance(field, (django_types.CharField, django_types.TextField))
                          and field.name in csv_fields]
-        float_keys =  [field.name for field in modelClass._meta.fields if isinstance(field,(django_types.FloatField,django_types.DecimalField))]
+        context['float_keys'] =  [field.name for field in modelClass._meta.fields if isinstance(field,(django_types.FloatField,django_types.DecimalField))]
         foreign_fields = [field.name + '_id' for field in modelClass._meta.fields if
                           isinstance(field, django_types.ForeignObject)]
-        foreign_fields = filter(lambda x: x in csv_fields, foreign_fields)
-        def create_object_from_dict(data_row):
-            try:
-                data = {k: data_row[k] for k in all_fields} if need_filter_fields else data_row
-                for k in foreign_fields:
-                    try:
-                        data[k] = int(data.get(k))
-                    except:
-                        data[k] = None
-                for k in nullable_keys:
-                    val = data.get(k)
-                    if val[:2] == '--' or val == 'Undisclosed':
-                        data[k] = None
-                for k in float_keys:
-                    s = str(data.get(k, ''))
-                    if s.endswith('%'):
-                        data[k] = s[:-1]
-                try:
-                    c = modelClass(**data)
-                    replace_tzinfo(c, time_fields)
-                except:
-                    c = modelClass()
-                    update_object_from_dict(c, data, time_fields)
-                c.fetch_date = fetch_date
-                metadata['counter'] += 1
-                if hasattr(c, 'TransformFields'):
-                    c.TransformFields(data_row, metadata)
-                return c
-            except Exception as e:
-                print "Interest error", e
-                return None
-
-        worker = Pool()
+        context['foreign_fields'] = filter(lambda x: x in csv_fields, foreign_fields)
+        context.update(metadata)
+        worker = ThreadPool(initializer=context_initializer, initargs=(context,), maxtasksperchild=100000)
         counter = 0
         reset_queries()
         try:
             while True:
                 rows = list(islice(reader, 0, 4000))
                 if not rows: break
-                # objects_to_save = worker.map(create_object_from_dict, rows)
-                objects_to_save = worker.map(external_function, rows)
+                objects_to_save = worker.map(create_object_from_dict, rows)
                 if len(rows) != len(objects_to_save):
                     print "There are error in multithreaded map"
                 if not all(objects_to_save):

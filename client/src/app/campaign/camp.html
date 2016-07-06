@@ -6,15 +6,19 @@
     <div dx-select-box="camp.datePiker"></div>
   </div>
   <div class="row camp-content1">
-    <div id="container">
+    <div>
       <div class="row contLeft">
-        <div class="col-md-5 col-sm-4 first-chart">
-          <div dx-chart="camp.chartOptions" id="chart"></div>
-          <div  dx-range-selector="camp.rangeFirstChartOptions" class="first-range"></div>
+        <div id="zoomedContainerFirst" class="first-chart">
+          <div id="zoomedChartFirst" dx-chart="camp.chartOptionsFirst"></div>
+          <div dx-range-selector="camp.rangeOptionsFirst"></div>
         </div>
-        <div class="col-md-4 col-sm-4 second-chart">
-          <div id="container-inner" dx-chart="camp.boxPlot"></div>
-          <div  dx-range-selector="camp.rangeSecondChartOptions" class="second-range"></div>
+        <!--<div class="col-md-4 col-sm-4 second-chart">-->
+          <!--<div id="container-inner" dx-chart="camp.boxPlot"></div>-->
+          <!--<div  dx-range-selector="camp.rangeSecondChartOptions" class="second-range"></div>-->
+        <!--</div>-->
+        <div id="zoomedContainerSecond">
+          <div id="zoomedChartSecond" dx-chart="camp.chartOptionsSecond"></div>
+          <div dx-range-selector="camp.rangeOptionsSecond"></div>
         </div>
         <div class="col-md-2 col-sm-2 checkbox-container">
           <div>
@@ -38,24 +42,24 @@
 
   <div class="second-container">
     <div class="label-container">
-      <input type="button" ng-click="camp.selectInfoBtn($event, camp.ctrlBbtns.placement.header)"  value="{{camp.ctrlBbtns.placement.btn}}" class="nav-btn">
-      <input type="button" ng-click="camp.selectInfoBtn($event, camp.ctrlBbtns.creativeId.header)" value="{{camp.ctrlBbtns.creativeId.btn}}" class="nav-btn">
-      <input type="button" ng-click="camp.selectInfoBtn($event, camp.ctrlBbtns.creativeSize.header)" value="{{camp.ctrlBbtns.creativeSize.btn}}" class="nav-btn">
-      <input type="button" ng-click="camp.selectInfoBtn($event, camp.ctrlBbtns.viewability.header)" value="{{camp.ctrlBbtns.viewability.btn}}" class="nav-btn">
-      <input type="button" ng-click="camp.selectInfoBtn($event, camp.ctrlBbtns.os.header)" value="{{camp.ctrlBbtns.os.btn}}" class="nav-btn">
-      <input type="button" ng-click="camp.selectInfoBtn($event, camp.ctrlBbtns.carrier.header)" value="{{camp.ctrlBbtns.carrier.btn}}" class="nav-btn">
-      <input type="button" ng-click="camp.selectInfoBtn($event, camp.ctrlBbtns.networkSeller.header)" value="{{camp.ctrlBbtns.networkSeller.btn}}" class="nav-btn">
-      <input type="button" ng-click="camp.selectInfoBtn($event, camp.ctrlBbtns.connectionType.header)" value="{{camp.ctrlBbtns.connectionType.btn}}" class="nav-btn">
-      <input type="button" ng-click="camp.selectInfoBtn($event, camp.ctrlBbtns.device.header)" value="{{camp.ctrlBbtns.device.btn}}" class="nav-btn">
-      <input type="button" ng-click="camp.selectInfoBtn($event, camp.ctrlBbtns.extra.header)" value="{{camp.ctrlBbtns.extra.btn}}" class="nav-btn">
-      <input type="button" ng-click="camp.selectInfoBtn($event, camp.ctrlBbtns.publisher.header)" value="{{camp.ctrlBbtns.publisher.btn}}" class="nav-btn">
+      <input type="button" ng-click="camp.selectInfoBtn($event, camp.ctrlBbtns.placement.header)"  name='Placement' value="{{camp.ctrlBbtns.placement.btn}}" class="nav-btn">
+      <input type="button" ng-click="camp.selectInfoBtn($event, camp.ctrlBbtns.creativeId.header)" name='creative_id' value="{{camp.ctrlBbtns.creativeId.btn}}" class="nav-btn">
+      <input type="button" ng-click="camp.selectInfoBtn($event, camp.ctrlBbtns.creativeSize.header)" name='creative_size' value="{{camp.ctrlBbtns.creativeSize.btn}}" class="nav-btn">
+      <input type="button" ng-click="camp.selectInfoBtn($event, camp.ctrlBbtns.viewability.header)" name='viewability' value="{{camp.ctrlBbtns.viewability.btn}}" class="nav-btn">
+      <input type="button" ng-click="camp.selectInfoBtn($event, camp.ctrlBbtns.os.header)" name='OS' value="{{camp.ctrlBbtns.os.btn}}" class="nav-btn">
+      <input type="button" ng-click="camp.selectInfoBtn($event, camp.ctrlBbtns.carrier.header)" name='carrier' value="{{camp.ctrlBbtns.carrier.btn}}" class="nav-btn">
+      <input type="button" ng-click="camp.selectInfoBtn($event, camp.ctrlBbtns.networkSeller.header)" name='network(seller)' value="{{camp.ctrlBbtns.networkSeller.btn}}" class="nav-btn">
+      <input type="button" ng-click="camp.selectInfoBtn($event, camp.ctrlBbtns.connectionType.header)" name='connection_type' value="{{camp.ctrlBbtns.connectionType.btn}}" class="nav-btn">
+      <input type="button" ng-click="camp.selectInfoBtn($event, camp.ctrlBbtns.device.header)" name='device' value="{{camp.ctrlBbtns.device.btn}}" class="nav-btn">
+      <input type="button" ng-click="camp.selectInfoBtn($event, camp.ctrlBbtns.extra.header)" name='extra' value="{{camp.ctrlBbtns.extra.btn}}" class="nav-btn">
+      <input type="button" ng-click="camp.selectInfoBtn($event, camp.ctrlBbtns.publisher.header)" name='Publisher' value="{{camp.ctrlBbtns.publisher.btn}}" class="nav-btn">
     </div>
     <div class="pie-chart-container">
       <div class="header-pie-chart">
         <div class="pie-chart-header"><h4>{{camp.pieChartHeader}}</h4></div>
         <div class="target-cpa-container">
-        <input class="input-target-cpa" type="text" ng-blur="camp.targetCpaChange($event)" ng-model="camp.targetCpa" maxlength="5">
-        <p class="input-target-cpa">target CPA</p>
+          <div class="input-target-cpa-text">target CPA</div>
+          <input class="input-target-cpa" type="text" ng-blur="camp.targetCpaChange($event)" ng-model="camp.targetCpa" maxlength="5">
       </div>
       </div>
       <div class="pie-charts">

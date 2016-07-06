@@ -164,7 +164,7 @@ def analize_csv(filename, modelClass, metadata={}):
                         if not try_resolve_foreign_key(objects_to_save, rows, e): raise
                 counter += len(objects_to_save)
                 print '%d rows fetched' % counter
-                print "Sql queries fired:", connection.queries
+                print "Sql queries fired:", len(connection.queries)
                 reset_queries()
                 if counter % 100000 == 0:
                     t.print_diff()

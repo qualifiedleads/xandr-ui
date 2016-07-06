@@ -7,8 +7,7 @@ import os
 import sys
 import traceback
 from itertools import imap, izip, islice,ifilter
-from multiprocessing.pool import ThreadPool
-from multiprocessing import Pool
+from multiprocessing.pool import ThreadPool, Pool
 from django.db.models import Avg, Count, Sum
 import django.db.models as django_types
 from django.db import transaction, IntegrityError, reset_queries, connection
@@ -86,6 +85,11 @@ def try_resolve_foreign_key(objects, dicts, e):
         return False
     return True
 
+
+def external_function(x):
+    print x
+    return x
+
 def analize_csv(filename, modelClass, metadata={}):
     with open(filename, 'r') as csvFile:
         t = SummaryTracker()
@@ -145,7 +149,8 @@ def analize_csv(filename, modelClass, metadata={}):
             while True:
                 rows = list(islice(reader, 0, 4000))
                 if not rows: break
-                objects_to_save = worker.map(create_object_from_dict, rows)
+                # objects_to_save = worker.map(create_object_from_dict, rows)
+                objects_to_save = worker.map(external_function, rows)
                 if len(rows) != len(objects_to_save):
                     print "There are error in multithreaded map"
                 if not all(objects_to_save):

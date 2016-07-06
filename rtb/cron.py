@@ -72,7 +72,7 @@ def try_resolve_foreign_key(objects, dicts, e):
         if key_field.endswith('_id'):
             first = list(islice(ifilter(lambda x:str(getattr(x[1],key_field))==key_value,enumerate(objects)),0,1))
             if first:
-                name=dicts[first[0]].get(key_field[:-2]+'name',name)
+                name = dicts[first[0][0]].get(key_field[:-2] + 'name', name)
         if hasattr(o, 'name'):
             o.name = name
         if hasattr(o, 'fetch_date'):
@@ -100,13 +100,23 @@ def analize_csv(filename, modelClass, metadata={}):
         need_filter_fields = bool(csv_fields - class_fields) and modelClass.api_report_name not in column_sets_for_reports
         time_fields = [field.name for field in modelClass._meta.fields if date_type(field)]
         nullable_keys = [field.name for field in modelClass._meta.fields
-                        if field.null and not isinstance(field, (django_types.CharField,django_types.TextField))]
+                         if field.null and not isinstance(field, (django_types.CharField, django_types.TextField))
+                         and field.name in csv_fields]
         float_keys =  [field.name for field in modelClass._meta.fields if isinstance(field,(django_types.FloatField,django_types.DecimalField))]
+        foreign_fields = [field.name + '_id' for field in modelClass._meta.fields if
+                          isinstance(field, django_types.ForeignObject)]
+        foreign_fields = filter(lambda x: x in csv_fields, foreign_fields)
         def create_object_from_dict(data_row):
             try:
                 data = {k: data_row[k] for k in all_fields} if need_filter_fields else data_row
+                for k in foreign_fields:
+                    try:
+                        data[k] = int(data.get(k))
+                    except:
+                        data[k] = None
                 for k in nullable_keys:
-                    if data.get(k) == '--':
+                    val = data.get(k)
+                    if val[:2] == '--' or val == 'Undisclosed':
                         data[k] = None
                 for k in float_keys:
                     s = str(data.get(k, ''))
@@ -156,6 +166,7 @@ def analize_csv(filename, modelClass, metadata={}):
                     gc.collect()
         except Exception as e:
             print 'Error in main loop in analize_csv', e
+            print traceback.print_exc()
         gc.collect()
 
 

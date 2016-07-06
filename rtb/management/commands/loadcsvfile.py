@@ -27,7 +27,8 @@ Need two params :
             self.stdout.write('Unknown report type. Exit')
             return
         if os.path.isfile(file_name):
-            metadata = {'counter': 0}
+            campaign_dict = dict(models.Campaign.objects.all().values_list('id', 'name'))
+            metadata = {'counter': 0, 'campaign_dict': campaign_dict}
             analize_csv(file_name, all_report_types[report_type], metadata)
         else:
             self.stdout.write('File not found. Exit')

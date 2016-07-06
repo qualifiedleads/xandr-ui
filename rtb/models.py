@@ -2600,9 +2600,10 @@ class SiteDomainPerformanceReport(models.Model):
     def TransformFields(self, data,  metadata={}):
         if not metadata: return
         campaign_dict = metadata["campaign_dict"]
+        advertiser_id = metadata.get('advertiser_id', data.get('advertiser_id'))
         if self.campaign_id not in campaign_dict:
             campaign_dict[self.campaign_id] = data["campaign_name"]
-            self.create_campaign(data["campaign_name"], metadata['advertiser_id'])
+            self.create_campaign(data["campaign_name"], advertiser_id)
 
     def create_campaign(self, campaign_name, advertiser_id):
         camp = Campaign()

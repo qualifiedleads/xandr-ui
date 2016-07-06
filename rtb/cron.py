@@ -288,7 +288,6 @@ def load_depending_data(token):
         advertisers = nexus_get_objects(token,
                                         'https://api.appnexus.com/advertiser',
                                         {},
-                                        Advertiser.objects.all().order_by('fetch_date'),
                                         Advertiser)
         print 'There is %d advertisers' % len(advertisers)
 

@@ -131,18 +131,13 @@ def parse_get_params(params):
     except:
         res['sort'] = 'campaign'
     try:
+        field_list = params.get('stat_by',params.get('by',''))
         m = re.match(
             r"^(campaign|spend|conv|imp|clicks|cpc|cpm|cvr|ctr)(?:,(campaign|spend|conv|imp|clicks|cpc|cpm|cvr|ctr))*$",
-            params['stat_by'])
+            field_list)
         res['stat_by'] = m.group(0).split(',')
     except:
         res['stat_by'] = ''
-    try:
-        res['by'] = re.match(
-            r"^(campaign|spend|conv|imp|clicks|cpc|cpm|cvr|ctr)(?:,(campaign|spend|conv|imp|clicks|cpc|cpm|cvr|ctr))*$",
-            params['stat_by']).group(0).split(',')
-    except:
-        res['by'] = ''
     try:
         res['filter'] = ''.join(params.getlist('filter'))
     except:
@@ -254,14 +249,18 @@ def totals(request):
 #http://private-anon-e1f78e3eb-rtbs.apiary-mock.com/api/v1/statistics?from=from_date&to=to_date&by=by
 
 def statistics(request):
+    print 'Begin statistics'
     params=parse_get_params(request.GET)
-    data = get_days_data(params['advertiser_id'],params['from_date'],params['to_date'])
-    if params['by'] and data:
-        entries_to_remove = set(data[0].keys())-set(params['by'])
+    data = get_days_data(params['advertiser_id'],params['from_date'],params['to_date'])['days']
+    print len(data)
+    print params['stat_by']
+    if params['stat_by'] and data:
+        entries_to_remove = set(data[0])-set(params['stat_by'])
+        print 'Fields to remove', entries_to_remove
         for camp in data:
             for f in entries_to_remove:
                 camp.pop(f,None)
-    return JsonResponse({'statistics':data['days']})
+    return JsonResponse({'statistics':data})
 
 # Get clicks statistics by countries (for period)
 #http://private-anon-e1f78e3eb-rtbs.apiary-mock.com/api/v1/map/clicks?from=from_date&to=to_date

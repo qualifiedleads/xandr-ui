@@ -6,7 +6,7 @@
     .controller('MainController', MainController);
 
   /** @ngInject */
-  function MainController($compile, $window, $state, $localStorage, $translate, $log, Main) {
+  function MainController($window, $state, $localStorage, $translate, Main) {
     var vm = this;
     vm.advertiser = $localStorage.advertiser;
     vm.Main = Main;
@@ -18,7 +18,7 @@
 
 
 
-
+    var index;
     if ($localStorage.series == null ){
       $localStorage.series = [
         { valueField: 'imp', name: 'Impressions' }, //yes
@@ -43,7 +43,7 @@
         'ctr': true
       };
       tempIndex = [];
-      for(var index in $localStorage.checkChart) {
+      for(index in $localStorage.checkChart) {
         if ($localStorage.checkChart[index] == true) {
           tempIndex.push(index);
         }
@@ -51,7 +51,7 @@
       vm.by = tempIndex.join();
     } else {
       tempIndex = [];
-      for(var index in $localStorage.checkChart) {
+      for(index in $localStorage.checkChart) {
         if ($localStorage.checkChart[index] == true) {
           tempIndex.push(index);
         }
@@ -197,6 +197,10 @@
       alignment: 'left',
       headerFilter: {
         visible: true
+      },
+      export: {
+        enabled: true,
+        fileName: "Employees"
       },
       allowColumnReordering: true,
       allowColumnResizing: true,
@@ -545,7 +549,7 @@
 
     vm.Main.statsMap(vm.advertiser.id, vm.dataStart, vm.dataEnd).then(function (res) {
       clicksByCountry = res;
-      $('#visualMap').dxVectorMap(vm.vectorMapOptions);
+      $window.$('#visualMap').dxVectorMap(vm.vectorMapOptions);
     });
 
     vm.vectorMapOptions = {

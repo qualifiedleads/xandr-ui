@@ -6,14 +6,14 @@
 		.service('Main', Main);
 
 	/** @ngInject */
-	function Main($http, $translateLocalStorage) {
+	function Main($http, $translateLocalStorage, $window ) {
 		var _this = this;
 
 		function statsChart(advertiser_id, from_date, to, by) {
 			return $http({
 				method: 'GET',
 				url: '/api/v1/statistics',
-				params: {/*advertiser_id: advertiser_id,*/ from_date: from_date, to: to, by: by}
+				params: {advertiser_id: advertiser_id, from_date: from_date, to: to, by: by}
 			})
 				.then(function (res) {
 					for(var index in res.data.statistics) {
@@ -21,8 +21,8 @@
 						res.data.statistics[index].cpc = parseFloat(res.data.statistics[index].cpc).toFixed(4);
 						res.data.statistics[index].cpm = parseFloat(res.data.statistics[index].cpm).toFixed(4);
 						res.data.statistics[index].spend = parseFloat(res.data.statistics[index].spend).toFixed(4);
-						res.data.statistics[index].day = moment(res.data.statistics[index].day).locale(loc).format('L');
-					 }
+						res.data.statistics[index].day = $window.moment(res.data.statistics[index].day).locale(loc).format('L');
+					}
 					return res.data;
 				});
 		}
@@ -31,13 +31,13 @@
 			return $http({
 				method: 'GET',
 				url: '/api/v1/totals',
-				params: {/*advertiser_id: advertiser_id,*/ from_date: from_date, to: to}
+				params: {advertiser_id: advertiser_id, from_date: from_date, to: to}
 			})
 				.then(function (res) {
 
-						res.data.totals.cpc = parseFloat(res.data.totals.cpc).toFixed(4);
-						res.data.totals.cpm = parseFloat(res.data.totals.cpm).toFixed(4);
-						res.data.totals.spend = parseFloat(res.data.totals.spend).toFixed(4);
+					res.data.totals.cpc = parseFloat(res.data.totals.cpc).toFixed(4);
+					res.data.totals.cpm = parseFloat(res.data.totals.cpm).toFixed(4);
+					res.data.totals.spend = parseFloat(res.data.totals.spend).toFixed(4);
 
 					return res.data.totals;
 				});
@@ -55,36 +55,6 @@
 				sort = 'campaign';
 				order = 'DESC';
 			}
-			/*var rowFilter = '';
-			if(filters) {
-				if (Array.isArray(filters[0])) {
-					for (var i = 0; i < filters.length; i += 2) {
-						var filter = filters[i];
-						if (Array.isArray(filter[0])) {
-							if (i > 0) rowFilter += ';';
-							for(var j = 0; j < filter.length; j += 2) {
-								var nestedFilters = filter[j];
-								if (j === 0)
-									rowFilter += nestedFilters[0] + '=';
-								rowFilter += nestedFilters[2];
-								if (j+2 < filter.length)
-									rowFilter += ',';
-							}
-						} else {
-							if (i > 0)
-								if (Array.isArray(filters[i-2][0])) rowFilter += ';' + filter[0] + '=';
-							if (i === 0)
-								rowFilter += filter[0] + '=';
-							rowFilter += filter[2];
-							if (i+2 < filters.length)
-								rowFilter += ',';
-						}
-					}
-				} else {
-					rowFilter += filters[0] + '=' + filters[2];
-				}
-			}*/
-
 			if(take == null) {
 				take = 20;
 			}
@@ -95,7 +65,7 @@
 			return $http({
 				method: 'GET',
 				url: '/api/v1/campaigns',
-				params: {/*advertiser_id: advertiser_id, */from_date: from_date, to: to,  skip: skip, take: take, sort: sort, order: order, stat_by: stat_by, filter: filters}
+				params: {advertiser_id: advertiser_id, from_date: from_date, to: to,  skip: skip, take: take, sort: sort, order: order, stat_by: stat_by, filter: filters}
 			})
 				.then(function (res) {
 					for(var index in res.data.campaigns) {
@@ -110,7 +80,7 @@
 		function statsMap(advertiser_id, from_date, to) {
 			return $http({
 				method: 'GET',
-				url: 'http://private-anon-d71dffb7f-rtbs.apiary-mock.com/api/v1/map/clicks',
+				url: '/api/v1/map/clicks',
 				params: {advertiser_id: advertiser_id, from_date: from_date, to: to}
 			})
 				.then(function (res) {

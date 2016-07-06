@@ -700,11 +700,12 @@ class PublisherLabel(models.Model):
 
 CONTENT_CATEGORY_TYPE = (
     ('standard', 'standard'),
-    ('standard', 'standard')
 )
 
-
+# https://wiki.appnexus.com/display/api/Content+Category+Service
 class ContentCategory(models.Model):
+    id = models.IntegerField(primary_key=True)  # No AutoIncrement
+    fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
     name = models.TextField(null=True, blank=True, db_index=True)
     description = models.TextField(null=True, blank=True)
     is_system = models.NullBooleanField(null=True, blank=True)

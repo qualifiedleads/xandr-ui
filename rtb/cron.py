@@ -18,10 +18,9 @@ from django.conf import settings
 import models
 from models import Advertiser, Campaign, SiteDomainPerformanceReport, Profile, LineItem, InsertionOrder, \
     OSFamily, OperatingSystemExtended, NetworkAnalyticsReport, GeoAnaliticsReport, Member, Developer, BuyerGroup, \
-    AdProfile
+    AdProfile, ContentCategory
 from pytz import utc
 from utils import get_all_classes_in_models, column_sets_for_reports
-import pympler
 from pympler.tracker import SummaryTracker
 
 def date_type(t):
@@ -331,10 +330,6 @@ def load_depending_data(token):
                                            LineItem.objects.filter(advertiser=advertiser_id).order_by('fetch_date'),
                                            LineItem, 'id', False)
             print 'There is %d  line items' % len(line_items)
-            if len(insert_order) > 0:
-                print 'First insertion order:'
-                print insert_order[0]
-                print '-' * 80
             campaigns = nexus_get_objects(token,
                                           'https://api.appnexus.com/campaign',
                                           {'advertiser_id': advertiser_id},
@@ -355,6 +350,18 @@ def load_depending_data(token):
                                                   OperatingSystemExtended.objects.all().order_by('fetch_date'),
                                                   OperatingSystemExtended, 'id', False)
             print 'There is %d operating systems ' % len(operating_systems)
+            with transaction.atomic():
+                nexus_get_objects(token,
+                                   'http://api.appnexus.com/content-category',
+                                   {},
+                                   ContentCategory.objects.all().order_by('fetch_date'),
+                                   ContentCategory, 'id', False)
+                nexus_get_objects(token,
+                                   'http://api.appnexus.com/content-category',
+                                   {'category_type': 'universal'},
+                                   ContentCategory.objects.all().order_by('fetch_date'),
+                                   ContentCategory, 'id', True)
+            print 'There is %d content categories ' % len(ContentCategory.objects.count())
 
     except Exception as e:
             print "There is error in load_depending_data:",e

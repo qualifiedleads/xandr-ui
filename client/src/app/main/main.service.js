@@ -80,7 +80,7 @@
 		function statsMap(advertiser_id, from_date, to) {
 			return $http({
 				method: 'GET',
-				url: 'http://private-anon-d71dffb7f-rtbs.apiary-mock.com/api/v1/map/clicks',
+				url: '/api/v1/map/clicks',
 				params: {advertiser_id: advertiser_id, from_date: from_date, to: to}
 			})
 				.then(function (res) {

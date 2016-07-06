@@ -10,7 +10,7 @@ from itertools import imap, izip, islice,ifilter
 from multiprocessing.pool import ThreadPool
 from django.db.models import Avg, Count, Sum
 import django.db.models as django_types
-from django.db import transaction, IntegrityError
+from django.db import transaction, IntegrityError, reset_queries, connection
 import re
 import requests
 import report
@@ -139,6 +139,8 @@ def analize_csv(filename, modelClass, metadata={}):
 
         #it = imap(create_object_from_dict, reader)
         worker = ThreadPool()
+        counter = 0
+        reset_queries()
         try:
             while True:
                 rows = list(islice(reader, 0, 4000))
@@ -160,13 +162,17 @@ def analize_csv(filename, modelClass, metadata={}):
                             print 'Too many DB integrity errors'
                             raise
                         if not try_resolve_foreign_key(objects_to_save, rows, e): raise
-                print '%d rows fetched' % metadata['counter']
-                if metadata['counter'] % 100000 == 0:
+                counter += len(objects_to_save)
+                print '%d rows fetched' % counter
+                print "Sql queries fired:", connection.queries
+                reset_queries()
+                if counter % 100000 == 0:
                     t.print_diff()
                     gc.collect()
         except Exception as e:
             print 'Error in main loop in analize_csv', e
             print traceback.print_exc()
+        print '%d rows fetched (by metadata)' % metadata['counter']
         gc.collect()
 
 

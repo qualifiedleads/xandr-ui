@@ -8,7 +8,7 @@ import sys
 import traceback
 from itertools import imap, izip, islice,ifilter
 from multiprocessing.pool import ThreadPool, Pool
-from django.db.models import Avg, Count, Sum
+from django.db.models import Avg, Count, Sum, Max
 import django.db.models as django_types
 from django.db import transaction, IntegrityError, reset_queries, connection
 import re
@@ -131,6 +131,9 @@ def create_object_from_dict(data_row):
         print "Interest error", e
         return None
 
+def get_all_class_fields(modelClass):
+    return [field.name + '_id' if isinstance(field, django_types.ForeignObject) else field.name
+                           for field in modelClass._meta.fields]
 
 def analize_csv(filename, modelClass, metadata={}):
     with open(filename, 'r') as csvFile:
@@ -141,8 +144,7 @@ def analize_csv(filename, modelClass, metadata={}):
         context = {}
         context['modelClass'] = modelClass
         context['fetch_date'] = get_current_time()
-        class_fields = set(field.name + '_id' if isinstance(field, django_types.ForeignObject) else field.name
-                           for field in modelClass._meta.fields)
+        class_fields = set(get_all_class_fields(modelClass))
         csv_fields = set(reader.fieldnames)
         context['all_fields'] = class_fields & csv_fields
         context['need_filter_fields'] = bool(csv_fields - class_fields) and modelClass.api_report_name not in column_sets_for_reports
@@ -201,17 +203,25 @@ def get_current_time():
 
 
 # https://api.appnexus.com/creative?start_element=0&num_elements=50'
-def nexus_get_objects(token, url, params, query_set, object_class, key_field, force_update=False):
+def nexus_get_objects(token, url, params, object_class, force_update=False):
     print "Begin of Nexus_get_objects func"
     last_word = re.search(r'/(\w+)[^/]*$', url).group(1)
     #print last_word
-    objects_in_db = list(query_set)
     #print "Objects succefully fetched from DB (%d records)" % len(objects_in_db)
     current_date = get_current_time()
-    try:
-        last_date = objects_in_db[-1].fetch_date
-    except:
+    if params:
+        all_fields = set(get_all_class_fields(object_class))
+        filter_params = {k:v for k,v in params if k in all_fields}
+        query_set = object_class.objects.filter(**filter_params)
+    else:
+        query_set = object_class.objects.all()
+    if object_class._meta.get_field('fetch_date'):
+        last_date = object_class.objects.aggregate(m=Max('fetch_date'))
+    elif object_class._meta.get_field('last_modified'):
+        last_date = query_set.aggregate(m=Max('last_modified'))
+    else:
         last_date = unix_epoch
+    objects_in_db = list(query_set)
     if force_update or current_date - last_date > settings.INVALIDATE_TIME:
         count, cur_records = -1, -2
         objects_by_api = []
@@ -279,7 +289,7 @@ def load_depending_data(token):
                                         'https://api.appnexus.com/advertiser',
                                         {},
                                         Advertiser.objects.all().order_by('fetch_date'),
-                                        Advertiser, 'id')
+                                        Advertiser)
         print 'There is %d advertisers' % len(advertisers)
 
         for adv in advertisers:
@@ -288,79 +298,67 @@ def load_depending_data(token):
             profiles = nexus_get_objects(token,
                                          'https://api.appnexus.com/profile',
                                          {'advertiser_id': advertiser_id},
-                                         Profile.objects.filter(advertiser=advertiser_id).order_by('fetch_date'),
-                                         Profile, 'id', False)
+                                         Profile, False)
             print 'There is %d profiles' % len(profiles)
             # Get all of the insertion orders for one of your advertisers:
             insert_order = nexus_get_objects(token,
                                              'https://api.appnexus.com/insertion-order',
                                              {'advertiser_id': advertiser_id},
-                                             InsertionOrder.objects.filter(advertiser=advertiser_id).order_by('fetch_date'),
-                                             InsertionOrder, 'id', False)
+                                             InsertionOrder, False)
             print 'There is %d  insertion orders' % len(insert_order)
             developers = nexus_get_objects(token,
                                            'https://api.appnexus.com/developer',
                                            {},
-                                           Developer.objects.all().order_by('fetch_date'),
-                                           Developer, 'id', False)
+                                           Developer, False)
             print 'There is %d developers ' % len(developers)
             buyer_groups = nexus_get_objects(token,
                                              'https://api.appnexus.com/buyer-group',
                                              {},
-                                             BuyerGroup.objects.all().order_by('fetch_date'),
-                                             BuyerGroup, 'id', False)
+                                             BuyerGroup, False)
             print 'There is %d buyer groups ' % len(buyer_groups)
             # There is mutual dependence
             with transaction.atomic():
                 ad_profiles = nexus_get_objects(token,
                                             'https://api.appnexus.com/ad-profile',
                                             {},
-                                            AdProfile.objects.all().order_by('fetch_date'),
-                                            AdProfile, 'id', False)
+                                            AdProfile, False)
                 print 'There is %d adware profiles ' % len(ad_profiles)  # Get all of an advertiser's line items:
                 members = nexus_get_objects(token,
                                             'https://api.appnexus.com/member',
                                             {},
-                                            Member.objects.all().order_by('fetch_date'),
-                                            Member, 'id', False)
+                                            Member, False)
                 print 'There is %d members ' % len(members)  # Get all of an advertiser's line items:
             line_items = nexus_get_objects(token,
                                            'https://api.appnexus.com/line-item',
                                            {'advertiser_id': advertiser_id},
-                                           LineItem.objects.filter(advertiser=advertiser_id).order_by('fetch_date'),
-                                           LineItem, 'id', False)
+                                           LineItem, False)
             print 'There is %d  line items' % len(line_items)
             campaigns = nexus_get_objects(token,
                                           'https://api.appnexus.com/campaign',
                                           {'advertiser_id': advertiser_id},
-                                          Campaign.objects.filter(advertiser=advertiser_id).order_by('fetch_date'),
-                                          Campaign, 'id', False)
+                                          Campaign, False)
             print 'There is %d campaigns ' % len(campaigns)
             # Get all operating system families:
             operating_systems_families = nexus_get_objects(token,
                                                            'https://api.appnexus.com/operating-system-family',
                                                            {},
-                                                           OSFamily.objects.all().order_by('fetch_date'),
-                                                           OSFamily, 'id', False)
+                                                           OSFamily, False)
             print 'There is %d operating system families' % len(operating_systems_families)
             # Get all operating systems:
             operating_systems = nexus_get_objects(token,
                                                   'https://api.appnexus.com/operating-system-extended',
                                                   {},
-                                                  OperatingSystemExtended.objects.all().order_by('fetch_date'),
-                                                  OperatingSystemExtended, 'id', False)
+                                                  OperatingSystemExtended, False)
             print 'There is %d operating systems ' % len(operating_systems)
             with transaction.atomic():
                 nexus_get_objects(token,
                                    'http://api.appnexus.com/content-category',
-                                   {},
-                                   ContentCategory.objects.all().order_by('fetch_date'),
-                                   ContentCategory, 'id', False)
-                nexus_get_objects(token,
-                                   'http://api.appnexus.com/content-category',
                                    {'category_type': 'universal'},
-                                   ContentCategory.objects.all().order_by('fetch_date'),
-                                   ContentCategory, 'id', True)
+                                   ContentCategory, True)
+                nexus_get_objects(token,
+                                  'http://api.appnexus.com/content-category',
+                                  {},
+                                  ContentCategory, True)
             print 'There is %d content categories ' % len(ContentCategory.objects.count())
 
     except Exception as e:

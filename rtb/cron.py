@@ -156,7 +156,7 @@ def analize_csv(filename, modelClass, metadata={}):
                           isinstance(field, django_types.ForeignObject)]
         context['foreign_fields'] = filter(lambda x: x in csv_fields, foreign_fields)
         context.update(metadata)
-        worker = ThreadPool(initializer=context_initializer, initargs=(context,), maxtasksperchild=100000)
+        worker = Pool(initializer=context_initializer, initargs=(context,), maxtasksperchild=100000)
         counter = 0
         reset_queries()
         try:

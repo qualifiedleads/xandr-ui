@@ -46,6 +46,8 @@
 				'CAMPAIGN': {
 					'COLUMNS':{
 						"CAMPAIGN":"Campaign",
+						"PLACEMENT": "Placement",
+						"NETWORK":"Network+Publisher",
 						"SPENT":"Spent",
 						"CONV":"Conv",
 						"IMP":"Imp",
@@ -66,6 +68,9 @@
 					"CONVERSIONS":"Conversions",
 					"CTR":"CTR"
 				}
+			},
+			"CAMP": {
+				"NAME":"Campaign"
 			}
 		})
 

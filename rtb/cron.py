@@ -211,16 +211,18 @@ def nexus_get_objects(token, url, params, object_class, force_update=False):
     current_date = get_current_time()
     if params:
         all_fields = set(get_all_class_fields(object_class))
-        filter_params = {k:v for k,v in params if k in all_fields}
+        filter_params = {k:v for k,v in params.items() if k in all_fields}
         query_set = object_class.objects.filter(**filter_params)
     else:
         query_set = object_class.objects.all()
+    last_date = None
     if object_class._meta.get_field('fetch_date'):
-        last_date = object_class.objects.aggregate(m=Max('fetch_date'))
+        last_date = object_class.objects.aggregate(m=Max('fetch_date'))['m']
     elif object_class._meta.get_field('last_modified'):
-        last_date = query_set.aggregate(m=Max('last_modified'))
-    else:
+        last_date = query_set.aggregate(m=Max('last_modified'))['m']
+    if not last_date:
         last_date = unix_epoch
+
     objects_in_db = list(query_set)
     if force_update or current_date - last_date > settings.INVALIDATE_TIME:
         count, cur_records = -1, -2
@@ -256,9 +258,9 @@ def nexus_get_objects(token, url, params, object_class, force_update=False):
             cur_records += response['num_elements']
 
         print "Objects succefully fetched from Nexus API (%d records)" % len(objects_by_api)
-        obj_by_code = {getattr(i, key_field): i for i in objects_in_db}
+        obj_by_code = {i.pk: i for i in objects_in_db}
         for i in objects_by_api:
-            object_db = obj_by_code.get(i[key_field])
+            object_db = obj_by_code.get(i.pk)
             if not object_db:
                 object_db = object_class()
                 objects_in_db.append(object_db)
@@ -290,6 +292,54 @@ def load_depending_data(token):
                                         {},
                                         Advertiser)
         print 'There is %d advertisers' % len(advertisers)
+        developers = nexus_get_objects(token,
+                                       'https://api.appnexus.com/developer',
+                                       {},
+                                       Developer, False)
+        print 'There is %d developers ' % len(developers)
+        buyer_groups = nexus_get_objects(token,
+                                         'https://api.appnexus.com/buyer-group',
+                                         {},
+                                         BuyerGroup, False)
+        print 'There is %d buyer groups ' % len(buyer_groups)
+
+        # There is mutual dependence
+        with transaction.atomic():
+            ad_profiles = nexus_get_objects(token,
+                                            'https://api.appnexus.com/ad-profile',
+                                            {},
+                                            AdProfile, False)
+            print 'There is %d adware profiles ' % len(ad_profiles)
+            members = nexus_get_objects(token,
+                                        'https://api.appnexus.com/member',
+                                        {},
+                                        Member, False)
+            print 'There is %d members ' % len(members)
+
+        # Get all operating system families:
+        operating_systems_families = nexus_get_objects(token,
+                                                       'https://api.appnexus.com/operating-system-family',
+                                                       {},
+                                                       OSFamily, False)
+        print 'There is %d operating system families' % len(operating_systems_families)
+
+        # Get all operating systems:
+        operating_systems = nexus_get_objects(token,
+                                              'https://api.appnexus.com/operating-system-extended',
+                                              {},
+                                              OperatingSystemExtended, False)
+        print 'There is %d operating systems ' % len(operating_systems)
+
+        with transaction.atomic():
+            o1=nexus_get_objects(token,
+                              'http://api.appnexus.com/content-category',
+                              {'category_type': 'universal'},
+                              ContentCategory, True)
+            o2=nexus_get_objects(token,
+                              'http://api.appnexus.com/content-category',
+                              {},
+                              ContentCategory, True)
+        print 'There is %d content categories ' % len(ContentCategory.objects.count())
 
         for adv in advertisers:
             advertiser_id = adv.id
@@ -305,28 +355,8 @@ def load_depending_data(token):
                                              {'advertiser_id': advertiser_id},
                                              InsertionOrder, False)
             print 'There is %d  insertion orders' % len(insert_order)
-            developers = nexus_get_objects(token,
-                                           'https://api.appnexus.com/developer',
-                                           {},
-                                           Developer, False)
-            print 'There is %d developers ' % len(developers)
-            buyer_groups = nexus_get_objects(token,
-                                             'https://api.appnexus.com/buyer-group',
-                                             {},
-                                             BuyerGroup, False)
-            print 'There is %d buyer groups ' % len(buyer_groups)
-            # There is mutual dependence
-            with transaction.atomic():
-                ad_profiles = nexus_get_objects(token,
-                                            'https://api.appnexus.com/ad-profile',
-                                            {},
-                                            AdProfile, False)
-                print 'There is %d adware profiles ' % len(ad_profiles)  # Get all of an advertiser's line items:
-                members = nexus_get_objects(token,
-                                            'https://api.appnexus.com/member',
-                                            {},
-                                            Member, False)
-                print 'There is %d members ' % len(members)  # Get all of an advertiser's line items:
+
+            # Get all of an advertiser's line items:
             line_items = nexus_get_objects(token,
                                            'https://api.appnexus.com/line-item',
                                            {'advertiser_id': advertiser_id},
@@ -337,28 +367,6 @@ def load_depending_data(token):
                                           {'advertiser_id': advertiser_id},
                                           Campaign, False)
             print 'There is %d campaigns ' % len(campaigns)
-            # Get all operating system families:
-            operating_systems_families = nexus_get_objects(token,
-                                                           'https://api.appnexus.com/operating-system-family',
-                                                           {},
-                                                           OSFamily, False)
-            print 'There is %d operating system families' % len(operating_systems_families)
-            # Get all operating systems:
-            operating_systems = nexus_get_objects(token,
-                                                  'https://api.appnexus.com/operating-system-extended',
-                                                  {},
-                                                  OperatingSystemExtended, False)
-            print 'There is %d operating systems ' % len(operating_systems)
-            with transaction.atomic():
-                nexus_get_objects(token,
-                                   'http://api.appnexus.com/content-category',
-                                   {'category_type': 'universal'},
-                                   ContentCategory, True)
-                nexus_get_objects(token,
-                                  'http://api.appnexus.com/content-category',
-                                  {},
-                                  ContentCategory, True)
-            print 'There is %d content categories ' % len(ContentCategory.objects.count())
 
     except Exception as e:
             print "There is error in load_depending_data:",e

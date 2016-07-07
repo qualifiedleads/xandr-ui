@@ -732,6 +732,7 @@ SUPPLY_TYPE = (
 class Site(models.Model):
     #https://wiki.appnexus.com/display/api/Site+Service
     id = models.IntegerField(primary_key=True)
+    fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
     code = models.TextField(null=True, blank=True, db_index=True)
     name = models.TextField(null=True, blank=True, db_index=True)
     state = models.TextField(

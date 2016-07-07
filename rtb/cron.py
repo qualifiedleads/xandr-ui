@@ -18,7 +18,7 @@ from django.conf import settings
 import models
 from models import Advertiser, Campaign, SiteDomainPerformanceReport, Profile, LineItem, InsertionOrder, \
     OSFamily, OperatingSystemExtended, NetworkAnalyticsReport, GeoAnaliticsReport, Member, Developer, BuyerGroup, \
-    AdProfile, ContentCategory, Deal, PlatformMember, User, Publisher
+    AdProfile, ContentCategory, Deal, PlatformMember, User, Publisher, Site
 from pytz import utc
 from utils import get_all_classes_in_models, column_sets_for_reports
 from pympler.tracker import SummaryTracker
@@ -345,12 +345,19 @@ def load_depending_data(token):
                                  ContentCategory, False)
         print 'There is %d content categories ' % ContentCategory.objects.count()
 
-        # Get all publishers:
-        publishers = nexus_get_objects(token,
-                                       'https://api.appnexus.com/publisher',
-                                       {},
-                                       Publisher, False)
-        print 'There is %d publishers ' % len(publishers)
+        with transaction.atomic():
+            # Get all sites:
+            sites = nexus_get_objects(token,
+                                      'https://api.appnexus.com/site',
+                                      {},
+                                      Site, False)
+            print 'There is %d sites ' % len(sites)
+            # Get all publishers:
+            publishers = nexus_get_objects(token,
+                                           'https://api.appnexus.com/publisher',
+                                           {},
+                                           Publisher, False)
+            print 'There is %d publishers ' % len(publishers)
 
         # Get all users:
         users = nexus_get_objects(token,

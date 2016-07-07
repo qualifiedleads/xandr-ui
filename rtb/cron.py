@@ -214,16 +214,21 @@ def nexus_get_objects(token, url, params, object_class, force_update=False):
     #print "Objects succefully fetched from DB (%d records)" % len(objects_in_db)
     current_date = get_current_time()
     if params:
-        all_fields = set(get_all_class_fields(object_class))
-        filter_params = {k:v for k,v in params.items() if k in all_fields}
-        query_set = object_class.objects.filter(**filter_params)
+        #all_fields = set(get_all_class_fields(object_class))
+        #filter_params = {k:v for k,v in params.items() if k in all_fields}
+        query_set = object_class.objects.filter(**params)
     else:
         query_set = object_class.objects.all()
+    for k in params.keys():
+        if k.endswith('__in'):
+            params[k[:-4]]=','.join(str(x) for x in params[k])
+            del params[k]
     last_date = None
-    if object_class._meta.get_field('fetch_date'):
-        last_date = object_class.objects.aggregate(m=Max('fetch_date'))['m']
-    elif object_class._meta.get_field('last_modified'):
-        last_date = query_set.aggregate(m=Max('last_modified'))['m']
+    if not force_update:
+        if object_class._meta.get_field('fetch_date'):
+            last_date = object_class.objects.aggregate(m=Max('fetch_date'))['m']
+        elif object_class._meta.get_field('last_modified'):
+            last_date = query_set.aggregate(m=Max('last_modified'))['m']
     if not last_date:
         last_date = unix_epoch
 
@@ -232,12 +237,20 @@ def nexus_get_objects(token, url, params, object_class, force_update=False):
         count, cur_records = -1, -2
         objects_by_api = []
         data_key_name = None
+        start_time = datetime.datetime.utcnow()
         while cur_records < count:
+            current_time = datetime.datetime.utcnow()
+            if current_time - start_time > settings.MAX_REPORT_WAIT: break
             if cur_records > 0:
                 params["start_element"] = cur_records
                 params["num_elements"] = min(100, count - cur_records)
             r = requests.get(url, params=params, headers={"Authorization": token})
             response = json.loads(r.content)['response']
+            if response.get('error'):
+                if response['error_id']=='NOAUTH':
+                    token = report.get_auth_token()
+                time.sleep(10)
+                continue
             dbg_info = response['dbg_info']
             limit = dbg_info['reads']/dbg_info['read_limit']
             if limit>0.9:
@@ -392,14 +405,21 @@ def load_depending_data(token):
                                                           YieldManagementProfile, False)
             print 'There is %d yield management profiles ' % len(yield_management_profiles)
 
-            # Get all payment rules:
-            for pub in publishers:
-                payment_rules = nexus_get_objects(token,
-                                                  'https://api.appnexus.com/payment-rule',
-                                                  {'publisher_id': pub.pk},
-                                                  PaymentRule, False)
-                print 'There is %d payment rules for publisher %s' % (len(payment_rules),pub.name)
-                print 'Ids:', ','.join(str(x.pk) for x in payment_rules)
+            ids=[x.base_payment_rule_id for x in publishers]
+            payment_rules = nexus_get_objects(token,
+                                              'https://api.appnexus.com/payment-rule',
+                                              {'publisher_id__in': ids},
+                                              PaymentRule, True)
+            print 'There is %d base payment rules ' % len(payment_rules)
+
+        # Get all payment rules:
+        for pub in publishers:
+            payment_rules = nexus_get_objects(token,
+                                              'https://api.appnexus.com/payment-rule',
+                                              {'publisher_id': pub.pk},
+                                              PaymentRule, False)
+            print 'There is %d payment rules for publisher %s' % (len(payment_rules),pub.name)
+            print 'Ids:', ','.join(str(x.pk) for x in payment_rules)
 
         # Get all users:
         users = nexus_get_objects(token,

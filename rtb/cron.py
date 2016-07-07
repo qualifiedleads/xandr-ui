@@ -191,7 +191,11 @@ def analize_csv(filename, modelClass, metadata={}):
         except Exception as e:
             print 'Error in main loop in analize_csv', e
             print traceback.print_exc()
-        gc.collect()
+        finally:
+            gc.collect()
+            t.print_diff()
+            worker.close()
+            worker.join()
 
 
 unix_epoch = datetime.datetime.utcfromtimestamp(0).replace(tzinfo=utc)

@@ -18,7 +18,7 @@ from django.conf import settings
 import models
 from models import Advertiser, Campaign, SiteDomainPerformanceReport, Profile, LineItem, InsertionOrder, \
     OSFamily, OperatingSystemExtended, NetworkAnalyticsReport, GeoAnaliticsReport, Member, Developer, BuyerGroup, \
-    AdProfile, ContentCategory, Deal, PlatformMember, User, Publisher, Site, OptimizationZone
+    AdProfile, ContentCategory, Deal, PlatformMember, User, Publisher, Site, OptimizationZone, MobileAppInstance
 from pytz import utc
 from utils import get_all_classes_in_models, column_sets_for_reports
 from pympler.tracker import SummaryTracker
@@ -351,6 +351,14 @@ def load_depending_data(token):
                                                {},
                                                OptimizationZone, False)
         print 'There is %d optimisation zones ' % len(optimisation_zones)
+
+        # Get all mobile app instances:
+        mobile_app_instances = nexus_get_objects(token,
+                                                 'https://api.appnexus.com/mobile-app-instance',
+                                                 {},
+                                                 MobileAppInstance, False)
+        print 'There is %d mobile app instances ' % len(mobile_app_instances)
+
 
         with transaction.atomic():
             # Get all sites:

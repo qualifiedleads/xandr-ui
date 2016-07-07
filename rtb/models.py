@@ -679,6 +679,7 @@ class ManualOfferRanking(models.Model):
 class MobileAppInstance(models.Model):
     #https://wiki.appnexus.com/display/api/Mobile+App+Instance+Service
     id = models.IntegerField(primary_key=True)
+    fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
     #instance - bundle - see model MobileAppInstanceBundle below
     mobile_app_store = models.ForeignKey("MobileAppStore", null=True, blank=True)
     store_name = models.TextField(null=True, blank=True)

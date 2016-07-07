@@ -18,7 +18,8 @@ from django.conf import settings
 import models
 from models import Advertiser, Campaign, SiteDomainPerformanceReport, Profile, LineItem, InsertionOrder, \
     OSFamily, OperatingSystemExtended, NetworkAnalyticsReport, GeoAnaliticsReport, Member, Developer, BuyerGroup, \
-    AdProfile, ContentCategory, Deal, PlatformMember, User, Publisher, Site, OptimizationZone, MobileAppInstance
+    AdProfile, ContentCategory, Deal, PlatformMember, User, Publisher, Site, OptimizationZone, MobileAppInstance, \
+    YieldManagementProfile
 from pytz import utc
 from utils import get_all_classes_in_models, column_sets_for_reports
 from pympler.tracker import SummaryTracker
@@ -373,6 +374,13 @@ def load_depending_data(token):
                                            {},
                                            Publisher, False)
             print 'There is %d publishers ' % len(publishers)
+            # Get all yield management profiles:
+            yield_management_profiles = nexus_get_objects(token,
+                                                          'https://api.appnexus.com/ym-profile',
+                                                          {},
+                                                          # Probary, its need to load data for all publishers in loop
+                                                          YieldManagementProfile, False)
+            print 'There is %d yield management profiles ' % len(yield_management_profiles)
 
         # Get all users:
         users = nexus_get_objects(token,

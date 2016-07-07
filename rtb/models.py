@@ -788,6 +788,7 @@ class SiteContentCategory(models.Model):
 class YieldManagementProfile(models.Model):
     #https://wiki.appnexus.com/display/api/Yield+Management+Profile+Service
     id = models.IntegerField(primary_key=True)
+    fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
     code = models.TextField(null=True, blank=True, db_index=True)
     name = models.TextField(null=True, blank=True, db_index=True)
     description = models.TextField(null=True, blank=True)

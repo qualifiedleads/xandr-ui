@@ -17,6 +17,7 @@ USER_TYPES_CHOICES = (
     ('publisher', 'publisher'),
     ('advertiser', 'advertiser'),
     ('member_advertiser', 'member_advertiser'),
+    ('member_advertiser', 'member_advertiser'),
     ('member_publisher', 'member_publisher')
 )
 
@@ -43,6 +44,7 @@ THOUSAND_SEPARATOR = (
 class User(models.Model):
     #https://wiki.appnexus.com/display/api/User+Service
     id = models.IntegerField(primary_key=True)  # This prevent making automatic AutoIncrement field
+    fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
     state = models.TextField(
         choices=STATE_CHOICES,
         null=True, blank=True)
@@ -851,6 +853,8 @@ DISCLOSURE_STATUS = (
 
 class Publisher(models.Model):
     #https://wiki.appnexus.com/display/api/Publisher+Service
+    id = models.IntegerField(primary_key=True)  # No AutoIncrement
+    fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
     code = models.TextField(null=True, blank=True, db_index=True)
     name = models.TextField(null=True, blank=True, db_index=True)
     state = models.TextField(
@@ -2730,6 +2734,7 @@ class MemberProfileCountry(models.Model):
 class PlatformMember(models.Model):
     #https://wiki.appnexus.com/display/api/Platform+Member+Service
     id = models.IntegerField(primary_key=True) # No AutoIncrement
+    fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
     name = models.TextField(null=True, blank=True, db_index=True)
     primary_type = models.TextField(
         choices=PRIMARY_PLATFORM_MEMBER_TYPE_CHOICES,
@@ -2926,10 +2931,10 @@ DEAL_TYPE_CHOICES = (
     ('2', 'Private Auction')
 )
 
-
 class Deal(models.Model):
     #https://wiki.appnexus.com/display/api/Deal+Service
     id = models.IntegerField(primary_key=True)  # No AutoIncrement
+    fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
     code = models.TextField(null=True, blank=True, db_index=True)
     name = models.TextField(null=True, blank=True, db_index=True)
     description = models.TextField(null=True, blank=True)

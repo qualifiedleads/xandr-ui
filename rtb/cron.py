@@ -18,7 +18,7 @@ from django.conf import settings
 import models
 from models import Advertiser, Campaign, SiteDomainPerformanceReport, Profile, LineItem, InsertionOrder, \
     OSFamily, OperatingSystemExtended, NetworkAnalyticsReport, GeoAnaliticsReport, Member, Developer, BuyerGroup, \
-    AdProfile, ContentCategory
+    AdProfile, ContentCategory, Deal, PlatformMember, User, Publisher
 from pytz import utc
 from utils import get_all_classes_in_models, column_sets_for_reports
 from pympler.tracker import SummaryTracker
@@ -341,9 +341,35 @@ def load_depending_data(token):
             #                   ContentCategory, True)
             o2=nexus_get_objects(token,
                               'http://api.appnexus.com/content-category',
-                              {},
-                              ContentCategory, True)
+                                 {},
+                                 ContentCategory, False)
         print 'There is %d content categories ' % ContentCategory.objects.count()
+
+        # Get all publishers:
+        publishers = nexus_get_objects(token,
+                                       'https://api.appnexus.com/publisher',
+                                       {},
+                                       Publisher, False)
+        print 'There is %d publishers ' % len(publishers)
+
+        # Get all users:
+        users = nexus_get_objects(token,
+                                  'http://api.appnexus.com/user',
+                                  {},
+                                  User, False)
+        print 'There is %d users ' % len(users)
+        # Get all platform members:
+        platform_members = nexus_get_objects(token,
+                                             'https://api.appnexus.com/platform-member',
+                                             {},
+                                             PlatformMember, False)
+        print 'There is %d platform members ' % len(platform_members)
+        # Get all deals:
+        deals = nexus_get_objects(token,
+                                  'http://api.appnexus.com/deal',
+                                  {},
+                                  Deal, False)
+        print 'There is %d deals ' % len(deals)
 
         for adv in advertisers:
             advertiser_id = adv.id

@@ -422,8 +422,9 @@ def load_depending_data(token):
         for pub in publishers:
             payment_rules = nexus_get_objects(token,
                                               'https://api.appnexus.com/payment-rule',
-                                              {'publisher_id': pub.pk},
-                                              PaymentRule, False)
+                                              {'publisher': pub},
+                                              PaymentRule, False,
+                                              {'publisher_id': pub.pk})
             print 'There is %d payment rules for publisher %s' % (len(payment_rules),pub.name)
             print 'Ids:', ','.join(str(x.pk) for x in payment_rules)
 

@@ -371,14 +371,6 @@ def load_depending_data(token):
                                                  MobileAppInstance, False)
         print 'There is %d mobile app instances ' % len(mobile_app_instances)
 
-        # Get all payment rules:
-        payment_rules = nexus_get_objects(token,
-                                          'https://api.appnexus.com/payment-rule',
-                                          {},
-                                          # {'publisher_id': 'PUBLISHER_ID'},
-                                          PaymentRule, False)
-        print 'There is %d payment rules ' % len(payment_rules)
-
         with transaction.atomic():
             # Get all sites:
             sites = nexus_get_objects(token,
@@ -399,6 +391,14 @@ def load_depending_data(token):
                                                           # Probary, its need to load data for all publishers in loop
                                                           YieldManagementProfile, False)
             print 'There is %d yield management profiles ' % len(yield_management_profiles)
+
+        # Get all payment rules:
+        for pub in publishers:
+            payment_rules = nexus_get_objects(token,
+                                              'https://api.appnexus.com/payment-rule',
+                                              {'publisher_id': pub.pk},
+                                              PaymentRule, False)
+            print 'There is %d payment rules for publisher %s' % (len(payment_rules),pub.name)
 
         # Get all users:
         users = nexus_get_objects(token,

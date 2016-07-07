@@ -332,15 +332,15 @@ def load_depending_data(token):
         print 'There is %d operating systems ' % len(operating_systems)
 
         with transaction.atomic():
-            o1=nexus_get_objects(token,
-                              'http://api.appnexus.com/content-category',
-                              {'category_type': 'universal'},
-                              ContentCategory, True)
+            # o1=nexus_get_objects(token,
+            #                   'http://api.appnexus.com/content-category',
+            #                   {'category_type': 'universal'},
+            #                   ContentCategory, True)
             o2=nexus_get_objects(token,
                               'http://api.appnexus.com/content-category',
                               {},
                               ContentCategory, True)
-        print 'There is %d content categories ' % len(ContentCategory.objects.count())
+        print 'There is %d content categories ' % ContentCategory.objects.count()
 
         for adv in advertisers:
             advertiser_id = adv.id

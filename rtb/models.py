@@ -985,6 +985,10 @@ class ContentCategory(models.Model):
     class Meta:
         db_table = "content_category"
 
+    def TransformFields(self, data):
+        if data['parent_category']:
+            self.parent_category_id = int(data['parent_category']['id'])
+
 
 class Language(models.Model):
     id = models.IntegerField(primary_key=True)  # No AutoIncrement

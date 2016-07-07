@@ -19,7 +19,7 @@ import models
 from models import Advertiser, Campaign, SiteDomainPerformanceReport, Profile, LineItem, InsertionOrder, \
     OSFamily, OperatingSystemExtended, NetworkAnalyticsReport, GeoAnaliticsReport, Member, Developer, BuyerGroup, \
     AdProfile, ContentCategory, Deal, PlatformMember, User, Publisher, Site, OptimizationZone, MobileAppInstance, \
-    YieldManagementProfile, PaymentRule, ConversionPixel
+    YieldManagementProfile, PaymentRule, ConversionPixel, Country, Region, DemographicArea
 from pytz import utc
 from utils import get_all_classes_in_models, column_sets_for_reports
 
@@ -418,6 +418,24 @@ def load_depending_data(token):
                                   {},
                                   Deal, False)
         print 'There is %d deals ' % len(deals)
+        # Get all demographic areas:
+        demographic_areas = nexus_get_objects(token,
+                                              'https://api.appnexus.com/dma',
+                                              {},
+                                              DemographicArea, False)
+        print 'There is %d  demographic areas' % len(demographic_areas)
+        # Get all countries:
+        countries = nexus_get_objects(token,
+                                              'https://api.appnexus.com/country',
+                                              {},
+                                              Country, False)
+        print 'There is %d  countries' % len(countries)
+        # Get all regions:
+        regions = nexus_get_objects(token,
+                                              'https://api.appnexus.com/region',
+                                              {},
+                                              Region, False)
+        print 'There is %d  regions' % len(regions)
 
         for adv in advertisers:
             advertiser_id = adv.id

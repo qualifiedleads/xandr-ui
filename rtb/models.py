@@ -138,6 +138,8 @@ class Brand(models.Model):
 
 class DemographicArea(models.Model):
     #https://wiki.appnexus.com/display/api/Demographic+Area+Service
+    id = models.IntegerField(primary_key=True) # No AutoIncrement
+    fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
     name = models.TextField(null=True, blank=True, db_index=True)
 
     class Meta:
@@ -146,6 +148,8 @@ class DemographicArea(models.Model):
 
 class Country(models.Model):
     #https://wiki.appnexus.com/display/api/Country+Service
+    id = models.IntegerField(primary_key=True) # No AutoIncrement
+    fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
     name = models.TextField(null=True, blank=True, db_index=True)
     code = models.TextField(null=True, blank=True) #enum in origin
 
@@ -155,6 +159,8 @@ class Country(models.Model):
 
 class Region(models.Model):
     #https://wiki.appnexus.com/display/api/Region+Service
+    id = models.IntegerField(primary_key=True) # No AutoIncrement
+    fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
     name = models.TextField(null=True, blank=True, db_index=True)
     code = models.TextField(null=True, blank=True) #enum in origin
     country = models.ForeignKey("Country", null=True, blank=True)

@@ -3,7 +3,7 @@ from rest_framework.response import Response
 
 
 @api_view()
-def singleCampaign(id):
+def singleCampaign(request, id):
     """
 Get campaign name by id
 
@@ -21,7 +21,7 @@ Get campaign name by id
 
 
 @api_view()
-def graphInfo(id, request):
+def graphInfo(request, id):
     """
 Get single campaign statistics data for given period by selected categories: impression, cpa, cpc, clicks, mediaspent, conversions, ctr
 
@@ -138,7 +138,7 @@ Get single campaign statistics data for given period by selected categories: imp
 
 
 @api_view()
-def cpaReport(request):
+def cpaReport(request, id):
     """
 Get single campaign cpa report for given period to create boxplots
 
@@ -230,7 +230,7 @@ Get single campaign cpa report for given period to create boxplots
 
 
 @api_view()
-def campaignDomains(request):
+def campaignDomains(request, id):
     """
 Get single campaign details by domains
 
@@ -324,7 +324,7 @@ Get single campaign details by domains
 
 
 @api_view()
-def campaignDetails(request):
+def campaignDetails(request, id):
     """
 Get single campaign details for given period 
 

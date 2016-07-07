@@ -458,8 +458,7 @@ def load_reports_for_all_advertisers(token, day, ReportClass):
             print "%s for advertiser %s saved to DB" %(ReportClass, all_advertisers[advertiser_id])
     finally:
         for f in filenames:
-            if os.getsize(f) < 20000000:
-                os.remove(f)
+            os.remove(f)
 
 
 if __name__ == '__main__': dayly_task()

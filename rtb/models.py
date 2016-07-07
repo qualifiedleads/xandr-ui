@@ -742,15 +742,17 @@ class Site(models.Model):
         null=True, blank=True)
     url = models.TextField(null=True, blank=True)
     publisherd = models.ForeignKey("Publisher", null=True, blank=True)
-    primary_content_category_id = models.ForeignKey("ContentCategory", null=True, blank=True)
+    primary_content_category = models.ForeignKey("ContentCategory", null=True, blank=True)
     last_modified = models.DateTimeField(null=True, blank=True)
     #placements = array - see model Placement below
     #content_categories = array - see model SiteContentCategory below
     intended_audience = models.TextField(
         choices=INTENDED_AUDIENCE,
         null=True, blank=True)
-    managed_optimization_zone_id = models.ForeignKey("OptimizationZone", null=True, blank=True, related_name='managed_optimization_zone_id')
-    rtb_optimization_zone_id = models.ForeignKey("OptimizationZone", null=True, blank=True, related_name='rtb_optimization_zone_id')
+    managed_optimization_zone = models.ForeignKey("OptimizationZone", null=True, blank=True,
+                                                  related_name='managed_optimization_zone_id')
+    rtb_optimization_zone = models.ForeignKey("OptimizationZone", null=True, blank=True,
+                                              related_name='rtb_optimization_zone_id')
     #inventory_attributes = array - see model SiteInventoryAttributes below
     audited = models.NullBooleanField(null=True, blank=True)
     publisher_join = models.TextField(null=True, blank=True) # it is an array in origin but there is no description
@@ -761,7 +763,7 @@ class Site(models.Model):
     creative_formats = models.TextField(null=True, blank=True) # array in origine - we need use Postgresql Array of string
     allowed_click_actions = models.TextField(null=True, blank=True) #array in origine - we need use Postgresql Array of string
     marketplace_map = models.TextField(null=True, blank=True) # it is an array in origin but there is no description
-    mobile_app_instance_id = models.ForeignKey("MobileAppInstance", null=True, blank=True)
+    mobile_app_instance = models.ForeignKey("MobileAppInstance", null=True, blank=True)
 
     class Meta:
         db_table = "site"

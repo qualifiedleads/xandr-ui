@@ -76,6 +76,8 @@ def try_resolve_foreign_key(objects, dicts, e):
             o.name = name
         if hasattr(o, 'fetch_date'):
             o.fetch_date = cd
+        if hasattr(o, 'created_on'):
+            o.created_on = cd
         if hasattr(o, 'last_modified'):
             o.last_modified = cd
         o.save()

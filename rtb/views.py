@@ -232,6 +232,7 @@ def statistics(request):
     print params['stat_by']
     if params['stat_by'] and data:
         entries_to_remove = set(data[0])-set(params['stat_by'])
+        entries_to_remove.remove('day')
         print 'Fields to remove', entries_to_remove
         for camp in data:
             for f in entries_to_remove:

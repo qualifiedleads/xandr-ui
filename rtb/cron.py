@@ -392,13 +392,13 @@ def load_depending_data(token):
                                                           YieldManagementProfile, False)
             print 'There is %d yield management profiles ' % len(yield_management_profiles)
 
-        # Get all payment rules:
-        for pub in publishers:
-            payment_rules = nexus_get_objects(token,
-                                              'https://api.appnexus.com/payment-rule',
-                                              {'publisher_id': pub.pk},
-                                              PaymentRule, False)
-            print 'There is %d payment rules for publisher %s' % (len(payment_rules),pub.name)
+            # Get all payment rules:
+            for pub in publishers:
+                payment_rules = nexus_get_objects(token,
+                                                  'https://api.appnexus.com/payment-rule',
+                                                  {'publisher_id': pub.pk},
+                                                  PaymentRule, False)
+                print 'There is %d payment rules for publisher %s' % (len(payment_rules),pub.name)
 
         # Get all users:
         users = nexus_get_objects(token,

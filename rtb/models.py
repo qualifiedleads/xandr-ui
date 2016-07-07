@@ -666,8 +666,8 @@ class OptimizationZone(models.Model):
 class ManualOfferRanking(models.Model):
     #https://wiki.appnexus.com/display/api/Manual+Offer+Ranking+Service
     id = models.IntegerField(primary_key=True)
-    managed_optimization_zone_id = models.ForeignKey("OptimizationZone", null=True, blank=True)
-    line_item_id = models.ForeignKey("LineItem", null=True, blank=True)
+    managed_optimization_zone = models.ForeignKey("OptimizationZone", null=True, blank=True)
+    line_item = models.ForeignKey("LineItem", null=True, blank=True)
     country_code = models.TextField(null=True, blank=True, db_index=True)
     creative_height = models.IntegerField(null=True, blank=True)
     creative_width = models.IntegerField(null=True, blank=True)
@@ -1083,8 +1083,8 @@ class Creative(models.Model):
     type = models.TextField(
         choices=CREATIVE_TYPE_CHOICES,
         null=True, blank=True)
-    advertiser_id = models.ForeignKey("Advertiser", null=True, blank=True)
-    publisher_id = models.ForeignKey("Publisher", null=True, blank=True)
+    advertiser = models.ForeignKey("Advertiser", null=True, blank=True)
+    publisher = models.ForeignKey("Publisher", null=True, blank=True)
     brand = models.ForeignKey("Brand", null=True, blank=True)
     state = models.TextField(
         choices=STATE_CHOICES,
@@ -1139,7 +1139,7 @@ class Creative(models.Model):
     daily_budget_imps = models.IntegerField(null=True, blank=True)
     enable_pacing = models.NullBooleanField(null=True, blank=True)
     allow_safety_pacing = models.NullBooleanField(null=True, blank=True)
-    profile_id = models.ForeignKey("Profile", null=True, blank=True)
+    profile = models.ForeignKey("Profile", null=True, blank=True)
     folder = models.ForeignKey("CreativeFolder", null=True, blank=True)
     #line_items = array - see model LineItemCreatives
     #pixels = array - see model CreativePixel below
@@ -1408,7 +1408,7 @@ class Placement(models.Model):
     default_position = models.TextField(
         choices=PLACEMENT_POSITION,
         null=True, blank=True)
-    publisher_id = models.ForeignKey("Publisher", null=True, blank=True)
+    publisher = models.ForeignKey("Publisher", null=True, blank=True)
     site = models.ForeignKey("Site", null=True, blank=True)
     inventory_source_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
     ad_profile = models.ForeignKey("AdProfile", null=True, blank=True)
@@ -1525,9 +1525,9 @@ class Segment(models.Model):
     max_usersync_pixels = models.IntegerField(null=True, blank=True)
     last_modified = models.DateTimeField()
     provider = models.TextField(null=True, blank=True)
-    advertiser_id = models.ForeignKey("Advertiser", null=True, blank=True)
+    advertiser = models.ForeignKey("Advertiser", null=True, blank=True)
     #piggyback_pixels - see model PiggybackPixels below
-    parent_segment_id = models.ForeignKey("Segment", null=True, blank=True)
+    parent_segment = models.ForeignKey("Segment", null=True, blank=True)
     querystring_mapping = models.TextField(null=True, blank=True) #TODO JSON
     querystring_mapping_key_value = models.TextField(null=True, blank=True) #TODO JSON
 
@@ -2304,7 +2304,7 @@ class FilteredPaymentRuleCampaigns(models.Model):
 class ClickTracker(models.Model):
     #https://wiki.appnexus.com/display/api/Click+Tracker+Service
     member = models.ForeignKey("Member", null=True, blank=True)
-    advertiser_id = models.ForeignKey("Advertiser", null=True, blank=True)
+    advertiser = models.ForeignKey("Advertiser", null=True, blank=True)
     name = models.TextField(null=True, blank=True, db_index=True)
     code = models.TextField(null=True, blank=True, db_index=True)
     state = models.TextField(

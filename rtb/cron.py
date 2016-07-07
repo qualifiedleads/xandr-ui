@@ -247,6 +247,9 @@ def nexus_get_objects(token, url, params, object_class, force_update=False):
             r = requests.get(url, params=params, headers={"Authorization": token})
             response = json.loads(r.content)['response']
             if response.get('error'):
+                if response['error_id']=='SYNTAX':
+                    print response['error']
+                    break
                 if response['error_id']=='NOAUTH':
                     token = report.get_auth_token()
                 time.sleep(10)
@@ -408,7 +411,7 @@ def load_depending_data(token):
             ids=[x.base_payment_rule_id for x in publishers]
             payment_rules = nexus_get_objects(token,
                                               'https://api.appnexus.com/payment-rule',
-                                              {'publisher_id__in': ids},
+                                              {'id__in': ids},
                                               PaymentRule, True)
             print 'There is %d base payment rules ' % len(payment_rules)
 

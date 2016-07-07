@@ -69,7 +69,7 @@ def get_filter_function(filter_clause):
         filter_function = func_evaluator(compile_string, clause_list)
     else:
         # simple clause
-        clause = re.compile(r"^(.*?)(>|<|=|<>|>=|<=|\bcontains\b|\bnotcontains\b|\bstartswith\b|\bendswith\b|)(.*)$")
+        clause = re.compile(r"^(.*?)(>|<|=|<>|>=|<=|\bcontains\b|\bnotcontains\b|\bstartswith\b|\bendswith\b)(.*)$")
         m = re.match(clause, filter_clause)
         filter_function = clause_evaluator(m.groups()) if m else None
     return filter_function

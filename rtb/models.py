@@ -648,6 +648,7 @@ TYPE_OF_INVENTORY_CHOICES = (
 class OptimizationZone(models.Model):
     #https://wiki.appnexus.com/display/api/Optimization+Zone+Service
     id = models.IntegerField(primary_key=True)
+    fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
     name = models.TextField(null=True, blank=True, db_index=True)
     external_name = models.TextField(null=True, blank=True, db_index=True)
     last_modified = models.DateTimeField(null=True, blank=True)

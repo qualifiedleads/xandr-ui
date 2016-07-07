@@ -18,7 +18,7 @@ from django.conf import settings
 import models
 from models import Advertiser, Campaign, SiteDomainPerformanceReport, Profile, LineItem, InsertionOrder, \
     OSFamily, OperatingSystemExtended, NetworkAnalyticsReport, GeoAnaliticsReport, Member, Developer, BuyerGroup, \
-    AdProfile, ContentCategory, Deal, PlatformMember, User, Publisher, Site
+    AdProfile, ContentCategory, Deal, PlatformMember, User, Publisher, Site, OptimizationZone
 from pytz import utc
 from utils import get_all_classes_in_models, column_sets_for_reports
 from pympler.tracker import SummaryTracker
@@ -344,6 +344,13 @@ def load_depending_data(token):
                                  {},
                                  ContentCategory, False)
         print 'There is %d content categories ' % ContentCategory.objects.count()
+
+        # Get all optimisation zones:
+        optimisation_zones = nexus_get_objects(token,
+                                               'https://api.appnexus.com/optimization-zone',
+                                               {},
+                                               OptimizationZone, False)
+        print 'There is %d optimisation zones ' % len(optimisation_zones)
 
         with transaction.atomic():
             # Get all sites:

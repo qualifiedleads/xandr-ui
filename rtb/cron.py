@@ -19,7 +19,7 @@ import models
 from models import Advertiser, Campaign, SiteDomainPerformanceReport, Profile, LineItem, InsertionOrder, \
     OSFamily, OperatingSystemExtended, NetworkAnalyticsReport, GeoAnaliticsReport, Member, Developer, BuyerGroup, \
     AdProfile, ContentCategory, Deal, PlatformMember, User, Publisher, Site, OptimizationZone, MobileAppInstance, \
-    YieldManagementProfile, PaymentRule
+    YieldManagementProfile, PaymentRule, ConversionPixel
 from pytz import utc
 from utils import get_all_classes_in_models, column_sets_for_reports
 
@@ -421,6 +421,12 @@ def load_depending_data(token):
 
         for adv in advertisers:
             advertiser_id = adv.id
+            # Get all conversion pixels:
+            conversion_pixels = nexus_get_objects(token,
+                                             'https://api.appnexus.com/pixel',
+                                             {'advertiser_id': advertiser_id},
+                                             ConversionPixel, False)
+            print 'There is %d  conversion pixels' % len(conversion_pixels)
             # Get all of the insertion orders for one of your advertisers:
             insert_order = nexus_get_objects(token,
                                              'https://api.appnexus.com/insertion-order',

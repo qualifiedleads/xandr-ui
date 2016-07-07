@@ -22,7 +22,6 @@ from models import Advertiser, Campaign, SiteDomainPerformanceReport, Profile, L
     YieldManagementProfile, PaymentRule
 from pytz import utc
 from utils import get_all_classes_in_models, column_sets_for_reports
-from pympler.tracker import SummaryTracker
 
 def date_type(t):
     return isinstance(t, (django_types.DateField, django_types.TimeField, django_types.DateField))
@@ -138,7 +137,6 @@ def get_all_class_fields(modelClass):
 
 def analize_csv(filename, modelClass, metadata={}):
     with open(filename, 'r') as csvFile:
-        t = SummaryTracker()
         reader = csv.DictReader(csvFile, delimiter=',')  # dialect='excel-tab' or excel ?
         print 'Begin analyzing csv file ...'
         # result = []
@@ -165,7 +163,11 @@ def analize_csv(filename, modelClass, metadata={}):
             while True:
                 rows = list(islice(reader, 0, 4000))
                 if not rows: break
-                objects_to_save = worker.map(create_object_from_dict, rows)
+                if len(rows)>100:
+                    objects_to_save = worker.map(create_object_from_dict, rows)
+                else:
+                    context_initializer(context)
+                    objects_to_save = map(create_object_from_dict, rows)
                 if len(rows) != len(objects_to_save):
                     print "There are error in multithreaded map"
                 if not all(objects_to_save):
@@ -187,14 +189,12 @@ def analize_csv(filename, modelClass, metadata={}):
                 print "Sql queries fired:", len(connection.queries)
                 reset_queries()
                 if counter % 100000 == 0:
-                    t.print_diff()
                     gc.collect()
         except Exception as e:
             print 'Error in main loop in analize_csv', e
             print traceback.print_exc()
         finally:
             gc.collect()
-            t.print_diff()
             worker.close()
             worker.join()
 

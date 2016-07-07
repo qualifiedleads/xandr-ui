@@ -191,7 +191,6 @@ def analize_csv(filename, modelClass, metadata={}):
         except Exception as e:
             print 'Error in main loop in analize_csv', e
             print traceback.print_exc()
-        print '%d rows fetched (by metadata)' % metadata['counter']
         gc.collect()
 
 

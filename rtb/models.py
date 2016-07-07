@@ -1,6 +1,6 @@
 import datetime, re
 from pytz import utc
-from django.db import models
+from django.db import models, IntegrityError
 #from django.contrib.postgres.fields import ArrayField
 #from django.contrib.postgres.fields import JSONField
 
@@ -3243,7 +3243,13 @@ class SiteDomainPerformanceReport(models.Model):
         camp.comments = "created automatically"
         camp.start_date = datetime.datetime(1970, 1, 1, tzinfo=utc)
         camp.last_modified = self.fetch_date
-        camp.save()
+        try:
+            camp.save()
+        except IntegrityError as e:
+            # Ignore 'duplicate key value' errors
+            # Object created in other thread
+            if e.message.find('duplicate key value') < 0: raise
+
 
 
 class GeoAnaliticsReport(models.Model):

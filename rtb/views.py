@@ -139,7 +139,7 @@ def parse_get_params(params):
     except:
         res['stat_by'] = ''
     try:
-        res['filter'] = ''.join(params.getlist('filter'))
+        res['filter'] = ' '.join(params.getlist('filter'))
     except:
         res['filter'] = ''
     return res

@@ -4,11 +4,15 @@ all_accepted_operators={
     #"AND":operator.mul,
     #"OR":operator.add,
     "=":operator.eq,
-    "!=":operator.ne,
+    "<>": operator.ne,
     ">":operator.gt,
     "<": operator.lt,
     ">=": operator.ge,
     "<=": operator.le,
+    "contains": lambda a, b: a.find(b) >= 0,
+    "notcontains": lambda a, b: a.find(b) < 0,
+    "startswith": lambda a, b: a.startswith(b),
+    "endswith": lambda a, b: a.endswith(b),
 }
 def clause_evaluator(clause):
     oper=all_accepted_operators[clause[1]]
@@ -65,7 +69,7 @@ def get_filter_function(filter_clause):
         filter_function = func_evaluator(compile_string, clause_list)
     else:
         # simple clause
-        clause = re.compile(r"^(.*?)(>|<|=|!=|>=|<=)(.*)$")
+        clause = re.compile(r"^(.*?)(>|<|=|<>|>=|<=|\bcontains\b|\bnotcontains\b|\bstartswith\b|\bendswith\b|)(.*)$")
         m = re.match(clause, filter_clause)
         filter_function = clause_evaluator(m.groups()) if m else None
     return filter_function

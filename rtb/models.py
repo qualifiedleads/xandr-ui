@@ -3545,3 +3545,82 @@ class NetworkDeviceReport(models.Model):
 
     class Meta:
         db_table = "network_device_report"
+
+
+class NetworkCarrierReport(models.Model):
+    #https://wiki.appnexus.com/display/api/Network+Carrier+Analytics
+    fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
+    #month = time
+    day = models.DateTimeField(null=True, blank=True, db_index=True)
+    carrier_id = int
+    device_type = models.TextField(
+        choices=DEVICE_TYPE_INREPORT_CHOICES,
+        null=True, blank=True)
+    connection_type = models.TextField(
+        choices=CONNECTION_TYPE_CHOICES,
+        null=True, blank=True)
+    entity_member = models.IntegerField(null=True, blank=True, db_index=True) #target model depends on imp_type buyer_member or seller_member
+    buyer_member = models.ForeignKey("PlatformMember", related_name='+', null=True, blank=True)
+    seller_member = models.ForeignKey("PlatformMember", related_name='+', null=True, blank=True)
+    buyer_type = models.TextField(
+        choices=BUYER_TYPE_NetworkDeviceReport_CHOICES,
+        null=True, blank=True)
+    seller_type = models.TextField(
+        choices=SELLER_TYPE_NetworkDeviceReport_CHOICES,
+        null=True, blank=True)
+    advertiser = models.ForeignKey("Advertiser", null=True, blank=True)
+    insertion_order = models.ForeignKey("InsertionOrder", null=True, blank=True)
+    line_item = models.ForeignKey("LineItem", null=True, blank=True)
+    campaign = models.ForeignKey("Campaign", null=True, blank=True)
+    pixel = models.ForeignKey("ConversionPixel", null=True, blank=True)
+    media_type = models.ForeignKey("MediaType", null=True, blank=True)
+    size = models.TextField(null=True, blank=True)
+    geo_country = models.ForeignKey("Country", null=True, blank=True)
+    payment_type = models.TextField(
+        choices=DEAL_PAYMENT_TYPE_CHOICES,
+        null=True, blank=True)
+    revenue_type_id = models.IntegerField(
+        choices=REVENUE_TYPE_CHOICES,
+        null=True, blank=True)
+    publisher = models.ForeignKey("Publisher", null=True, blank=True)
+    pub_rule = models.ForeignKey("AdQualityRule", null=True, blank=True)
+    bid_type = models.TextField(
+        choices=BID_TYPE_CHOICES,
+        null=True, blank=True)
+    imp_type_id = models.IntegerField(
+        choices=IMPRESSION_TYPE_CHOICES,
+        null=True, blank=True)
+    venue = models.TextField(null=True, blank=True, db_index=True)
+    imps = models.IntegerField(null=True, blank=True)
+    imps_blank = models.IntegerField(null=True, blank=True)
+    imps_psa = models.IntegerField(null=True, blank=True)
+    imps_default_error = models.IntegerField(null=True, blank=True)
+    imps_default_bidder = models.IntegerField(null=True, blank=True)
+    imps_kept = models.IntegerField(null=True, blank=True)
+    imps_resold = models.IntegerField(null=True, blank=True)
+    imps_rtb = models.IntegerField(null=True, blank=True)
+    clicks = models.IntegerField(null=True, blank=True)
+    click_thru_pct = models.FloatField(null=True, blank=True)
+    ctr = models.FloatField(null=True, blank=True)
+    total_convs = models.IntegerField(null=True, blank=True)
+    post_view_convs = models.IntegerField(null=True, blank=True)
+    post_click_convs = models.IntegerField(null=True, blank=True)
+    convs_per_mm = models.FloatField(null=True, blank=True)
+    convs_rate = models.FloatField(null=True, blank=True)
+    cost = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    cpm = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    revenue = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    booked_revenue = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    reseller_revenue = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    rpm = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    profit = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    ppm = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    total_publisher_rpm = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    sold_publisher_rpm = models.FloatField(null=True, blank=True)
+    sold_network_rpm = models.FloatField(null=True, blank=True)
+
+
+    class Meta:
+        db_table = "network_carrier_report"
+
+

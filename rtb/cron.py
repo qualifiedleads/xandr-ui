@@ -259,8 +259,9 @@ def nexus_get_objects(token, url, params, object_class, force_update=False):
 
         print "Objects succefully fetched from Nexus API (%d records)" % len(objects_by_api)
         obj_by_code = {i.pk: i for i in objects_in_db}
+        primary_key_name = object_class._meta.pk.name;
         for i in objects_by_api:
-            object_db = obj_by_code.get(i.pk)
+            object_db = obj_by_code.get(i[primary_key_name])
             if not object_db:
                 object_db = object_class()
                 objects_in_db.append(object_db)

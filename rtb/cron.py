@@ -207,15 +207,13 @@ def get_current_time():
 
 
 # https://api.appnexus.com/creative?start_element=0&num_elements=50'
-def nexus_get_objects(token, url, params, object_class, force_update=False):
+def nexus_get_objects(token, url, params, object_class, force_update=False, get_params=None):
+    if not get_params:
+        get_params = params
     print "Begin of Nexus_get_objects func"
     last_word = re.search(r'/(\w+)[^/]*$', url).group(1)
-    #print last_word
-    #print "Objects succefully fetched from DB (%d records)" % len(objects_in_db)
     current_date = get_current_time()
     if params:
-        #all_fields = set(get_all_class_fields(object_class))
-        #filter_params = {k:v for k,v in params.items() if k in all_fields}
         query_set = object_class.objects.filter(**params)
     else:
         query_set = object_class.objects.all()
@@ -244,8 +242,11 @@ def nexus_get_objects(token, url, params, object_class, force_update=False):
             if cur_records > 0:
                 params["start_element"] = cur_records
                 params["num_elements"] = min(100, count - cur_records)
-            r = requests.get(url, params=params, headers={"Authorization": token})
-            response = json.loads(r.content)['response']
+            try:
+                r = requests.get(url, params=get_params, headers={"Authorization": token})
+                response = json.loads(r.content)['response']
+            except Exception as e:
+                response={'error':e.message,'error_id':'NODATA'}
             if response.get('error'):
                 if response['error_id']=='SYNTAX':
                     print response['error']
@@ -408,12 +409,14 @@ def load_depending_data(token):
                                                           YieldManagementProfile, False)
             print 'There is %d yield management profiles ' % len(yield_management_profiles)
 
-            ids=[x.base_payment_rule_id for x in publishers]
-            payment_rules = nexus_get_objects(token,
-                                              'https://api.appnexus.com/payment-rule',
-                                              {'id__in': ids},
-                                              PaymentRule, True)
-            print 'There is %d base payment rules ' % len(payment_rules)
+            for pub in publishers:
+                payment_rules = nexus_get_objects(token,
+                                                    'https://api.appnexus.com/payment-rule',
+                                                    {'id':pub.base_payment_rule_id},
+                                                    PaymentRule, True,
+                                                    {'publisher_id': pub.pk, 'id':pub.base_payment_rule_id}
+                                                 )
+                print 'There is %d base payment rules ' % len(payment_rules)
 
         # Get all payment rules:
         for pub in publishers:

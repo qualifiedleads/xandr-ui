@@ -399,6 +399,7 @@ def load_depending_data(token):
                                                   {'publisher_id': pub.pk},
                                                   PaymentRule, False)
                 print 'There is %d payment rules for publisher %s' % (len(payment_rules),pub.name)
+                print 'Ids:', ','.join(str(x.pk) for x in payment_rules)
 
         # Get all users:
         users = nexus_get_objects(token,

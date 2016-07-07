@@ -19,7 +19,7 @@ import models
 from models import Advertiser, Campaign, SiteDomainPerformanceReport, Profile, LineItem, InsertionOrder, \
     OSFamily, OperatingSystemExtended, NetworkAnalyticsReport, GeoAnaliticsReport, Member, Developer, BuyerGroup, \
     AdProfile, ContentCategory, Deal, PlatformMember, User, Publisher, Site, OptimizationZone, MobileAppInstance, \
-    YieldManagementProfile
+    YieldManagementProfile, PaymentRule
 from pytz import utc
 from utils import get_all_classes_in_models, column_sets_for_reports
 from pympler.tracker import SummaryTracker
@@ -297,6 +297,16 @@ def load_depending_data(token):
                                         {},
                                         Advertiser)
         print 'There is %d advertisers' % len(advertisers)
+
+        # Probary, loop is not needed?
+        for adv in advertisers:
+            # Get all of the profiles for the advertiser
+            profiles = nexus_get_objects(token,
+                                         'https://api.appnexus.com/profile',
+                                         {'advertiser_id': adv.id},
+                                         Profile, False)
+            print 'There is %d profiles' % len(profiles)
+
         developers = nexus_get_objects(token,
                                        'https://api.appnexus.com/developer',
                                        {},
@@ -360,6 +370,13 @@ def load_depending_data(token):
                                                  MobileAppInstance, False)
         print 'There is %d mobile app instances ' % len(mobile_app_instances)
 
+        # Get all payment rules:
+        payment_rules = nexus_get_objects(token,
+                                          'https://api.appnexus.com/payment-rule',
+                                          {},
+                                          # {'publisher_id': 'PUBLISHER_ID'},
+                                          PaymentRule, False)
+        print 'There is %d payment rules ' % len(payment_rules)
 
         with transaction.atomic():
             # Get all sites:
@@ -403,12 +420,6 @@ def load_depending_data(token):
 
         for adv in advertisers:
             advertiser_id = adv.id
-            # Get all of the profiles for the advertiser
-            profiles = nexus_get_objects(token,
-                                         'https://api.appnexus.com/profile',
-                                         {'advertiser_id': advertiser_id},
-                                         Profile, False)
-            print 'There is %d profiles' % len(profiles)
             # Get all of the insertion orders for one of your advertisers:
             insert_order = nexus_get_objects(token,
                                              'https://api.appnexus.com/insertion-order',
@@ -434,11 +445,11 @@ def load_depending_data(token):
             print traceback.print_exc()
 
 
-class fakeWith(object):
-    def __enter__(self):
-        pass
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        pass
+# class fakeWith(object):
+#     def __enter__(self):
+#         pass
+#     def __exit__(self, exc_type, exc_val, exc_tb):
+#         pass
 
 # Task, executed twice in hour. Get new data from NexusApp
 def dayly_task(day=None, load_objects_from_services=True, output=None):

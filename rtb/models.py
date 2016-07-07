@@ -2245,6 +2245,7 @@ BUYER_TYPE_CHOICES = (
 class PaymentRule(models.Model):
     #https://wiki.appnexus.com/display/api/Payment+Rule+Service
     id = models.IntegerField(primary_key=True) # No AutoIncrement
+    fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
     name = models.TextField(null=True, blank=True, db_index=True)
     code = models.TextField(null=True, blank=True, db_index=True)
     state = models.TextField(

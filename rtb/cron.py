@@ -254,6 +254,7 @@ def nexus_get_objects(token, url, params, object_class, force_update=False):
 
             if count < 0:  # first portion of objects
                 count = response["count"]
+                if count > 10000: count = 10000
                 cur_records = 0
             if isinstance(pack_of_objects,list):
                 objects_by_api.extend(pack_of_objects)

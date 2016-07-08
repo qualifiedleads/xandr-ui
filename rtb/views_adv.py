@@ -1,6 +1,7 @@
 from rest_framework.decorators import api_view, parser_classes
 from rest_framework.response import Response
-
+from models import Campaign
+from django.http import JsonResponse
 
 @api_view()
 def singleCampaign(request, id):
@@ -14,10 +15,8 @@ Get campaign name by id
     + id(Number) - id for getting information about company
 
     """
-    return Response({
-        "id": 19,
-        "campaign": "first campaign"
-    })
+    obj = Campaign.objects.get(pk=id)
+    return Response( {'id':obj.id, 'campaign':obj.name})
 
 
 @api_view()

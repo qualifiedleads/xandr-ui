@@ -12,14 +12,6 @@
           <div id="zoomedChartFirst" dx-chart="camp.chartOptionsFirst"></div>
           <div dx-range-selector="camp.rangeOptionsFirst"></div>
         </div>
-        <!--<div class="col-md-4 col-sm-4 second-chart">-->
-          <!--<div id="container-inner" dx-chart="camp.boxPlot"></div>-->
-          <!--<div  dx-range-selector="camp.rangeSecondChartOptions" class="second-range"></div>-->
-        <!--</div>-->
-        <div id="zoomedContainerSecond">
-          <div id="zoomedChartSecond" dx-chart="camp.chartOptionsSecond"></div>
-          <div dx-range-selector="camp.rangeOptionsSecond"></div>
-        </div>
         <div class="col-md-2 col-sm-2 checkbox-container">
           <div>
             <label class="label-checkbox"><div dx-check-box="camp.impressions"></div></label>
@@ -31,13 +23,20 @@
             <label class="label-checkbox"><div dx-check-box="camp.CTR"></div></label>
           </div>
         </div>
+        <div id="zoomedContainerSecond">
+          <div id="zoomedChartSecond" dx-chart="camp.chartOptionsSecond"></div>
+          <div dx-range-selector="camp.rangeOptionsSecond"></div>
+        </div>
       </div>
     </div>
-
   </div>
 
   <div class="row first-grid">
-    <div  id="gridContainer2" dx-data-grid="camp.dataGridOptionsCampaign"></div>
+    <div  id="gridContainer2" dx-data-grid="camp.dataGridOptionsCampaign">
+      <div data-options="dxTemplate: {name: 'headerCellTemplate'}">
+         <div ng-model="main.state" dx-select-box="$parent.camp.selectCell"></div>
+    </div>
+      </div>
   </div>
 
   <div class="second-container">
@@ -59,12 +58,12 @@
         <div class="pie-chart-header"><h4>{{camp.pieChartHeader}}</h4></div>
         <div class="target-cpa-container">
           <div class="input-target-cpa-text">target CPA</div>
-          <input class="input-target-cpa" type="text" ng-blur="camp.targetCpaChange($event)" ng-model="camp.targetCpa" maxlength="5">
+          <input class="input-target-cpa" type="text" ng-blur="camp.targetCpaChange($event)" ng-keyup="$event.keyCode == 13 && camp.targetCpaChange($event)"" ng-model="camp.targetCpa" maxlength="5">
       </div>
       </div>
       <div class="pie-charts">
-        <div class="chart-container" dx-pie-chart="camp.pieChartFirst"></div>
-        <div class="chart-container" dx-pie-chart="camp.pieChartSecond"></div>
+        <div class="chart-container" dx-pie-chart="camp.pieChartAll"></div>
+        <div class="chart-container" dx-pie-chart="camp.pieChartConversions"></div>
       </div>
       <div class="buckets">
         <div><h3 class="header-buckets">CPA buckets</h3></div>

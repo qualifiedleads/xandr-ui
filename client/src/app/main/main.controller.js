@@ -198,6 +198,10 @@
       headerFilter: {
         visible: true
       },
+      filterRow: {
+        visible: true,
+        applyFilter: "auto"
+      },
       export: {
         enabled: true,
         fileName: "Employees"

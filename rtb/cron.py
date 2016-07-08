@@ -3,6 +3,9 @@ import csv
 import datetime, time
 import gc
 import json
+
+import django
+
 import os
 import sys
 import traceback
@@ -52,6 +55,20 @@ def update_object_from_dict(o, d, time_fields=None):
 
 
 table_names = {c._meta.db_table: c for c in get_all_classes_in_models(models)}
+
+_default_values_for_types = {
+    "null": None
+}
+
+
+def fill_null_values(o):
+    for field in o._meta.fields:
+        if not field.null:
+            val = field.get_default()
+            if val is None:
+                val = _default_values_for_types.get(type(field))
+            setattr(o, field.name, val)
+
 
 def try_resolve_foreign_key(objects, dicts, e):
     if e.message.find('foreign key constraint') < 0:
@@ -508,6 +525,13 @@ def load_depending_data(token):
 
 # Task, executed twice in hour. Get new data from NexusApp
 def dayly_task(day=None, load_objects_from_services=True, output=None):
+    cl = [x
+          for x in django_types.__dict__.values()
+          # if isinstance(django_types.__dict__[k], django_types.Field)]
+          if type(x) == type and issubclass(x, django_types.Field)]
+    print cl
+    print dir(django_types)
+    return
     old_stdout, old_error = sys.stdout, sys.stderr
     file_output = None
     if not output:

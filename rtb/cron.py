@@ -1,11 +1,8 @@
 #!/bin/env python
 import csv
-import datetime, time
+import datetime, time, decimal
 import gc
 import json
-
-import django
-
 import os
 import sys
 import traceback
@@ -57,7 +54,39 @@ def update_object_from_dict(o, d, time_fields=None):
 table_names = {c._meta.db_table: c for c in get_all_classes_in_models(models)}
 
 _default_values_for_types = {
-    "null": None
+    type(django_types.DateField): datetime.date.today,
+    # type(django_types.related.ForeignObject): None,
+    type(django_types.BigIntegerField): 0,
+    type(django_types.IntegerField): 0,
+    type(django_types.PositiveIntegerField): 1,
+    type(django_types.GenericIPAddressField): '127.0.0.1',
+    type(django_types.CharField): '',
+    type(django_types.DurationField): datetime.timedelta(0),
+    type(django_types.TextField): '',
+    type(django_types.BooleanField): False,
+    type(django_types.DecimalField): decimal.Decimal(0),
+    type(django_types.DateTimeField): datetime.datetime.utcnow,
+    type(django_types.SmallIntegerField): 0,
+    type(django_types.IPAddressField): '127.0.0.1',
+    type(django_types.SlugField): '',
+    type(django_types.TimeField): datetime.time,
+    type(django_types.proxy.OrderWrt): 0,
+    type(django_types.CommaSeparatedIntegerField): '0',
+    # type(django_types.AutoField): None,
+    type(django_types.URLField): 'www.example.com',
+    type(django_types.files.ImageField): '',
+    type(django_types.EmailField): 'admin@www.example.com',
+    type(django_types.FloatField): 0.0,
+    type(django_types.Field): '',
+    # type(django_types.related.ManyToManyField): None,
+    # type(django_types.related.OneToOneField): None,
+    # type(django_types.related.ForeignKey): None,
+    type(django_types.NullBooleanField): None,
+    type(django_types.UUIDField): '00000000-0000-0000-0000-000000000000',
+    type(django_types.BinaryField): '',
+    type(django_types.PositiveSmallIntegerField): 1,
+    type(django_types.files.FileField): '',
+    type(django_types.FilePathField): '/tmp',
 }
 
 
@@ -67,6 +96,8 @@ def fill_null_values(o):
             val = field.get_default()
             if val is None:
                 val = _default_values_for_types.get(type(field))
+                if hasattr(val, '__call__'):
+                    val = val()
             setattr(o, field.name, val)
 
 
@@ -93,10 +124,7 @@ def try_resolve_foreign_key(objects, dicts, e):
             o.name = name
         if hasattr(o, 'fetch_date'):
             o.fetch_date = cd
-        if hasattr(o, 'created_on'):
-            o.created_on = cd
-        if hasattr(o, 'last_modified'):
-            o.last_modified = cd
+        fill_null_values(o)
         o.save()
     except Exception as e:
         print "Failed try_resolve_foreign_key...", e
@@ -525,13 +553,6 @@ def load_depending_data(token):
 
 # Task, executed twice in hour. Get new data from NexusApp
 def dayly_task(day=None, load_objects_from_services=True, output=None):
-    cl = [x
-          for x in django_types.__dict__.values()
-          # if isinstance(django_types.__dict__[k], django_types.Field)]
-          if type(x) == type and issubclass(x, django_types.Field)]
-    print cl
-    print dir(django_types)
-    return
     old_stdout, old_error = sys.stdout, sys.stderr
     file_output = None
     if not output:

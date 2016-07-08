@@ -7,7 +7,7 @@ def singleCampaign(request, id):
     """
 Get campaign name by id
 
-## Url format: /api/v1/campaigns/:id
+## Url format: /api/v1/campaigns/id
 
 + Parameters
 
@@ -25,7 +25,7 @@ def graphInfo(request, id):
     """
 Get single campaign statistics data for given period by selected categories: impression, cpa, cpc, clicks, mediaspent, conversions, ctr
 
-## Url format: /api/v1/campaigns/:id/graphinfo/?from_date={from_date}&to_date={to_date}&by={by}
+## Url format: /api/v1/campaigns/id/graphinfo/?from_date={from_date}&to_date={to_date}&by={by}
 
 + Parameters
     + id (Number) - id for getting information about company
@@ -142,7 +142,7 @@ def cpaReport(request, id):
     """
 Get single campaign cpa report for given period to create boxplots
 
-## Url format: /api/v1/campaigns/:id/cpareport?from_date={from_date}&to_date={to_date}
+## Url format: /api/v1/campaigns/id/cpareport?from_date={from_date}&to_date={to_date}
 
 + Parameters
     + id (Number) - id for getting information about company
@@ -234,7 +234,7 @@ def campaignDomains(request, id):
     """
 Get single campaign details by domains
 
-## Url format: /api/v1/campaigns/:id/domains?from_date={from_date}&to_date={to_date}&skip={skip}&take={take}&sort={sort}&order={order}&filter={filter}
+## Url format: /api/v1/campaigns/id/domains?from_date={from_date}&to_date={to_date}&skip={skip}&take={take}&sort={sort}&order={order}&filter={filter}
 
 + Parameters
     + id (Number) - id for getting information about company
@@ -328,7 +328,7 @@ def campaignDetails(request, id):
     """
 Get single campaign details for given period 
 
-## Url format: /api/v1/campaigns/:id/details?from_date={from_date}&to_date={to_date}&section={section}
+## Url format: /api/v1/campaigns/id/details?from_date={from_date}&to_date={to_date}&section={section}
 
 + Parameters
 

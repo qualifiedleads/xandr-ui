@@ -94,6 +94,7 @@ def fill_null_values(o):
     for field in o._meta.fields:
         if not field.null and not field.primary_key:
             val = field.get_default()
+            # t = field.get_internal_type
             if val is None:
                 val = _default_values_for_types.get(type(field))
                 if hasattr(val, '__call__'):

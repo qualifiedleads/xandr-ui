@@ -34,6 +34,7 @@ def clause_evaluator(clause):
             left = round(left,4)
             right = round(right, 4)
         try:
+            print oper
             return oper(left,right)
         except:
             return False

@@ -6,14 +6,14 @@
     .controller('CampaignController', CampaignController);
 
   /** @ngInject */
-  function CampaignController($compile, $window, $state, $localStorage, $translate, $log, $stateParams, Camp, Main) {
+  function CampaignController($window, $state, $localStorage, $translate, Camp, Campaign) {
     var vm = this;
     vm.Camp = Camp;
     vm.multipleTotalCount = 0;
     vm.checkChart = [];
     vm.by = '';
     var LC = $translate.instant;
-
+    vm.campName = Campaign.campaign;
 
 
     if ($localStorage.seriesCamp == null ){
@@ -71,7 +71,7 @@
     }
     //console.log($stateParams.id);
 
-    vm.Camp.nameCampaigns($stateParams.id)
+/*    vm.Camp.nameCampaigns($stateParams.id)
       .then(function (result) {
         for (var i = 0; i < result.length; i++) {
           if (result[i].id == $stateParams.id) {
@@ -79,7 +79,101 @@
             break;
           }
         }
-      });
+      });*/
+
+
+    vm.totals = [];
+    vm.chartStore = new $window.DevExpress.data.CustomStore({
+      totalCount: function () {
+        return 0;
+      },
+      load: function () {
+        return vm.Camp.statsChart(vm.dataStart, vm.dataEnd,vm.by)
+            .then(function (result) {
+              return result;
+            });
+      }
+    });
+
+    vm.boxPlotStore = new $window.DevExpress.data.CustomStore({
+      totalCount: function () {
+        return 0;
+      },
+      load: function () {
+        return vm.Camp.cpaReport(vm.dataStart, vm.dataEnd)
+            .then(function (result) {
+              return result;
+            });
+      }
+    });
+
+
+    vm.gridStore = new $window.DevExpress.data.CustomStore({
+      totalCount: function () {
+        return 0;
+      },
+      load: function () {
+        return vm.Camp.campaignDomains(vm.dataStart, vm.dataEnd)
+            .then(function (result) {
+              $localStorage.gridStore = result;
+              return result;
+            });
+      }
+    });
+
+    vm.detailsStoreAll = new $window.DevExpress.data.CustomStore({
+      totalCount: function () {
+        return 0;
+      },
+      load: function () {
+        return vm.Camp.campaignDetails(vm.dataStart, vm.dataEnd,vm.by)
+            .then(function (result) {
+              return result.all;
+            });
+      }
+    });
+
+    vm.detailsStoreConversion = new $window.DevExpress.data.CustomStore({
+      totalCount: function () {
+        return 0;
+      },
+      load: function () {
+        return vm.Camp.campaignDetails(vm.dataStart, vm.dataEnd,vm.by)
+            .then(function (result) {
+              return result.conversions;
+            });
+      }
+    });
+
+
+    vm.multipleStore = new $window.DevExpress.data.CustomStore({
+      totalCount: function () {
+        return vm.multipleTotalCount ;
+      },
+      load: function (loadOptions) {
+        if(loadOptions.take == null) {
+          loadOptions.take = 20;
+        }
+        if(loadOptions.skip == null) {
+          loadOptions.skip = 0;
+        }
+        if(loadOptions.sort == null) {
+          loadOptions.sort = 'campaign';
+        }
+        if(loadOptions.order == null) {
+          loadOptions.order = 'DESC';
+        }
+        return vm.Camp.statsCampaigns(vm.dataStart, vm.dataEnd, loadOptions.skip,
+            loadOptions.take, loadOptions.sort, loadOptions.order,
+            vm.by, loadOptions.filter)
+            .then(function (result) {
+              vm.multipleTotalCount = result.totalCount;
+              return result.campaigns;
+            });
+      }
+    });
+
+
 
     /** BIG DIAGRAM  - START **/
     vm.types = ['line', 'stackedLine', 'fullStackedLine'];
@@ -189,47 +283,6 @@
     // applyBindings(model, $("#zoomedContainer")[0]);
 
     /** BIG DIAGRAM  - END **/
-    vm.totals = [];
-    vm.chartStore = new $window.DevExpress.data.CustomStore({
-      totalCount: function () {
-        return 0;
-      },
-      load: function () {
-        return vm.Camp.statsChart(vm.dataStart, vm.dataEnd,vm.by)
-          .then(function (result) {
-            return result;
-          });
-      }
-    });
-
-
-
-    vm.multipleStore = new $window.DevExpress.data.CustomStore({
-      totalCount: function () {
-        return vm.multipleTotalCount ;
-      },
-      load: function (loadOptions) {
-        if(loadOptions.take == null) {
-          loadOptions.take = 20;
-        }
-        if(loadOptions.skip == null) {
-          loadOptions.skip = 0;
-        }
-        if(loadOptions.sort == null) {
-          loadOptions.sort = 'campaign';
-        }
-        if(loadOptions.order == null) {
-          loadOptions.order = 'DESC';
-        }
-        return vm.Camp.statsCampaigns(vm.dataStart, vm.dataEnd, loadOptions.skip,
-          loadOptions.take, loadOptions.sort, loadOptions.order,
-          vm.by, loadOptions.filter)
-          .then(function (result) {
-            vm.multipleTotalCount = result.totalCount;
-            return result.campaigns;
-          });
-      }
-    });
 
     /** CHECKBOX CHART - START **/
     vm.impressions = {
@@ -473,193 +526,11 @@
 
     /** BOX PLOT- START **/
 
-    vm.dataSourceSecond = [{
-      "Date": "03/12/2013",
-      "Open": "827.90",
-      "High": "830.69",
-      "Low": "822.31",
-      "Close": "825.31",
-      "Volume": "1641413"
-    },{
-      "Date": "03/13/2013",
-      "Open": "826.99",
-      "High": "826.99",
-      "Low": "817.39",
-      "Close": "821.54",
-      "Volume": "1651111"
-    }, {
-      "Date": "03/14/2013",
-      "Open": "818.50",
-      "High": "820.30",
-      "Low": "813.34",
-      "Close": "814.30",
-      "Volume": "3099791"
-    },  {
-      "Date": "03/17/2013",
-      "Open": "805.00",
-      "High": "812.76",
-      "Low": "801.47",
-      "Close": "807.79",
-      "Volume": "1838552"
-    }, {
-      "Date": "03/18/2013",
-      "Open": "811.24",
-      "High": "819.25",
-      "Low": "806.45",
-      "Close": "811.32",
-      "Volume": "2098176"
-
-    }, {
-      "Date": "03/19/2013",
-      "Open": "816.83",
-      "High": "817.51",
-      "Low": "811.44",
-      "Close": "814.71",
-      "Volume": "1464122"
-    }, {
-      "Date": "03/20/2013",
-      "Open": "811.29",
-      "High": "816.92",
-      "Low": "809.85",
-      "Close": "811.26",
-      "Volume": "1477590"
-    }, {
-      "Date": "03/21/2013",
-      "Open": "814.74",
-      "High": "815.24",
-      "Low": "809.64",
-      "Close": "810.31",
-      "Volume": "1491678"
-    }, {
-      "Date": "03/24/2013",
-      "Open": "812.41",
-      "High": "819.23",
-      "Low": "806.82",
-      "Close": "809.64",
-      "Volume": "1712684"
-    }, {
-      "Date": "03/25/2013",
-      "Open": "813.50",
-      "High": "814.00",
-      "Low": "807.79",
-      "Close": "812.42",
-      "Volume": "1191912"
-    }, {
-      "Date": "03/26/2013",
-      "Open": "806.68",
-      "High": "807.00",
-      "Low": "801.33",
-      "Close": "802.66",
-      "Volume": "2163295"
-    }, {
-      "Date": "03/27/2013",
-      "Open": "803.99",
-      "High": "805.37",
-      "Low": "793.30",
-      "Close": "794.19",
-      "Volume": "2287712"
-    }, {
-      "Date": "03/31/2013",
-      "Open": "795.01",
-      "High": "802.25",
-      "Low": "793.25",
-      "Close": "801.19",
-      "Volume": "1807580"
-    }, {
-      "Date": "04/01/2013",
-      "Open": "804.54",
-      "High": "814.83",
-      "Low": "804.00",
-      "Close": "813.04",
-      "Volume": "2041713"
-    }, {
-      "Date": "04/02/2013",
-      "Open": "813.46",
-      "High": "814.20",
-      "Low": "800.67",
-      "Close": "806.20",
-      "Volume": "1738753"
-    }, {
-      "Date": "04/03/2013",
-      "Open": "804.25",
-      "High": "805.75",
-      "Low": "791.30",
-      "Close": "795.07",
-      "Volume": "2448102"
-    }, {
-      "Date": "04/04/2013",
-      "Open": "786.06",
-      "High": "786.99",
-      "Low": "776.40",
-      "Close": "783.05",
-      "Volume": "3433994"
-    }, {
-      "Date": "04/07/2013",
-      "Open": "778.75",
-      "High": "779.55",
-      "Low": "768.40",
-      "Close": "774.85",
-      "Volume": "2832718"
-    }, {
-      "Date": "04/08/2013",
-      "Open": "775.50",
-      "High": "783.75",
-      "Low": "773.11",
-      "Close": "777.65",
-      "Volume": "2157928"
-    }, {
-      "Date": "04/09/2013",
-      "Open": "782.92",
-      "High": "792.35",
-      "Low": "776.00",
-      "Close": "790.18",
-      "Volume": "1978862"
-    }, {
-      "Date": "04/10/2013",
-      "Open": "792.88",
-      "High": "793.10",
-      "Low": "784.06",
-      "Close": "790.39",
-      "Volume": "2028766"
-    }, {
-      "Date": "04/11/2013",
-      "Open": "791.99",
-      "High": "792.10",
-      "Low": "782.93",
-      "Close": "790.05",
-      "Volume": "1636829"
-    }, {
-      "Date": "04/14/2013",
-      "Open": "785.95",
-      "High": "797.00",
-      "Low": "777.02",
-      "Close": "781.93",
-      "Volume": "2454767"
-    }, {
-      "Date": "04/15/2013",
-      "Open": "786.59",
-      "High": "796.00",
-      "Low": "783.92",
-      "Close": "793.37",
-      "Volume": "1742374"
-    }, {
-      "Date": "04/16/2013",
-      "Open": "786.75",
-      "High": "790.84",
-      "Low": "778.10",
-      "Close": "782.56",
-      "Volume": "2037355"
-    }, {
-      "Date": "04/17/2013",
-      "Open": "785.35",
-      "High": "785.80",
-      "Low": "761.26",
-      "Close": "765.91",
-      "Volume": "3328777"
-    }];
 
     vm.chartOptionsSecond = {
-      dataSource: vm.dataSourceSecond,
+      bindingOptions: {
+        dataSource: 'camp.boxPlotStore'
+      },
       commonSeriesSettings: {
         type: 'candleStick'
       },
@@ -686,6 +557,10 @@
       legend: {
         visible: false
       },
+      loadingIndicator: {
+        show: true,
+        text: "Creating a chart..."
+      },
       useAggregation: true,
       series: [{
         openValueField: 'Open',
@@ -709,7 +584,9 @@
         valueType: 'date',
         tickInterval: 'day'
       },
-      dataSource: vm.dataSourceSecond,
+      bindingOptions: {
+        dataSource: 'camp.boxPlotStore'
+      },
       chart: {
         series: {
           type: 'line',
@@ -739,71 +616,6 @@
     /** MULTIPLE - START **/
     vm.selectedItems = [];
     vm.chartOptionsFuncgrid = [];
-    vm.boxPlotData = [{
-      "placement":"CNN.com",
-      "NetworkPublisher":"Google Adx",
-      "conv":"8",
-      "imp":"5500",
-      "clicks":"21",
-      "cpc":"$0,31",
-      "cpm":"$1,38",
-      "cvr":"",
-      "ctr":"",
-      "state": {
-        "whiteList": "true",
-        "blackList": "false",
-        "suspended": "false"
-      }
-    },
-      {
-        "placement":"Hidden",
-        "NetworkPublisher":"PubMatic",
-        "conv":"3",
-        "imp":"5500",
-        "clicks":"21",
-        "cpc":"$0,31",
-        "cpm":"$1,38",
-        "cvr":"",
-        "ctr":"",
-        "state": {
-          "whiteList": "false",
-          "blackList": "true",
-          "suspended": "false"
-        }
-      },
-      {
-        "placement":"BBC.com",
-        "NetworkPublisher":"OpenX",
-        "conv":"1",
-        "imp":"5500",
-        "clicks":"21",
-        "cpc":"$0,31",
-        "cpm":"$1,38",
-        "cvr":"",
-        "ctr":"",
-        "state": {
-          "whiteList": "false",
-          "blackList": "false",
-          "suspended": "true"
-        }
-      },
-      {
-        "placement":"msn.com",
-        "NetworkPublisher":"Rubicon",
-        "conv":"8",
-        "imp":"5500",
-        "clicks":"21",
-        "cpc":"$0,31",
-        "cpm":"$1,38",
-        "cvr":"",
-        "ctr":"",
-        "state": {
-          "whiteList": "true",
-          "blackList": "false",
-          "suspended": "false"
-        }
-      }
-    ];
     if ($localStorage.boxPlotData == null){
       $localStorage.boxPlotData = vm.boxPlotData;
     }
@@ -811,13 +623,29 @@
     vm.state='';
     vm.selectCell = {
       dataSource: [
-        {'name': 'White List'},
-        {'name': 'Black List'},
-        {'name': 'Suspended'}
+        {'name': 'White List',
+        'state':'whiteList'},
+        {'name': 'Black List',
+        'state':'blackList'},
+        {'name': 'Suspended',
+        'state':'suspended'}
       ],
       placeholder: 'Select a state',
       displayExpr: 'name',
-      valueExpr: vm.state
+      valueExpr: vm.state,
+      onSelectionChanged: function(e) {
+        var selectedRows = $('#gridContainer2')[0].querySelectorAll('[aria-selected="true"]');
+        //console.log(selectedRows);
+        console.log(e.selectedItem.state);
+
+        if(selectedRows[0]) {
+          var selectedArr = [];
+          for (var i=0; i<selectedRows.length; i++){
+            selectedArr.push(selectedRows[i].firstChild.innerText);
+          }
+          console.log(selectedArr)
+        }
+      }
     };
 
 
@@ -825,7 +653,6 @@
       onInitialized: function (data) {
         vm.dataGridOptionsMultipleFunc = data.component;
         vm.dataGridOptionsMultipleFunc._controllers.columns._commandColumns[1].visibleIndex = 9;
-        //console.log(data);
       },
       onRowPrepared: function(data) {
         vm.objectData = data;
@@ -849,7 +676,10 @@
       headerFilter: {
         visible: true
       },
-      dataSource:  $localStorage.boxPlotData || vm.boxPlotData,
+      bindingOptions: {
+        dataSource: 'camp.gridStore',
+        allowColumnResizing: 'true'
+      },
       pager: {
         showPageSizeSelector: true,
         allowedPageSizes: [10, 30, 50],
@@ -953,9 +783,9 @@
               height:30,
               width: 95,
               onClick: function (e) {
-                console.log(e);
+                //console.log(e);
                 var parentWhiteBtn = e.element[0].parentNode;
-                console.log(parentWhiteBtn);
+                //console.log(parentWhiteBtn);
                 if (parentWhiteBtn.classList.contains('active-suspended')) {
                   parentWhiteBtn.classList.remove('active-suspended');
                   parentWhiteBtn.classList.add('unactive-suspended');
@@ -979,9 +809,6 @@
       selection: {
         mode: 'multiple',
         showCheckBoxesMode: 'always'
-      },
-      bindingOptions: {
-        allowColumnResizing: 'true'
       },
       onSelectionChanged: function (data) {
         vm.selectedItems = data.selectedRowsData;
@@ -1091,13 +918,9 @@
         btn:'device',
         header:'device'
       },
-      extra: {
-        btn:'extra',
-        header:'extra'
-      },
-      publisher: {
-        btn:'Publisher',
-        header:'Publisher'
+      seller: {
+        btn:'seller',
+        header:'Seller'
       }
     };
     vm.pieChartHeader = $localStorage.pieChartHeader || vm.ctrlBbtns.os.header;
@@ -1203,19 +1026,12 @@
           bottom: 1
         }
       },
-      dataSource: [{
-        os: "Android",
-        data: 60
-      }, {
-        os: "iOs",
-        data: 30
-      }, {
-        os: "Windows",
-        data: 10
-      }],
+      bindingOptions: {
+        dataSource: 'camp.detailsStoreAll',
+        },
       series: [{
-        argumentField: "os",
-        valueField: "data",
+        argumentField: 'section',
+        valueField: 'data',
         label: {
           visible: true,
           connector: {
@@ -1252,18 +1068,11 @@
           bottom: 1
         }
       },
-      dataSource: [{
-        os: "Android",
-        data: 23
-      }, {
-        os: "iOs",
-        data: 72
-      }, {
-        os: "Windows",
-        data:5
-      }],
+      bindingOptions: {
+        dataSource: 'camp.detailsStoreConversion'
+      },
       series: [{
-        argumentField: "os",
+        argumentField: "section",
         valueField: "data",
         label: {
           visible: true,

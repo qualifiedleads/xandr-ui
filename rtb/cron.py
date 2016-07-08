@@ -54,45 +54,45 @@ def update_object_from_dict(o, d, time_fields=None):
 table_names = {c._meta.db_table: c for c in get_all_classes_in_models(models)}
 
 _default_values_for_types = {
-    type(django_types.DateField): datetime.date.today,
-    # type(django_types.related.ForeignObject): None,
-    type(django_types.BigIntegerField): 0,
-    type(django_types.IntegerField): 0,
-    type(django_types.PositiveIntegerField): 1,
-    type(django_types.GenericIPAddressField): '127.0.0.1',
-    type(django_types.CharField): '',
-    type(django_types.DurationField): datetime.timedelta(0),
-    type(django_types.TextField): '',
-    type(django_types.BooleanField): False,
-    type(django_types.DecimalField): decimal.Decimal(0),
-    type(django_types.DateTimeField): datetime.datetime.utcnow,
-    type(django_types.SmallIntegerField): 0,
-    type(django_types.IPAddressField): '127.0.0.1',
-    type(django_types.SlugField): '',
-    type(django_types.TimeField): datetime.time,
-    # type(django_types.proxy.OrderWrt): 0,
-    type(django_types.CommaSeparatedIntegerField): '0',
-    # type(django_types.AutoField): None,
-    type(django_types.URLField): 'www.example.com',
-    # type(django_types.files.ImageField): '',
-    type(django_types.EmailField): 'admin@www.example.com',
-    type(django_types.FloatField): 0.0,
-    type(django_types.Field): '',
-    # type(django_types.related.ManyToManyField): None,
-    # type(django_types.related.OneToOneField): None,
-    # type(django_types.related.ForeignKey): None,
-    type(django_types.NullBooleanField): None,
-    type(django_types.UUIDField): '00000000-0000-0000-0000-000000000000',
-    type(django_types.BinaryField): '',
-    type(django_types.PositiveSmallIntegerField): 1,
-    #type(django_types.files.FileField): '',
-    type(django_types.FilePathField): '/tmp',
+    django_types.DateField: datetime.date.today,
+    # django_types.related.ForeignObject: None,
+    django_types.BigIntegerField: 0,
+    django_types.IntegerField: 0,
+    django_types.PositiveIntegerField: 1,
+    django_types.GenericIPAddressField: '127.0.0.1',
+    django_types.CharField: '',
+    django_types.DurationField: datetime.timedelta(0),
+    django_types.TextField: '',
+    django_types.BooleanField: False,
+    django_types.DecimalField: decimal.Decimal(0),
+    django_types.DateTimeField: datetime.datetime.utcnow,
+    django_types.SmallIntegerField: 0,
+    django_types.IPAddressField: '127.0.0.1',
+    django_types.SlugField: '',
+    django_types.TimeField: datetime.time,
+    # django_types.proxy.OrderWrt: 0,
+    django_types.CommaSeparatedIntegerField: '0',
+    # django_types.AutoField: None,
+    django_types.URLField: 'www.example.com',
+    # django_types.files.ImageField: '',
+    django_types.EmailField: 'admin@www.example.com',
+    django_types.FloatField: 0.0,
+    django_types.Field: '',
+    # django_types.related.ManyToManyField: None,
+    # django_types.related.OneToOneField: None,
+    # django_types.related.ForeignKey: None,
+    django_types.NullBooleanField: None,
+    django_types.UUIDField: '00000000-0000-0000-0000-000000000000',
+    django_types.BinaryField: '',
+    django_types.PositiveSmallIntegerField: 1,
+    # django_types.files.FileField: '',
+    django_types.FilePathField: '/tmp',
 }
 
 
 def fill_null_values(o):
     for field in o._meta.fields:
-        if not field.null:
+        if not field.null and not field.primary_key:
             val = field.get_default()
             if val is None:
                 val = _default_values_for_types.get(type(field))
@@ -371,6 +371,22 @@ def load_depending_data(token):
                                              {'advertiser_id': adv.id},
                                              Profile, False)
                 print 'There is %d profiles' % len(profiles)
+            # adv = Advertiser.objects.values_list('id', 'name','profile_id')
+            foreign_ids = {i.profile_id: i.id for i in advertisers}
+            adv_names = {i.id: i.name for i in advertisers}
+            profiles_ids = set(Profile.objects.values_list('id', flat=True))
+            missing_profiles = set(foreign_ids) - profiles_ids
+            cd = get_current_time()
+            for i in missing_profiles:
+                p = Profile(pk=i)
+                fill_null_values(p)
+                p.created_on = cd
+                p.fetch_date = cd
+                p.advertiser_id = foreign_ids[i]
+                name = adv_names[foreign_ids[i]]
+                p.name = 'Missed profile for %s' % name
+                p.save()
+                print 'Created profile "%s"' % p.name
 
         developers = nexus_get_objects(token,
                                        'https://api.appnexus.com/developer',

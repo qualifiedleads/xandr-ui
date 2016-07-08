@@ -74,7 +74,7 @@ _default_values_for_types = {
     type(django_types.CommaSeparatedIntegerField): '0',
     # type(django_types.AutoField): None,
     type(django_types.URLField): 'www.example.com',
-    type(django_types.files.ImageField): '',
+    # type(django_types.files.ImageField): '',
     type(django_types.EmailField): 'admin@www.example.com',
     type(django_types.FloatField): 0.0,
     type(django_types.Field): '',
@@ -85,7 +85,7 @@ _default_values_for_types = {
     type(django_types.UUIDField): '00000000-0000-0000-0000-000000000000',
     type(django_types.BinaryField): '',
     type(django_types.PositiveSmallIntegerField): 1,
-    type(django_types.files.FileField): '',
+    #type(django_types.files.FileField): '',
     type(django_types.FilePathField): '/tmp',
 }
 

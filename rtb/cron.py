@@ -357,6 +357,7 @@ def nexus_get_objects(token, url, params, object_class, force_update=False, get_
 #Data saved to local DB
 def load_depending_data(token):
     try:
+        cd = get_current_time()
         with transaction.atomic():
             advertisers = nexus_get_objects(token,
                                             'https://api.appnexus.com/advertiser',
@@ -376,7 +377,6 @@ def load_depending_data(token):
             adv_names = {i.id: i.name for i in advertisers}
             profiles_ids = set(Profile.objects.values_list('id', flat=True))
             missing_profiles = set(foreign_ids) - profiles_ids
-            cd = get_current_time()
             for i in missing_profiles:
                 p = Profile(pk=i)
                 fill_null_values(p)
@@ -427,14 +427,16 @@ def load_depending_data(token):
         print 'There is %d operating systems ' % len(operating_systems)
 
         with transaction.atomic():
-            # o1=nexus_get_objects(token,
-            #                   'http://api.appnexus.com/content-category',
-            #                   {'category_type': 'universal'},
-            #                   ContentCategory, True)
-            o2=nexus_get_objects(token,
-                              'http://api.appnexus.com/content-category',
-                                 {},
-                                 ContentCategory, False)
+            date_in_db = ContentCategory.objects.aggregate(m=Max('fetch_date'))['m']
+            if cd - date_in_db > settings.INVALIDATE_TIME:
+                o1 = nexus_get_objects(token,
+                                       'http://api.appnexus.com/content-category',
+                                       {'category_type': 'universal'},
+                                       ContentCategory, True)
+                o2 = nexus_get_objects(token,
+                                       'http://api.appnexus.com/content-category',
+                                       {},
+                                       ContentCategory, True)
         print 'There is %d content categories ' % ContentCategory.objects.count()
 
         # Get all optimisation zones:

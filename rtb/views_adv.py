@@ -348,29 +348,29 @@ Get single campaign details for given period
     return Response({
         'all': [
             {
-                'os': "Android",
+                'section': "Android",
                 'data': 60
             },
             {
-                'os': "iOs",
+                'section': "iOs",
                 'data': 30
             },
             {
-                'os': "Windows",
+                'section': "Windows",
                 'data': 10
             }
         ],
         'conversions': [
             {
-                'os': "Android",
+                'section': "Android",
                 'data': 23
             },
             {
-                'os': "iOs",
+                'section': "iOs",
                 'data': 72
             },
             {
-                'os': "Windows",
+                'section': "Windows",
                 'data': 5
             }
         ],

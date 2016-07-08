@@ -17,16 +17,16 @@ def to_unix_timestamp(d):
 
 
 zero_sum = {
-    'conv': None,
-    'cpc': None,
-    'cpm': None,
-    'cvr': None,
-    'ctr': None,
-    'media_cost': None,
-    'post_click_convs': None,
-    'post_view_convs': None,
-    'imps': None,
-    'clicks': None,
+    'conv': 0,
+    'cpc': 0,
+    'cpm': 0,
+    'cvr': 0,
+    'ctr': 0,
+    'media_cost': 0,
+    'post_click_convs': 0,
+    'post_view_convs': 0,
+    'imps': 0,
+    'clicks': 0,
 }
 def calc_another_fields(obj):
     res = {}

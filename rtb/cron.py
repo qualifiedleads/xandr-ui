@@ -357,20 +357,20 @@ def nexus_get_objects(token, url, params, object_class, force_update=False, get_
 #Data saved to local DB
 def load_depending_data(token):
     try:
-        advertisers = nexus_get_objects(token,
-                                        'https://api.appnexus.com/advertiser',
-                                        {},
-                                        Advertiser)
-        print 'There is %d advertisers' % len(advertisers)
+        with transaction.atomic():
+            advertisers = nexus_get_objects(token,
+                                            'https://api.appnexus.com/advertiser',
+                                            {},
+                                            Advertiser)
+            print 'There is %d advertisers' % len(advertisers)
 
-        # Probary, loop is not needed?
-        for adv in advertisers:
-            # Get all of the profiles for the advertiser
-            profiles = nexus_get_objects(token,
-                                         'https://api.appnexus.com/profile',
-                                         {'advertiser_id': adv.id},
-                                         Profile, False)
-            print 'There is %d profiles' % len(profiles)
+            for adv in advertisers:
+                # Get all of the profiles for the advertiser
+                profiles = nexus_get_objects(token,
+                                             'https://api.appnexus.com/profile',
+                                             {'advertiser_id': adv.id},
+                                             Profile, False)
+                print 'There is %d profiles' % len(profiles)
 
         developers = nexus_get_objects(token,
                                        'https://api.appnexus.com/developer',

@@ -70,7 +70,7 @@ _default_values_for_types = {
     type(django_types.IPAddressField): '127.0.0.1',
     type(django_types.SlugField): '',
     type(django_types.TimeField): datetime.time,
-    type(django_types.proxy.OrderWrt): 0,
+    # type(django_types.proxy.OrderWrt): 0,
     type(django_types.CommaSeparatedIntegerField): '0',
     # type(django_types.AutoField): None,
     type(django_types.URLField): 'www.example.com',

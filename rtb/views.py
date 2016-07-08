@@ -3,7 +3,7 @@ from urllib import addbase
 
 from django.http import JsonResponse
 from django.db.models import Avg, Count, Sum
-from models import SiteDomainPerformanceReport, Campaign
+from models import SiteDomainPerformanceReport, Campaign, GeoAnaliticsReport
 from django.core.cache import cache
 from pytz import utc
 import operator
@@ -149,10 +149,34 @@ def parse_get_params(params):
 @parser_classes([FormParser, MultiPartParser])
 def campaigns(request):
     """
-    Get campaigns data for given period
-    @from_date: start date for period. Data for this day included
-    @to_date: end date for period. Data for this day included
-    @advertiser_id: id of advertiser in system db
+Get campaigns data for given period
+
+## Url format: /api/v1/campaigns?from={from_date}&to={to_date}&skip={skip}&take={take}&sort={sort}&order={order}&stat_by={stat_by}&filter={filter}
+
+
++ Parameters
+
+    + from_date (date) - Date to select statistics from
+        + Format: Unixtime
+        + Example: 1466667274
+    + to_date (date) - Date to select statistics to
+        + Format: Unixtime
+        + Example: 1466667274
+    + skip (number, optional) - How much records need to skip (pagination)
+        + Default: 0
+    + take (number, optional) - How much records need to return (pagination)
+        + Default: 20
+    + sort (string, optional) - Field to sort by
+        + Default: campaign
+    + order (string, optional) - Order of sorting (ASC or DESC)
+        + Default: desc
+    + stat_by (string, optional) - statistic fields to select (select every field if param is empty)
+        + Format: comma separated
+        + Example: impressions,cpa,cpc
+    + filter (string, optional) - filter data by several fields
+        + Format: semicolon separated pairs
+        + Example: campaign=Campaign 1,Campaign 2;conv=3,8
+
     """
     params = parse_get_params(request.GET)
     result = get_campaigns_data(params['advertiser_id'],params['from_date'],params['to_date'])
@@ -182,7 +206,7 @@ def campaigns(request):
             for camp in result:
                 camp.pop('chart', None)
 
-    #return JsonResponse({"campaigns": result, "totalCount": totalCount})
+    # return JsonResponse({"campaigns": result, "totalCount": totalCount})
     return Response({"campaigns": result, "totalCount": totalCount})
 
 
@@ -243,24 +267,12 @@ def statistics(request):
 #http://private-anon-e1f78e3eb-rtbs.apiary-mock.com/api/v1/map/clicks?from=from_date&to=to_date
 def map_clicks(request):
     params=parse_get_params(request.GET)
-    return JsonResponse({
-        "China": 19,
-        "India": 123,
-        "United States": 3000,
-        "Indonesia": 200,
-        "Brazil": 5000,
-        "Nigeria": 30000,
-        "Bangladesh": 4000,
-        "Russia": 1000,
-        "Japan": 4,
-        "Mexico": 40,
-        "Philippines": 600,
-        "Germany": 3000,
-        "France": 20000,
-        "Thailand": 1000,
-        "United Kingdom": 200,
-        "Italy": 222,
-        "Ukraine": 600,
-        "Canada": 50
-    })
-
+    q = GeoAnaliticsReport.objects.filter(
+        advertiser_id=params['advertiser_id'],
+        day__gte=params['from_date'],
+        day__lte=params['to_date'],
+    ).values_list('geo_country_name').annotate(
+        Sum('clicks'),
+    )
+    d = dict(q)
+    return JsonResponse(d)

@@ -21,7 +21,7 @@ from models import Advertiser, Campaign, SiteDomainPerformanceReport, Profile, L
     AdProfile, ContentCategory, Deal, PlatformMember, User, Publisher, Site, OptimizationZone, MobileAppInstance, \
     YieldManagementProfile, PaymentRule, ConversionPixel, Country, Region, DemographicArea
 from pytz import utc
-from utils import get_all_classes_in_models, column_sets_for_reports
+from utils import get_all_classes_in_models, column_sets_for_reports, get_current_time
 
 def date_type(t):
     return isinstance(t, (django_types.DateField, django_types.TimeField, django_types.DateField))
@@ -65,11 +65,11 @@ _default_values_for_types = {
     django_types.TextField: '',
     django_types.BooleanField: False,
     django_types.DecimalField: decimal.Decimal(0),
-    django_types.DateTimeField: datetime.datetime.utcnow,
+    django_types.DateTimeField: get_current_time,
     django_types.SmallIntegerField: 0,
     django_types.IPAddressField: '127.0.0.1',
     django_types.SlugField: '',
-    django_types.TimeField: datetime.time,
+    django_types.TimeField: lambda:get_current_time().timetz(),
     # django_types.proxy.OrderWrt: 0,
     django_types.CommaSeparatedIntegerField: '0',
     # django_types.AutoField: None,
@@ -248,11 +248,6 @@ def analize_csv(filename, modelClass, metadata={}):
 
 
 unix_epoch = datetime.datetime.utcfromtimestamp(0).replace(tzinfo=utc)
-
-
-def get_current_time():
-    return datetime.datetime.utcnow().replace(tzinfo=utc)
-
 
 # https://api.appnexus.com/creative?start_element=0&num_elements=50'
 def nexus_get_objects(token, url, params, object_class, force_update=False, get_params=None):

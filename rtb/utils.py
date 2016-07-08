@@ -72,6 +72,8 @@ column_sets_for_reports = {
     ]
 }
 
+def get_current_time():
+    return datetime.datetime.utcnow().replace(tzinfo=utc)
 
 def get_all_classes_in_models(module):
     return [module.__dict__[k]

@@ -3667,3 +3667,128 @@ class NetworkCarrierReport(models.Model):
 
     class Meta:
         db_table = "network_carrier_report"
+
+
+OPTIMISATION_PHASE_CHOICES = (
+    ('-2', 'No predict phase'),
+    ('-1', 'Base predict phase'),
+    ('0', 'Learn giveup'),
+    ('1', 'Learn'),
+    ('2', 'Throttled'),
+    ('3', 'Optimized'),
+    ('4', 'Biased'),
+    ('5', 'Optimized 1'),
+    ('8', 'Optimized giveup'),
+    ('9', 'Base bid below giveup')
+)
+
+
+class NetworkAdvertiserAnalyticsReport(models.Model):
+    # https://wiki.appnexus.com/display/api/Network+Advertiser+Analytics
+    fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
+    hour = models.DateTimeField(null=True, blank=True, db_index=True)
+    #day = date
+    #month = date
+    buyer_member = models.ForeignKey("PlatformMember", related_name='+', null=True, blank=True)
+    seller_member = models.ForeignKey("PlatformMember", related_name='+', null=True, blank=True)
+    advertiser = models.ForeignKey("Advertiser", null=True, blank=True)
+    campaign = models.ForeignKey("Campaign", null=True, blank=True)
+    creative = models.ForeignKey("Creative", null=True, blank=True)
+    site = models.ForeignKey("Site", null=True, blank=True)
+    placement = models.ForeignKey("Placement", null=True, blank=True)
+    deal = models.ForeignKey("Deal", null=True, blank=True)
+    size = models.TextField(null=True, blank=True)
+    geo_country = models.ForeignKey("Country", null=True, blank=True)
+    insertion_order = models.ForeignKey("InsertionOrder", null=True, blank=True)
+    billing_period_start_date = models.DateTimeField(null=True, blank=True, db_index=True)
+    billing_period_end_date = models.DateTimeField(null=True, blank=True, db_index=True)
+    payment_type = models.TextField(
+        choices=DEAL_PAYMENT_TYPE_CHOICES,
+        null=True, blank=True)
+    line_item = models.ForeignKey("LineItem", null=True, blank=True)
+    pixel = models.ForeignKey("ConversionPixel", null=True, blank=True)
+    publisher = models.ForeignKey("Publisher", null=True, blank=True)
+    imp_type_id = models.IntegerField(
+        choices=IMPRESSION_TYPE_CHOICES,
+        null=True, blank=True)
+    bid_type = models.TextField(
+        choices=BID_TYPE_CHOICES,
+        null=True, blank=True)
+    seller_type = models.TextField(
+        choices=SELLER_TYPE_CHOICES,
+        null=True, blank=True)
+    media_type = models.ForeignKey("MediaType", null=True, blank=True)
+    venue_id = models.IntegerField(null=True, blank=True)
+    venue = models.TextField(null=True, blank=True)
+    predict_type_rev = models.IntegerField(
+        choices=OPTIMISATION_PHASE_CHOICES,
+        null=True, blank=True)
+    trafficker_for_line_item = models.TextField(null=True, blank=True)
+    trafficker_for_insertion_order = models.TextField(null=True, blank=True)
+    salesrep_for_line_item = models.TextField(null=True, blank=True)
+    salesrep_for_insertion_order = models.TextField(null=True, blank=True)
+    user_group_for_campaign = models.TextField(null=True, blank=True)
+    adjustment_id = models.IntegerField(null=True, blank=True,
+                                        db_index=True)  # TODO FK is needed in future - there is no description in documentation
+    revenue_type_id = models.IntegerField(
+        choices=REVENUE_TYPE_CHOICES,
+        null=True, blank=True)
+    imps = models.IntegerField(null=True, blank=True)
+    clicks = models.IntegerField(null=True, blank=True)
+    post_view_convs = models.IntegerField(null=True, blank=True)
+    post_view_revenue = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    post_click_convs = models.IntegerField(null=True, blank=True)
+    post_click_revenue = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    total_revenue = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    total_revenue_adv_curr = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    total_convs = models.IntegerField(null=True, blank=True)
+    convs_rate = models.FloatField(null=True, blank=True)
+    post_view_convs_rate = models.FloatField(null=True, blank=True)
+    post_click_convs_rate = models.FloatField(null=True, blank=True)
+    ctr = models.FloatField(null=True, blank=True)
+    profit = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    click_convs_rate = models.FloatField(null=True, blank=True)
+    advertiser_currency = models.TextField(null=True, blank=True, db_index=True)
+    revenue_ecpm = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    revenue_ecpm_adv_curr = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    cost_ecpm = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    profit_ecpm = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    revenue_ecpc = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    revenue_ecpc_adv_curr = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    revenue_ecpa = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    revenue_ecpa_adv_curr = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    cost_ecpc = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    cost_ecpa = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    profit_margin = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    media_cost = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    convs_per_mm = models.FloatField(null=True, blank=True)
+    click_thru_pct = models.FloatField(null=True, blank=True)
+    commissions = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    serving_fees = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    profit_including_fees = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    total_revenue_including_fees = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    total_revenue_including_fees_adv_currency = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    revenue_ecpa_including_fees = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    revenue_ecpa_including_fees_adv_currency = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    revenue_ecpc_including_fees = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    revenue_ecpc_including_fees_adv_currency = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    revenue_ecpm_including_fees = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    revenue_ecpm_including_fees_adv_currency = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    cost_ecpa_including_fees = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    cost_ecpc_including_fees = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    cost_ecpm_including_fees = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    profit_net_including_fees = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    profit_ecpm_including_fees = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    profit_margin_including_fees = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    post_view_convs_pixel = models.IntegerField(null=True, blank=True)
+    post_clicks_convs_pixel = models.IntegerField(null=True, blank=True)
+    total_revenue_pixel = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    total_revenue_including_fees_pixel = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    imps_viewed = models.IntegerField(null=True, blank=True)
+    view_measured_imps = models.IntegerField(null=True, blank=True)
+    view_rate = models.FloatField(null=True, blank=True)
+    view_measurement_rate = models.FloatField(null=True, blank=True)
+    cost_ecpvm = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+
+    class Meta:
+        db_table = "network_advertiser_analytics_report"

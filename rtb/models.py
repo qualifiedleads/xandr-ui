@@ -43,7 +43,7 @@ THOUSAND_SEPARATOR = (
 
 class User(models.Model):
     #https://wiki.appnexus.com/display/api/User+Service
-    id = models.IntegerField(primary_key=True)  # This prevent making automatic AutoIncrement field
+    id = models.BigIntegerField(primary_key=True)  # This prevent making automatic AutoIncrement field
     fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
     state = models.TextField(
         choices=STATE_CHOICES,
@@ -3792,3 +3792,163 @@ class NetworkAdvertiserAnalyticsReport(models.Model):
 
     class Meta:
         db_table = "network_advertiser_analytics_report"
+
+
+class NetworkAnalyticsFeed(models.Model):
+    # https://wiki.appnexus.com/display/api/Network+Analytics+Feed
+    fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
+    hour = models.DateTimeField(null=True, blank=True, db_index=True)
+    day = models.DateTimeField(null=True, blank=True, db_index=True)
+    month = models.DateTimeField(null=True, blank=True, db_index=True)
+    advertiser = models.ForeignKey("Advertiser", null=True, blank=True)
+    bid_type = models.TextField(
+        choices=BID_TYPE_CHOICES,
+        null=True, blank=True)
+    buyer_member = models.ForeignKey("PlatformMember", related_name='+', null=True, blank=True)
+    campaign = models.ForeignKey("Campaign", null=True, blank=True)
+    creative = models.ForeignKey("Creative", null=True, blank=True)
+    deal = models.ForeignKey("Deal", null=True, blank=True)
+    entity_member =  models.ForeignKey("Member", related_name='+', null=True, blank=True)
+    external_inv = models.ForeignKey("PublisherExternalInventoryCode", null=True, blank=True)
+    geo_country = models.ForeignKey("Country", null=True, blank=True)
+    height = models.IntegerField(null=True, blank=True)
+    imp_type_id = models.IntegerField(
+        choices=IMPRESSION_TYPE_CHOICES,
+        null=True, blank=True)
+    insertion_order = models.ForeignKey("InsertionOrder", null=True, blank=True)
+    insertion_order_code = models.IntegerField(null=True, blank=True)
+    line_item = models.ForeignKey("LineItem", null=True, blank=True)
+    line_item_code = models.IntegerField(null=True, blank=True)
+    media_type = models.ForeignKey("MediaType", null=True, blank=True)
+    media_subtype = models.ForeignKey("MediaSubType", null=True, blank=True)
+    pixel = models.ForeignKey("ConversionPixel", null=True, blank=True)
+    placement = models.ForeignKey("Placement", null=True, blank=True)
+    publisher = models.ForeignKey("Publisher", null=True, blank=True)
+    pub_rule = models.ForeignKey("AdQualityRule", null=True, blank=True)
+    seller_member = models.ForeignKey("PlatformMember", related_name='+', null=True, blank=True)
+    site = models.ForeignKey("Site", null=True, blank=True)
+    size = models.TextField(null=True, blank=True)
+    width = models.IntegerField(null=True, blank=True)
+    payment_type = models.TextField(
+        choices=DEAL_PAYMENT_TYPE_CHOICES,
+        null=True, blank=True)
+    revenue_type_id = models.IntegerField(
+        choices=REVENUE_TYPE_CHOICES,
+        null=True, blank=True)
+    booked_revenue = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    booked_revenue_adv_curr = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    clicks = models.IntegerField(null=True, blank=True)
+    commissions = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    imps = models.IntegerField(null=True, blank=True)
+    media_cost = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    media_cost_pub_curr = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    network_advertiser_rpm = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    network_advertiser_rpm_adv_curr = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    network_resold_rpm = models.FloatField(null=True, blank=True)
+    post_click_convs = models.IntegerField(null=True, blank=True)
+    post_click_revenue = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    post_view_convs = models.IntegerField(null=True, blank=True)
+    post_view_revenue = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    ppm = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    profit = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    publisher_rpm_publisher_currency = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    reseller_revenue = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    revenue = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    revenue_adv_curr = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    rpm_adv_curr = models.FloatField(null=True, blank=True)
+    serving_fees = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    total_convs = models.IntegerField(null=True, blank=True)
+    total_network_rpm = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    total_publisher_rpm = models.FloatField(null=True, blank=True)
+    imps_viewed = models.IntegerField(null=True, blank=True)
+    view_measured_imps = models.IntegerField(null=True, blank=True)
+    view_rate = models.FloatField(null=True, blank=True)
+    view_measurement_rate = models.FloatField(null=True, blank=True)
+
+    class Meta:
+        db_table = "network_analytics_feed"
+
+
+class ClickTracker(models.Model):
+    # https://wiki.appnexus.com/display/api/Click+Tracker+Service
+    fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
+    id = models.IntegerField(primary_key=True) # No AutoIncrement
+    member = models.ForeignKey("Member", null=True, blank=True)
+    advertiser = models.ForeignKey("Advertiser", null=True, blank=True)
+    name = models.TextField(null=True, blank=True, db_index=True)
+    code = models.TextField(null=True, blank=True, db_index=True)
+    state = models.TextField(
+        choices=STATE_CHOICES,
+        null=True, blank=True)
+    click_url = models.TextField(null=True, blank=True, db_index=True)
+    #publisher = array - see model ClickTrackerPublisher below
+    #line_item = array - see model ClickTrackerLineItem below
+    #tag = array - see model ClickTrackerPlacement below
+    #payment_rule = array - see model ClickTrackerPaymentRule below
+    last_modified = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        db_table = "click_tracker"
+
+
+class ClickTrackerPublisher(models.Model):
+    click_tracker = models.ForeignKey("ClickTracker", null=True, blank=True)
+    publisher = models.ForeignKey("Publisher", null=True, blank=True)
+
+    class Meta:
+        db_table = "click_tracker_publisher"
+
+
+class ClickTrackerLineItem(models.Model):
+    click_tracker = models.ForeignKey("ClickTracker", null=True, blank=True)
+    line_item = models.ForeignKey("LineItem", null=True, blank=True)
+
+    class Meta:
+        db_table = "click_tracker_line_item"
+
+
+class ClickTrackerPlacement(models.Model):
+    click_tracker = models.ForeignKey("ClickTracker", null=True, blank=True)
+    placement = models.ForeignKey("Placement", null=True, blank=True)
+
+    class Meta:
+        db_table = "click_tracker_placement"
+
+
+class ClickTrackerPaymentRule(models.Model):
+    click_tracker = models.ForeignKey("ClickTracker", null=True, blank=True)
+    payment_rule= models.ForeignKey("PaymentRule", null=True, blank=True)
+
+    class Meta:
+        db_table = "click_tracker_payment_rule"
+
+
+class ClickTrackerFeed(models.Model):
+    # https://wiki.appnexus.com/display/api/Clicktrackers+Feed
+    fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
+    hour = models.DateTimeField(null=True, blank=True, db_index=True)
+    day = models.DateTimeField(null=True, blank=True, db_index=True)
+    month = models.DateTimeField(null=True, blank=True, db_index=True)
+    datetime = models.DateTimeField(null=True, blank=True, db_index=True)
+    advertiser = models.ForeignKey("Advertiser", null=True, blank=True)
+    auction_id = models.BigIntegerField(null=True, blank=True)
+    line_item = models.ForeignKey("LineItem", null=True, blank=True)
+    insertion_order = models.ForeignKey("InsertionOrder", null=True, blank=True)
+    member = models.ForeignKey("Member", null=True, blank=True)
+    pricing_type = models.TextField(
+        choices=PRICING_TYPE_CHOICES,
+        null=True, blank=True)
+    publisher = models.ForeignKey("Publisher", null=True, blank=True)
+    site_domain = models.TextField(null=True, blank=True, db_index=True)
+    tag = models.ForeignKey("Placement", null=True, blank=True)
+    tracker = models.ForeignKey("ClickTracker", null=True, blank=True)
+    user = models.ForeignKey("User", null=True, blank=True)
+    commission_cpm = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    commission_revshare = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    media_buy_cost = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    media_buy_rev_share_pct = models.FloatField(null=True, blank=True)
+    revenue_value = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+
+    class Meta:
+        db_table = "click_tracker_feed"
+

@@ -1,6 +1,7 @@
 import datetime, re
 from pytz import utc
 from django.db import models, IntegrityError
+from django.utils.timezone import now as now_tz
 #from django.contrib.postgres.fields import ArrayField
 #from django.contrib.postgres.fields import JSONField
 
@@ -76,7 +77,7 @@ class User(models.Model):
         null=True, blank=True)
     send_safety_budget_notifications = models.NullBooleanField(null=True, blank=True)
     is_developer = models.NullBooleanField(null=True, blank=True)
-    last_modified = models.DateTimeField(null=True, blank=True)
+    last_modified = models.DateTimeField(default=now_tz) 
 
     class Meta:
         db_table = "user"
@@ -104,7 +105,7 @@ class Category(models.Model):
     is_sensitive = models.NullBooleanField(null=True, blank=True)
     requires_whitelist = models.NullBooleanField(null=True, blank=True)
     requires_whitelist_on_external = models.NullBooleanField(null=True, blank=True)
-    last_modified = models.DateTimeField(null=True, blank=True)
+    last_modified = models.DateTimeField(default=now_tz) 
     is_brand_eligible = models.NullBooleanField(null=True, blank=True)
     #countries_and_brands = db.Column(db.String) #array of objects !!! need to look at data returned by API ! it is a mess! See the model BrandInCountry below
 
@@ -116,7 +117,7 @@ class Company(models.Model):
     #https://wiki.appnexus.com/display/api/Brand+Company+Service
     models.IntegerField(primary_key=True)  # No AutoIncrement
     name = models.TextField(null=True, blank=True, db_index=True)
-    last_modified = models.DateTimeField(null=True, blank=True)
+    last_modified = models.DateTimeField(default=now_tz) 
 
     class Meta:
         db_table = "company"
@@ -130,7 +131,7 @@ class Brand(models.Model):
     category = models.ForeignKey("Category", null=True, blank=True)
     company = models.ForeignKey("Company", null=True, blank=True)
     num_creatives = models.IntegerField(null=True, blank=True)
-    last_modified = models.DateTimeField(null=True, blank=True)
+    last_modified = models.DateTimeField(default=now_tz) 
 
     class Meta:
         db_table = "brand"
@@ -210,7 +211,7 @@ class Advertiser(models.Model):
     profile = models.ForeignKey("Profile", null=True, blank=True, related_name='profile_id')
     control_pct = models.FloatField(null=True, blank=True)
     timezone = models.TextField(null=True, blank=True) #originally it is enum
-    last_modified = models.DateTimeField(null=True, blank=True)
+    last_modified = models.DateTimeField(default=now_tz) 
     #stats	object #should be in sepparait model if needed
     #billing_internal_user	array
     billing_name = models.TextField(null=True, blank=True)
@@ -277,7 +278,7 @@ class Label(models.Model):
         db_index=True)
     report_field = models.TextField(null=True, blank=True)
     #values # see model LabeledObject model below
-    last_modified = models.DateTimeField(null=True, blank=True)
+    last_modified = models.DateTimeField(default=now_tz) 
 
     class Meta:
         db_table = "label"
@@ -335,7 +336,7 @@ class MediaType(models.Model):
     uses_sizes = models.TextField(
         choices=MEDIA_TYPE_SIZES,
         null=True, blank=True)
-    last_modified = models.DateTimeField()
+    last_modified = models.DateTimeField(default=now_tz) 
 
     class Meta:
         db_table = "media_type"
@@ -347,7 +348,7 @@ class MediaSubType(models.Model):
     media_type = models.ForeignKey("MediaType", null=True, blank=True)
     #permitted_sizes - see model MediaSubTypePermittedSizes below
     #native_assets - see model MediaSubTypeNativeAssets below
-    last_modified = models.DateTimeField(null=True, blank=True)
+    last_modified = models.DateTimeField(default=now_tz) 
 
     class Meta:
         db_table = "media_sub_type"
@@ -499,7 +500,7 @@ class AdProfile(models.Model):
     excluded_landing_page_urls = models.TextField(null=True, blank=True) # it is array in origine but it is marked as Not available.
     notes = models.TextField(null=True, blank=True)
     publisher = models.ForeignKey("Publisher", null=True, blank=True)
-    last_modified = models.DateTimeField(null=True, blank=True)
+    last_modified = models.DateTimeField(default=now_tz) 
 
     class Meta:
         db_table = "ad_profile"
@@ -571,7 +572,7 @@ class AdServer(models.Model):
     name = models.TextField(null=True, blank=True, db_index=True)
     description = models.TextField(null=True, blank=True)
     declare_to_adx = models.NullBooleanField(null=True, blank=True)
-    last_modified = models.DateTimeField(null=True, blank=True)
+    last_modified = models.DateTimeField(default=now_tz) 
     #hostnames = array - see model AdServerHostname below
 
     class Meta:
@@ -657,7 +658,7 @@ class OptimizationZone(models.Model):
     fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
     name = models.TextField(null=True, blank=True, db_index=True)
     external_name = models.TextField(null=True, blank=True, db_index=True)
-    last_modified = models.DateTimeField(null=True, blank=True)
+    last_modified = models.DateTimeField(default=now_tz) 
     type = models.TextField(
         choices=TYPE_OF_INVENTORY_CHOICES,
         null=True, blank=True)
@@ -691,7 +692,7 @@ class MobileAppInstance(models.Model):
     store_name = models.TextField(null=True, blank=True)
     store_url = models.TextField(null=True, blank=True)
     mobile_app_store = models.TextField(null=True, blank=True)
-    last_modified = models.DateTimeField(null=True, blank=True)
+    last_modified = models.DateTimeField(default=now_tz) 
     created_on = models.DateTimeField(null=True, blank=True)
 
     class Meta:
@@ -701,7 +702,7 @@ class MobileAppInstance(models.Model):
 class MobileAppInstanceBundle(models.Model):
     bundle_id = models.IntegerField(primary_key=True)
     os_family = models.ForeignKey("OSFamily", null=True, blank=True)
-    last_modified = models.DateTimeField(null=True, blank=True)
+    last_modified = models.DateTimeField(default=now_tz) 
     created_on = models.DateTimeField(null=True, blank=True)
 
     class Meta:
@@ -714,7 +715,7 @@ class MobileAppStore(models.Model):
     name = models.TextField(null=True, blank=True, db_index=True)
     url = models.TextField(null=True, blank=True)
     os_family = models.ForeignKey("OSFamily", null=True, blank=True)
-    last_modified = models.DateTimeField(null=True, blank=True)
+    last_modified = models.DateTimeField(default=now_tz) 
 
     class Meta:
         db_table = "mobile_app_store"
@@ -749,7 +750,7 @@ class Site(models.Model):
     url = models.TextField(null=True, blank=True)
     publisherd = models.ForeignKey("Publisher", null=True, blank=True)
     primary_content_category = models.ForeignKey("ContentCategory", null=True, blank=True)
-    last_modified = models.DateTimeField(null=True, blank=True)
+    last_modified = models.DateTimeField(default=now_tz) 
     #placements = array - see model Placement below
     #content_categories = array - see model SiteContentCategory below
     intended_audience = models.TextField(
@@ -804,7 +805,7 @@ class YieldManagementProfile(models.Model):
     #modifiers = array - see model YieldManagementProfileModifiers below
     biases = models.TextField(null=True, blank=True) #TODO JSON - may be in future we need modell here
     floors = models.TextField(null=True, blank=True) #TODO JSON - may be in future we need modell here
-    last_modified = models.DateTimeField(null=True, blank=True)
+    last_modified = models.DateTimeField(default=now_tz) 
 
     class Meta:
         db_table = "yield_management_profile"
@@ -882,7 +883,7 @@ class Publisher(models.Model):
     description = models.TextField(null=True, blank=True)
     is_rtb = models.NullBooleanField(null=True, blank=True)
     timezone = models.TextField(null=True, blank=True) #originally it is enum
-    last_modified = models.DateTimeField(null=True, blank=True)
+    last_modified = models.DateTimeField(default=now_tz) 
     # stats	object #should be in sepparait model if needed
     max_learn_pct = models.IntegerField(null=True, blank=True)
     learn_bypass_cpm = models.IntegerField(null=True, blank=True)
@@ -996,7 +997,7 @@ class ContentCategory(models.Model):
     type = models.TextField(
         choices=CONTENT_CATEGORY_TYPE,
         null=True, blank=True)
-    last_modified = models.DateTimeField()
+    last_modified = models.DateTimeField(default=now_tz) 
 
     class Meta:
         db_table = "content_category"
@@ -1157,7 +1158,7 @@ class Creative(models.Model):
     is_control = models.NullBooleanField(null=True, blank=True)
     #segments = array - see model CreativeSegment below
     created_on = models.DateTimeField()
-    last_modified = models.DateTimeField()
+    last_modified = models.DateTimeField(default=now_tz) 
     creative_upload_status = models.TextField(
         choices=CREATIVE_UPLOAD_STATUS_CHOICES,
         null=True, blank=True)
@@ -1320,7 +1321,7 @@ class CreativeFolder(models.Model):
     #https://wiki.appnexus.com/display/api/Creative+Folder+Service
     name = models.TextField(null=True, blank=True, db_index=True)
     advertiser = models.ForeignKey("Advertiser", null=True, blank=True)
-    last_modified = models.DateTimeField()
+    last_modified = models.DateTimeField(default=now_tz) 
 
     class Meta:
         db_table = "creative_folder"
@@ -1340,7 +1341,7 @@ class CteativeTemplate(models.Model):
     content_xml = models.TextField(null=True, blank=True)
     callback_content_html = models.TextField(null=True, blank=True)
     macros = models.TextField(null=True, blank=True) #array of object in origin. Later we can create separate model for it if needed
-    last_modified = models.DateTimeField()
+    last_modified = models.DateTimeField(default=now_tz) 
 
     class Meta:
         db_table = "creative_template"
@@ -1349,7 +1350,7 @@ class CteativeTemplate(models.Model):
 class CteativeFormat(models.Model):
     #https://wiki.appnexus.com/display/api/Creative+Format+Service
     name = models.TextField(null=True, blank=True, db_index=True)
-    last_modified = models.DateTimeField()
+    last_modified = models.DateTimeField(default=now_tz) 
 
     class Meta:
         db_table = "creative_format"
@@ -1463,7 +1464,7 @@ class Placement(models.Model):
     toolbar = models.TextField(null=True, blank=True) #TODO JSON
     cost_cpm = models.FloatField(null=True, blank=True)
     is_prohibited = models.NullBooleanField(null=True, blank=True)
-    last_modified = models.DateTimeField(null=True, blank=True)
+    last_modified = models.DateTimeField(default=now_tz) 
     #stats - will create another model in it will be needed
     content_retrieval_timeout_ms = models.IntegerField(null=True, blank=True)
     enable_for_mediation = models.NullBooleanField(null=True, blank=True)
@@ -1530,7 +1531,7 @@ class Segment(models.Model):
     expire_minutes = models.IntegerField(null=True, blank=True)
     enable_rm_piggyback = models.NullBooleanField(null=True, blank=True)
     max_usersync_pixels = models.IntegerField(null=True, blank=True)
-    last_modified = models.DateTimeField()
+    last_modified = models.DateTimeField(default=now_tz) 
     provider = models.TextField(null=True, blank=True)
     advertiser = models.ForeignKey("Advertiser", null=True, blank=True)
     #piggyback_pixels - see model PiggybackPixels below
@@ -1598,7 +1599,7 @@ class PlacementInventoryAttributes(models.Model):
 class PlacementMediaType(models.Model):
     placement = models.ForeignKey("Placement", null=True, blank=True)
     media_type = models.ForeignKey("MediaType", null=True, blank=True)
-    last_modified = models.DateTimeField()
+    last_modified = models.DateTimeField(default=now_tz) 
 
     class Meta:
         db_table = "placement_media_type"
@@ -1620,7 +1621,7 @@ class PlacementMediaSubType(models.Model):
     placement = models.ForeignKey("Placement", null=True, blank=True)
     media_sub_type = models.ForeignKey("MediaSubType", null=True, blank=True)
     is_private = models.NullBooleanField(null=True, blank=True)
-    last_modified = models.DateTimeField()
+    last_modified = models.DateTimeField(default=now_tz) 
 
     class Meta:
         db_table = "placement_media_sub_type"
@@ -1670,7 +1671,7 @@ class ConversionPixel(models.Model):
     post_view_value = models.FloatField(null=True, blank=True)
     #piggyback_pixels - see model ConversionPixelPiggybackPixels below
     created_on = models.DateTimeField()
-    last_modified = models.DateTimeField()
+    last_modified = models.DateTimeField(default=now_tz) 
     advertiser = models.ForeignKey("Advertiser", null=True, blank=True)
 
     class Meta:
@@ -1740,7 +1741,7 @@ class OSFamily(models.Model):
     id = models.IntegerField(primary_key=True) #No AutoIncrement
     name = models.TextField(null=True, blank=True, db_index=True)
     fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
-    last_modified = models.DateTimeField()
+    last_modified = models.DateTimeField(default=now_tz) 
 
     class Meta:
         db_table = "os_family"
@@ -1754,7 +1755,7 @@ class OperatingSystem(models.Model):
         choices=PLATFORM_TYPE_CHOICE,
         null=True, blank=True)
     os_family = models.ForeignKey("OSFamily", null=True, blank=True)
-    last_modified = models.DateTimeField()
+    last_modified = models.DateTimeField(default=now_tz) 
 
     class Meta:
         db_table = "operating_system"
@@ -1765,7 +1766,7 @@ class OperatingSystemExtended(models.Model):
     fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
     name = models.TextField(null=True, blank=True, db_index=True)
     os_family = models.ForeignKey("OSFamily", null=True, blank=True)
-    last_modified = models.DateTimeField()
+    last_modified = models.DateTimeField(default=now_tz) 
     search_string = models.TextField(null=True, blank=True)
     
     def TransformFields(self, data, metadata={}):
@@ -1807,7 +1808,7 @@ class Profile(models.Model):
     code = models.TextField(null=True, blank=True)
     description = models.TextField(null=True, blank=True, db_index=True)
     is_template = models.NullBooleanField(null=True, blank=True)
-    last_modified = models.DateTimeField()
+    last_modified = models.DateTimeField(default=now_tz) 
     max_lifetime_imps = models.IntegerField(null=True, blank=True)
     min_session_imps = models.IntegerField(null=True, blank=True)
     max_session_imps = models.IntegerField(null=True, blank=True)
@@ -2015,7 +2016,7 @@ class CustomModel(models.Model):
     model_text = models.TextField(null=True, blank=True)
     original_text = models.TextField(null=True, blank=True)
     active = models.NullBooleanField(null=True, blank=True)
-    last_modified = models.DateTimeField()
+    last_modified = models.DateTimeField(default=now_tz) 
 
     class Meta:
         db_table = "custom_model"
@@ -2040,7 +2041,7 @@ class Campaign(models.Model):
     #creatives - see model CampaignCreative below
     #creative_groups - se model CampaignLineItems below
     timezone = models.TextField(null=True, blank=True)
-    last_modified = models.DateTimeField()
+    last_modified = models.DateTimeField(default=now_tz) 
     supply_type = models.TextField(null=True, blank=True)
     supply_type_action = models.TextField(null=True, blank=True)
     inventory_type = models.TextField(
@@ -2164,7 +2165,7 @@ class LineItem(models.Model):
         choices=GOAL_TYPE_CHOICES,
         null=True, blank=True)
     goal_value = models.FloatField(null=True, blank=True)
-    last_modified = models.DateTimeField()
+    last_modified = models.DateTimeField(default=now_tz) 
     click_url = models.TextField(null=True, blank=True)
     currency = models.TextField(null=True, blank=True)
     require_cookie_for_tracking = models.NullBooleanField(null=True, blank=True)
@@ -2271,7 +2272,7 @@ class PaymentRule(models.Model):
     profile = models.ForeignKey("Profile", null=True, blank=True)
     priority = models.IntegerField(null=True, blank=True)
     timezone = models.TextField(null=True, blank=True)
-    last_modified = models.DateTimeField(null=True, blank=True)
+    last_modified = models.DateTimeField(default=now_tz) 
     #filtered_advertisers = array - see model FilteredPaymentRuleAdvertisers below
     #filtered_line_items = array - see model FilteredPaymentRuleAdvertisers below
     #filtered_campaigns = array - see model FilteredPaymentRuleAdvertisers below
@@ -2328,7 +2329,7 @@ class ClickTracker(models.Model):
     #tag = array - see model ClickTrackerPlacement below
     payment_rule = models.ForeignKey("PaymentRule", null=True, blank=True)
     line_item = models.ForeignKey("LineItem", null=True, blank=True)
-    last_modified = models.DateTimeField(default=datetime.datetime.utcnow)
+    last_modified = models.DateTimeField(default=now_tz) 
 
     class Meta:
         db_table = "click_tracker"
@@ -2357,7 +2358,7 @@ class ImpressionTracker(models.Model):
     #tag = array - see model ImpressionTrackerPlacement below
     payment_rule = models.ForeignKey("PaymentRule", null=True, blank=True)
     line_item = models.ForeignKey("LineItem", null=True, blank=True)
-    last_modified = models.DateTimeField()
+    last_modified = models.DateTimeField(default=now_tz) 
 
     class Meta:
         db_table = "impression_tracker"
@@ -2409,7 +2410,7 @@ class InsertionOrder(models.Model):
     advertiser = models.ForeignKey("Advertiser", null=True, blank=True)
     start_date = models.DateTimeField(null=True, blank=True)
     end_date = models.DateTimeField(null=True, blank=True)
-    last_modified = models.DateTimeField(null=True, blank=True)
+    last_modified = models.DateTimeField(default=now_tz) 
     timezone = models.TextField(null=True, blank=True)  # enum
     currency = models.TextField(null=True, blank=True)
     comments = models.TextField(null=True, blank=True)
@@ -2446,7 +2447,7 @@ class Broker(models.Model):
         choices=STATE_CHOICES,
         null=True, blank=True)
     member = models.ForeignKey("Member", null=True, blank=True)
-    last_modified = models.DateTimeField(null=True, blank=True)
+    last_modified = models.DateTimeField(default=now_tz) 
 
     class Meta:
         db_table = "broker"
@@ -2568,7 +2569,7 @@ class BuyerGroup(models.Model):
     code = models.TextField(null=True, blank=True, db_index=True)
     name = models.TextField(null=True, blank=True, db_index=True)
     description = models.TextField(null=True, blank=True)
-    last_modified = models.DateTimeField(null=True, blank=True)
+    last_modified = models.DateTimeField(default=now_tz) 
 
     class Meta:
         db_table = "buyer_group"
@@ -2613,7 +2614,7 @@ class Developer(models.Model):
     billing_region = models.TextField(null=True, blank=True)
     billing_postal_code = models.TextField(null=True, blank=True)
     billing_country = models.TextField(null=True, blank=True)
-    last_modified = models.DateTimeField(null=True, blank=True)
+    last_modified = models.DateTimeField(default=now_tz) 
 
     class Meta:
         db_table = "developer"
@@ -2646,7 +2647,7 @@ class Member(models.Model):
         choices=MEMBER_RESELLING_EXPOSURE,
         null=True, blank=True)
     reselling_exposed_on = models.TextField(null=True, blank=True)
-    last_modified = models.DateTimeField(null=True, blank=True)
+    last_modified = models.DateTimeField(default=now_tz) 
     standard_sizes = models.TextField(null=True, blank=True) #TODO JSON
     buyer_credit_limit = models.FloatField(null=True, blank=True)
     timezone = models.TextField(null=True, blank=True)  # enum
@@ -2737,7 +2738,7 @@ class MemberProfile(models.Model):
         null=True, blank=True)
     domain_list_targets = models.TextField(null=True, blank=True) #array of objects in origin TODO it is needed to be concidered if we need a sepparait model here
     #country_targets - see model MemberProfileCountry below
-    last_modified = models.DateTimeField(null=True, blank=True)
+    last_modified = models.DateTimeField(default=now_tz) 
 
     class Meta:
         db_table = "member_profile"
@@ -2775,7 +2776,7 @@ class PlatformMember(models.Model):
         null=True, blank=True)
     contact_info = models.TextField(null=True, blank=True) #TODO JSON
     active = models.NullBooleanField(null=True, blank=True)
-    last_modified = models.DateTimeField(null=True, blank=True)
+    last_modified = models.DateTimeField(default=now_tz) 
     default_discrepancy_pct = models.FloatField(null=True, blank=True)
 
     class Meta:
@@ -2829,7 +2830,7 @@ class SellerMemberGroup(models.Model):
     display_order = models.IntegerField(null=True, blank=True)
     name = models.TextField(null=True, blank=True, db_index=True)
     description = models.TextField(null=True, blank=True)
-    last_modified = models.DateTimeField(null=True, blank=True)
+    last_modified = models.DateTimeField(default=now_tz) 
     created_on = models.DateTimeField(null=True, blank=True)
 
     class Meta:
@@ -2966,7 +2967,7 @@ class Deal(models.Model):
     floor_price = models.FloatField(null=True, blank=True)
     currency = models.TextField(null=True, blank=True)
     use_deal_floor = models.NullBooleanField(null=True, blank=True)
-    last_modified = models.DateTimeField(null=True, blank=True)
+    last_modified = models.DateTimeField(default=now_tz) 
     data_protected = models.NullBooleanField(null=True, blank=True)
     allow_creative_add_on_view = models.NullBooleanField(null=True, blank=True)
     allow_creative_add_on_click = models.NullBooleanField(null=True, blank=True)
@@ -3004,7 +3005,7 @@ class Deal(models.Model):
 class DealAllowedMediaSubType(models.Model):
     deal = models.ForeignKey("Deal", null=True, blank=True)
     media_sub_type = models.ForeignKey("MediaSubType", null=True, blank=True)
-    last_modified = models.DateTimeField()
+    last_modified = models.DateTimeField(default=now_tz) 
 
     class Meta:
         db_table = "deal_allowed_media_sub_type"
@@ -3013,7 +3014,7 @@ class DealAllowedMediaSubType(models.Model):
 class DealAllowedMediaType(models.Model):
     deal = models.ForeignKey("Deal", null=True, blank=True)
     media_type = models.ForeignKey("MediaType", null=True, blank=True)
-    last_modified = models.DateTimeField(null=True, blank=True)
+    last_modified = models.DateTimeField(default=now_tz) 
 
     class Meta:
         db_table = "deal_allowed_media_type"
@@ -3122,7 +3123,7 @@ class AdQualityRule(models.Model):
     member = models.ForeignKey("Member", null=True, blank=True)
     profile = models.ForeignKey("Profile", null=True, blank=True)
     priority = models.IntegerField(null=True, blank=True)
-    last_modified = models.DateTimeField(null=True, blank=True)
+    last_modified = models.DateTimeField(default=now_tz) 
 
     class Meta:
         db_table = "ad_quality_rule"
@@ -3488,7 +3489,7 @@ class Browser(models.Model):
     # https://wiki.appnexus.com/display/api/Browser+Service
     id = models.IntegerField(primary_key=True)  # No AutoIncrement
     name = models.TextField(null=True, blank=True, db_index=True)
-    last_modified = models.DateTimeField(null=True, blank=True)
+    last_modified = models.DateTimeField(default=now_tz) 
 
     class Meta:
         db_table = "browser"

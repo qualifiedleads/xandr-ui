@@ -73,3 +73,4 @@ rtb/logs
 Task.bat
 
 config/local_settings.py
+config/settings.py

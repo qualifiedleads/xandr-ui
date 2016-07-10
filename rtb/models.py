@@ -2314,6 +2314,8 @@ class FilteredPaymentRuleCampaigns(models.Model):
 
 class ClickTracker(models.Model):
     #https://wiki.appnexus.com/display/api/Click+Tracker+Service
+    id = models.IntegerField(primary_key=True) # No AutoIncrement
+    fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
     member = models.ForeignKey("Member", null=True, blank=True)
     advertiser = models.ForeignKey("Advertiser", null=True, blank=True)
     name = models.TextField(null=True, blank=True, db_index=True)
@@ -2326,13 +2328,15 @@ class ClickTracker(models.Model):
     #tag = array - see model ClickTrackerPlacement below
     payment_rule = models.ForeignKey("PaymentRule", null=True, blank=True)
     line_item = models.ForeignKey("LineItem", null=True, blank=True)
-    last_modified = models.DateTimeField()
+    last_modified = models.DateTimeField(default=datetime.datetime.utcnow)
 
     class Meta:
         db_table = "click_tracker"
 
 
 class ClickTrackerPlacement(models.Model):
+    id = models.IntegerField(primary_key=True) # No AutoIncrement
+    fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
     click_tracker = models.ForeignKey("ClickTracker", null=True, blank=True)
     placement = models.ForeignKey("Placement", null=True, blank=True)
 
@@ -3869,28 +3873,6 @@ class NetworkAnalyticsFeed(models.Model):
         db_table = "network_analytics_feed"
 
 
-class ClickTracker(models.Model):
-    # https://wiki.appnexus.com/display/api/Click+Tracker+Service
-    fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
-    id = models.IntegerField(primary_key=True) # No AutoIncrement
-    member = models.ForeignKey("Member", null=True, blank=True)
-    advertiser = models.ForeignKey("Advertiser", null=True, blank=True)
-    name = models.TextField(null=True, blank=True, db_index=True)
-    code = models.TextField(null=True, blank=True, db_index=True)
-    state = models.TextField(
-        choices=STATE_CHOICES,
-        null=True, blank=True)
-    click_url = models.TextField(null=True, blank=True, db_index=True)
-    #publisher = array - see model ClickTrackerPublisher below
-    #line_item = array - see model ClickTrackerLineItem below
-    #tag = array - see model ClickTrackerPlacement below
-    #payment_rule = array - see model ClickTrackerPaymentRule below
-    last_modified = models.DateTimeField(null=True, blank=True)
-
-    class Meta:
-        db_table = "click_tracker"
-
-
 class ClickTrackerPublisher(models.Model):
     click_tracker = models.ForeignKey("ClickTracker", null=True, blank=True)
     publisher = models.ForeignKey("Publisher", null=True, blank=True)
@@ -3905,14 +3887,6 @@ class ClickTrackerLineItem(models.Model):
 
     class Meta:
         db_table = "click_tracker_line_item"
-
-
-class ClickTrackerPlacement(models.Model):
-    click_tracker = models.ForeignKey("ClickTracker", null=True, blank=True)
-    placement = models.ForeignKey("Placement", null=True, blank=True)
-
-    class Meta:
-        db_table = "click_tracker_placement"
 
 
 class ClickTrackerPaymentRule(models.Model):

@@ -16,7 +16,7 @@ all_accepted_operators={
 }
 def clause_evaluator(clause):
     oper=all_accepted_operators[clause[1]]
-    field_name = clause[0]
+    field_name = clause[0].strip()
     const = clause[2]
     if const[:1]=="\"":
         if const[-1]!="\"": raise ValueError("Quotes must be paired!")
@@ -34,7 +34,9 @@ def clause_evaluator(clause):
             left = round(left,4)
             right = round(right, 4)
         try:
-            return oper(left,right)
+            r = oper(left,right)
+            print left, clause[1], right, '=', r
+            return r
         except:
             return False
     return calc

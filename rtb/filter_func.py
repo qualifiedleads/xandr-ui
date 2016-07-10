@@ -9,8 +9,8 @@ all_accepted_operators={
     "<": operator.lt,
     ">=": operator.ge,
     "<=": operator.le,
-    "contains": lambda a, b: a.find(b) >= 0,
-    "notcontains": lambda a, b: a.find(b) < 0,
+    "contains": operator.contains, #lambda a, b: b in a,
+    "notcontains": lambda a, b: b not in a,
     "startswith": lambda a, b: a.startswith(b),
     "endswith": lambda a, b: a.endswith(b),
 }

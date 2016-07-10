@@ -144,7 +144,6 @@ def parse_get_params(params):
         res['filter'] = ''
     return res
 
-#http://private-anon-e1f78e3eb-rtbs.apiary-mock.com/api/v1/campaigns?from=from_date&to=to_date&skip=skip&take=take&sort=sort&order=order&stat_by=stat_by&filter=filter
 @api_view()
 @parser_classes([FormParser, MultiPartParser])
 def campaigns(request):
@@ -170,12 +169,12 @@ Get campaigns data for given period
         + Default: campaign
     + order (string, optional) - Order of sorting (ASC or DESC)
         + Default: desc
-    + stat_by (string, optional) - statistic fields to select (select every field if param is empty)
+    + stat_by (string, optional) - statistic fields to select
         + Format: comma separated
         + Example: impressions,cpa,cpc
     + filter (string, optional) - filter data by several fields
-        + Format: semicolon separated pairs
-        + Example: campaign=Campaign 1,Campaign 2;conv=3,8
+        + Format: special filter language
+        + Example: TODO
 
     """
     params = parse_get_params(request.GET)
@@ -237,18 +236,45 @@ def get_days_data(advertiser_id, from_date, to_date):
     cache.set(key,res)
     return res
 
-#get symmary data for given period
-#http://private-anon-e1f78e3eb-rtbs.apiary-mock.com/api/v1/totals?from=from_date&to=to_date
 def totals(request):
+    """
+## Totals [/api/v1/totals?from={from_date}&to={to_date}]
+
+### get symmary data for given period [GET]
+
++ Parameters
+
+    + from_date (date) - Date to select statistics from
+        + Format: Unixtime
+        + Example: 1466667274
+    + to_date (date) - Date to select statistics to
+        + Format: Unixtime
+        + Example: 1466667274
+
+    """
     params=parse_get_params(request.GET)
     data = get_days_data(params['advertiser_id'],params['from_date'],params['to_date'])
     return JsonResponse({"totals": data['totals']})
 
 
-#get statistics for period - day by day
-#http://private-anon-e1f78e3eb-rtbs.apiary-mock.com/api/v1/statistics?from=from_date&to=to_date&by=by
-
 def statistics(request):
+    """
+## Statistics [/api/v1/statistics?from={from_date}&to={to_date}&by={by}]
+
+### Get total statistics [GET]
+
++ Parameters
+
+    + from_date (date) - Date to select statistics from
+        + Format: Unixtime
+        + Example: 1466667274
+    + to_date (date) - Date to select statistics to
+        + Format: Unixtime
+        + Example: 1466667274
+    + by (string, optional) - statistic fields to select
+        + Format: comma separated
+        + Example: impressions,cpa,cpc
+    """
     print 'Begin statistics'
     params=parse_get_params(request.GET)
     data = get_days_data(params['advertiser_id'],params['from_date'],params['to_date'])['days']
@@ -263,9 +289,22 @@ def statistics(request):
                 camp.pop(f,None)
     return JsonResponse({'statistics':data})
 
-# Get clicks statistics by countries (for period)
-#http://private-anon-e1f78e3eb-rtbs.apiary-mock.com/api/v1/map/clicks?from=from_date&to=to_date
 def map_clicks(request):
+    """
+## Map of clicks [/api/v1/map/clicks?from={from_date}&to={to_date}]
+
+### Get count of clicks for each country [GET]
+
++ Parameters
+
+    + from_date (date) - Date to select statistics from
+        + Format: Unixtime
+        + Example: 1466667274
+    + to_date (date) - Date to select statistics to
+        + Format: Unixtime
+        + Example: 1466667274
+
+    """
     params=parse_get_params(request.GET)
     q = GeoAnaliticsReport.objects.filter(
         advertiser_id=params['advertiser_id'],

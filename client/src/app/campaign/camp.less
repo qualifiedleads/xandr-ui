@@ -16,13 +16,21 @@
     }
   }
 
+  #zoomedContainerSecond {
+    float: left;
+  }
+
+
+
   #gridContainer1 {
     height: auto;
     width: 95%;
+    margin-top: 3%;
   }
   #gridContainer2 {
     height: auto;
     width: 95%;
+    margin-top: 1%;
   }
 
   .chart-container {
@@ -89,8 +97,8 @@
   }
 
   .checkbox-container {
-    float: right;
-    padding-top: 1%;
+    float: left;
+    padding: 1% 0 0 0;
     span {
       font-size: 12px;
       margin-bottom: 1px;
@@ -125,6 +133,7 @@
     border: 1px solid black;
     height: 600px;
     float: left;
+    border-radius: 25px;
   }
 
   .label-container {
@@ -143,18 +152,11 @@
     border: 1px solid rgba(45, 45, 45, 0.65);
     border-radius: 10px 0 0 10px;
     clear: both;
-
-  }
-
-  .nav-btn:hover {
-    float: right;
-    padding: 9%;
-    color: rgb(255, 251, 251);
-    background-color: rgba(234, 68, 68, 0.85);
-    outline: none;
-    border: 1px solid #FFFFFF;
-    border-radius: 10px 0 0 10px;
-    clear: both;
+    width: 94%;
+    &:hover {
+      color: rgb(255, 251, 251);
+      background-color: rgba(234, 68, 68, 0.85);
+      border: 1px solid #FFFFFF;}
   }
 
   .nav-btn-active{
@@ -178,14 +180,27 @@
     .target-cpa-container {
       width: 19%;
       height: 14%;
-      border: 1px solid black;
+      background-color: rgba(51, 121, 183, 0.32);
+      border-radius: 0px 0px 30px 30px;
       border-top: none;
       float: right;
       margin-right: 4%;
       .input-target-cpa {
+        width: 24%;
+        margin: 7% 1% 7% 4%;
+        float: left;
+        border-radius: 5px;
+        outline: none;
+        background-color: #BED4E8;
+        font-weight: 500;
+        font-size: 16px;
+      }
+      .input-target-cpa-text {
         width: 61%;
-        margin-left: 19%;
-        margin-top: 5%;
+        margin: 9% -8% 7% 11%;
+        float: left;
+        font-weight: 500;
+        font-size: 16px;
       }
     }
     .pie-charts {

@@ -1,22 +1,27 @@
-#!/bin/python
+#!/bin/env python
 import csv
-import datetime
+import datetime, time, decimal
+import gc
 import json
-import sys, traceback, os
-from multiprocessing.pool import ThreadPool
-
-import common.report as reports
+import os
+import sys
+import traceback
+from itertools import imap, izip, islice,ifilter
+from multiprocessing.pool import ThreadPool, Pool
+from django.db.models import Avg, Count, Sum, Max
 import django.db.models as django_types
-from django.db import IntegrityError, transaction
+from django.db import transaction, IntegrityError, reset_queries, connection
 import re
 import requests
+import report
 from django.conf import settings
+import models
 from models import Advertiser, Campaign, SiteDomainPerformanceReport, Profile, LineItem, InsertionOrder, \
-    OSFamily, OperatingSystemExtended
+    OSFamily, OperatingSystemExtended, NetworkAnalyticsReport, GeoAnaliticsReport, Member, Developer, BuyerGroup, \
+    AdProfile, ContentCategory, Deal, PlatformMember, User, Publisher, Site, OptimizationZone, MobileAppInstance, \
+    YieldManagementProfile, PaymentRule, ConversionPixel, Country, Region, DemographicArea
 from pytz import utc
-import gc
-from itertools import imap,izip,izip_longest, takewhile
-
+from utils import get_all_classes_in_models, column_sets_for_reports, get_current_time
 
 def date_type(t):
     return isinstance(t, (django_types.DateField, django_types.TimeField, django_types.DateField))
@@ -39,79 +44,264 @@ def replace_tzinfo(o, time_fields=None):
 
 
 def update_object_from_dict(o, d, time_fields=None):
-    errors = []
     for field in d:
         try:
             setattr(o, field, d[field])
         except:pass
     replace_tzinfo(o, time_fields)
-    
 
-def analize_csv(csvFile, modelClass, metadata={}):
-    reader = csv.DictReader(csvFile, delimiter=',')  # dialect='excel-tab' or excel ?
-    print 'Begin analyzing csv file ...'
-    #result = []
-    metadata['counter'] = 0
-    fetch_date = get_current_time()
-    time_fields = [field.name for field in modelClass._meta.fields if date_type(field)]
-    def create_object_from_dict(data):
-        c = modelClass()
-        c.fetch_date = fetch_date
-        update_object_from_dict(c, data, time_fields)
+
+table_names = {c._meta.db_table: c for c in get_all_classes_in_models(models)}
+
+_default_values_for_types = {
+    django_types.DateField: datetime.date.today,
+    # django_types.related.ForeignObject: None,
+    django_types.BigIntegerField: 0,
+    django_types.IntegerField: 0,
+    django_types.PositiveIntegerField: 1,
+    django_types.GenericIPAddressField: '127.0.0.1',
+    django_types.CharField: '',
+    django_types.DurationField: datetime.timedelta(0),
+    django_types.TextField: '',
+    django_types.BooleanField: False,
+    django_types.DecimalField: decimal.Decimal(0),
+    django_types.DateTimeField: get_current_time,
+    django_types.SmallIntegerField: 0,
+    django_types.IPAddressField: '127.0.0.1',
+    django_types.SlugField: '',
+    django_types.TimeField: lambda:get_current_time().timetz(),
+    # django_types.proxy.OrderWrt: 0,
+    django_types.CommaSeparatedIntegerField: '0',
+    # django_types.AutoField: None,
+    django_types.URLField: 'www.example.com',
+    # django_types.files.ImageField: '',
+    django_types.EmailField: 'admin@www.example.com',
+    django_types.FloatField: 0.0,
+    django_types.Field: '',
+    # django_types.related.ManyToManyField: None,
+    # django_types.related.OneToOneField: None,
+    # django_types.related.ForeignKey: None,
+    django_types.NullBooleanField: None,
+    django_types.UUIDField: '00000000-0000-0000-0000-000000000000',
+    django_types.BinaryField: '',
+    django_types.PositiveSmallIntegerField: 1,
+    # django_types.files.FileField: '',
+    django_types.FilePathField: '/tmp',
+}
+
+
+def fill_null_values(o):
+    for field in o._meta.fields:
+        if not field.null and not field.primary_key:
+            val = field.get_default()
+            # t = field.get_internal_type
+            if val is None:
+                val = _default_values_for_types.get(type(field))
+                if hasattr(val, '__call__'):
+                    val = val()
+            setattr(o, field.name, val)
+
+
+def try_resolve_foreign_key(objects, dicts, e):
+    if e.message.find('foreign key constraint') < 0:
+        return False
+    m = re.search(r'Key \((\w+)\)=\(([^\)]+)\) is not present in table "([^\"]+)"', e.message)
+    if not m:
+        return False
+    key_field, key_value, table_name = m.groups()
+    try:
+        objectClass = table_names[table_name]
+        o = objectClass()
+        o.pk = key_value
+        cd = get_current_time()
+        name = 'Unknown, autocreated at %s' % cd
+        if key_field.endswith('_id'):
+            first = list(islice(ifilter(lambda x:str(getattr(x[1],key_field))==key_value,enumerate(objects)),0,1))
+            if first:
+                new_name = dicts[first[0][0]].get(key_field[:-2] + 'name', '--')
+                if new_name != '--':
+                    name = new_name
+        if hasattr(o, 'name'):
+            o.name = name
+        if hasattr(o, 'fetch_date'):
+            o.fetch_date = cd
+        fill_null_values(o)
+        o.save()
+    except Exception as e:
+        print "Failed try_resolve_foreign_key...", e
+        return False
+    return True
+
+_create_execute_context_={
+    # 'all_fields':None,
+    # 'need_filter_fields':None,
+    # 'foreign_fields':None,
+    # 'nullable_keys':None,
+    # 'float_keys':None,
+    # 'modelClass':None,
+    # 'time_fields':None,
+    # 'fetch_date':None,
+}
+
+def context_initializer(context):
+    global _create_execute_context_
+    _create_execute_context_ = context
+
+def create_object_from_dict(data_row):
+    try:
+        data = {k: data_row[k] for k in _create_execute_context_['all_fields']} \
+            if _create_execute_context_['need_filter_fields'] else data_row
+        for k in _create_execute_context_['foreign_fields']:
+            try:
+                data[k] = int(data.get(k))
+            except:
+                data[k] = None
+        for k in _create_execute_context_['nullable_keys']:
+            val = data.get(k)
+            if val[:2] == '--' or val == 'Undisclosed':
+                data[k] = None
+        for k in _create_execute_context_['float_keys']:
+            s = str(data.get(k, ''))
+            if s.endswith('%'):
+                data[k] = s[:-1]
+        modelClass = _create_execute_context_['modelClass']
+        try:
+            c = modelClass(**data)
+            replace_tzinfo(c, _create_execute_context_['time_fields'])
+        except:
+            c = modelClass()
+            update_object_from_dict(c, data, _create_execute_context_['time_fields'])
+        c.fetch_date = _create_execute_context_['fetch_date']
         if hasattr(c, 'TransformFields'):
-            c.TransformFields(data, metadata)
-        metadata['counter']+=1
+            c.TransformFields(data_row, _create_execute_context_)
         return c
-    it=iter(imap(create_object_from_dict,reader))
-    for pack in izip_longest(*[it]*1000):
-        modelClass.objects.bulk_create(takewhile(lambda x:x, pack))
-        print '%d rows fetched' % metadata['counter']
-    #print 'There are these fields in row', reader.fieldnames
-    #return result
+    except Exception as e:
+        print "Interest error", e
+        return None
+
+def get_all_class_fields(modelClass):
+    return [field.name + '_id' if isinstance(field, django_types.ForeignObject) else field.name
+                           for field in modelClass._meta.fields]
+
+def analize_csv(filename, modelClass, metadata={}):
+    with open(filename, 'r') as csvFile:
+        reader = csv.DictReader(csvFile, delimiter=',')  # dialect='excel-tab' or excel ?
+        print 'Begin analyzing csv file ...'
+        # result = []
+        context = {}
+        context['modelClass'] = modelClass
+        context['fetch_date'] = get_current_time()
+        class_fields = set(get_all_class_fields(modelClass))
+        csv_fields = set(reader.fieldnames)
+        context['all_fields'] = class_fields & csv_fields
+        context['need_filter_fields'] = bool(csv_fields - class_fields) and modelClass.api_report_name not in column_sets_for_reports
+        context['time_fields'] = [field.name for field in modelClass._meta.fields if date_type(field)]
+        context['nullable_keys'] = [field.name for field in modelClass._meta.fields
+                         if field.null and not isinstance(field, (django_types.CharField, django_types.TextField))
+                         and field.name in csv_fields]
+        context['float_keys'] =  [field.name for field in modelClass._meta.fields if isinstance(field,(django_types.FloatField,django_types.DecimalField))]
+        foreign_fields = [field.name + '_id' for field in modelClass._meta.fields if
+                          isinstance(field, django_types.ForeignObject)]
+        context['foreign_fields'] = filter(lambda x: x in csv_fields, foreign_fields)
+        context.update(metadata)
+        worker = Pool(initializer=context_initializer, initargs=(context,), maxtasksperchild=100000)
+        counter = 0
+        reset_queries()
+        try:
+            while True:
+                rows = list(islice(reader, 0, 4000))
+                if not rows: break
+                if len(rows)>100:
+                    objects_to_save = worker.map(create_object_from_dict, rows)
+                else:
+                    context_initializer(context)
+                    objects_to_save = map(create_object_from_dict, rows)
+                if len(rows) != len(objects_to_save):
+                    print "There are error in multithreaded map"
+                if not all(objects_to_save):
+                    print "There are error objects"
+                objects_saved = False
+                errors = 0
+                while not objects_saved:
+                    try:
+                        modelClass.objects.bulk_create(objects_to_save)
+                        objects_saved = True
+                    except IntegrityError as e:
+                        errors += 1
+                        if errors > 1000:
+                            print 'Too many DB integrity errors'
+                            raise
+                        if not try_resolve_foreign_key(objects_to_save, rows, e): raise
+                counter += len(objects_to_save)
+                print '%d rows fetched' % counter
+                print "Sql queries fired:", len(connection.queries)
+                reset_queries()
+                if counter % 100000 == 0:
+                    gc.collect()
+        except Exception as e:
+            print 'Error in main loop in analize_csv', e
+            print traceback.print_exc()
+        finally:
+            gc.collect()
+            worker.close()
+            worker.join()
 
 
-fields_for_site_domain_report = ['advertiser_name', 'commissions',
-                                 'placement_id', 'site_id', 'campaign_id', 'serving_fees',
-                                 'campaign_name', 'cost', 'placement_name', 'site_name',
-                                 'line_item_id', 'geo_country', 'publisher_name', 'creative_id',
-                                 'creative_name', 'publisher_id', 'clicks', 'total_convs',
-                                 'advertiser_id', 'insertion_order_id', 'imps', 'hour',
-                                 'insertion_order_name', 'line_item_name']
-
-# hour,advertiser_id,advertiser_name,campaign_id,campaign_name,
-# creative_id,creative_name,geo_country,insertion_order_id,
-# insertion_order_name,line_item_id,line_item_name,site_id,site_name,
-# placement_id,placement_name,publisher_id,publisher_name,imps,clicks,
-# total_convs,cost,commissions,serving_fees
 unix_epoch = datetime.datetime.utcfromtimestamp(0).replace(tzinfo=utc)
 
-
-def get_current_time():
-    return datetime.datetime.utcnow().replace(tzinfo=utc)
-
-
 # https://api.appnexus.com/creative?start_element=0&num_elements=50'
-def nexus_get_objects(token, url, params, query_set, object_class, key_field, force_update=False):
+def nexus_get_objects(token, url, params, object_class, force_update=False, get_params=None):
+    if not get_params:
+        get_params = params
     print "Begin of Nexus_get_objects func"
     last_word = re.search(r'/(\w+)[^/]*$', url).group(1)
-    #print last_word
-    objects_in_db = list(query_set)
-    #print "Objects succefully fetched from DB (%d records)" % len(objects_in_db)
     current_date = get_current_time()
-    try:
-        last_date = objects_in_db[-1].fetch_date
-    except:
+    if params:
+        query_set = object_class.objects.filter(**params)
+    else:
+        query_set = object_class.objects.all()
+    for k in params.keys():
+        if k.endswith('__in'):
+            params[k[:-4]]=','.join(str(x) for x in params[k])
+            del params[k]
+    last_date = None
+    if not force_update:
+        if object_class._meta.get_field('fetch_date'):
+            last_date = object_class.objects.aggregate(m=Max('fetch_date'))['m']
+        elif object_class._meta.get_field('last_modified'):
+            last_date = query_set.aggregate(m=Max('last_modified'))['m']
+    if not last_date:
         last_date = unix_epoch
+
+    objects_in_db = list(query_set)
     if force_update or current_date - last_date > settings.INVALIDATE_TIME:
         count, cur_records = -1, -2
         objects_by_api = []
         data_key_name = None
+        start_time = datetime.datetime.utcnow()
         while cur_records < count:
+            current_time = datetime.datetime.utcnow()
+            if current_time - start_time > settings.MAX_REPORT_WAIT: break
             if cur_records > 0:
                 params["start_element"] = cur_records
                 params["num_elements"] = min(100, count - cur_records)
-            r = requests.get(url, params=params, headers={"Authorization": token})
-            response = json.loads(r.content)['response']
+            try:
+                r = requests.get(url, params=get_params, headers={"Authorization": token})
+                response = json.loads(r.content)['response']
+            except Exception as e:
+                response={'error':e.message,'error_id':'NODATA'}
+            if response.get('error'):
+                if response['error_id']=='SYNTAX':
+                    print response['error']
+                    break
+                if response['error_id']=='NOAUTH':
+                    token = report.get_auth_token()
+                time.sleep(10)
+                continue
+            dbg_info = response['dbg_info']
+            limit = dbg_info['reads']/dbg_info['read_limit']
+            if limit>0.9:
+                time.sleep((limit-0.9)*300)
             if not data_key_name:
                 data_key_name = list(set(response.keys()) - \
                                      set([u'status', u'count', u'dbg_info', u'num_elements', u'start_element']))
@@ -121,16 +311,22 @@ def nexus_get_objects(token, url, params, query_set, object_class, key_field, fo
                     data_key_name = data_key_name[0]
             print data_key_name
             pack_of_objects = response.get(data_key_name, [])
+
             if count < 0:  # first portion of objects
                 count = response["count"]
+                if count > 10000: count = 10000
                 cur_records = 0
-            objects_by_api.extend(pack_of_objects)
+            if isinstance(pack_of_objects,list):
+                objects_by_api.extend(pack_of_objects)
+            else:
+                objects_by_api.append(pack_of_objects)
             cur_records += response['num_elements']
 
         print "Objects succefully fetched from Nexus API (%d records)" % len(objects_by_api)
-        obj_by_code = {getattr(i, key_field): i for i in objects_in_db}
+        obj_by_code = {i.pk: i for i in objects_in_db}
+        primary_key_name = object_class._meta.pk.name;
         for i in objects_by_api:
-            object_db = obj_by_code.get(i[key_field])
+            object_db = obj_by_code.get(i[primary_key_name])
             if not object_db:
                 object_db = object_class()
                 objects_in_db.append(object_db)
@@ -157,138 +353,297 @@ def nexus_get_objects(token, url, params, query_set, object_class, key_field, fo
 #Data saved to local DB
 def load_depending_data(token):
     try:
-        advertisers = nexus_get_objects(token,
-                                        'https://api.appnexus.com/advertiser',
+        cd = get_current_time()
+        with transaction.atomic():
+            advertisers = nexus_get_objects(token,
+                                            'https://api.appnexus.com/advertiser',
+                                            {},
+                                            Advertiser)
+            print 'There is %d advertisers' % len(advertisers)
+
+            for adv in advertisers:
+                # Get all of the profiles for the advertiser
+                profiles = nexus_get_objects(token,
+                                             'https://api.appnexus.com/profile',
+                                             {'advertiser_id': adv.id},
+                                             Profile, False)
+                print 'There is %d profiles' % len(profiles)
+            # adv = Advertiser.objects.values_list('id', 'name','profile_id')
+            foreign_ids = {i.profile_id: i.id for i in advertisers}
+            adv_names = {i.id: i.name for i in advertisers}
+            profiles_ids = set(Profile.objects.values_list('id', flat=True))
+            missing_profiles = set(foreign_ids) - profiles_ids
+            for i in missing_profiles:
+                p = Profile(pk=i)
+                fill_null_values(p)
+                p.created_on = cd
+                p.fetch_date = cd
+                p.advertiser_id = foreign_ids[i]
+                name = adv_names[foreign_ids[i]]
+                p.name = 'Missed profile for %s' % name
+                p.save()
+                print 'Created profile "%s"' % p.name
+
+        developers = nexus_get_objects(token,
+                                       'https://api.appnexus.com/developer',
+                                       {},
+                                       Developer, False)
+        print 'There is %d developers ' % len(developers)
+        buyer_groups = nexus_get_objects(token,
+                                         'https://api.appnexus.com/buyer-group',
+                                         {},
+                                         BuyerGroup, False)
+        print 'There is %d buyer groups ' % len(buyer_groups)
+
+        # There is mutual dependence
+        with transaction.atomic():
+            ad_profiles = nexus_get_objects(token,
+                                            'https://api.appnexus.com/ad-profile',
+                                            {},
+                                            AdProfile, False)
+            print 'There is %d adware profiles ' % len(ad_profiles)
+            members = nexus_get_objects(token,
+                                        'https://api.appnexus.com/member',
                                         {},
-                                        Advertiser.objects.all().order_by('fetch_date'),
-                                        Advertiser, 'id')
-        print 'There is %d advertisers' % len(advertisers)
+                                        Member, False)
+            print 'There is %d members ' % len(members)
+
+        # Get all operating system families:
+        operating_systems_families = nexus_get_objects(token,
+                                                       'https://api.appnexus.com/operating-system-family',
+                                                       {},
+                                                       OSFamily, False)
+        print 'There is %d operating system families' % len(operating_systems_families)
+
+        # Get all operating systems:
+        operating_systems = nexus_get_objects(token,
+                                              'https://api.appnexus.com/operating-system-extended',
+                                              {},
+                                              OperatingSystemExtended, False)
+        print 'There is %d operating systems ' % len(operating_systems)
+
+        with transaction.atomic():
+            date_in_db = ContentCategory.objects.aggregate(m=Max('fetch_date'))['m']
+            if cd - date_in_db > settings.INVALIDATE_TIME:
+                o1 = nexus_get_objects(token,
+                                       'http://api.appnexus.com/content-category',
+                                       {'category_type': 'universal'},
+                                       ContentCategory, True)
+                o2 = nexus_get_objects(token,
+                                       'http://api.appnexus.com/content-category',
+                                       {},
+                                       ContentCategory, True)
+        print 'There is %d content categories ' % ContentCategory.objects.count()
+
+        # Get all optimisation zones:
+        optimisation_zones = nexus_get_objects(token,
+                                               'https://api.appnexus.com/optimization-zone',
+                                               {},
+                                               OptimizationZone, False)
+        print 'There is %d optimisation zones ' % len(optimisation_zones)
+
+        # Get all mobile app instances:
+        mobile_app_instances = nexus_get_objects(token,
+                                                 'https://api.appnexus.com/mobile-app-instance',
+                                                 {},
+                                                 MobileAppInstance, False)
+        print 'There is %d mobile app instances ' % len(mobile_app_instances)
+
+        with transaction.atomic():
+            # Get all sites:
+            sites = nexus_get_objects(token,
+                                      'https://api.appnexus.com/site',
+                                      {},
+                                      Site, False)
+            print 'There is %d sites ' % len(sites)
+            # Get all publishers:
+            publishers = nexus_get_objects(token,
+                                           'https://api.appnexus.com/publisher',
+                                           {},
+                                           Publisher, False)
+            print 'There is %d publishers ' % len(publishers)
+            # Get all yield management profiles:
+            yield_management_profiles = nexus_get_objects(token,
+                                                          'https://api.appnexus.com/ym-profile',
+                                                          {},
+                                                          # Probary, its need to load data for all publishers in loop
+                                                          YieldManagementProfile, False)
+            print 'There is %d yield management profiles ' % len(yield_management_profiles)
+
+            for pub in publishers:
+                payment_rules = nexus_get_objects(token,
+                                                    'https://api.appnexus.com/payment-rule',
+                                                    {'id':pub.base_payment_rule_id},
+                                                    PaymentRule, True,
+                                                    {'publisher_id': pub.pk, 'id':pub.base_payment_rule_id}
+                                                 )
+                print 'There is %d base payment rules ' % len(payment_rules)
+
+        # Get all payment rules:
+        for pub in publishers:
+            payment_rules = nexus_get_objects(token,
+                                              'https://api.appnexus.com/payment-rule',
+                                              {'publisher': pub},
+                                              PaymentRule, True,
+                                              {'publisher_id': pub.pk})
+            print 'There is %d payment rules for publisher %s' % (len(payment_rules),pub.name)
+            print 'Ids:', ','.join(str(x.pk) for x in payment_rules)
+
+        # Get all users:
+        users = nexus_get_objects(token,
+                                  'http://api.appnexus.com/user',
+                                  {},
+                                  User, False)
+        print 'There is %d users ' % len(users)
+        # Get all platform members:
+        platform_members = nexus_get_objects(token,
+                                             'https://api.appnexus.com/platform-member',
+                                             {},
+                                             PlatformMember, False)
+        print 'There is %d platform members ' % len(platform_members)
+        # Get all deals:
+        deals = nexus_get_objects(token,
+                                  'http://api.appnexus.com/deal',
+                                  {},
+                                  Deal, False)
+        print 'There is %d deals ' % len(deals)
+        # Get all demographic areas:
+        demographic_areas = nexus_get_objects(token,
+                                              'https://api.appnexus.com/dma',
+                                              {},
+                                              DemographicArea, False)
+        print 'There is %d  demographic areas' % len(demographic_areas)
+        # Get all countries:
+        countries = nexus_get_objects(token,
+                                              'https://api.appnexus.com/country',
+                                              {},
+                                              Country, False)
+        print 'There is %d  countries' % len(countries)
+        # Get all regions:
+        regions = nexus_get_objects(token,
+                                              'https://api.appnexus.com/region',
+                                              {},
+                                              Region, False)
+        print 'There is %d  regions' % len(regions)
 
         for adv in advertisers:
             advertiser_id = adv.id
-            # Get all of the profiles for the advertiser
-            profiles = nexus_get_objects(token,
-                                         'https://api.appnexus.com/profile',
-                                         {'advertiser_id': advertiser_id},
-                                         Profile.objects.filter(advertiser=advertiser_id).order_by('fetch_date'),
-                                         Profile, 'id', False)
-            print 'There is %d profiles' % len(profiles)
+            # Get all conversion pixels:
+            conversion_pixels = nexus_get_objects(token,
+                                             'https://api.appnexus.com/pixel',
+                                             {'advertiser_id': advertiser_id},
+                                             ConversionPixel, False)
+            print 'There is %d  conversion pixels' % len(conversion_pixels)
             # Get all of the insertion orders for one of your advertisers:
             insert_order = nexus_get_objects(token,
                                              'https://api.appnexus.com/insertion-order',
                                              {'advertiser_id': advertiser_id},
-                                             InsertionOrder.objects.filter(advertiser=advertiser_id).order_by('fetch_date'),
-                                             InsertionOrder, 'id', False)
+                                             InsertionOrder, False)
             print 'There is %d  insertion orders' % len(insert_order)
-            if len(insert_order) > 0:
-                print 'First insertion order:'
-                print insert_order[0]
-                print '-' * 80
+
             # Get all of an advertiser's line items:
             line_items = nexus_get_objects(token,
                                            'https://api.appnexus.com/line-item',
                                            {'advertiser_id': advertiser_id},
-                                           LineItem.objects.filter(advertiser=advertiser_id).order_by('fetch_date'),
-                                           LineItem, 'id', False)
+                                           LineItem, False)
             print 'There is %d  line items' % len(line_items)
-            if len(insert_order) > 0:
-                print 'First insertion order:'
-                print insert_order[0]
-                print '-' * 80
             campaigns = nexus_get_objects(token,
                                           'https://api.appnexus.com/campaign',
                                           {'advertiser_id': advertiser_id},
-                                          Campaign.objects.filter(advertiser=advertiser_id).order_by('fetch_date'),
-                                          Campaign, 'id', False)
+                                          Campaign, False)
             print 'There is %d campaigns ' % len(campaigns)
-            # Get all operating system families:
-            operating_systems_families = nexus_get_objects(token,
-                                                           'https://api.appnexus.com/operating-system-family',
-                                                           {},
-                                                           OSFamily.objects.all().order_by('fetch_date'),
-                                                           OSFamily, 'id', False)
-            print 'There is %d operating system families' % len(operating_systems_families)
-            # Get all operating systems:
-            operating_systems = nexus_get_objects(token,
-                                                  'https://api.appnexus.com/operating-system-extended',
-                                                  {},
-                                                  OperatingSystemExtended.objects.all().order_by('fetch_date'),
-                                                  OperatingSystemExtended, 'id', False)
-            print 'There is %d operating systems ' % len(operating_systems)
-    except Exception as e:
-        print "There is error in load_depending_data:",e
-        print e.message
-        print traceback.print_exc()
 
-import contextlib
-class fakeWith(object):
-    def __enter__(self):
-        pass
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        pass
+    except Exception as e:
+            print "There is error in load_depending_data:",e
+            print e.message
+            print traceback.print_exc()
+
+
+# class fakeWith(object):
+#     def __enter__(self):
+#         pass
+#     def __exit__(self, exc_type, exc_val, exc_tb):
+#         pass
 
 # Task, executed twice in hour. Get new data from NexusApp
 def dayly_task(day=None, load_objects_from_services=True, output=None):
     old_stdout, old_error = sys.stdout, sys.stderr
     file_output = None
     if not output:
-        log_file_name = 'rtb/logs/DomainPerformanceReport_%s.log' % get_current_time().strftime('%Y-%m-%dT%H-%M-%S')
+        log_file_name = 'rtb/logs/Dayly_Task_%s.log' % get_current_time().strftime('%Y-%m-%dT%H-%M-%S')
         file_output = open(log_file_name, 'w')
         output=file_output
     sys.stdout, sys.stderr = output, output
-    files = []
     print ('NexusApp API pooling...')
-    # reports.get_specifed_report('network_analytics')
+    # report.get_specifed_report('network_analytics')
     try:
-        token = reports.get_auth_token()
-        fd = get_current_time()
+        token = report.get_auth_token()
         if load_objects_from_services:
             load_depending_data(token)
-        # 5 report service processes per user admitted
-        worker_pool = ThreadPool(4) # one thread reserved
-
-        #select advertisers, which do not have report data
-        advertisers = [adv for adv in Advertiser.objects.all()
-                         if not check_SiteDomainPerformanceReport_exist(adv, day)] 
-
-        print "____________________________________________"
-        print "For day %s there is %d advertisers."%(day, len(advertisers))
-        print "____________________________________________"
-        
-        campaign_dict = dict(Campaign.objects.all().values_list('id', 'name') )
-        all_line_items = set(LineItem.objects.values_list("id", flat=True))
-        # Multithreading map
-        files = worker_pool.map(lambda adv:
-                                reports.get_specifed_report('site_domain_performance',{'advertiser_id':adv.id}, token, day),
-                                advertisers)
-        for ind, adv in enumerate(advertisers):
-            advertiser_id = adv.id
-            #campaigns = campaigns_by_advertiser[adv.id]
-            #campaign_dict = {i.id: i for i in Campaign.objects.all()}
-            f=files[ind]
-            analize_csv(f, SiteDomainPerformanceReport,
-                            metadata={"campaign_dict": campaign_dict,
-                                      "all_line_items":all_line_items,
-                                      "advertiser_id" : advertiser_id})
-            print "Domain performance report for advertiser %s saved to DB"%adv.name            
+        load_report(token, day, GeoAnaliticsReport)
+        load_reports_for_all_advertisers(token, day, SiteDomainPerformanceReport)
+        # load_reports_for_all_advertisers(token, day, NetworkAnalyticsReport)
     except Exception as e:
         print 'Error by fetching data: %s' % e
         print traceback.print_exc(file=output)
     finally:
         sys.stdout, sys.stderr = old_stdout, old_error
         if file_output: file_output.close()
-        for f in files:
-            f.close()
-            os.remove(f.name)
     print "OK"
-    gc.collect()
-    print "There is %d items of garbage"%len(gc.garbage)
 
-#Check of existence of SiteDomainPerformanceReport in local DB (for yesterday)
-def check_SiteDomainPerformanceReport_exist(adv, day=None):
-    if not day:
-        day = get_current_time() - datetime.timedelta(days=1)
-        day = day.date()
-    cnt = SiteDomainPerformanceReport.objects.filter(advertiser_id=adv.id,day=day).count()
-    return cnt > 0
+
+# load report data, which is not linked with advertiser
+def load_report(token, day, ReportClass):
+    if not token:
+        token = report.get_auth_token()
+    try:
+        ReportClass._meta.get_field('day')
+        filter_params = {"day": day}
+    except:  # Hour
+        filter_params = {"hour__date": day}
+    q = ReportClass.objects.filter(**filter_params).count()
+    if q > 0:
+        print  "There is %d records in %s, nothing to do."%(q, ReportClass._meta.db_table)
+        return
+    f_name = report.get_specifed_report(ReportClass, {}, token, day)
+    analize_csv(f_name, ReportClass, {})
+    os.remove(f_name)
+
+def load_reports_for_all_advertisers(token, day, ReportClass):
+    if not token:
+        token = report.get_auth_token()
+    # 5 report service processes per user admitted
+    worker_pool = ThreadPool(5)
+    try:
+        ReportClass._meta.get_field('day')
+        filter_params = {"day": day}
+    except:  # Hour
+        filter_params = {"hour__date": day}
+
+    q = ReportClass.objects.filter(**filter_params).values('advertiser_id') \
+        .annotate(cnt=Count('*')).filter(cnt__gt=0)
+    #print q.query
+    # select advertisers, which do not have report data
+    advertisers_having_data = set(x['advertiser_id'] for x in q)
+    print advertisers_having_data
+    all_advertisers = dict(Advertiser.objects.all().values_list('id', 'name'))
+    advertisers_need_load = set(all_advertisers) - advertisers_having_data
+    campaign_dict = dict(Campaign.objects.all().values_list('id', 'name'))
+    all_line_items = set(LineItem.objects.values_list("id", flat=True))
+
+    filenames = worker_pool.map(lambda id:
+                                report.get_specifed_report(ReportClass, {'advertiser_id': id}, token, day),
+                                advertisers_need_load)
+    try:
+        for f, advertiser_id in izip(filenames, advertisers_need_load):
+            analize_csv(f, ReportClass,
+                        metadata={"campaign_dict": campaign_dict,
+                                  #"all_line_items": all_line_items,
+                                  "advertiser_id": advertiser_id})
+            print "%s for advertiser %s saved to DB" %(ReportClass, all_advertisers[advertiser_id])
+    finally:
+        for f in filenames:
+            os.remove(f)
+
+
 if __name__ == '__main__': dayly_task()

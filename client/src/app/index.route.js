@@ -30,7 +30,17 @@
         url: '/campaign/:id',
         templateUrl: 'app/campaign/camp.html',
         controller: 'CampaignController',
-        controllerAs: 'camp'
+        controllerAs: 'camp',
+        resolve:{
+          Campaign:  function(Camp,$stateParams){
+            if (!$stateParams.id) {
+              $stat.go(home.main)
+            }
+            return Camp.nameCampaigns($stateParams.id).then(function (res) {
+              return res
+            });
+          }
+        }
       });
 
     $urlRouterProvider.otherwise('/');

@@ -4,16 +4,20 @@ all_accepted_operators={
     #"AND":operator.mul,
     #"OR":operator.add,
     "=":operator.eq,
-    "!=":operator.ne,
+    "<>": operator.ne,
     ">":operator.gt,
     "<": operator.lt,
     ">=": operator.ge,
     "<=": operator.le,
+    "contains": operator.contains, #lambda a, b: b in a,
+    "notcontains": lambda a, b: b not in a,
+    "startswith": lambda a, b: a.startswith(b),
+    "endswith": lambda a, b: a.endswith(b),
 }
 def clause_evaluator(clause):
     oper=all_accepted_operators[clause[1]]
-    field_name = clause[0]
-    const = clause[2]
+    field_name = clause[0].strip()
+    const = clause[2].strip()
     if const[:1]=="\"":
         if const[-1]!="\"": raise ValueError("Quotes must be paired!")
         const = const[1:-1].decode("string_escape")
@@ -29,8 +33,11 @@ def clause_evaluator(clause):
         if isinstance(left, (float, decimal.Decimal)):
             left = round(left,4)
             right = round(right, 4)
+        if isinstance(left, (str, unicode)):
+            left = left.strip()
         try:
-            return oper(left,right)
+            r = oper(left,right)
+            return r
         except:
             return False
     return calc
@@ -65,7 +72,7 @@ def get_filter_function(filter_clause):
         filter_function = func_evaluator(compile_string, clause_list)
     else:
         # simple clause
-        clause = re.compile(r"^(.*?)(>|<|=|!=|>=|<=)(.*)$")
+        clause = re.compile(r"^(.*?)(>|<|=|<>|>=|<=|\bcontains\b|\bnotcontains\b|\bstartswith\b|\bendswith\b)(.*)$")
         m = re.match(clause, filter_clause)
         filter_function = clause_evaluator(m.groups()) if m else None
     return filter_function

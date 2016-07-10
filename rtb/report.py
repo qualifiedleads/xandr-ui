@@ -5,7 +5,7 @@ import requests
 import time
 import os
 from django.conf import settings
-
+import utils
 #log_path=os.path.join(os.path.dirname(os.path.dirname(__file__)),'logs')
 log_path='rtb/logs'
 
@@ -17,16 +17,15 @@ def get_report(rid, token):
     url = "https://api.appnexus.com/report-download?id={0}".format(rid)
     headers = {"Authorization": token}
 
-    response = requests.get(url, headers=headers)
+    response = requests.get(url, headers=headers, stream=True)
 
     #Data saved to file to prevent using extra RAM (and debugging)
-    fd = open('%s/%s_report_%s.csv'%(log_path, get_str_time(),rid), 'wb+')
-    for chunk in response.iter_content(1024):
+    fd = open('%s/%s_report_%s.csv' % (log_path, get_str_time(), rid), 'wb')
+    for chunk in response.iter_content(4096):
         fd.write(chunk)
-    fd.flush()
-    fd.seek(0)
-    #file-like object
-    return fd
+    response.close()
+    fd.close()
+    return fd.name
 
 
 def get_report_status(rid, token):
@@ -35,101 +34,22 @@ def get_report_status(rid, token):
     url = "https://api.appnexus.com/report?id={0}".format(rid)
     headers = {"Authorization": token}
     start_time = datetime.datetime.utcnow()
+    sleep_time = 1
     while True:
         current_time = datetime.datetime.utcnow()
         if current_time-start_time>settings.MAX_REPORT_WAIT : break
         # Continue making this GET call until the execution_status is "ready"
         response = requests.get(url, headers=headers)
         content = json.loads(response.content)
-        exec_stat = content['response']['execution_status']
+        exec_stat = content['response'].get('execution_status')
         if exec_stat == "ready": break
-        time.sleep(1)
+        time.sleep(sleep_time)
+        sleep_time = min(120, sleep_time*2)
     if exec_stat!="ready" : return ""
     data = get_report(rid, token)
-
     return data
     
-column_sets_for_reports ={
-    "network_analytics":[
-        "hour",
-        "advertiser_id",
-        "advertiser_name",
-        "campaign_id",
-        "campaign_name",
-        "creative_id",
-        "creative_name",
-        "geo_country",
-        "insertion_order_id",
-        "insertion_order_name",
-        "line_item_id",
-        "line_item_name",
-        "site_id",
-        "site_name",
-        "placement_id",
-        "placement_name",
-        "publisher_id",
-        "publisher_name",
-        "imps",
-        "clicks",
-        "total_convs",
-        "cost",
-        "commissions",
-        "serving_fees"
-    ],
-    "site_domain_performance_":[
-        "day",
-        "campaign",
-        "booked_revenue",
-        "imps",
-        "clicks",
-        "click_thru_pct",
-        "site_domain"
-    ],
-    "site_domain_performance":[
-        "day" ,
-        "site_domain" ,
-        "campaign" ,
-        "line_item_id" ,
-        "top_level_category" ,
-        "second_level_category" ,
-        "deal_id" ,
-        "advertiser" ,
-        "buyer_member_id" ,
-        "operating_system" ,
-        "supply_type" ,
-        "mobile_application_id" ,
-        "mobile_application_name" ,
-        "mobile_application" ,
-        "fold_position" ,
-        "age_bucket" ,
-        "gender" ,
-        "is_remarketing" ,
-        #"conversion_pixel_id" , probary pixel_id
-        "booked_revenue" ,
-        "clicks" ,
-        "click_thru_pct" ,
-        "convs_per_mm" ,
-        "convs_rate" ,
-        "cost_ecpa" ,
-        "cost_ecpc" ,
-        "cpm" ,
-        "ctr" ,
-        "imps" ,
-        "media_cost" ,
-        "post_click_convs" ,
-        "post_click_convs_rate" ,
-        "post_view_convs" ,
-        "post_view_convs_rate" ,
-        "profit" ,
-        "profit_ecpm" ,
-        "imps_viewed" ,
-        "view_measured_imps" ,
-        "view_rate" ,
-        "view_measurement_rate" ,
-    ]
-}
 no_hours_reports=set(["site_domain_performance"])
-
 
 def get_auth_token():
     try:
@@ -142,14 +62,17 @@ def get_auth_token():
         return None
 
 one_day = datetime.timedelta(days=1)
-def get_specifed_report(report_type, query_data={}, token=None, day = None):
+
+
+def get_specifed_report(ReportClass, query_data={}, token=None, day=None):
+    report_type = ReportClass.api_report_name
     if not token:
         token=get_auth_token()
     url = "https://api.appnexus.com/report"
     report_data = {}
     report_data['report'] = {
         "report_type": report_type,
-        "columns": column_sets_for_reports[report_type],
+        "columns": utils.get_column_list_for_report(ReportClass),
         "timezone": "UTC",
         "format": "csv"
     }
@@ -163,23 +86,34 @@ def get_specifed_report(report_type, query_data={}, token=None, day = None):
 
     headers = {"Authorization": token, 'Content-Type': 'application/json'}
 
-    r = requests.post(url, params=query_data, data=json.dumps(report_data), headers=headers)
-
-    out = json.loads(r.content)
-    
     report_id='Unassigned'
-    
-    try:
-        report_id = out['response']['report_id']
-    except Exception as e:
-        print 'Error by analizing response: %s'%e
-        print out
-
+    start_time = datetime.datetime.utcnow()
+    while report_id=='Unassigned':
+        current_time = datetime.datetime.utcnow()
+        if current_time-start_time>settings.MAX_REPORT_WAIT : break
+        r = requests.post(url, params=query_data, data=json.dumps(report_data), headers=headers)
+        response = json.loads(r.content)['response']
+        if response['status']=='error':
+            if response['error_id']=='LIMIT':
+                print "Max report count limit reached, waiting..."
+                time.sleep(30)
+            else:
+                print 'Other error:', response['error']
+                time.sleep(10)
+            continue
+        try:
+            report_id = response['report_id']
+        except Exception as e:
+            print 'Error by getting report_id: %s'%e
+            print response
+            time.sleep(5)
     #if settings.DEBUG:
         #with open('%s/%s_report_response_%s.json'%(log_path, get_str_time(), report_id), 'wb') as f:
             #f.write(r.content)
-    
-    return get_report_status(report_id, token)
+    if report_id != 'Unassigned':
+        return get_report_status(report_id, token)
+    else:
+        return ''
     
 #function to get all advertisers with API
 def get_all_advertisers(token):    

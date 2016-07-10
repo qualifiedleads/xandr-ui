@@ -12,53 +12,34 @@
     vm.Main = Main;
     vm.multipleTotalCount = 0;
     vm.checkChart = [];
-    vm.by = '';
+    vm.by = 'imp,cvr,cpc,clicks,spend,conv,ctr';
     var LC = $translate.instant;
     /** LOCAL STORAGE CHECKBOX - START **/
 
-
-
-    var index;
-    if ($localStorage.series == null ){
-      $localStorage.series = [
-        { valueField: 'imp', name: 'Impressions' }, //yes
-        { valueField: 'cvr', name: 'CVR' },  //NET
-        { valueField: 'cpc', name: 'CPC' },  //yes
-        { valueField: 'clicks', name: 'clicks' }, //yes
-        { valueField: 'spend', name: 'media' },//yes
-        { valueField: 'conv', name: 'conversions' },//yes
-        { valueField: 'ctr', name: 'CTR' } //yes
-      ];
-    }
-    //$localStorage.checkChart = null;
-    var tempIndex = [];
-    if ($localStorage.checkChart == null ){
+    if ($localStorage.checkChart == null ) {
       $localStorage.checkChart = {
         'imp': true,
         'cvr': true,
-        'cpc':true,
+        'cpc': true,
         'clicks': true,
         'spend': true,
         'conv': true,
         'ctr': true
       };
-      tempIndex = [];
-      for(index in $localStorage.checkChart) {
-        if ($localStorage.checkChart[index] == true) {
-          tempIndex.push(index);
-        }
-      }
-      vm.by = tempIndex.join();
-    } else {
-      tempIndex = [];
-      for(index in $localStorage.checkChart) {
-        if ($localStorage.checkChart[index] == true) {
-          tempIndex.push(index);
-        }
-      }
-      vm.by = tempIndex.join();
     }
+
+    vm.chartSeries = [
+      { valueField: 'imp', name: 'Impressions', visible: $localStorage.checkChart.imp }, //yes
+      { valueField: 'cvr', name: 'CVR', visible: $localStorage.checkChart.cvr },  //NET
+      { valueField: 'cpc', name: 'CPC', visible: $localStorage.checkChart.cpc },  //yes
+      { valueField: 'clicks', name: 'clicks', visible: $localStorage.checkChart.clicks }, //yes
+      { valueField: 'spend', name: 'media', visible: $localStorage.checkChart.spend },//yes
+      { valueField: 'conv', name: 'conversions', visible: $localStorage.checkChart.conv },//yes
+      { valueField: 'ctr', name: 'CTR', visible: $localStorage.checkChart.ctr } //yes
+    ];
     /** LOCAL STORAGE CHECKBOX - END **/
+
+
 
     /** DATE PIKER - START **/
     if ($localStorage.dataStart == null && $localStorage.dataEnd == null ){
@@ -167,6 +148,9 @@
           });
       }
     });
+
+
+    
     /** BINDING OPTIONS - END **/
 
     /** TOTALS - START **/
@@ -197,6 +181,10 @@
       alignment: 'left',
       headerFilter: {
         visible: true
+      },
+      filterRow: {
+        visible: true,
+        applyFilter: "auto"
       },
       export: {
         enabled: true,
@@ -311,7 +299,7 @@
                   visible: false
                 }
               },
-              series: $localStorage.series,
+              series: vm.chartSeries,
               legend: {
                 visible: false
               },
@@ -325,14 +313,12 @@
               }
             };
               container.addClass('img-container');
-              $window.angular.element('<div id="chartMulti' + options.rowIndex + '" ></div>')
-
-              //.attr("src", options.value)
-                .appendTo(container);
-              $window.$('#chartMulti' + options.rowIndex).dxChart(chartOptions).dxChart('instance');
+              var chart = $window.$('<div class="chartMulti" ></div>');
+              chart.dxChart(chartOptions);
+              chart.appendTo(container);
             } else {
               container.addClass('img-container');
-              $window.angular.element('<div id="chartMulti" ></div>')
+              $window.$('<div id="chartMulti" ></div>')
 
               //.attr("src", options.value)
                 .appendTo(container);
@@ -358,7 +344,7 @@
       onInitialized: function (data) {
         vm.chartOptionsFunc = data.component;
       },
-      series: $localStorage.series,
+      series: vm.chartSeries,
       size: {
         width: 500,
         height: 230
@@ -406,140 +392,81 @@
     };
     /** BIG DIAGRAM  - END **/
 
+    /**
+     * @param seriesName {string}
+     * @param seriesShortName {string}
+     * @param selected {boolean}
+     */
+    vm.updateCharts = function (seriesName, seriesShortName, selected) {
+      vm.chartStore.load();
+      var gridCharts = {};
+      $localStorage.checkChart[seriesShortName] = selected;
+      if (selected) {
+        vm.chartOptionsFunc.getSeriesByName(seriesName).show();
+        gridCharts = $window.$('.chartMulti');
+        for(var i = 0; i < gridCharts.length; i++) {
+          $window.$(gridCharts[i]).dxChart('instance').getSeriesByName(seriesName).show();
+        }
+      } else {
+        $localStorage.checkChart.imp = false;
+        vm.chartOptionsFunc.getSeriesByName(seriesName).hide();
+        gridCharts = $window.$('.chartMulti');
+        for(var i = 0; i < gridCharts.length; i++) {
+          $window.$(gridCharts[i]).dxChart('instance').getSeriesByName(seriesName).hide();
+        }
+      }
+    };
+
     /** CHECKBOX CHART - START **/
     vm.impressions = {
       text: LC('MAIN.CHECKBOX.IMPRESSIONS'),
-      value: $localStorage.checkChart.imp? true:false,
+      value: $localStorage.checkChart.imp,
       onValueChanged: function (e) {
-        if (e.value == true) {
-          $localStorage.checkChart.imp = true;
-          $localStorage.series.push({ valueField: 'imp', name: 'Impressions' });
-          $state.reload();
-        } else {
-          $localStorage.checkChart.imp = false;
-          for(var index in $localStorage.series) {
-            if ($localStorage.series[index].valueField == 'imp') {
-              $localStorage.series.splice(index, 1);
-            }
-          }
-          $state.reload();
-        }
+        vm.updateCharts('Impressions', 'imp', e.value);
       }
     };
 
     vm.CPA = {
       text: LC('MAIN.CHECKBOX.CPA'),
-      value: $localStorage.checkChart.cvr? true:false,
+      value: $localStorage.checkChart.cvr,
       onValueChanged: function (e) {
-        if (e.value == true) {
-          $localStorage.checkChart.cvr = true;
-          $localStorage.series.push({ valueField: 'cvr', name: 'CVR' });
-          $state.reload();
-        } else {
-          $localStorage.checkChart.cvr = false;
-          for(var index in $localStorage.series) {
-            if ($localStorage.series[index].valueField == 'cvr') {
-              $localStorage.series.splice(index, 1);
-            }
-          }
-          $state.reload();
-        }
+        vm.updateCharts('CVR', 'cvr', e.value);
       }
     };
 
     vm.CPC = {
       text: LC('MAIN.CHECKBOX.CPC'),
-      value: $localStorage.checkChart.cpc? true:false,
+      value: $localStorage.checkChart.cpc,
       onValueChanged: function (e) {
-        if (e.value == true) {
-          $localStorage.checkChart.cpc = true;
-          $localStorage.series.push({ valueField: 'cpc', name: 'CPC' });
-          $state.reload();
-        } else {
-          $localStorage.checkChart.cpc = false;
-          for(var index in $localStorage.series) {
-            if ($localStorage.series[index].valueField == 'cpc') {
-              $localStorage.series.splice(index, 1);
-            }
-          }
-          $state.reload();
-        }
+        vm.updateCharts('CPC', 'cpc', e.value);
       }
     };
     vm.clicks = {
       text: LC('MAIN.CHECKBOX.CLICKS'),
-      value: $localStorage.checkChart.clicks? true:false,
+      value: $localStorage.checkChart.clicks,
       onValueChanged: function (e) {
-        if (e.value == true) {
-          $localStorage.checkChart.clicks = true;
-          $localStorage.series.push({ valueField: 'clicks', name: 'clicks' });
-          $state.reload();
-        } else {
-          $localStorage.checkChart.clicks = false;
-          for(var index in $localStorage.series) {
-            if ($localStorage.series[index].valueField == 'clicks') {
-              $localStorage.series.splice(index, 1);
-            }
-          }
-          $state.reload();
-        }
+        vm.updateCharts('clicks', 'clicks', e.value);
       }
     };
     vm.media = {
       text: LC('MAIN.CHECKBOX.MEDIA_SPENT'),
-      value: $localStorage.checkChart.spend? true:false,
+      value: $localStorage.checkChart.spend,
       onValueChanged: function (e) {
-        if (e.value == true) {
-          $localStorage.checkChart.spend = true;
-          $localStorage.series.push({ valueField: 'spend', name: 'media' });
-          $state.reload();
-        } else {
-          $localStorage.checkChart.spend = false;
-          for(var index in $localStorage.series) {
-            if ($localStorage.series[index].valueField == 'spend') {
-              $localStorage.series.splice(index, 1);
-            }
-          }
-          $state.reload();
-        }
+        vm.updateCharts('media', 'spend', e.value);
       }
     };
     vm.conversions = {
       text: LC('MAIN.CHECKBOX.CONVERSIONS'),
-      value: $localStorage.checkChart.conv? true:false,
+      value: $localStorage.checkChart.conv,
       onValueChanged: function (e) {
-        if (e.value == true) {
-          $localStorage.checkChart.conv = true;
-          $localStorage.series.push({ valueField: 'conv', name: 'conversions' });
-          $state.reload();
-        } else {
-          $localStorage.checkChart.conv = false;
-          for(var index in $localStorage.series) {
-            if ($localStorage.series[index].valueField == 'conv') {
-              $localStorage.series.splice(index, 1);
-            }
-          }
-          $state.reload();
-        }
+        vm.updateCharts('conversions', 'conv', e.value);
       }
     };
     vm.CTR = {
       text: LC('MAIN.CHECKBOX.CTR'),
-      value: $localStorage.checkChart.ctr? true:false,
+      value: $localStorage.checkChart.ctr,
       onValueChanged: function (e) {
-        if (e.value == true) {
-          $localStorage.checkChart.ctr = true;
-          $localStorage.series.push({ valueField: 'ctr', name: 'CTR' });
-          $state.reload();
-        } else {
-          $localStorage.checkChart.ctr = false;
-          for(var index in $localStorage.series) {
-            if ($localStorage.series[index].valueField == 'ctr') {
-              $localStorage.series.splice(index, 1);
-            }
-          }
-          $state.reload();
-        }
+        vm.updateCharts('CTR', 'ctr', e.value);
       }
     };
     /** CHECKBOX CHART - END **/

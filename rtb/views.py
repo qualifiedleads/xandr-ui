@@ -23,10 +23,13 @@ zero_sum = {
     'cvr': 0,
     'ctr': 0,
     'spend': 0,
-    'media_cost': 0,
-    'post_click_convs': 0,
-    'post_view_convs': 0,
-    'imps': 0,
+    #'media_cost': 0,
+    'conv_click':0,
+    #'post_click_convs': 0,
+    'conv_view':0,
+    #'post_view_convs': 0,
+    'imp': 0,
+    #'imps': 0,
     'clicks': 0,
 }
 def calc_another_fields(obj):
@@ -56,9 +59,11 @@ def not_none(o):
 
 def make_sum(dict1, dict2):
     res = {}
-    keys = set(dict1)|set(dict2)
-    for k in keys:
-        res[k] = not_none(dict1.get(k)) + not_none(dict2.get(k))
+    #keys = set(dict1)|set(dict2)
+    for k in dict1.keys():
+        try:
+            res[k] = not_none(dict1.get(k)) + not_none(dict2.get(k))
+        except: pass
     return res
 
 def get_campaigns_data(advertiser_id, from_date, to_date):

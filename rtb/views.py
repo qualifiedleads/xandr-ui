@@ -29,34 +29,34 @@ zero_sum = {
     'clicks': 0,
 }
 def calc_another_fields(obj):
-    res = {}
+    res = {
+        'conv': None,
+        'cpc': None,
+        'cpm': None,
+        'cvr': None,
+        'ctr': None,
+    }
     res.update(obj)
     try:
         res['conv'] = (obj.get('conv', 0) or 0) + (obj.get('conv_click', 0) or 0) + (obj.get('conv_view', 0) or 0)
-        res['cpc'] = obj['spend'] / obj['clicks'] if obj['clicks'] else 0
-        res['cpm'] = obj["spend"] / obj['imp'] * 1000 if obj['imp'] else 0
-        res['cvr'] = res["conv"] / obj['imp'] if obj['imp'] else 0
-        res['ctr'] = obj["clicks"] / obj['imp'] if obj['imp'] else 0
-    except:
-        res['conv'] = None
-        res['cpc'] = None
-        res['cpm'] = None
-        res['cvr'] = None
-        res['ctr'] = None
+        res['cpc'] = float(obj['spend']) / obj['clicks'] if obj['clicks'] else 0
+        res['cpm'] = float(obj["spend"]) / obj['imp'] * 1000 if obj['imp'] else 0
+        res['cvr'] = float(res["conv"]) / obj['imp'] if obj['imp'] else 0
+        res['ctr'] = float(obj["clicks"]) / obj['imp'] if obj['imp'] else 0
+    except: pass
     res.pop('conv_click', None)
     res.pop('conv_view', None)
     res.pop('campaign', None)
 
     return res
 
+def not_none(o):
+    return 0 if o is None else o
 
 def make_sum(dict1, dict2):
     res = {}
     for k in dict1:
-        try:
-            res[k] = dict1.get(k, 0) + dict2.get(k, 0)
-        except:
-            res[k] = dict1[k]
+        res[k] = not_none(dict1.get(k, 0)) + not_none(dict2.get(k, 0))
     return res
 
 def get_campaigns_data(advertiser_id, from_date, to_date):

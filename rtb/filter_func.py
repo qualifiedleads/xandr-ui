@@ -17,7 +17,7 @@ all_accepted_operators={
 def clause_evaluator(clause):
     oper=all_accepted_operators[clause[1]]
     field_name = clause[0].strip()
-    const = clause[2]
+    const = clause[2].strip()
     if const[:1]=="\"":
         if const[-1]!="\"": raise ValueError("Quotes must be paired!")
         const = const[1:-1].decode("string_escape")
@@ -33,9 +33,10 @@ def clause_evaluator(clause):
         if isinstance(left, (float, decimal.Decimal)):
             left = round(left,4)
             right = round(right, 4)
+        if isinstance(left, (str, unicode)):
+            left = left.strip()
         try:
             r = oper(left,right)
-            print left, clause[1], right, '=', r
             return r
         except:
             return False

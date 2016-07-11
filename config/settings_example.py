@@ -119,7 +119,7 @@ STATICFILES_DIRS = [
 ]
 
 STATIC_URL = '/client/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'client", "dist')
+STATIC_ROOT = os.path.join(BASE_DIR, "client", "dist")
 MEDIA_URL = '/media/'
 
 # Django Rest Framework Additional Settings

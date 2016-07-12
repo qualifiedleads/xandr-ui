@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from models import Campaign
 from django.http import JsonResponse
 
+
 @api_view()
 def singleCampaign(request, id):
     """
@@ -16,15 +17,14 @@ Get campaign name by id
 
     """
     obj = Campaign.objects.get(pk=id)
-    return Response( {'id':obj.id, 'campaign':obj.name})
-
+    return Response({'id': obj.id, 'campaign': obj.name})
 
 @api_view()
 def graphInfo(request, id):
     """
 Get single campaign statistics data for given period by selected categories: impression, cpa, cpc, clicks, mediaspent, conversions, ctr
 
-## Url format: /api/v1/campaigns/id/graphinfo/?from_date={from_date}&to_date={to_date}&by={by}
+## Url format: /api/v1/campaigns/:id/graphinfo/?from_date={from_date}&to_date={to_date}&by={by}
 
 + Parameters
     + id (Number) - id for getting information about company
@@ -41,98 +41,67 @@ Get single campaign statistics data for given period by selected categories: imp
     """
     return Response([
         {'date': "2016-06-'27T00':'00':00Z", 'impression': -12, 'cpa': 10, 'cpc': 32, 'clicks': -5, 'mediaspent': 5,
-         'conversions': 40,
-         'ctr': 15},
+         'conversions': 40, 'ctr': 15},
         {'date': "2016-06-'28T00':'00':00Z", 'impression': -32, 'cpa': 30, 'cpc': 12, 'clicks': 1, 'mediaspent': 15,
-         'conversions': 23,
-         'ctr': -10},
+         'conversions': 23, 'ctr': -10},
         {'date': "2016-06-'29T00':'00':00Z", 'impression': -20, 'cpa': 20, 'cpc': 30, 'clicks': 2, 'mediaspent': 5,
-         'conversions': 33,
-         'ctr': 10},
+         'conversions': 33, 'ctr': 10},
         {'date': "2016-06-'30T00':'00':00Z", 'impression': -39, 'cpa': 50, 'cpc': 19, 'clicks': 6, 'mediaspent': 55,
-         'conversions': 87,
-         'ctr': -42},
+         'conversions': 87, 'ctr': -42},
         {'date': "2016-07-'01T00':'00':00Z", 'impression': -10, 'cpa': 10, 'cpc': 15, 'clicks': 9, 'mediaspent': 44,
-         'conversions': -20,
-         'ctr': -57},
+         'conversions': -20, 'ctr': -57},
         {'date': "2016-07-'02T00':'00':00Z", 'impression': 10, 'cpa': 10, 'cpc': 15, 'clicks': 8, 'mediaspent': 77,
-         'conversions': 23,
-         'ctr': 99},
+         'conversions': 23, 'ctr': 99},
         {'date': "2016-07-'03T00':'00':00Z", 'impression': 30, 'cpa': 50, 'cpc': 13, 'clicks': 23, 'mediaspent': 66,
-         'conversions': -10,
-         'ctr': 110},
+         'conversions': -10, 'ctr': 110},
         {'date': "2016-07-'04T00':'00':00Z", 'impression': 40, 'cpa': 50, 'cpc': 14, 'clicks': 12, 'mediaspent': 11,
-         'conversions': 37,
-         'ctr': 56},
+         'conversions': 37, 'ctr': 56},
         {'date': "2016-07-'05T00':'00':00Z", 'impression': 50, 'cpa': 90, 'cpc': 90, 'clicks': -10, 'mediaspent': 99,
-         'conversions': 50,
-         'ctr': 67},
+         'conversions': 50, 'ctr': 67},
         {'date': "2016-07-'06T00':'00':00Z", 'impression': 40, 'cpa': 175, 'cpc': 120, 'clicks': 31, 'mediaspent': -11,
-         'conversions': 23,
-         'ctr': 67},
+         'conversions': 23, 'ctr': 67},
         {'date': "2016-07-'07T00':'00':00Z", 'impression': -12, 'cpa': 10, 'cpc': 32, 'clicks': 70, 'mediaspent': -2,
-         'conversions': 58,
-         'ctr': -20},
+         'conversions': 58, 'ctr': -20},
         {'date': "2016-07-'08T00':'00':00Z", 'impression': -32, 'cpa': 30, 'cpc': 12, 'clicks': 26, 'mediaspent': 5,
-         'conversions': 21,
-         'ctr': -10},
+         'conversions': 21, 'ctr': -10},
         {'date': "2016-07-'09T00':'00':00Z", 'impression': -20, 'cpa': 20, 'cpc': 30, 'clicks': 52, 'mediaspent': 76,
-         'conversions': 10,
-         'ctr': 70},
+         'conversions': 10, 'ctr': 70},
         {'date': "2016-07-'10T00':'00':00Z", 'impression': -12, 'cpa': 10, 'cpc': 32, 'clicks': 1, 'mediaspent': 32,
-         'conversions': 49,
-         'ctr': 90},
+         'conversions': 49, 'ctr': 90},
         {'date': "2016-07-'11T00':'00':00Z", 'impression': -32, 'cpa': 30, 'cpc': 12, 'clicks': 38, 'mediaspent': 11,
-         'conversions': 99,
-         'ctr': 10},
+         'conversions': 99, 'ctr': 10},
         {'date': "2016-07-'12T00':'00':00Z", 'impression': -20, 'cpa': 20, 'cpc': 30, 'clicks': -16, 'mediaspent': 15,
-         'conversions': 60,
-         'ctr': 58},
+         'conversions': 60, 'ctr': 58},
         {'date': "2016-07-'13T00':'00':00Z", 'impression': -39, 'cpa': 50, 'cpc': 19, 'clicks': -40, 'mediaspent': 46,
-         'conversions': 23,
-         'ctr': 78},
+         'conversions': 23, 'ctr': 78},
         {'date': "2016-07-'14T00':'00':00Z", 'impression': -10, 'cpa': 10, 'cpc': 15, 'clicks': 24, 'mediaspent': 68,
-         'conversions': -20,
-         'ctr': 80},
+         'conversions': -20, 'ctr': 80},
         {'date': "2016-07-'15T00':'00':00Z", 'impression': 10, 'cpa': 10, 'cpc': 15, 'clicks': 12, 'mediaspent': 49,
-         'conversions': -37,
-         'ctr': 22},
+         'conversions': -37, 'ctr': 22},
         {'date': "2016-07-'16T00':'00':00Z", 'impression': 30, 'cpa': 100, 'cpc': 13, 'clicks': 83, 'mediaspent': 36,
-         'conversions': -1,
-         'ctr': 67},
+         'conversions': -1, 'ctr': 67},
         {'date': "2016-07-'17T00':'00':00Z", 'impression': 40, 'cpa': 110, 'cpc': 14, 'clicks': 41, 'mediaspent': 28,
-         'conversions': 65,
-         'ctr': -10},
+         'conversions': 65, 'ctr': -10},
         {'date': "2016-07-'18T00':'00':00Z", 'impression': 50, 'cpa': 90, 'cpc': 90, 'clicks': 27, 'mediaspent': 95,
-         'conversions': 23,
-         'ctr': 88},
+         'conversions': 23, 'ctr': 88},
         {'date': "2016-07-'19T00':'00':00Z", 'impression': 40, 'cpa': 95, 'cpc': 120, 'clicks': 83, 'mediaspent': 92,
-         'conversions': 10,
-         'ctr': 77},
+         'conversions': 10, 'ctr': 77},
         {'date': "2016-07-'20T00':'00':00Z", 'impression': -12, 'cpa': 10, 'cpc': 32, 'clicks': -20, 'mediaspent': 15,
-         'conversions': 7,
-         'ctr': 66},
+         'conversions': 7, 'ctr': 66},
         {'date': "2016-07-'21T00':'00':00Z", 'impression': -32, 'cpa': 30, 'cpc': 12, 'clicks': 56, 'mediaspent': 54,
-         'conversions': 34,
-         'ctr': -10},
+         'conversions': 34, 'ctr': -10},
         {'date': "2016-07-'22T00':'00':00Z", 'impression': -20, 'cpa': 20, 'cpc': 30, 'clicks': 17, 'mediaspent': 22,
-         'conversions': 65,
-         'ctr': -40},
+         'conversions': 65, 'ctr': -40},
         {'date': "2016-07-'23T00':'00':00Z", 'impression': -12, 'cpa': 10, 'cpc': 32, 'clicks': 22, 'mediaspent': 77,
-         'conversions': 52,
-         'ctr': -70},
+         'conversions': 52, 'ctr': -70},
         {'date': "2016-07-'24T00':'00':00Z", 'impression': -32, 'cpa': 30, 'cpc': 12, 'clicks': 29, 'mediaspent': 90,
-         'conversions': 23,
-         'ctr': -54},
+         'conversions': 23, 'ctr': -54},
         {'date': "2016-07-'25T00':'00':00Z", 'impression': -20, 'cpa': 20, 'cpc': 30, 'clicks': 90, 'mediaspent': 17,
-         'conversions': 59,
-         'ctr': 28},
+         'conversions': 59, 'ctr': 28},
         {'date': "2016-07-'26T00':'00':00Z", 'impression': -39, 'cpa': 50, 'cpc': 19, 'clicks': 45, 'mediaspent': 47,
-         'conversions': 82,
-         'ctr': 65},
+         'conversions': 82, 'ctr': 65},
         {'date': "2016-07-'27T00':'00':00Z", 'impression': -10, 'cpa': 10, 'cpc': 15, 'clicks': -30, 'mediaspent': 32,
-         'conversions': 33,
-         'ctr': 58}
+         'conversions': 33, 'ctr': 58}
     ])
 
 
@@ -141,7 +110,7 @@ def cpaReport(request, id):
     """
 Get single campaign cpa report for given period to create boxplots
 
-## Url format: /api/v1/campaigns/id/cpareport?from_date={from_date}&to_date={to_date}
+## Url format: /api/v1/campaigns/:id/cpareport?from_date={from_date}&to_date={to_date}
 
 + Parameters
     + id (Number) - id for getting information about company
@@ -233,7 +202,7 @@ def campaignDomains(request, id):
     """
 Get single campaign details by domains
 
-## Url format: /api/v1/campaigns/id/domains?from_date={from_date}&to_date={to_date}&skip={skip}&take={take}&sort={sort}&order={order}&filter={filter}
+## Url format: /api/v1/campaigns/:id/domains?from_date={from_date}&to_date={to_date}&skip={skip}&take={take}&sort={sort}&order={order}&filter={filter}
 
 + Parameters
     + id (Number) - id for getting information about company
@@ -327,7 +296,7 @@ def campaignDetails(request, id):
     """
 Get single campaign details for given period 
 
-## Url format: /api/v1/campaigns/id/details?from_date={from_date}&to_date={to_date}&section={section}
+## Url format: /api/v1/campaigns/:id/details?from_date={from_date}&to_date={to_date}&section={section}
 
 + Parameters
 
@@ -345,45 +314,118 @@ Get single campaign details for given period
 
     """
     return Response({
-        'all': [
-            {
-                'section': "Android",
-                'data': 60
-            },
-            {
-                'section': "iOs",
-                'data': 30
-            },
-            {
-                'section': "Windows",
-                'data': 10
-            }
-        ],
-        'conversions': [
-            {
-                'section': "Android",
-                'data': 23
-            },
-            {
-                'section': "iOs",
-                'data': 72
-            },
-            {
-                'section': "Windows",
-                'data': 5
-            }
-        ],
-        'cpabuckets': {
-            "cnn.com": "34.12",
-            "lion.com": "3.76",
-            "tiger.com": "7.97",
-            "cat.com": "1.23",
-            "dog.com": "16.11",
-            "mouse.com": "6.53",
-            "rabbit.com": "0.91",
-            "bear.com": "1.9",
-            "snake.com": "3.7",
-            "squirrel.com": "4.78",
-            "hamster.com": "0.62"
-        }
+        'all': [{
+            'section': "Android",
+            'data': 60
+        }, {
+            'section': "iOs",
+            'data': 30
+        }, {
+            'section': "Windows",
+            'data': 10
+        }],
+        'conversions': [{
+            'section': "Android",
+            'data': 23
+        }, {
+            'section': "iOs",
+            'data': 72
+        }, {
+            'section': "Windows",
+            'data': 5
+        }]
     })
+
+
+@api_view()
+def bucketsCPA(request, id):
+    """
+Get single campaign details for given period 
+
+## Url format: /api/v1/campaigns/:id/cpabuckets?from_date={from_date}&to_date={to_date}&targetcpa={targetcpa}
+
++ Parameters
+
+    + id (Number) - id for selecting informations about company
+    + from_date (date) - Date to select statistics from
+        + Format: Unixtime
+        + Example: 1466667274
+    + to_date (date) - Date to select statistics to
+        + Format: Unixtime
+        + Example: 1466667274
+    + targetcpa (number) - CPA to sort placements for four buckets (starting from 0)
+        + Format: string
+        + Example: placement
+
+
+    """
+    return Response([{
+        'sellerid': 123,
+        'sellername': "Rovio",
+        'placementid': 234,
+        'placementname': "AngryBirds"
+    }, {
+        'sellerid': 678,
+        'sellername': "Paris",
+        'placementid': 9789,
+        'placementname': "Cat"
+    }, {
+        'sellerid': 3453,
+        'sellername': "France",
+        'placementid': 2325,
+        'placementname': "Tom"
+    }],
+        [{
+            'sellerid': 545,
+            'sellername': "Lipton",
+            'placementid': 111,
+            'placementname': "Mouse"
+        },
+            {
+                'sellerid': 35,
+                'sellername': "River",
+                'placementid': 45,
+                'placementname': "Tributary"
+            },
+            {
+                'sellerid': 90,
+                'sellername': "Wood",
+                'placementid': 3545,
+                'placementname': "Land"
+            }],
+        [{
+            'sellerid': 222,
+            'sellername': "Pen",
+            'placementid': 333,
+            'placementname': "Gear"
+        },
+            {
+                'sellerid': 54,
+                'sellername': "World",
+                'placementid': 3444454,
+                'placementname': "Flower"
+            },
+            {
+                'sellerid': 888,
+                'sellername': "Bird",
+                'placementid': 999,
+                'placementname': "Kitten"
+            }],
+        [{
+            'sellerid': 444,
+            'sellername': "Dreams",
+            'placementid': 56656,
+            'placementname': "Sweet"
+        },
+            {
+                'sellerid': 787,
+                'sellername': "Hotel",
+                'placementid': 76876,
+                'placementname': "California"
+            },
+            {
+                'sellerid': 678678,
+                'sellername': "Star",
+                'placementid': 12312,
+                'placementname': "Sky"
+            }])

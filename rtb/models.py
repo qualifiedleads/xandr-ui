@@ -132,7 +132,8 @@ class Brand(models.Model):
     id = models.IntegerField(primary_key=True)  # No AutoIncrement
     fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
     name = models.TextField(null=True, blank=True, db_index=True)
-    urls = models.TextField(null=True, blank=True, db_index=True)#ArrayField(models.TextField(null=True, blank=True), null=True, blank=True)
+    #urls = models.TextField(null=True, blank=True, db_index=True)#ArrayField(models.TextField(null=True, blank=True), null=True, blank=True)
+    urls = models.BinaryField(null=True)
     is_premium = models.NullBooleanField(null=True, blank=True)
     category = models.ForeignKey("Category", null=True, blank=True)
     company = models.ForeignKey("Company", null=True, blank=True)

@@ -1332,6 +1332,8 @@ class CreativeFolder(models.Model):
 
 class CteativeTemplate(models.Model):
     #https://wiki.appnexus.com/display/api/Creative+Template+Service
+    id = models.IntegerField(primary_key=True)  # No AutoIncrement
+    fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
     name = models.TextField(null=True, blank=True, db_index=True)
     description = models.TextField(null=True, blank=True)
     member = models.ForeignKey("Member", null=True, blank=True)

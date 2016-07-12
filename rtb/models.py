@@ -1192,10 +1192,10 @@ class Creative(models.Model):
     language = models.ForeignKey("Language", null=True, blank=True)
     pop_values = models.TextField(null=True, blank=True) #TODO JSON
     sla = models.IntegerField(null=True, blank=True)
-    sla_eta = models.DateTimeField()
+    sla_eta = models.DateTimeField(null=True, blank=True)
     currency = models.TextField(null=True, blank=True)
-    first_run = models.DateTimeField()
-    last_run = models.DateTimeField()
+    first_run = models.DateTimeField(default=now_tz)
+    last_run = models.DateTimeField(null=True, blank=True)
     mobile = models.TextField(null=True, blank=True) #TODO JSON
     video_attribute = models.TextField(null=True, blank=True) #TODO JSON
     #stats = object # - will create another model in it will be needed

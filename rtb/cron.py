@@ -529,7 +529,7 @@ def load_depending_data(token):
             creative_folders = nexus_get_objects(token,
                                                  'https://api.appnexus.com/creative-folder',
                                                  {'advertiser_id': advertiser_id},
-                                                 CreativeFcreative_foldersolder, False)
+                                                 CreativeFolder, False)
             print 'There is %d  creative folders' % len(creative_folders)
 
         creatives = nexus_get_objects(token,

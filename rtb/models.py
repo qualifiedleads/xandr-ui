@@ -125,6 +125,8 @@ class Company(models.Model):
 
 class Brand(models.Model):
     #https://wiki.appnexus.com/display/api/Brand+Service
+    id = models.IntegerField(primary_key=True)  # No AutoIncrement
+    fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
     name = models.TextField(null=True, blank=True, db_index=True)
     urls = models.TextField(null=True, blank=True, db_index=True)#ArrayField(models.TextField(null=True, blank=True), null=True, blank=True)
     is_premium = models.NullBooleanField(null=True, blank=True)

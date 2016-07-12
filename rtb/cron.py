@@ -320,7 +320,6 @@ def nexus_get_objects(token, url, params, object_class, force_update=False, get_
                     # TODO: This need to be replaced by "smart loading"
                     print "There is too many records (%d)"%count
                     if len(objects_in_db)>0: return objects_in_db
-                    count = 100000
                 cur_records = 0
             if isinstance(pack_of_objects,list):
                 objects_by_api.extend(pack_of_objects)

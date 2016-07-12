@@ -3115,6 +3115,7 @@ REVENUE_TYPE_CHOICES = (
 class AdQualityRule(models.Model):
     # https://wiki.appnexus.com/display/api/Ad+Quality+Rule+Service
     id = models.IntegerField(primary_key=True)  # No AutoIncrement
+    fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
     code = models.TextField(null=True, blank=True, db_index=True)
     name = models.TextField(null=True, blank=True, db_index=True)
     description = models.TextField(null=True, blank=True)

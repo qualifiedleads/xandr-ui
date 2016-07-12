@@ -19,7 +19,7 @@ import models
 from models import Advertiser, Campaign, SiteDomainPerformanceReport, Profile, LineItem, InsertionOrder, \
     OSFamily, OperatingSystemExtended, NetworkAnalyticsReport, GeoAnaliticsReport, Member, Developer, BuyerGroup, \
     AdProfile, ContentCategory, Deal, PlatformMember, User, Publisher, Site, OptimizationZone, MobileAppInstance, \
-    YieldManagementProfile, PaymentRule, ConversionPixel, Country, Region, DemographicArea
+    YieldManagementProfile, PaymentRule, ConversionPixel, Country, Region, DemographicArea, AdQualityRule
 from pytz import utc
 from utils import get_all_classes_in_models, column_sets_for_reports, get_current_time
 
@@ -245,6 +245,7 @@ def analize_csv(filename, modelClass, metadata={}):
             gc.collect()
             worker.close()
             worker.join()
+
 
 
 unix_epoch = datetime.datetime.utcfromtimestamp(0).replace(tzinfo=utc)
@@ -488,6 +489,12 @@ def load_depending_data(token):
                                               {'publisher_id': pub.pk})
             print 'There is %d payment rules for publisher %s' % (len(payment_rules),pub.name)
             print 'Ids:', ','.join(str(x.pk) for x in payment_rules)
+            quality_rules = nexus_get_objects(token,
+                                              'https://api.appnexus.com/ad-quality-rule',
+                                              {'publisher': pub},
+                                              AdQualityRule, True,
+                                              {'publisher_id': pub.pk})
+            print 'There is %d quality rules for publisher %s' % (len(payment_rules), pub.name)
 
         # Get all users:
         users = nexus_get_objects(token,
@@ -582,7 +589,7 @@ def dayly_task(day=None, load_objects_from_services=True, output=None):
             load_depending_data(token)
         load_report(token, day, GeoAnaliticsReport)
         load_reports_for_all_advertisers(token, day, SiteDomainPerformanceReport)
-        # load_reports_for_all_advertisers(token, day, NetworkAnalyticsReport)
+        load_reports_for_all_advertisers(token, day, NetworkAnalyticsReport)
     except Exception as e:
         print 'Error by fetching data: %s' % e
         print traceback.print_exc(file=output)

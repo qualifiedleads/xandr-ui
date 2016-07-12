@@ -429,8 +429,9 @@ def load_depending_data(token):
             if cd - date_in_db > settings.INVALIDATE_TIME:
                 o1 = nexus_get_objects(token,
                                        'http://api.appnexus.com/content-category',
-                                       {'category_type': 'universal'},
-                                       ContentCategory, True)
+                                       {},  # {'type':'universal'}
+                                       ContentCategory, True,
+                                       {'category_type': 'universal'})
                 o2 = nexus_get_objects(token,
                                        'http://api.appnexus.com/content-category',
                                        {},

@@ -3348,6 +3348,9 @@ class SiteDomainPerformanceReport(models.Model):
     api_report_name = "site_domain_performance"
     class Meta:
         db_table = "site_domain_performance_report"
+        index_together = [
+            ("advertiser", "day"),
+        ]
     #This function transform raw data, collected from csv, to value, saved into DB/
     def TransformFields1(self, data,  metadata={}):
         if not metadata: return

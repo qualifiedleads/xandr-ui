@@ -1085,6 +1085,7 @@ CLICK_ACTION_CHOICES = (
 class Creative(models.Model):
     #https://wiki.appnexus.com/display/api/Creative+Service
     id = models.IntegerField(primary_key=True)  # No AutoIncrement
+    fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
     code = models.TextField(null=True, blank=True, db_index=True)
     code2 = models.TextField(null=True, blank=True, db_index=True)
     name = models.TextField(null=True, blank=True, db_index=True)
@@ -1402,7 +1403,9 @@ DEMAND_FILTER_ACTION_CHOICES = (
 
 
 class Placement(models.Model):
-    #https://wiki.appnexus.com/display/api/Placement+Service?src=search
+    #https://wiki.appnexus.com/display/api/Placement+Service
+    id = models.IntegerField(primary_key=True)  # No AutoIncrement
+    fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
     name = models.TextField(null=True, blank=True, db_index=True)
     code = models.TextField(null=True, blank=True, db_index=True)
     code2 = models.TextField(null=True, blank=True, db_index=True)

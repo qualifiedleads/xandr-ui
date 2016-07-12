@@ -19,7 +19,8 @@ import models
 from models import Advertiser, Campaign, SiteDomainPerformanceReport, Profile, LineItem, InsertionOrder, \
     OSFamily, OperatingSystemExtended, NetworkAnalyticsReport, GeoAnaliticsReport, Member, Developer, BuyerGroup, \
     AdProfile, ContentCategory, Deal, PlatformMember, User, Publisher, Site, OptimizationZone, MobileAppInstance, \
-    YieldManagementProfile, PaymentRule, ConversionPixel, Country, Region, DemographicArea, AdQualityRule
+    YieldManagementProfile, PaymentRule, ConversionPixel, Country, Region, DemographicArea, AdQualityRule, Placement, \
+    Creative
 from pytz import utc
 from utils import get_all_classes_in_models, column_sets_for_reports, get_current_time
 
@@ -250,7 +251,6 @@ def analize_csv(filename, modelClass, metadata={}):
 
 unix_epoch = datetime.datetime.utcfromtimestamp(0).replace(tzinfo=utc)
 
-# https://api.appnexus.com/creative?start_element=0&num_elements=50'
 def nexus_get_objects(token, url, params, object_class, force_update=False, get_params=None):
     if not get_params:
         get_params = params
@@ -480,6 +480,13 @@ def load_depending_data(token):
                                                  )
                 print 'There is %d base payment rules ' % len(payment_rules)
 
+        print "Creatives:"
+        creatives = nexus_get_objects(token,
+                                                 'https://api.appnexus.com/creative',
+                                                 {},
+                                                 Creative, False)
+        print 'There is %d creatives ' % len(creatives)
+
         # Get all payment rules:
         for pub in publishers:
             payment_rules = nexus_get_objects(token,
@@ -495,6 +502,13 @@ def load_depending_data(token):
                                               AdQualityRule, True,
                                               {'publisher_id': pub.pk})
             print 'There is %d quality rules for publisher %s' % (len(payment_rules), pub.name)
+            # Placement https://api.appnexus.com/placement?publisher_id=PUBLISHER_ID
+            placements = nexus_get_objects(token,
+                                          'https://api.appnexus.com/placement',
+                                          {'publisher': pub},
+                                           Placement, True,
+                                          {'publisher_id': pub.pk})
+            print 'There is %d placements for publisher %s' % (len(placements), pub.name)
 
         # Get all users:
         users = nexus_get_objects(token,

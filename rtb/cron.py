@@ -20,7 +20,7 @@ from models import Advertiser, Campaign, SiteDomainPerformanceReport, Profile, L
     OSFamily, OperatingSystemExtended, NetworkAnalyticsReport, GeoAnaliticsReport, Member, Developer, BuyerGroup, \
     AdProfile, ContentCategory, Deal, PlatformMember, User, Publisher, Site, OptimizationZone, MobileAppInstance, \
     YieldManagementProfile, PaymentRule, ConversionPixel, Country, Region, DemographicArea, AdQualityRule, Placement, \
-    Creative, Brand, CteativeTemplate, Category, Company
+    Creative, Brand, CteativeTemplate, Category, Company, MediaType, MediaSubType, CteativeFormat
 from pytz import utc
 from utils import get_all_classes_in_models, column_sets_for_reports, get_current_time
 
@@ -497,6 +497,26 @@ def load_depending_data(token):
                                    {},
                                    Brand, False)
         print 'There is %d brands ' % len(brands)
+
+        media_types = nexus_get_objects(token,
+                                        'https://api.appnexus.com/media-type',
+                                        {},
+                                        MediaType, False)
+        print 'There is %d creative media types' % len(media_types)
+
+        media_sub_types = nexus_get_objects(token,
+                                            'https://api.appnexus.com/media-subtype',
+                                            {},
+                                            MediaSubType, False)
+        print 'There is %d creative media sub types' % len(media_sub_types)
+
+        # https://api.appnexus.com/creative-format
+        creative_formats = nexus_get_objects(token,
+                                             'https://api.appnexus.com/creative-format',
+                                             {},
+                                             CteativeFormat, False)
+        print 'There is %d creative media sub types' % len(creative_formats)
+
         creative_templates = nexus_get_objects(token,
                                                'https://api.appnexus.com/template',
                                                {},

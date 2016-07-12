@@ -337,6 +337,8 @@ MEDIA_TYPE_SIZES = (
 
 class MediaType(models.Model):
     #https://wiki.appnexus.com/display/api/Media+Type+Service
+    id = models.IntegerField(primary_key=True)  # No AutoIncrement
+    fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
     name = models.TextField(null=True, blank=True, db_index=True)
     media_type_group_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future. It is not clear what is Group yet...
     uses_sizes = models.TextField(
@@ -350,6 +352,8 @@ class MediaType(models.Model):
 
 class MediaSubType(models.Model):
     #https: // wiki.appnexus.com / display / api / Media + Subtype + Service
+    id = models.IntegerField(primary_key=True)  # No AutoIncrement
+    fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
     name = models.TextField(null=True, blank=True, db_index=True)
     media_type = models.ForeignKey("MediaType", null=True, blank=True)
     #permitted_sizes - see model MediaSubTypePermittedSizes below
@@ -1358,6 +1362,8 @@ class CteativeTemplate(models.Model):
 
 class CteativeFormat(models.Model):
     #https://wiki.appnexus.com/display/api/Creative+Format+Service
+    id = models.IntegerField(primary_key=True)  # No AutoIncrement
+    fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
     name = models.TextField(null=True, blank=True, db_index=True)
     last_modified = models.DateTimeField(default=now_tz) 
 

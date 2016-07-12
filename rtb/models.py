@@ -101,6 +101,8 @@ class UserAdvertiserAccess(models.Model):
 
 class Category(models.Model):
     #https://wiki.appnexus.com/display/api/Category+Service
+    id = models.IntegerField(primary_key=True)  # No AutoIncrement
+    fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
     name = models.TextField(null=True, blank=True, db_index=True)
     is_sensitive = models.NullBooleanField(null=True, blank=True)
     requires_whitelist = models.NullBooleanField(null=True, blank=True)
@@ -115,6 +117,8 @@ class Category(models.Model):
 
 class Company(models.Model):
     #https://wiki.appnexus.com/display/api/Brand+Company+Service
+    id = models.IntegerField(primary_key=True)  # No AutoIncrement
+    fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
     models.IntegerField(primary_key=True)  # No AutoIncrement
     name = models.TextField(null=True, blank=True, db_index=True)
     last_modified = models.DateTimeField(default=now_tz) 

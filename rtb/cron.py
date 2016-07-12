@@ -20,7 +20,7 @@ from models import Advertiser, Campaign, SiteDomainPerformanceReport, Profile, L
     OSFamily, OperatingSystemExtended, NetworkAnalyticsReport, GeoAnaliticsReport, Member, Developer, BuyerGroup, \
     AdProfile, ContentCategory, Deal, PlatformMember, User, Publisher, Site, OptimizationZone, MobileAppInstance, \
     YieldManagementProfile, PaymentRule, ConversionPixel, Country, Region, DemographicArea, AdQualityRule, Placement, \
-    Creative, Brand, CteativeTemplate
+    Creative, Brand, CteativeTemplate, Category, Company
 from pytz import utc
 from utils import get_all_classes_in_models, column_sets_for_reports, get_current_time
 
@@ -479,6 +479,18 @@ def load_depending_data(token):
                                                     {'publisher_id': pub.pk, 'id':pub.base_payment_rule_id}
                                                  )
                 print 'There is %d base payment rules ' % len(payment_rules)
+
+        companies = nexus_get_objects(token,
+                                      'https://api.appnexus.com/brand-company',
+                                      {},
+                                      Company, False)
+        print 'There is %d companies ' % len(companies)
+
+        categories = nexus_get_objects(token,
+                                       'https://api.appnexus.com/category',
+                                       {},
+                                       Category, False)
+        print 'There is %d categories ' % len(categories)
 
         brands = nexus_get_objects(token,
                                    'https://api.appnexus.com/brand',

@@ -1330,6 +1330,8 @@ class CreativePixel(models.Model):
 
 class CreativeFolder(models.Model):
     #https://wiki.appnexus.com/display/api/Creative+Folder+Service
+    id = models.IntegerField(primary_key=True)  # No AutoIncrement
+    fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
     name = models.TextField(null=True, blank=True, db_index=True)
     advertiser = models.ForeignKey("Advertiser", null=True, blank=True)
     last_modified = models.DateTimeField(default=now_tz) 

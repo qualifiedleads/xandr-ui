@@ -18,9 +18,11 @@
 				.then(function (res) {
 					for(var index in res.data.statistics) {
 						var loc = $translateLocalStorage.get('TRANSLATE_LANG_KEY');
-						res.data.statistics[index].cpc = parseFloat(res.data.statistics[index].cpc).toFixed(4);
-						res.data.statistics[index].cpm = parseFloat(res.data.statistics[index].cpm).toFixed(4);
-						res.data.statistics[index].spend = parseFloat(res.data.statistics[index].spend).toFixed(4);
+						res.data.statistics[index].cvr = +parseFloat(res.data.statistics[index].cvr).toFixed(4);
+						res.data.statistics[index].ctr = +parseFloat(res.data.statistics[index].ctr).toFixed(4);
+						res.data.statistics[index].cpc = +parseFloat(res.data.statistics[index].cpc).toFixed(4);
+						res.data.statistics[index].cpm = +parseFloat(res.data.statistics[index].cpm).toFixed(4);
+						res.data.statistics[index].spend = +parseFloat(res.data.statistics[index].spend).toFixed(4);
 						res.data.statistics[index].day = $window.moment(res.data.statistics[index].day).locale(loc).format('L');
 					}
 					return res.data;
@@ -34,11 +36,11 @@
 				params: {advertiser_id: advertiser_id, from_date: from_date, to: to}
 			})
 				.then(function (res) {
-
-					res.data.totals.cpc = parseFloat(res.data.totals.cpc).toFixed(4);
-					res.data.totals.cpm = parseFloat(res.data.totals.cpm).toFixed(4);
-					res.data.totals.spend = parseFloat(res.data.totals.spend).toFixed(4);
-
+          res.data.totals.cvr = +parseFloat(res.data.totals.cvr).toFixed(4);
+          res.data.totals.ctr = +parseFloat(res.data.totals.ctr).toFixed(4);
+					res.data.totals.cpc = +parseFloat(res.data.totals.cpc).toFixed(4);
+					res.data.totals.cpm = +parseFloat(res.data.totals.cpm).toFixed(4);
+					res.data.totals.spend = +parseFloat(res.data.totals.spend).toFixed(4);
 					return res.data.totals;
 				});
 		}
@@ -69,9 +71,11 @@
 			})
 				.then(function (res) {
 					for(var index in res.data.campaigns) {
-						res.data.campaigns[index].cpc = parseFloat(res.data.campaigns[index].cpc).toFixed(4);
-						res.data.campaigns[index].cpm = parseFloat(res.data.campaigns[index].cpm).toFixed(4);
-						res.data.campaigns[index].spend = parseFloat(res.data.campaigns[index].spend).toFixed(4);
+						res.data.campaigns[index].cvr = +parseFloat(res.data.campaigns[index].cvr).toFixed(4);
+						res.data.campaigns[index].ctr = +parseFloat(res.data.campaigns[index].ctr).toFixed(4);
+						res.data.campaigns[index].cpc = +parseFloat(res.data.campaigns[index].cpc).toFixed(4);
+						res.data.campaigns[index].cpm = +parseFloat(res.data.campaigns[index].cpm).toFixed(4);
+						res.data.campaigns[index].spend = +parseFloat(res.data.campaigns[index].spend).toFixed(4);
 					}
 					return res.data;
 				});

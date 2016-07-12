@@ -64,7 +64,7 @@
           "CPA":"CPA",
           "CPC":"CPC",
           "CLICKS":"Клики",
-          "MEDIA_SPENT":"Потр на медий рекл",
+          "MEDIA_SPENT":"Затраты",
           "CONVERSIONS":"Конверсии",
           "CTR":"CTR"
         }

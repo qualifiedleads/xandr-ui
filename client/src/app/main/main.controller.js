@@ -27,15 +27,14 @@
         'ctr': true
       };
     }
-
     vm.chartSeries = [
-      { valueField: 'imp', name: 'Impressions', visible: $localStorage.checkChart.imp }, //yes
-      { valueField: 'cvr', name: 'CVR', visible: $localStorage.checkChart.cvr },  //NET
-      { valueField: 'cpc', name: 'CPC', visible: $localStorage.checkChart.cpc },  //yes
-      { valueField: 'clicks', name: 'clicks', visible: $localStorage.checkChart.clicks }, //yes
-      { valueField: 'spend', name: 'media', visible: $localStorage.checkChart.spend },//yes
-      { valueField: 'conv', name: 'conversions', visible: $localStorage.checkChart.conv },//yes
-      { valueField: 'ctr', name: 'CTR', visible: $localStorage.checkChart.ctr } //yes
+      { valueField: 'imp', name: 'Impressions', axis:'imp', visible: $localStorage.checkChart.imp }, //yes
+      { valueField: 'cvr', name: 'CVR', axis:'cvr', visible: $localStorage.checkChart.cvr },  //NET
+      { valueField: 'cpc', name: 'CPC', axis:'CPC', visible: $localStorage.checkChart.cpc },  //yes
+      { valueField: 'clicks', name: 'clicks', axis:'clicks', visible: $localStorage.checkChart.clicks }, //yes
+      { valueField: 'spend', name: 'media', axis:'spend', visible: $localStorage.checkChart.spend },//yes
+      { valueField: 'conv', name: 'conversions', axis:'conv', visible: $localStorage.checkChart.conv },//yes
+      { valueField: 'ctr', name: 'CTR', axis:'ctr', visible: $localStorage.checkChart.ctr } //yes
     ];
     /** LOCAL STORAGE CHECKBOX - END **/
 
@@ -150,7 +149,7 @@
     });
 
 
-    
+
     /** BINDING OPTIONS - END **/
 
     /** TOTALS - START **/
@@ -258,7 +257,8 @@
               },
               dataSource: options.data.chart,
               size: {
-                height: 80
+                height: 80,
+                width: 185
               },
               commonSeriesSettings: {
                 argumentField: 'day',
@@ -345,16 +345,16 @@
         vm.chartOptionsFunc = data.component;
       },
       series: vm.chartSeries,
-      size: {
-        width: 500,
-        height: 230
-      },
+/*      size: {
+        width: 800,
+        //height: 230
+      },*/
       bindingOptions: {
         dataSource: 'main.chartStore'
       },
       commonSeriesSettings: {
         argumentField: 'day',
-        type: vm.types[0],
+        type: 'Line',
         point: {
           size: 3,
           hoverStyle: {
@@ -365,6 +365,9 @@
             size: 5
           }
         }
+      },
+      commonAxisSettings:{
+        valueMarginsEnabled: true
       },
       margin: {
         bottom: 20
@@ -481,8 +484,7 @@
 
     vm.vectorMapOptions = {
       size: {
-        width: 500,
-        height: 350
+        height: 320
       },
       layers: [{
         name: 'areas',
@@ -507,7 +509,11 @@
       tooltip: {
         enabled: true,
         customizeTooltip: function (arg) {
-          return { text: arg.attribute('text') };
+          if (arg.attribute('clicks')) {
+            return { text: arg.attribute('name') + ": " + arg.attribute('clicks')};
+          } else {
+            return { text: arg.attribute('name')};
+          }
         }
       },
       legends: [{

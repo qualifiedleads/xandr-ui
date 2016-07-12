@@ -2,5 +2,104 @@
 .container-home {
   position: absolute;
   top: 5%;
+}
 
+
+
+label.btn {
+  width: 23px;
+  display: block;
+  position: absolute;
+  right: 98%;
+  top: 0;
+  left: 0;
+  cursor: pointer;
+  background: rgba(60, 84, 181, 0.63);
+  border-radius: 0px 5px 5px 0;
+  padding: 9px 3px;
+  color: #FFF;
+  font-size: 12px;
+  text-align: center;
+  -webkit-font-smoothing: antialiased;
+  -webkit-transition: all 1000ms cubic-bezier(0.17, 0.04, 0.03, 0.94);
+  -webkit-transition: all 400ms cubic-bezier(0.17, 0.04, 0.03, 0.94);
+  transition: all 400ms cubic-bezier(0.17, 0.04, 0.03, 0.94);
+  box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.16), 0 2px 10px 0 rgba(0, 0, 0, 0.12);
+  z-index: 10;
+}
+/* Переключатель при наведении */
+label.btn:hover {
+  box-shadow: 0 5px 11px 0 rgba(0,0,0,0.18),0 4px 15px 0 rgba(0,0,0,0.15)
+}
+/* Стрелка переключателя вниз */
+label.btn:after {
+  content:  '\f053';
+  font: normal 18px/1 FontAwesome;
+  text-decoration: inherit
+}
+//
+//label.btn:after {
+//  content:  '\f053';
+//  font: normal 18px/1 FontAwesome;
+//  text-decoration: inherit
+//}
+
+/* Активация панели */
+.open:checked ~ .left-nav {
+  display:none
+}
+
+.page-wrapper-open {
+  left: -16%;
+  width: 100%;
+}
+
+.open:checked ~ label.btn {
+  left: 0;
+  right: 98%;
+  border-radius: 0 5px 5px 0;
+  width: 23px;
+}
+
+/* Стрелка переключателя вверх*/
+.open:checked + label.btn:after {
+  content: '\f054';
+  font: normal 18px/1 FontAwesome
+}
+
+.left-nav {
+  overflow: auto;
+  -webkit-font-smoothing: antialiased;
+  -webkit-transition: all 1000ms cubic-bezier(0.17, 0.04, 0.03, 0.94);
+  -webkit-transition: all 400ms cubic-bezier(0.17, 0.04, 0.03, 0.94);
+  transition: all 400ms cubic-bezier(0.17, 0.04, 0.03, 0.94);
+}
+
+.home-title {
+  margin: 0;
+}
+//
+//@media(min-width: 1900px) {
+//  .allview {
+//    left: 162px;
+//    margin-top: -1500px;
+//  }
+//}
+//
+//@media (min-width: 1800px) {
+//  .allview {
+//    left: 138px;
+//    margin-top: -1500px;
+//  }
+//}
+//
+//  .allview {
+//    left: 105px;
+//    margin-top: -1500px;
+//  }
+//
+
+.left-menu-close {
+  display: none;
+  transition: 1s ease-out 0.5s
 }

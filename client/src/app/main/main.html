@@ -1,55 +1,54 @@
-<div class="container-home col-md-10 col-lg-offset-2 col-md-10 col-lg-offset-2">
-	<h1 translate="MAIN.HOME">Home</h1>
-	<div class="col-md-3 col-md-offset-8 piker">
-		<div dx-select-box="main.datePiker"></div>
-	</div>
-	<div class="row">
-		<div id="container">
-			<div class="col-md-6 contLeft">
-				<div dx-chart="main.chartOptions" id="chart"></div>
-				<div class="col-md-12">
-					<div class="checkbox-container">
-						<label class="label-checkbox"><div dx-check-box="main.impressions"></div></label>
-						<label class="label-checkbox"><div dx-check-box="main.CPA"></div></label>
-						<label class="label-checkbox"><div dx-check-box="main.CPC"></div></label>
-						<label class="label-checkbox"><div dx-check-box="main.clicks"></div></label>
-					</div>
-					<div class="checkbox-container">
-						<label class="label-checkbox"><div dx-check-box="main.media"></div></label>
-						<label class="label-checkbox"><div dx-check-box="main.conversions"></div></label>
-						<label class="label-checkbox"><div dx-check-box="main.CTR"></div></label>
-					</div>
-				</div>
-			</div>
-			<div id="visualMap"></div>
-		</div>
-	</div>
-	<div class="row first-grid table-responsive">
-		<table class="table table-bordered">
-			<tr>
-				<td translate="MAIN.TOTALS.COLUMNS.TOTALS"></td>
-				<td translate="MAIN.TOTALS.COLUMNS.SPENT"></td>
-				<td translate="MAIN.TOTALS.COLUMNS.CONV"></td>
-				<td translate="MAIN.TOTALS.COLUMNS.IMP"></td>
-				<td translate="MAIN.TOTALS.COLUMNS.CPC"></td>
-				<td translate="MAIN.TOTALS.COLUMNS.CPM"></td>
-				<td translate="MAIN.TOTALS.COLUMNS.CVR"></td>
-				<td translate="MAIN.TOTALS.COLUMNS.CTR"></td>
-			</tr>
-			<tr>
-				<td></td>
-				<td>{{main.totals.spent}}</td>
-				<td>{{main.totals.conv}}</td>
-				<td>{{main.totals.imp}}</td>
-				<td>{{main.totals.cpc}}</td>
-				<td>{{main.totals.cpm}}</td>
-				<td>{{main.totals.cvr}}</td>
-				<td>{{main.totals.ctr}}</td>
-			</tr>
-		</table>
+<div class="container-home col-lg-12  col-md-12 col-sm-12">
+  <h1 translate="MAIN.HOME">Home</h1>
+  <div class="col-md-3 col-md-offset-8 piker">
+    <div dx-select-box="main.datePiker"></div>
+  </div>
+  <div class="row">
 
-	</div>
-	<div class="row second-grid">
-		<div  id="gridContainer2" dx-data-grid="main.dataGridOptionsMultiple"></div>
-	</div>
+
+    <div class="col-xs-10 col-sm-5 col-md-5 col-lg-6 contLeft">
+      <div dx-chart="main.chartOptions" id="chart"></div>
+    </div>
+    <div class="checkbox-container col-xs-2 col-md-2 col-sm-2 col-lg-1">
+      <label class="label-checkbox"><div dx-check-box="main.impressions"></div></label>
+      <label class="label-checkbox"><div dx-check-box="main.CPA"></div></label>
+      <label class="label-checkbox"><div dx-check-box="main.CPC"></div></label>
+      <label class="label-checkbox"><div dx-check-box="main.clicks"></div></label>
+      <label class="label-checkbox"><div dx-check-box="main.media"></div></label>
+      <label class="label-checkbox"><div dx-check-box="main.conversions"></div></label>
+      <label class="label-checkbox"><div dx-check-box="main.CTR"></div></label>
+    </div>
+    <div class="col-xs-12 col-sm-5 col-md-5 col-lg-5 mapTop">
+      <div id="visualMap"></div>
+    </div>
+
+  </div>
+  <div class="row first-grid table-responsive">
+    <table class="table table-bordered">
+      <tr>
+        <td translate="MAIN.TOTALS.COLUMNS.TOTALS"></td>
+        <td translate="MAIN.TOTALS.COLUMNS.SPENT"></td>
+        <td translate="MAIN.TOTALS.COLUMNS.CONV"></td>
+        <td translate="MAIN.TOTALS.COLUMNS.IMP"></td>
+        <td translate="MAIN.TOTALS.COLUMNS.CPC"></td>
+        <td translate="MAIN.TOTALS.COLUMNS.CPM"></td>
+        <td translate="MAIN.TOTALS.COLUMNS.CVR"></td>
+        <td translate="MAIN.TOTALS.COLUMNS.CTR"></td>
+      </tr>
+      <tr>
+        <td></td>
+        <td>{{main.totals.spent}}</td>
+        <td>{{main.totals.conv}}</td>
+        <td>{{main.totals.imp}}</td>
+        <td>{{main.totals.cpc}}</td>
+        <td>{{main.totals.cpm}}</td>
+        <td>{{main.totals.cvr}}</td>
+        <td>{{main.totals.ctr}}</td>
+      </tr>
+    </table>
+
+  </div>
+  <div class="row second-grid">
+    <div  id="gridContainer2" dx-data-grid="main.dataGridOptionsMultiple"></div>
+  </div>
 </div>

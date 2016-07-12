@@ -1,0 +1,89 @@
+<div class="container-fluid container-camp-second col-lg-12  col-md-12 col-sm-12">
+  <!--<div class="row">-->
+    <!--<span translate="CAMP.NAME" class="camp-header"></span><span class="camp-header">: {{campdetails.campName}}</span>-->
+  <!--</div>-->
+  <!--<div class="col-md-3 col-md-offset-8 col-sm-3 col-sm-offset-8 piker">-->
+    <!--<div dx-select-box="campdetails.datePiker"></div>-->
+  <!--</div>-->
+  <!--<div class="row camp-content1">-->
+    <!--<div>-->
+      <!--<div class="row-fluid contLeft">-->
+        <!--<div id="zoomedContainerFirst" class="first-chart col-lg-5 col-md-9 col-sm-9">-->
+          <!--<div id="zoomedChartFirst" dx-chart="campdetails.chartOptionsFirst"></div>-->
+          <!--<div dx-range-selector="campdetails.rangeOptionsFirst"></div>-->
+        <!--</div>-->
+        <!--<div class="col-lg-2 col-md-2 col-sm-1 checkbox-container">-->
+          <!--<div>-->
+            <!--<label class="label-checkbox"><div dx-check-box="campdetails.impressions"></div></label>-->
+            <!--<label class="label-checkbox"><div dx-check-box="campdetails.CPA"></div></label>-->
+            <!--<label class="label-checkbox"><div dx-check-box="campdetails.CPC"></div></label>-->
+            <!--<label class="label-checkbox"><div dx-check-box="campdetails.clicks"></div></label>-->
+            <!--<label class="label-checkbox"><div dx-check-box="campdetails.media"></div></label>-->
+            <!--<label class="label-checkbox"><div dx-check-box="campdetails.conversions"></div></label>-->
+            <!--<label class="label-checkbox"><div dx-check-box="campdetails.CTR"></div></label>-->
+          <!--</div>-->
+        <!--</div>-->
+        <!--<div id="zoomedContainerSecond" class="first-chart col-lg-5 col-md-10 col-sm-10">-->
+          <!--<div id="zoomedChartSecond" dx-chart="campdetails.chartOptionsSecond"></div>-->
+          <!--<div dx-range-selector="campdetails.rangeOptionsSecond"></div>-->
+        <!--</div>-->
+      <!--</div>-->
+    <!--</div>-->
+  <!--</div>-->
+
+  <!--<div class="row first-grid">-->
+    <!--<div  id="gridContainer2" dx-data-grid="campdetails.dataGridOptionsCampaign">-->
+      <!--<div data-options="dxTemplate: {name: 'headerCellTemplate'}">-->
+        <!--<div ng-model="main.state" dx-select-box="$parent.camp.selectCell"></div>-->
+      <!--</div>-->
+    <!--</div>-->
+  <!--</div>-->
+
+  <div class="second-container-details row">
+    <div class="label-container">
+      <input type="button" ng-click="camp.selectInfoBtn($event, campdetails.ctrlBbtns.placement.header)"  name='Placement' value="{{campdetails.ctrlBbtns.placement.btn}}" class="nav-btn">
+      <input type="button" ng-click="camp.selectInfoBtn($event, campdetails.ctrlBbtns.creativeId.header)" name='creative_id' value="{{campdetails.ctrlBbtns.creativeId.btn}}" class="nav-btn">
+      <input type="button" ng-click="camp.selectInfoBtn($event, campdetails.ctrlBbtns.creativeSize.header)" name='creative_size' value="{{campdetails.ctrlBbtns.creativeSize.btn}}" class="nav-btn">
+      <input type="button" ng-click="camp.selectInfoBtn($event, campdetails.ctrlBbtns.viewability.header)" name='viewability' value="{{campdetails.ctrlBbtns.viewability.btn}}" class="nav-btn">
+      <input type="button" ng-click="camp.selectInfoBtn($event, campdetails.ctrlBbtns.os.header)" name='OS' value="{{campdetails.ctrlBbtns.os.btn}}" class="nav-btn">
+      <input type="button" ng-click="camp.selectInfoBtn($event, campdetails.ctrlBbtns.carrier.header)" name='carrier' value="{{campdetails.ctrlBbtns.carrier.btn}}" class="nav-btn">
+      <input type="button" ng-click="camp.selectInfoBtn($event, campdetails.ctrlBbtns.networkSeller.header)" name='network(seller)' value="{{campdetails.ctrlBbtns.networkSeller.btn}}" class="nav-btn">
+      <input type="button" ng-click="camp.selectInfoBtn($event, campdetails.ctrlBbtns.connectionType.header)" name='connection_type' value="{{campdetails.ctrlBbtns.connectionType.btn}}" class="nav-btn">
+      <input type="button" ng-click="camp.selectInfoBtn($event, campdetails.ctrlBbtns.device.header)" name='device' value="{{campdetails.ctrlBbtns.device.btn}}" class="nav-btn">
+      <input type="button" ng-click="camp.selectInfoBtn($event, campdetails.ctrlBbtns.seller.header)" name='Seller' value="{{campdetails.ctrlBbtns.seller.btn}}" class="nav-btn">
+    </div>
+    <div class="pie-chart-container">
+      <div class="header-pie-chart">
+        <div class="pie-chart-header"><h4>{{campdetails.pieChartHeader}}</h4></div>
+        <div class="target-cpa-container">
+          <div class="input-target-cpa-text">target CPA</div>
+          <input class="input-target-cpa" type="text" ng-blur="campdetails.targetCpaChange($event)" ng-keyup="$event.keyCode == 13 && campdetails.targetCpaChange($event)" ng-model="campdetails.targetCpa" maxlength="5">
+        </div>
+      </div>
+      <div class="pie-charts">
+        <div class="chart-container" dx-pie-chart="campdetails.pieChartAll"></div>
+        <div class="chart-container" dx-pie-chart="campdetails.pieChartConversions"></div>
+      </div>
+      <div class="buckets">
+        <div><h3 class="header-buckets">CPA buckets</h3></div>
+        <div class="bucket-item">
+          <div><span class="first">${{campdetails.backetsRanges.first.min}}-${{campdetails.backetsRanges.first.max}}</span></div>
+          <div class="bucket-item-list"><div ng-repeat="item in campdetails.cpaArrayFirst">{{item}}</div></div>
+        </div>
+        <div class="bucket-item">
+          <div><span class="second">${{campdetails.backetsRanges.second.min}}-${{campdetails.backetsRanges.second.max}}</span></div>
+          <div class="bucket-item-list"><div ng-repeat="item in campdetails.cpaArraySecond">{{item}}</div></div>
+        </div>
+        <div class="bucket-item">
+          <div><span class="third">${{campdetails.backetsRanges.third.min}}-${{campdetails.backetsRanges.third.max}}</span></div>
+          <div class="bucket-item-list"><div ng-repeat="item in campdetails.cpaArrayThird">{{item}}</div></div>
+        </div>
+        <div class="bucket-item">
+          <div><span class="fourth">${{campdetails.backetsRanges.fourth.min}}+</span></div>
+          <div class="bucket-item-list"><div ng-repeat="item in campdetails.cpaArrayFourth">{{item}}</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+

@@ -20,7 +20,8 @@ from models import Advertiser, Campaign, SiteDomainPerformanceReport, Profile, L
     OSFamily, OperatingSystemExtended, NetworkAnalyticsReport, GeoAnaliticsReport, Member, Developer, BuyerGroup, \
     AdProfile, ContentCategory, Deal, PlatformMember, User, Publisher, Site, OptimizationZone, MobileAppInstance, \
     YieldManagementProfile, PaymentRule, ConversionPixel, Country, Region, DemographicArea, AdQualityRule, Placement, \
-    Creative, Brand, CteativeTemplate, Category, Company, MediaType, MediaSubType, CteativeFormat, CreativeFolder
+    Creative, Brand, CteativeTemplate, Category, Company, MediaType, MediaSubType, CteativeFormat, CreativeFolder, \
+    Language
 from pytz import utc
 from utils import get_all_classes_in_models, column_sets_for_reports, get_current_time
 
@@ -531,6 +532,12 @@ def load_depending_data(token):
                                                  {'advertiser_id': advertiser_id},
                                                  CreativeFolder, False)
             print 'There is %d  creative folders' % len(creative_folders)
+
+        languages = nexus_get_objects(token,
+                                      'https://api.appnexus.com/language',
+                                      {},
+                                      Language, False)
+        print 'There is %d languages ' % len(languages)
 
         creatives = nexus_get_objects(token,
                                       'https://api.appnexus.com/creative',

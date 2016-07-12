@@ -1019,6 +1019,7 @@ class ContentCategory(models.Model):
 
 class Language(models.Model):
     id = models.IntegerField(primary_key=True)  # No AutoIncrement
+    fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
     name = models.TextField(null=True, blank=True, db_index=True)
 
     class Meta:

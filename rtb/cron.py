@@ -487,6 +487,11 @@ def load_depending_data(token):
                                       {},
                                       Company, False)
         print 'There is %d companies ' % len(companies)
+        try:
+            zero_company = Company.objects.get(pk=0)
+        except:
+            zero_company=Company(id=0, name='<Unknown company>', fetch_date=get_current_time())
+            zero_company.save()
 
         categories = nexus_get_objects(token,
                                        'https://api.appnexus.com/category',
@@ -497,7 +502,8 @@ def load_depending_data(token):
         brands = nexus_get_objects(token,
                                    'https://api.appnexus.com/brand',
                                    {},
-                                   Brand, False)
+                                   Brand, False,
+                                   {'simple':"true"})
         print 'There is %d brands ' % len(brands)
 
         media_types = nexus_get_objects(token,

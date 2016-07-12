@@ -3,12 +3,12 @@
 
   angular
     .module('pjtLayout')
-    .controller('CampaignController', CampaignController);
+    .controller('CampaignDetails', CampaignDetails);
 
   /** @ngInject */
-  function CampaignController($window, $state, $localStorage, $translate, Camp, Campaign) {
+  function CampaignDetails($window, $state, $localStorage, $translate, CampDetails, Campaign) {
     var vm = this;
-    vm.Camp = Camp;
+    vm.Camp = CampDetails;
     vm.multipleTotalCount = 0;
     vm.checkChart = [];
     vm.by = '';
@@ -196,7 +196,7 @@
         }
       },
       bindingOptions: {
-        dataSource: 'camp.chartStore'
+        dataSource: 'campdetails.chartStore'
       },
       series: $localStorage.seriesCamp,
       legend:{
@@ -216,7 +216,7 @@
         minorTickCount:1
       },
       bindingOptions: {
-        dataSource: 'camp.chartStore'
+        dataSource: 'campdetails.chartStore'
       },
       chart: {
         series: $localStorage.seriesCamp
@@ -477,7 +477,7 @@
 
     vm.chartOptionsSecond = {
       bindingOptions: {
-        dataSource: 'camp.boxPlotStore'
+        dataSource: 'campdetails.boxPlotStore'
       },
       commonSeriesSettings: {
         type: 'candleStick'
@@ -532,7 +532,7 @@
         tickInterval: 'day'
       },
       bindingOptions: {
-        dataSource: 'camp.boxPlotStore'
+        dataSource: 'campdetails.boxPlotStore'
       },
       chart: {
         series: {
@@ -625,7 +625,7 @@
         visible: true
       },
       bindingOptions: {
-        dataSource: 'camp.gridStore',
+        dataSource: 'campdetails.gridStore',
         allowColumnResizing: 'true'
       },
       pager: {
@@ -953,19 +953,19 @@
           max: (targetCpaInt * 1000).toFixed(1)
         }
       };
-      vm.cpaArrayFirst =  Camp.cpaBuckets(vm.backetsRanges.first.min, vm.backetsRanges.first.max);
-      vm.cpaArraySecond =  Camp.cpaBuckets(vm.backetsRanges.second.min, vm.backetsRanges.second.max);
-      vm.cpaArrayThird =  Camp.cpaBuckets(vm.backetsRanges.third.min, vm.backetsRanges.third.max);
-      vm.cpaArrayFourth =  Camp.cpaBuckets(vm.backetsRanges.fourth.min, vm.backetsRanges.fourth.max);
+      vm.cpaArrayFirst =  CampDetails.cpaBuckets(vm.backetsRanges.first.min, vm.backetsRanges.first.max);
+      vm.cpaArraySecond =  CampDetails.cpaBuckets(vm.backetsRanges.second.min, vm.backetsRanges.second.max);
+      vm.cpaArrayThird =  CampDetails.cpaBuckets(vm.backetsRanges.third.min, vm.backetsRanges.third.max);
+      vm.cpaArrayFourth =  CampDetails.cpaBuckets(vm.backetsRanges.fourth.min, vm.backetsRanges.fourth.max);
 
 
       return vm.backetsRanges;
     };
 
-    vm.cpaArrayFirst =  Camp.cpaBuckets(vm.backetsRanges.first.min, vm.backetsRanges.first.max);
-    vm.cpaArraySecond =  Camp.cpaBuckets(vm.backetsRanges.second.min, vm.backetsRanges.second.max);
-    vm.cpaArrayThird =  Camp.cpaBuckets(vm.backetsRanges.third.min, vm.backetsRanges.third.max);
-    vm.cpaArrayFourth =  Camp.cpaBuckets(vm.backetsRanges.fourth.min, vm.backetsRanges.fourth.max);
+    vm.cpaArrayFirst =  CampDetails.cpaBuckets(vm.backetsRanges.first.min, vm.backetsRanges.first.max);
+    vm.cpaArraySecond =  CampDetails.cpaBuckets(vm.backetsRanges.second.min, vm.backetsRanges.second.max);
+    vm.cpaArrayThird =  CampDetails.cpaBuckets(vm.backetsRanges.third.min, vm.backetsRanges.third.max);
+    vm.cpaArrayFourth =  CampDetails.cpaBuckets(vm.backetsRanges.fourth.min, vm.backetsRanges.fourth.max);
 
 
     vm.pieChartAll = {
@@ -979,7 +979,7 @@
         }
       },
       bindingOptions: {
-        dataSource: 'camp.detailsStoreAll'
+        dataSource: 'campdetails.detailsStoreAll'
       },
       series: [{
         argumentField: 'section',
@@ -1021,7 +1021,7 @@
         }
       },
       bindingOptions: {
-        dataSource: 'camp.detailsStoreConversion'
+        dataSource: 'campdetails.detailsStoreConversion'
       },
       series: [{
         argumentField: "section",

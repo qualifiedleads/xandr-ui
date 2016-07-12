@@ -1,0 +1,89 @@
+<div class="container-fluid container-camp col-lg-12  col-md-12 col-sm-12">
+  <div class="row">
+    <span translate="CAMP.NAME" class="camp-header"></span><span class="camp-header">: {{campmain.campName}}</span>
+  </div>
+  <div class="col-md-3 col-md-offset-8 col-sm-3 col-sm-offset-8 piker">
+    <div dx-select-box="campmain.datePiker"></div>
+  </div>
+  <div class="row camp-content1">
+    <div>
+      <div class="row-fluid contLeft">
+        <div id="zoomedContainerFirst" class="first-chart col-lg-5 col-md-9 col-sm-9">
+          <div id="zoomedChartFirst" dx-chart="campmain.chartOptionsFirst"></div>
+          <div dx-range-selector="campmain.rangeOptionsFirst"></div>
+        </div>
+        <div class="col-lg-2 col-md-2 col-sm-1 checkbox-container">
+          <div>
+            <label class="label-checkbox"><div dx-check-box="campmain.impressions"></div></label>
+            <label class="label-checkbox"><div dx-check-box="campmain.CPA"></div></label>
+            <label class="label-checkbox"><div dx-check-box="campmain.CPC"></div></label>
+            <label class="label-checkbox"><div dx-check-box="campmain.clicks"></div></label>
+            <label class="label-checkbox"><div dx-check-box="campmain.media"></div></label>
+            <label class="label-checkbox"><div dx-check-box="campmain.conversions"></div></label>
+            <label class="label-checkbox"><div dx-check-box="campmain.CTR"></div></label>
+          </div>
+        </div>
+        <div id="zoomedContainerSecond" class="first-chart col-lg-5 col-md-10 col-sm-10">
+          <div id="zoomedChartSecond" dx-chart="campmain.chartOptionsSecond"></div>
+          <div dx-range-selector="campmain.rangeOptionsSecond"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row first-grid">
+    <div  id="gridContainer2" dx-data-grid="campmain.dataGridOptionsCampaign">
+      <div data-options="dxTemplate: {name: 'headerCellTemplate'}">
+        <div ng-model="main.state" dx-select-box="$parent.campmain.selectCell"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="second-container-main row">
+    <div class="label-container">
+      <input type="button" ng-click="campmain.selectInfoBtn($event, campmain.ctrlBbtns.placement.header)"  name='Placement' value="{{campmain.ctrlBbtns.placement.btn}}" class="nav-btn">
+      <input type="button" ng-click="campmain.selectInfoBtn($event, campmain.ctrlBbtns.creativeId.header)" name='creative_id' value="{{campmain.ctrlBbtns.creativeId.btn}}" class="nav-btn">
+      <input type="button" ng-click="campmain.selectInfoBtn($event, campmain.ctrlBbtns.creativeSize.header)" name='creative_size' value="{{campmain.ctrlBbtns.creativeSize.btn}}" class="nav-btn">
+      <input type="button" ng-click="campmain.selectInfoBtn($event, campmain.ctrlBbtns.viewability.header)" name='viewability' value="{{campmain.ctrlBbtns.viewability.btn}}" class="nav-btn">
+      <input type="button" ng-click="campmain.selectInfoBtn($event, campmain.ctrlBbtns.os.header)" name='OS' value="{{campmain.ctrlBbtns.os.btn}}" class="nav-btn">
+      <input type="button" ng-click="campmain.selectInfoBtn($event, campmain.ctrlBbtns.carrier.header)" name='carrier' value="{{campmain.ctrlBbtns.carrier.btn}}" class="nav-btn">
+      <input type="button" ng-click="campmain.selectInfoBtn($event, campmain.ctrlBbtns.networkSeller.header)" name='network(seller)' value="{{campmain.ctrlBbtns.networkSeller.btn}}" class="nav-btn">
+      <input type="button" ng-click="campmain.selectInfoBtn($event, campmain.ctrlBbtns.connectionType.header)" name='connection_type' value="{{campmain.ctrlBbtns.connectionType.btn}}" class="nav-btn">
+      <input type="button" ng-click="campmain.selectInfoBtn($event, campmain.ctrlBbtns.device.header)" name='device' value="{{campmain.ctrlBbtns.device.btn}}" class="nav-btn">
+      <input type="button" ng-click="campmain.selectInfoBtn($event, campmain.ctrlBbtns.seller.header)" name='Seller' value="{{campmain.ctrlBbtns.seller.btn}}" class="nav-btn">
+    </div>
+    <div class="pie-chart-container">
+      <div class="header-pie-chart">
+        <div class="pie-chart-header"><h4>{{campmain.pieChartHeader}}</h4></div>
+        <div class="target-cpa-container">
+          <div class="input-target-cpa-text">target CPA</div>
+          <input class="input-target-cpa" type="text" ng-blur="campmain.targetCpaChange($event)" ng-keyup="$event.keyCode == 13 && campmain.targetCpaChange($event)" ng-model="campmain.targetCpa" maxlength="5">
+        </div>
+      </div>
+      <div class="pie-charts">
+        <div class="chart-container" dx-pie-chart="campmain.pieChartAll"></div>
+        <div class="chart-container" dx-pie-chart="campmain.pieChartConversions"></div>
+      </div>
+      <div class="buckets">
+        <div><h3 class="header-buckets">CPA buckets</h3></div>
+        <div class="bucket-item">
+          <div><span class="first">${{campmain.backetsRanges.first.min}}-${{campmain.backetsRanges.first.max}}</span></div>
+          <div class="bucket-item-list"><div ng-repeat="item in campmain.cpaArrayFirst">{{item}}</div></div>
+        </div>
+        <div class="bucket-item">
+          <div><span class="second">${{campmain.backetsRanges.second.min}}-${{campmain.backetsRanges.second.max}}</span></div>
+          <div class="bucket-item-list"><div ng-repeat="item in campmain.cpaArraySecond">{{item}}</div></div>
+        </div>
+        <div class="bucket-item">
+          <div><span class="third">${{campmain.backetsRanges.third.min}}-${{campmain.backetsRanges.third.max}}</span></div>
+          <div class="bucket-item-list"><div ng-repeat="item in campmain.cpaArrayThird">{{item}}</div></div>
+        </div>
+        <div class="bucket-item">
+          <div><span class="fourth">${{campmain.backetsRanges.fourth.min}}+</span></div>
+          <div class="bucket-item-list"><div ng-repeat="item in campmain.cpaArrayFourth">{{item}}</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+

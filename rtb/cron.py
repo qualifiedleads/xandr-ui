@@ -19,7 +19,9 @@ import models
 from models import Advertiser, Campaign, SiteDomainPerformanceReport, Profile, LineItem, InsertionOrder, \
     OSFamily, OperatingSystemExtended, NetworkAnalyticsReport, GeoAnaliticsReport, Member, Developer, BuyerGroup, \
     AdProfile, ContentCategory, Deal, PlatformMember, User, Publisher, Site, OptimizationZone, MobileAppInstance, \
-    YieldManagementProfile, PaymentRule, ConversionPixel, Country, Region, DemographicArea
+    YieldManagementProfile, PaymentRule, ConversionPixel, Country, Region, DemographicArea, AdQualityRule, Placement, \
+    Creative, Brand, CteativeTemplate, Category, Company, MediaType, MediaSubType, CteativeFormat, CreativeFolder, \
+    Language
 from pytz import utc
 from utils import get_all_classes_in_models, column_sets_for_reports, get_current_time
 
@@ -247,9 +249,9 @@ def analize_csv(filename, modelClass, metadata={}):
             worker.join()
 
 
+
 unix_epoch = datetime.datetime.utcfromtimestamp(0).replace(tzinfo=utc)
 
-# https://api.appnexus.com/creative?start_element=0&num_elements=50'
 def nexus_get_objects(token, url, params, object_class, force_update=False, get_params=None):
     if not get_params:
         get_params = params
@@ -314,7 +316,10 @@ def nexus_get_objects(token, url, params, object_class, force_update=False, get_
 
             if count < 0:  # first portion of objects
                 count = response["count"]
-                if count > 10000: count = 10000
+                if count > 10000:
+                    # TODO: This need to be replaced by "smart loading"
+                    print "There is too many records (%d)"%count
+                    if len(objects_in_db)>0: return objects_in_db
                 cur_records = 0
             if isinstance(pack_of_objects,list):
                 objects_by_api.extend(pack_of_objects)
@@ -427,8 +432,9 @@ def load_depending_data(token):
             if cd - date_in_db > settings.INVALIDATE_TIME:
                 o1 = nexus_get_objects(token,
                                        'http://api.appnexus.com/content-category',
-                                       {'category_type': 'universal'},
-                                       ContentCategory, True)
+                                       {},  # {'type':'universal'}
+                                       ContentCategory, True,
+                                       {'category_type': 'universal'})
                 o2 = nexus_get_objects(token,
                                        'http://api.appnexus.com/content-category',
                                        {},
@@ -479,6 +485,76 @@ def load_depending_data(token):
                                                  )
                 print 'There is %d base payment rules ' % len(payment_rules)
 
+        companies = nexus_get_objects(token,
+                                      'https://api.appnexus.com/brand-company',
+                                      {},
+                                      Company, False)
+        print 'There is %d companies ' % len(companies)
+        try:
+            zero_company = Company.objects.get(pk=0)
+        except:
+            zero_company=Company(id=0, name='<Unknown company>', fetch_date=get_current_time())
+            zero_company.save()
+
+        categories = nexus_get_objects(token,
+                                       'https://api.appnexus.com/category',
+                                       {},
+                                       Category, False)
+        print 'There is %d categories ' % len(categories)
+
+        brands = nexus_get_objects(token,
+                                   'https://api.appnexus.com/brand',
+                                   {},
+                                   Brand, False,
+                                   {'simple':"true"})
+        print 'There is %d brands ' % len(brands)
+
+        media_types = nexus_get_objects(token,
+                                        'https://api.appnexus.com/media-type',
+                                        {},
+                                        MediaType, False)
+        print 'There is %d creative media types' % len(media_types)
+
+        media_sub_types = nexus_get_objects(token,
+                                            'https://api.appnexus.com/media-subtype',
+                                            {},
+                                            MediaSubType, False)
+        print 'There is %d creative media sub types' % len(media_sub_types)
+
+        # https://api.appnexus.com/creative-format
+        creative_formats = nexus_get_objects(token,
+                                             'https://api.appnexus.com/creative-format',
+                                             {},
+                                             CteativeFormat, False)
+        print 'There is %d creative media sub types' % len(creative_formats)
+
+        creative_templates = nexus_get_objects(token,
+                                               'https://api.appnexus.com/template',
+                                               {},
+                                               CteativeTemplate, False)
+        print 'There is %d creative templates' % len(creative_templates)
+
+        for adv in advertisers:
+            advertiser_id = adv.id
+            # Get all creative folders
+            creative_folders = nexus_get_objects(token,
+                                                 'https://api.appnexus.com/creative-folder',
+                                                 {'advertiser_id': advertiser_id},
+                                                 CreativeFolder, False)
+            print 'There is %d  creative folders' % len(creative_folders)
+
+        languages = nexus_get_objects(token,
+                                      'https://api.appnexus.com/language',
+                                      {},
+                                      Language, False)
+        print 'There is %d languages ' % len(languages)
+
+        creatives = nexus_get_objects(token,
+                                      'https://api.appnexus.com/creative',
+                                      {},
+                                      Creative, False)
+        print 'There is %d creatives ' % len(creatives)
+
         # Get all payment rules:
         for pub in publishers:
             payment_rules = nexus_get_objects(token,
@@ -488,6 +564,19 @@ def load_depending_data(token):
                                               {'publisher_id': pub.pk})
             print 'There is %d payment rules for publisher %s' % (len(payment_rules),pub.name)
             print 'Ids:', ','.join(str(x.pk) for x in payment_rules)
+            quality_rules = nexus_get_objects(token,
+                                              'https://api.appnexus.com/ad-quality-rule',
+                                              {'publisher': pub},
+                                              AdQualityRule, True,
+                                              {'publisher_id': pub.pk})
+            print 'There is %d quality rules for publisher %s' % (len(payment_rules), pub.name)
+            # Placement https://api.appnexus.com/placement?publisher_id=PUBLISHER_ID
+            placements = nexus_get_objects(token,
+                                          'https://api.appnexus.com/placement',
+                                          {'publisher': pub},
+                                           Placement, True,
+                                          {'publisher_id': pub.pk})
+            print 'There is %d placements for publisher %s' % (len(placements), pub.name)
 
         # Get all users:
         users = nexus_get_objects(token,
@@ -582,7 +671,7 @@ def dayly_task(day=None, load_objects_from_services=True, output=None):
             load_depending_data(token)
         load_report(token, day, GeoAnaliticsReport)
         load_reports_for_all_advertisers(token, day, SiteDomainPerformanceReport)
-        # load_reports_for_all_advertisers(token, day, NetworkAnalyticsReport)
+        load_reports_for_all_advertisers(token, day, NetworkAnalyticsReport)
     except Exception as e:
         print 'Error by fetching data: %s' % e
         print traceback.print_exc(file=output)

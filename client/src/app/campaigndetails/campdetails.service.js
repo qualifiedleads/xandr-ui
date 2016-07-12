@@ -3,10 +3,10 @@
 
   angular
     .module('pjtLayout')
-    .service('Camp', Camp);
+    .service('CampDetails', CampDetails);
 
   /** @ngInject */
-  function Camp($http) {
+  function CampDetails($http) {
     var _this = this;
 
 
@@ -42,6 +42,8 @@
         });
     }
 
+
+
     function cpaReport(id, from, to) {
       return $http({
         method: 'GET',
@@ -53,6 +55,7 @@
         });
     }
 
+
     function campaignDomains(id, from, to, skip, take, order, filter) {
       return $http({
         method: 'GET',
@@ -63,6 +66,7 @@
           return res.data;
         });
     }
+
 
     function statsCampaigns(from, to, skip, take,sort,order,stat_by,filter) {
       return $http({
@@ -99,7 +103,8 @@
       return a;
     }
 
-    
+
+
     _this.cpaReport = cpaReport;
     _this.nameCampaigns = nameCampaigns;
     _this.statsCampaigns = statsCampaigns;

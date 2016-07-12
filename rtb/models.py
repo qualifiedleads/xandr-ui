@@ -101,6 +101,8 @@ class UserAdvertiserAccess(models.Model):
 
 class Category(models.Model):
     #https://wiki.appnexus.com/display/api/Category+Service
+    id = models.IntegerField(primary_key=True)  # No AutoIncrement
+    fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
     name = models.TextField(null=True, blank=True, db_index=True)
     is_sensitive = models.NullBooleanField(null=True, blank=True)
     requires_whitelist = models.NullBooleanField(null=True, blank=True)
@@ -115,6 +117,8 @@ class Category(models.Model):
 
 class Company(models.Model):
     #https://wiki.appnexus.com/display/api/Brand+Company+Service
+    id = models.IntegerField(primary_key=True)  # No AutoIncrement
+    fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
     models.IntegerField(primary_key=True)  # No AutoIncrement
     name = models.TextField(null=True, blank=True, db_index=True)
     last_modified = models.DateTimeField(default=now_tz) 
@@ -125,8 +129,10 @@ class Company(models.Model):
 
 class Brand(models.Model):
     #https://wiki.appnexus.com/display/api/Brand+Service
+    id = models.IntegerField(primary_key=True)  # No AutoIncrement
+    fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
     name = models.TextField(null=True, blank=True, db_index=True)
-    urls = models.TextField(null=True, blank=True, db_index=True)#ArrayField(models.TextField(null=True, blank=True), null=True, blank=True)
+    urls = models.TextField(null=True, blank=True)#ArrayField(models.TextField(null=True, blank=True), null=True, blank=True)
     is_premium = models.NullBooleanField(null=True, blank=True)
     category = models.ForeignKey("Category", null=True, blank=True)
     company = models.ForeignKey("Company", null=True, blank=True)
@@ -331,6 +337,8 @@ MEDIA_TYPE_SIZES = (
 
 class MediaType(models.Model):
     #https://wiki.appnexus.com/display/api/Media+Type+Service
+    id = models.IntegerField(primary_key=True)  # No AutoIncrement
+    fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
     name = models.TextField(null=True, blank=True, db_index=True)
     media_type_group_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future. It is not clear what is Group yet...
     uses_sizes = models.TextField(
@@ -344,6 +352,8 @@ class MediaType(models.Model):
 
 class MediaSubType(models.Model):
     #https: // wiki.appnexus.com / display / api / Media + Subtype + Service
+    id = models.IntegerField(primary_key=True)  # No AutoIncrement
+    fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
     name = models.TextField(null=True, blank=True, db_index=True)
     media_type = models.ForeignKey("MediaType", null=True, blank=True)
     #permitted_sizes - see model MediaSubTypePermittedSizes below
@@ -954,7 +964,7 @@ class PublisherContact(models.Model):
         db_table = "publisher_contact"
 
 
-class PublisherBrandExceptions(models.Model):
+class PublisherBrandExceptions(models.Model): # TODO: ManyToMany field
     publisher = models.ForeignKey("Publisher", null=True, blank=True)
     brand = models.ForeignKey("Brand", null=True, blank=True)
 
@@ -1009,6 +1019,7 @@ class ContentCategory(models.Model):
 
 class Language(models.Model):
     id = models.IntegerField(primary_key=True)  # No AutoIncrement
+    fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
     name = models.TextField(null=True, blank=True, db_index=True)
 
     class Meta:
@@ -1085,6 +1096,7 @@ CLICK_ACTION_CHOICES = (
 class Creative(models.Model):
     #https://wiki.appnexus.com/display/api/Creative+Service
     id = models.IntegerField(primary_key=True)  # No AutoIncrement
+    fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
     code = models.TextField(null=True, blank=True, db_index=True)
     code2 = models.TextField(null=True, blank=True, db_index=True)
     name = models.TextField(null=True, blank=True, db_index=True)
@@ -1180,10 +1192,10 @@ class Creative(models.Model):
     language = models.ForeignKey("Language", null=True, blank=True)
     pop_values = models.TextField(null=True, blank=True) #TODO JSON
     sla = models.IntegerField(null=True, blank=True)
-    sla_eta = models.DateTimeField()
+    sla_eta = models.DateTimeField(null=True, blank=True)
     currency = models.TextField(null=True, blank=True)
-    first_run = models.DateTimeField()
-    last_run = models.DateTimeField()
+    first_run = models.DateTimeField(default=now_tz)
+    last_run = models.DateTimeField(null=True, blank=True)
     mobile = models.TextField(null=True, blank=True) #TODO JSON
     video_attribute = models.TextField(null=True, blank=True) #TODO JSON
     #stats = object # - will create another model in it will be needed
@@ -1319,6 +1331,8 @@ class CreativePixel(models.Model):
 
 class CreativeFolder(models.Model):
     #https://wiki.appnexus.com/display/api/Creative+Folder+Service
+    id = models.IntegerField(primary_key=True)  # No AutoIncrement
+    fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
     name = models.TextField(null=True, blank=True, db_index=True)
     advertiser = models.ForeignKey("Advertiser", null=True, blank=True)
     last_modified = models.DateTimeField(default=now_tz) 
@@ -1329,6 +1343,8 @@ class CreativeFolder(models.Model):
 
 class CteativeTemplate(models.Model):
     #https://wiki.appnexus.com/display/api/Creative+Template+Service
+    id = models.IntegerField(primary_key=True)  # No AutoIncrement
+    fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
     name = models.TextField(null=True, blank=True, db_index=True)
     description = models.TextField(null=True, blank=True)
     member = models.ForeignKey("Member", null=True, blank=True)
@@ -1349,6 +1365,8 @@ class CteativeTemplate(models.Model):
 
 class CteativeFormat(models.Model):
     #https://wiki.appnexus.com/display/api/Creative+Format+Service
+    id = models.IntegerField(primary_key=True)  # No AutoIncrement
+    fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
     name = models.TextField(null=True, blank=True, db_index=True)
     last_modified = models.DateTimeField(default=now_tz) 
 
@@ -1402,7 +1420,9 @@ DEMAND_FILTER_ACTION_CHOICES = (
 
 
 class Placement(models.Model):
-    #https://wiki.appnexus.com/display/api/Placement+Service?src=search
+    #https://wiki.appnexus.com/display/api/Placement+Service
+    id = models.IntegerField(primary_key=True)  # No AutoIncrement
+    fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
     name = models.TextField(null=True, blank=True, db_index=True)
     code = models.TextField(null=True, blank=True, db_index=True)
     code2 = models.TextField(null=True, blank=True, db_index=True)
@@ -3115,6 +3135,7 @@ REVENUE_TYPE_CHOICES = (
 class AdQualityRule(models.Model):
     # https://wiki.appnexus.com/display/api/Ad+Quality+Rule+Service
     id = models.IntegerField(primary_key=True)  # No AutoIncrement
+    fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
     code = models.TextField(null=True, blank=True, db_index=True)
     name = models.TextField(null=True, blank=True, db_index=True)
     description = models.TextField(null=True, blank=True)

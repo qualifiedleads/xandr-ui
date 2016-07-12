@@ -27,18 +27,41 @@
         controllerAs: 'main'
       })
       .state('home.campaign', {
+        templateUrl:  'app/campaign/camp.html',
+        abstract: true
+      })
+      .state('home.campaign.details', {
         url: '/campaign/:id',
-        templateUrl: 'app/campaign/camp.html',
-        controller: 'CampaignController',
-        controllerAs: 'camp',
-        resolve:{
-          Campaign:  function(Camp,$stateParams){
-            if (!$stateParams.id) {
-              $stat.go(home.main)
+        views: {
+          details: {
+            templateUrl: 'app/campaignmain/campmain.html',
+            controller: 'CampaignControllerMain',
+            controllerAs: 'campmain',
+            resolve: {
+              Campaign:  function(CampMain,$stateParams, $state){
+                if (!$stateParams.id) {
+                  $state.go(home.main)
+                }
+                return CampMain.nameCampaigns($stateParams.id).then(function (res) {
+                  return res
+                });
+              }
             }
-            return Camp.nameCampaigns($stateParams.id).then(function (res) {
-              return res
-            });
+          },
+          info: {
+            templateUrl: 'app/campaigndetails/campdetails.html',
+            controller: 'CampaignDetails',
+            controllerAs: 'campdetails',
+            resolve: {
+              Campaign:  function(CampMain,$stateParams, $state){
+                if (!$stateParams.id) {
+                  $state.go(home.main)
+                }
+                return CampMain.nameCampaigns($stateParams.id).then(function (res) {
+                  return res
+                });
+              }
+            }
           }
         }
       });

@@ -21,7 +21,8 @@
     "devextreme": "^15.2.10",
     "angular-translate": "^2.11.0",
     "angular-translate-storage-local": "^2.11.0",
-    "ngstorage": "^0.3.10"
+    "ngstorage": "^0.3.10",
+    "font-awesome": "^4.5.0"
   },
   "devDependencies": {
     "angular-mocks": "~1.5.3"
@@ -59,6 +60,13 @@
         "css/dx.light.css",
         "css/icons/dxicons.*",
         "css/icons/dxiconsios.*"
+      ]
+    },
+    "font-awesome": {
+      "main": [
+        "less/font-awesome.less",
+        "fonts/FontAwesome.otf",
+        "fonts/fontawesome-webfont.*"
       ]
     }
   },

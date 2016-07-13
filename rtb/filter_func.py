@@ -64,7 +64,8 @@ def get_filter_function(filter_clause):
         cnt[0] += 1
         return ' a%d ' % cnt[0]
 
-    clause = re.compile(r'\s*\[\s*"([^"]*)",\s*"([^"]*)",\s*(\w+|(?:"(?:[^"]|\\\S)*"))\s*\]')
+    clause = re.compile(r'\s*\[\s*"([^"]*)",\s*"([^"]*)",\s*(\w+|\d+(?:\.\d*)?|(?:"(?:[^"]|\\\S)*"))\s*\]')
+    #clause = re.compile(r'\s*\[\s*"([^"]*)",\s*"([^"]*)",\s*([^\]]*)\]') #variant 2
     find_result = re.findall(clause, filter_clause)
     clause_list = map(clause_evaluator, find_result)
     compile_string = re.sub(clause, replace_func, filter_clause)

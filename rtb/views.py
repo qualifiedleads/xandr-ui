@@ -11,7 +11,7 @@ from rest_framework.decorators import api_view, parser_classes
 from rest_framework.response import Response
 from rest_framework.parsers import FormParser, MultiPartParser
 import ast
-from utils import parse_get_params
+from utils import parse_get_params, make_sum
 
 def to_unix_timestamp(d):
     return str(int(time.mktime(d.timetuple())))
@@ -57,15 +57,6 @@ def calc_another_fields(obj):
 
 def not_none(o):
     return 0 if o is None else o
-
-def make_sum(dict1, dict2):
-    res = {}
-    #keys = set(dict1)|set(dict2)
-    for k in dict1.keys():
-        try:
-            res[k] = not_none(dict1.get(k)) + not_none(dict2.get(k))
-        except: pass
-    return res
 
 def get_campaigns_data(advertiser_id, from_date, to_date):
     key = '_'.join(('rtb_campaigns',str(advertiser_id), from_date.strftime('%Y-%m-%d'),to_date.strftime('%Y-%m-%d'),))

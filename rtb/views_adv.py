@@ -1,8 +1,11 @@
 from rest_framework.decorators import api_view, parser_classes
 from rest_framework.response import Response
-from models import Campaign
 from django.http import JsonResponse
-
+from utils import parse_get_params, make_sum
+from models import SiteDomainPerformanceReport, Campaign, GeoAnaliticsReport
+from django.db.models import Sum
+from django.core.cache import cache
+import itertools
 
 @api_view()
 def singleCampaign(request, id):
@@ -19,12 +22,64 @@ Get campaign name by id
     obj = Campaign.objects.get(pk=id)
     return Response({'id': obj.id, 'campaign': obj.name})
 
+
+zero_sum = {
+    "clicks": 0,
+    "mediaspent": 0,
+    "conversions": 0,
+    "impression": 0,
+}
+
+
+# cpa, cpc,  ctr, #clicks, mediaspent, conversions,impression
+def calc_another_fields(obj):
+    res = {
+        "cpa": None, "cpc": None, "ctr": None,
+        "clicks": obj["clicks"],
+        "mediaspent": obj["mediaspent"],
+        "impression": obj["impression"],
+    }
+    try:
+        res['conversions'] = (obj['post_click_convs'] or 0) + (obj['post_view_convs'] or 0),
+        res['cpc'] = float(obj['mediaspent']) / obj['clicks'] if obj['clicks'] else 0
+        res['cpa'] = float(obj["mediaspent"]) / res['conversions'] if res['conversions'] else 0
+        res['ctr'] = float(obj["clicks"]) / obj['impression'] if obj['impression'] else 0
+    except:
+        pass
+    return res
+
+
+def get_campaign_data(advertiser_id, campaign_id, from_date, to_date):
+    key = '_'.join(('rtb_campaign', str(advertiser_id), str(campaign_id), from_date.strftime('%Y-%m-%d'),
+                    to_date.strftime('%Y-%m-%d'),))
+    res = cache.get(key)
+    if res: return res
+    # no cache hit
+    q = SiteDomainPerformanceReport.objects.filter(
+        advertiser_id=advertiser_id,
+        campaign_id=campaign_id,
+        day__gte=from_date,
+        day__lte=to_date,
+    ).values('day').annotate(  # impression, cpa, cpc, clicks, mediaspent, conversions, ctr
+        mediaspent=Sum('media_cost'),
+        # conversions = Sum('post_click_convs')+Sum('post_view_convs'), # Do not control nulls
+        post_click_convs=Sum('post_click_convs'),
+        post_view_convs=Sum('post_view_convs'),
+        clicks=Sum('clicks'),
+        impression=Sum('imps'),
+    ).order_by('day')
+    print q.query
+    res = map(calc_another_fields, q)
+    cache.set(key, res)
+    return res
+
+
 @api_view()
 def graphInfo(request, id):
     """
 Get single campaign statistics data for given period by selected categories: impression, cpa, cpc, clicks, mediaspent, conversions, ctr
 
-## Url format: /api/v1/campaigns/:id/graphinfo/?from_date={from_date}&to_date={to_date}&by={by}
+## Url format: /api/v1/campaigns/:id/graphinfo/?from_date={from_date}&to_date={to_date}
 
 + Parameters
     + id (Number) - id for getting information about company
@@ -39,6 +94,14 @@ Get single campaign statistics data for given period by selected categories: imp
         + Example: impressions,cpa,cpc
 
     """
+    c = Campaign.objects.get(pk=int(id))
+    if not c:
+        return Response({'error': "Unknown object id %d" % id})
+    advertiser_id = c.advertiser_id
+    params = parse_get_params(request.GET, ["impression", "cpa", "cpc", "clicks", "mediaspent", "conversions", "ctr"])
+    res = get_campaign_data(advertiser_id, id, params['from_date'], params['to_date'])
+    return Response(res)
+    # TODO: delete
     return Response([
         {'date': "2016-06-'27T00':'00':00Z", 'impression': -12, 'cpa': 10, 'cpc': 32, 'clicks': -5, 'mediaspent': 5,
          'conversions': 40, 'ctr': 15},

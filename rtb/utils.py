@@ -97,8 +97,17 @@ def get_column_list_for_report(ReportClass):
     return list((set(all_fields)|set(name_fields)) & set(meta_fields))
 
 
-one_day = datetime.timedelta(days=1)
+def make_sum(dict1, dict2):
+    res = {}
+    # keys = set(dict1)|set(dict2)
+    for k in dict1.keys():
+        try:
+            res[k] = not_none(dict1.get(k)) + not_none(dict2.get(k))
+        except:
+            pass
+    return res
 
+one_day = datetime.timedelta(days=1)
 
 def parse_get_params(params, field_list=['campaign', 'spend', 'conv', 'imp', 'clicks', 'cpc', 'cpm', 'cvr', 'ctr']):
     res = {}

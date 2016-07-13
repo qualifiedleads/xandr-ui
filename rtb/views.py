@@ -55,9 +55,6 @@ def calc_another_fields(obj):
 
     return res
 
-def not_none(o):
-    return 0 if o is None else o
-
 def get_campaigns_data(advertiser_id, from_date, to_date):
     key = '_'.join(('rtb_campaigns',str(advertiser_id), from_date.strftime('%Y-%m-%d'),to_date.strftime('%Y-%m-%d'),))
     res = cache.get(key)
@@ -181,7 +178,8 @@ def get_days_data(advertiser_id, from_date, to_date):
         imp=Sum('imps'),
         clicks=Sum('clicks'),
     ).order_by('day')
-    days = map(calc_another_fields, q)
+    r= list(q)
+    days = map(calc_another_fields, r)
     summary = reduce(make_sum, days, zero_sum)
     summary = calc_another_fields(summary)
     summary.pop('day', None)

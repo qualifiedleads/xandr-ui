@@ -97,6 +97,9 @@ def get_column_list_for_report(ReportClass):
     return list((set(all_fields)|set(name_fields)) & set(meta_fields))
 
 
+def not_none(o):
+    return 0 if o is None else o
+
 def make_sum(dict1, dict2):
     res = {}
     # keys = set(dict1)|set(dict2)

@@ -2,10 +2,12 @@ from rest_framework.decorators import api_view, parser_classes
 from rest_framework.response import Response
 from django.http import JsonResponse
 from utils import parse_get_params, make_sum
-from models import SiteDomainPerformanceReport, Campaign, GeoAnaliticsReport
-from django.db.models import Sum
+from models import SiteDomainPerformanceReport, Campaign, GeoAnaliticsReport, NetworkAnalyticsReport
+from django.db.models import Sum, Min, Max
 from django.core.cache import cache
 import itertools
+import datetime
+
 
 @api_view()
 def singleCampaign(request, id):
@@ -168,6 +170,32 @@ Get single campaign statistics data for given period by selected categories: imp
     ])
 
 
+def calc_cpa(obj):
+    return obj
+
+
+def get_campaign_cpa(advertiser_id, campaign_id, from_date, to_date):
+    key = '_'.join(('rtb_campaign_candle', str(advertiser_id), str(campaign_id), from_date.strftime('%Y-%m-%d'),
+                    to_date.strftime('%Y-%m-%d'),))
+    res = cache.get(key)
+    if res: return res
+    # no cache hit
+    from_date -= datetime.timedelta(hours=1)
+    q = NetworkAnalyticsReport.objects.filter(
+        # advertiser_id=advertiser_id,
+        campaign_id=campaign_id,
+        day__gte=from_date,
+        day__lte=to_date,
+    ).values('hour').annotate(  # impression, cpa, cpc, clicks, mediaspent, conversions, ctr
+        cost=Sum('media_cost'),
+        total_convs=Sum('total_convs')
+    ).order_by('hour')
+    print q.query
+    res = map(calc_cpa, q)
+    cache.set(key, res)
+    return res
+
+
 @api_view()
 def cpaReport(request, id):
     """
@@ -186,7 +214,28 @@ Get single campaign cpa report for given period to create boxplots
 
 
     """
-    return Response([{
+    c = Campaign.objects.get(pk=int(id))
+    if not c:
+        return Response({'error': "Unknown object id %d" % id})
+    advertiser_id = c.advertiser_id
+    params = parse_get_params(request.GET)
+    res = get_campaign_cpa(advertiser_id, id, params['from_date'], params['to_date'])
+    # return Response(res)
+    return Response([
+        {"date": "2016-06-19T00:00:00Z", "low": 24.00, "high": 25.00, "open": 25.00, "close": 24.875, "avg": 24.5},
+        {"date": "2016-06-20T00:00:00Z", "low": 23.625, "high": 25.125, "open": 24.00, "close": 24.875, "avg": 24.375},
+        {"date": "2016-06-21T00:00:00Z", "low": 26.25, "high": 28.25, "open": 26.75, "close": 27.00, "avg": 27.25},
+        {"date": "2016-06-22T00:00:00Z", "low": 26.50, "high": 27.875, "open": 26.875, "close": 27.25, "avg": 27.1875},
+        {"date": "2016-06-23T00:00:00Z", "low": 26.375, "high": 27.50, "open": 27.375, "close": 26.75, "avg": 26.9375},
+        {"date": "2016-06-24T00:00:00Z", "low": 25.75, "high": 26.875, "open": 26.75, "close": 26.00, "avg": 26.3125},
+        {"date": "2016-06-25T00:00:00Z", "low": 25.75, "high": 26.75, "open": 26.125, "close": 26.25, "avg": 25.9375},
+        {"date": "2016-06-26T00:00:00Z", "low": 25.75, "high": 26.375, "open": 26.375, "close": 25.875, "avg": 26.0625},
+        {"date": "2016-06-27T00:00:00Z", "low": 24.875, "high": 26.125, "open": 26.00, "close": 25.375, "avg": 25.5},
+        {"date": "2016-06-28T00:00:00Z", "low": 25.125, "high": 26.00, "open": 25.625, "close": 25.75, "avg": 25.5625},
+        {"date": "2016-06-29T00:00:00Z", "low": 25.875, "high": 26.625, "open": 26.125, "close": 26.375, "avg": 26.25},
+    ])
+
+    return Response([{  # TODO: delete
         "Date": "03/12/2013",
         "Open": "827.90",
         "High": "830.69",
@@ -401,9 +450,9 @@ Get single campaign details for given period
 
 
 @api_view()
-def bucketsCPA(request, id):
+def bucketsCPA(request):
     """
-Get single campaign details for given period 
+Get single campaign details for given period
 
 ## Url format: /api/v1/campaigns/:id/cpabuckets?from_date={from_date}&to_date={to_date}&targetcpa={targetcpa}
 
@@ -416,79 +465,92 @@ Get single campaign details for given period
     + to_date (date) - Date to select statistics to
         + Format: Unixtime
         + Example: 1466667274
-    + targetcpa (number) - CPA to sort placements for four buckets (starting from 0)
-        + Format: string
-        + Example: placement
 
 
     """
-    return Response([{
-        'sellerid': 123,
-        'sellername': "Rovio",
-        'placementid': 234,
-        'placementname': "AngryBirds"
-    }, {
-        'sellerid': 678,
-        'sellername': "Paris",
-        'placementid': 9789,
-        'placementname': "Cat"
-    }, {
-        'sellerid': 3453,
-        'sellername': "France",
-        'placementid': 2325,
-        'placementname': "Tom"
-    }],
-        [{
-            'sellerid': 545,
-            'sellername': "Lipton",
-            'placementid': 111,
-            'placementname': "Mouse"
+    return Response([
+        {
+            "cpa": 1.2,
+            "sellerid": 123,
+            "sellername": "Rovio",
+            "placementid": 234,
+            "placementname": "AngryBirds"
         },
-            {
-                'sellerid': 35,
-                'sellername': "River",
-                'placementid': 45,
-                'placementname': "Tributary"
-            },
-            {
-                'sellerid': 90,
-                'sellername': "Wood",
-                'placementid': 3545,
-                'placementname': "Land"
-            }],
-        [{
-            'sellerid': 222,
-            'sellername': "Pen",
-            'placementid': 333,
-            'placementname': "Gear"
+        {
+            "cpa": 0.4,
+            "sellerid": 678,
+            "sellername": "Paris",
+            "placementid": 9789,
+            "placementname": "Cat"
         },
-            {
-                'sellerid': 54,
-                'sellername': "World",
-                'placementid': 3444454,
-                'placementname': "Flower"
-            },
-            {
-                'sellerid': 888,
-                'sellername': "Bird",
-                'placementid': 999,
-                'placementname': "Kitten"
-            }],
-        [{
-            'sellerid': 444,
-            'sellername': "Dreams",
-            'placementid': 56656,
-            'placementname': "Sweet"
+        {
+            "cpa": 10.1,
+            "sellerid": 3453,
+            "sellername": "France",
+            "placementid": 2325,
+            "placementname": "Tom"
         },
-            {
-                'sellerid': 787,
-                'sellername': "Hotel",
-                'placementid': 76876,
-                'placementname': "California"
-            },
-            {
-                'sellerid': 678678,
-                'sellername': "Star",
-                'placementid': 12312,
-                'placementname': "Sky"
-            }])
+        {
+            "cpa": 4.1,
+            "sellerid": 545,
+            "sellername": "Lipton",
+            "placementid": 111,
+            "placementname": "Mouse"
+        },
+        {
+            "cpa": 0.8,
+            "sellerid": 35,
+            "sellername": "River",
+            "placementid": 45,
+            "placementname": "Tributary"
+        },
+        {
+            "cpa": 9.3,
+            "sellerid": 90,
+            "sellername": "Wood",
+            "placementid": 3545,
+            "placementname": "Land"
+        },
+        {
+            "cpa": 2.4,
+            "sellerid": 222,
+            "sellername": "Pen",
+            "placementid": 333,
+            "placementname": "Gear"
+        },
+        {
+            "cpa": 5.4,
+            "sellerid": 54,
+            "sellername": "World",
+            "placementid": 3444454,
+            "placementname": "Flower"
+        },
+        {
+            "cpa": 6.1,
+            "sellerid": 888,
+            "sellername": "Bird",
+            "placementid": 999,
+            "placementname": "Kitten"
+        },
+        {
+            "cpa": 13.1,
+            "sellerid": 444,
+            "sellername": "Dreams",
+            "placementid": 56656,
+            "placementname": "Sweet"
+        },
+        {
+            "cpa": 0.1,
+            "sellerid": 787,
+            "sellername": "Hotel",
+            "placementid": 76876,
+            "placementname": "California"
+        },
+        {
+            "cpa": 1.9,
+            "sellerid": 678678,
+            "sellername": "Star",
+            "placementid": 12312,
+            "placementname": "Sky"
+        }
+    ])

@@ -178,8 +178,7 @@ def get_days_data(advertiser_id, from_date, to_date):
         imp=Sum('imps'),
         clicks=Sum('clicks'),
     ).order_by('day')
-    r= list(q)
-    days = map(calc_another_fields, r)
+    days = map(calc_another_fields, q)
     summary = reduce(make_sum, days, zero_sum)
     summary = calc_another_fields(summary)
     summary.pop('day', None)

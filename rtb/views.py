@@ -11,6 +11,7 @@ from rest_framework.decorators import api_view, parser_classes
 from rest_framework.response import Response
 from rest_framework.parsers import FormParser, MultiPartParser
 import ast
+from utils import parse_get_params
 
 def to_unix_timestamp(d):
     return str(int(time.mktime(d.timetuple())))
@@ -105,51 +106,6 @@ def get_campaigns_data(advertiser_id, from_date, to_date):
         campaigns.append(current_campaign)
     cache.set(key,campaigns)
     return campaigns
-
-one_day = datetime.timedelta(days=1)
-def parse_get_params(params):
-    res={}
-    try:
-        res['from_date']= datetime.date.fromtimestamp(int(params["from_date"]))
-    except:
-        res['from_date']= datetime.date.today() - one_day * 8
-    try:
-        res['to_date']=datetime.date.fromtimestamp(int(params["to_date"]))
-    except:
-        res['to_date']=datetime.date.today() - one_day * 1
-    try:
-        res['advertiser_id']= int(params['advertiser_id'])
-    except:
-        res['advertiser_id'] = 992089
-    try:
-        res['skip']= int(params['skip'])
-    except:
-        res['skip'] = 0
-    try:
-        res['take']= int(params['take'])
-    except:
-        res['take'] = 20
-    try:
-        res['order']= re.match(r"^(desc|asc)$", params['order']).group(1)
-    except:
-        res['order'] = 'desc'
-    try:
-        res['sort']= re.match(r"^(campaign|spend|conv|imp|clicks|cpc|cpm|cvr|ctr)$", params['sort']).group(1)
-    except:
-        res['sort'] = 'campaign'
-    try:
-        field_list = params.get('stat_by',params.get('by',''))
-        m = re.match(
-            r"^(campaign|spend|conv|imp|clicks|cpc|cpm|cvr|ctr)(?:,(campaign|spend|conv|imp|clicks|cpc|cpm|cvr|ctr))*$",
-            field_list)
-        res['stat_by'] = m.group(0).split(',')
-    except:
-        res['stat_by'] = ''
-    try:
-        res['filter'] = ' '.join(params.getlist('filter'))
-    except:
-        res['filter'] = ''
-    return res
 
 @api_view()
 @parser_classes([FormParser, MultiPartParser])

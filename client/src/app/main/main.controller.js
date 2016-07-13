@@ -345,10 +345,6 @@
         vm.chartOptionsFunc = data.component;
       },
       series: vm.chartSeries,
-/*      size: {
-        width: 800,
-        //height: 230
-      },*/
       bindingOptions: {
         dataSource: 'main.chartStore'
       },
@@ -401,7 +397,6 @@
      * @param selected {boolean}
      */
     vm.updateCharts = function (seriesName, seriesShortName, selected) {
-      vm.chartStore.load();
       var gridCharts = {};
       $localStorage.checkChart[seriesShortName] = selected;
       if (selected) {

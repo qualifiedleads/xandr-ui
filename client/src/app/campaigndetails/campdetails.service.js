@@ -44,16 +44,27 @@
 
 
 
-    function cpaReport(id, from, to) {
-      return $http({
-        method: 'GET',
-        url: '/api/v1/campaigns/' + encodeURI(id) + '/cpareport',
-        params: {id:id, from: from, to: to}
-      })
-        .then(function (res) {
-          return res.data;
-        });
-    }
+    // function cpaReport(id, from, to) {
+    //   return $http({
+    //     method: 'GET',
+    //     url: '/api/v1/campaigns/' + encodeURI(id) + '/cpareport',
+    //     params: {id:id, from: from, to: to}
+    //   })
+    //     .then(function () {
+    //       //return res.data;
+    //       return [{ date: new Date(1994, 2, 1), low: 24.00, high: 25.00, open: 25.00, close: 24.875, avg: 24.5 },
+    //         { date: new Date(1994, 2, 2), low: 23.625, high: 25.125, open: 24.00, close: 24.875, avg: 24.375 },
+    //         { date: new Date(1994, 2, 3), low: 26.25, high: 28.25, open: 26.75, close: 27.00, avg: 27.25 },
+    //         { date: new Date(1994, 2, 4), low: 26.50, high: 27.875, open: 26.875, close: 27.25, avg: 27.1875 },
+    //         { date: new Date(1994, 2, 7), low: 26.375, high: 27.50, open: 27.375, close: 26.75, avg: 26.9375 },
+    //         { date: new Date(1994, 2, 8), low: 25.75, high: 26.875, open: 26.75, close: 26.00, avg: 26.3125 },
+    //         { date: new Date(1994, 2, 9), low: 25.75, high: 26.75, open: 26.125, close: 26.25, avg: 25.9375 },
+    //         { date: new Date(1994, 2, 10), low: 25.75, high: 26.375, open: 26.375, close: 25.875, avg: 26.0625 },
+    //         { date: new Date(1994, 2, 11), low: 24.875, high: 26.125, open: 26.00, close: 25.375, avg: 25.5 },
+    //         { date: new Date(1994, 2, 14), low: 25.125, high: 26.00, open: 25.625, close: 25.75, avg: 25.5625 },
+    //         { date: new Date(1994, 2, 15), low: 25.875, high: 26.625, open: 26.125, close: 26.375, avg: 26.25 }];
+    //     });
+    // }
 
 
     function campaignDomains(id, from, to, skip, take, order, filter) {
@@ -78,38 +89,36 @@
           return res.data;
         });
     }
-
-    function cpaBuckets(min, max) {
-
-      var arrayOfCpa = {
-        "cnn.com": "34.12",
-        "lion.com": "3.76",
-        "tiger.com": "7.97",
-        "cat.com": "1.23",
-        "dog.com": "16.11",
-        "mouse.com": "6.53",
-        "rabbit.com": "0.91",
-        "bear.com": "1.9",
-        "snake.com": "3.7",
-        "squirrel.com": "4.78",
-        "hamster.com": "0.62"
-      };
-      var a = [];
-      for (var i in arrayOfCpa) {
-        if ((Number(arrayOfCpa[i])>=Number(min)) && (arrayOfCpa[i]<Number(max))) {
-          a.push(i);
-        }
-      }
-      return a;
+    function bucketsCpa(id, from, to) {
+      return $http({
+        method: 'GET',
+        url: '/api/v1/campaigns/' + encodeURI(id) + '/cpabuckets',
+        params: {id:id, from: from, to: to}
+      })
+        .then(function (res) {
+          //return res.data;
+          return [{cpa:1.2, sellerid: 123, sellername: "Rovio", placementid: 234, placementname: "AngryBirds"},
+            {cpa:0.4, sellerid: 678, sellername:"Paris", placementid:9789, placementname:"Cat"},
+            {cpa:10.1, sellerid: 3453, sellername:"France", placementid:2325, placementname:"Tom"},
+            {cpa:4.1, sellerid: 545, sellername: "Lipton", placementid: 111, placementname: "Mouse"},
+            {cpa:0.8, sellerid: 35, sellername: "River", placementid: 45, placementname: "Tributary"},
+            {cpa:9.3, sellerid: 90, sellername: "Wood", placementid: 3545, placementname: "Land"},
+            {cpa:2.4, sellerid: 222, sellername: "Pen", placementid: 333, placementname: "Gear"},
+            {cpa:5.4, sellerid: 54, sellername: "World", placementid: 3444454, placementname: "Flower"},
+            {cpa:6.1, sellerid: 888, sellername: "Bird", placementid: 999, placementname: "Kitten"},
+            {cpa:13.1, sellerid: 444, sellername: "Dreams", placementid: 56656, placementname: "Sweet"},
+            {cpa:0.1, sellerid: 787, sellername: "Hotel", placementid: 76876, placementname: "California"},
+            {cpa:1.9, sellerid: 678678, sellername: "Star", placementid: 12312, placementname: "Sky"}]
+        });
     }
 
 
 
-    _this.cpaReport = cpaReport;
+
     _this.nameCampaigns = nameCampaigns;
     _this.statsCampaigns = statsCampaigns;
     _this.statsChart = statsChart;
-    _this.cpaBuckets = cpaBuckets;
+    _this.bucketsCpa = bucketsCpa;
     _this.campaignDetails = campaignDetails;
     _this.campaignDomains = campaignDomains
 

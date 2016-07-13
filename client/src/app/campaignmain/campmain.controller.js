@@ -11,39 +11,11 @@
     vm.Camp = CampMain;
     vm.multipleTotalCount = 0;
     vm.checkChart = [];
-    vm.by = '';
+    vm.by = 'imp,cvr,cpc,clicks,spend,conv,ctr';
     var LC = $translate.instant;
     vm.campName = Campaign.campaign;
     vm.campId = Campaign.id;
 
-
-    if ($localStorage.seriesCamp == null ){
-      $localStorage.seriesCamp = [{
-        argumentField: "date",
-        valueField: "impression"
-      }, {
-        argumentField: "date",
-        valueField: "cpa"
-      }, {
-        argumentField: "date",
-        valueField: "cpc"
-      }, {
-        argumentField: "date",
-        valueField: "clicks"
-      }, {
-        argumentField: "date",
-        valueField: "mediaspent"
-      }, {
-        argumentField: "date",
-        valueField: "conversions"
-      }, {
-        argumentField: "date",
-        valueField: "ctr"
-      }];
-
-    }
-    //$localStorage.checkCharCamp = null;
-    var tempIndex = [];
     if ($localStorage.checkCharCamp== null ){
       $localStorage.checkCharCamp = {
         'impressions': true,
@@ -54,22 +26,53 @@
         'conversions': true,
         'ctr': true
       };
-      tempIndex = [];
-      for(var index in $localStorage.checkCharCamp) {
-        if ($localStorage.checkCharCamp[index] == true) {
-          tempIndex.push(index);
-        }
-      }
-      vm.by = tempIndex.join();
-    } else {
-      tempIndex = [];
-      for(var index in $localStorage.checkCharCamp) {
-        if ($localStorage.checkCharCamp[index] == true) {
-          tempIndex.push(index);
-        }
-      }
-      vm.by = tempIndex.join();
     }
+
+      vm.seriesCamp = [{
+        name: 'Impressions',
+        argumentField: "date",
+        valueField: "impression",
+        axis:'impression',
+        visible: $localStorage.checkCharCamp.impressions
+      }, {
+        argumentField: "date",
+        valueField: "cpa",
+        name: 'CPA',
+        axis:'cpa',
+        visible: $localStorage.checkCharCamp.cpa
+      }, {
+        argumentField: "date",
+        valueField: "cpc",
+        name: 'CPC',
+        axis:'cpc',
+        visible: $localStorage.checkCharCamp.cpc
+      }, {
+        argumentField: "date",
+        valueField: "clicks",
+        name: 'Clicks',
+        axis:'clicks',
+        visible: $localStorage.checkCharCamp.clicks
+      }, {
+        argumentField: "date",
+        valueField: "mediaspent",
+        name: 'mediaspent',
+        axis:'mediaspent',
+        visible: $localStorage.checkCharCamp.mediaspent
+      }, {
+        argumentField: "date",
+        valueField: "conversions",
+        name: 'Conversions',
+        axis:'conversions',
+        visible: $localStorage.checkCharCamp.conversions
+      }, {
+        argumentField: "date",
+        valueField: "ctr",
+        name: 'CTR',
+        axis:'ctr',
+        visible: $localStorage.checkCharCamp.ctr
+      }];
+
+
 
     vm.totals = [];
     vm.chartStore = new $window.DevExpress.data.CustomStore({
@@ -169,6 +172,9 @@
     vm.types = ['line', 'stackedLine', 'fullStackedLine'];
 
     vm.chartOptionsFirst = {
+      onInitialized: function (data) {
+        vm.chartOptionsFuncFirst = data.component;
+      },
       argumentAxis: {
         valueMarginsEnabled: false,
         discreteAxisDivisionMode: 'crossLabels',
@@ -198,7 +204,7 @@
       bindingOptions: {
         dataSource: 'campmain.chartStore'
       },
-      series: $localStorage.seriesCamp,
+      series: vm.seriesCamp,
       legend:{
         visible: false
       },
@@ -219,7 +225,42 @@
         dataSource: 'campmain.chartStore'
       },
       chart: {
-        series: $localStorage.seriesCamp
+        series: [{
+          name: 'Impressions',
+          argumentField: "date",
+          valueField: "impression",
+          axis:'impression'
+        }, {
+          argumentField: "date",
+          valueField: "cpa",
+          name: 'CPA',
+          axis:'cpa'
+        }, {
+          argumentField: "date",
+          valueField: "cpc",
+          name: 'CPC',
+          axis:'cpc'
+        }, {
+          argumentField: "date",
+          valueField: "clicks",
+          name: 'Clicks',
+          axis:'clicks'
+        }, {
+          argumentField: "date",
+          valueField: "mediaspent",
+          name: 'mediaspent',
+          axis:'mediaspent'
+        }, {
+          argumentField: "date",
+          valueField: "conversions",
+          name: 'Conversions',
+          axis:'conversions'
+        }, {
+          argumentField: "date",
+          valueField: "ctr",
+          name: 'CTR',
+          axis:'ctr'
+        }]
       },
       behavior: {
         callSelectedRangeChanged: "onMoving"
@@ -233,163 +274,76 @@
     /** BIG DIAGRAM  - END **/
 
     /** CHECKBOX CHART - START **/
-    vm.impressions = {
-      text: LC('MAIN.CHECKBOX.IMPRESSIONS'),
-      value: $localStorage.checkCharCamp.impressions? true:false,
-      onValueChanged: function (e) {
-        if (e.value == true) {
-          $localStorage.checkCharCamp.impressions = true;
-          $localStorage.seriesCamp.push({
-            argumentField: "day",
-            valueField: "impression"
-          });
-          $state.reload();
-        } else {
-          $localStorage.checkCharCamp.impressions = false;
-          for(var index in $localStorage.seriesCamp) {
-            if ($localStorage.seriesCamp[index].valueField == 'impression') {
-              $localStorage.seriesCamp.splice(index, 1);
-            }
-          }
-          $state.reload();
-        }
+    /**
+     * @param seriesName {string}
+     * @param seriesShortName {string}
+     * @param selected {boolean}
+     */
+    vm.updateCharts = function (seriesName, seriesShortName, selected) {
+      $localStorage.checkCharCamp[seriesShortName] = selected;
+      vm.gridCharts = $window.$('#zoomedChartFirst').dxChart('instance');
+      vm.rangeChartFirst = $window.$('#rangeChartFirst').dxRangeSelector('instance');
+      console.log(rangeChartFirst);
+      if (selected) {
+        $localStorage.checkCharCamp.seriesShortName = true;
+        vm.gridCharts.getSeriesByName(seriesName).show();
+      } else {
+        $localStorage.checkCharCamp.seriesShortName = false;
+        vm.chartOptionsFuncFirst.getSeriesByName(seriesName).hide();
       }
     };
 
-
+    /** CHECKBOX CHART - START **/
+    vm.impressions = {
+      text: LC('MAIN.CHECKBOX.IMPRESSIONS'),
+      value: $localStorage.checkCharCamp.impressions,
+      onValueChanged: function (e) {
+        vm.updateCharts('Impressions', 'impressions', e.value);
+      }
+    };
 
     vm.CPA = {
       text: LC('MAIN.CHECKBOX.CPA'),
-      value: $localStorage.checkCharCamp.cpa? true:false,
+      value: $localStorage.checkCharCamp.cpa,
       onValueChanged: function (e) {
-        if (e.value == true) {
-          $localStorage.checkCharCamp.cpa = true;
-          $localStorage.seriesCamp.push({
-            argumentField: "day",
-            valueField: "cpa"
-          });
-          $state.reload();
-        } else {
-          $localStorage.checkCharCamp.cpa = false;
-          for(var index in $localStorage.seriesCamp) {
-            if ($localStorage.seriesCamp[index].valueField == 'cpa') {
-              $localStorage.seriesCamp.splice(index, 1);
-            }
-          }
-          $state.reload();
-        }
+        vm.updateCharts('CPA', 'cpa', e.value);
       }
     };
 
     vm.CPC = {
       text: LC('MAIN.CHECKBOX.CPC'),
-      value: $localStorage.checkCharCamp.cpc? true:false,
+      value: $localStorage.checkCharCamp.cpc,
       onValueChanged: function (e) {
-        if (e.value == true) {
-          $localStorage.checkCharCamp.cpc = true;
-          $localStorage.seriesCamp.push({
-            argumentField: "day",
-            valueField: "cpc"
-          });
-          $state.reload();
-        } else {
-          $localStorage.checkCharCamp.cpc = false;
-          for(var index in $localStorage.seriesCamp) {
-            if ($localStorage.seriesCamp[index].valueField == 'cpc') {
-              $localStorage.seriesCamp.splice(index, 1);
-            }
-          }
-          $state.reload();
-        }
+        vm.updateCharts('CPC', 'cpc', e.value);
       }
     };
 
     vm.clicks = {
       text: LC('MAIN.CHECKBOX.CLICKS'),
-      value: $localStorage.checkCharCamp.clicks? true:false,
+      value: $localStorage.checkCharCamp.clicks,
       onValueChanged: function (e) {
-        if (e.value == true) {
-          $localStorage.checkCharCamp.clicks = true;
-          $localStorage.seriesCamp.push({
-            argumentField: "day",
-            valueField: "clicks"
-          });
-          $state.reload();
-        } else {
-          $localStorage.checkCharCamp.clicks = false;
-          for(var index in $localStorage.seriesCamp) {
-            if ($localStorage.seriesCamp[index].valueField == 'clicks') {
-              $localStorage.seriesCamp.splice(index, 1);
-            }
-          }
-          $state.reload();
-        }
+        vm.updateCharts('Clicks', 'clicks', e.value);
       }
     };
     vm.media = {
       text: LC('MAIN.CHECKBOX.MEDIA_SPENT'),
-      value: $localStorage.checkCharCamp.mediaspent? true:false,
+      value: $localStorage.checkCharCamp.mediaspent,
       onValueChanged: function (e) {
-        if (e.value == true) {
-          $localStorage.checkCharCamp.mediaspent = true;
-          $localStorage.seriesCamp.push({
-            argumentField: "day",
-            valueField: "mediaspent"
-          });
-          $state.reload();
-        } else {
-          $localStorage.checkCharCamp.mediaspent = false;
-          for(var index in $localStorage.seriesCamp) {
-            if ($localStorage.seriesCamp[index].valueField == 'mediaspent') {
-              $localStorage.seriesCamp.splice(index, 1);
-            }
-          }
-          $state.reload();
-        }
+        vm.updateCharts('mediaspent', 'mediaspent', e.value);
       }
     };
     vm.conversions = {
       text: LC('MAIN.CHECKBOX.CONVERSIONS'),
-      value: $localStorage.checkCharCamp.conversions? true:false,
+      value: $localStorage.checkCharCamp.conversions,
       onValueChanged: function (e) {
-        if (e.value == true) {
-          $localStorage.checkCharCamp.conversions = true;
-          $localStorage.seriesCamp.push({
-            argumentField: "day",
-            valueField: "conversions"
-          });
-          $state.reload();
-        } else {
-          $localStorage.checkCharCamp.conversions = false;
-          for(var index in $localStorage.seriesCamp) {
-            if ($localStorage.seriesCamp[index].valueField == 'conversions') {
-              $localStorage.seriesCamp.splice(index, 1);
-            }
-          }
-          $state.reload();
-        }
+        vm.updateCharts('Conversions', 'conversions', e.value);
       }
     };
     vm.CTR = {
       text: LC('MAIN.CHECKBOX.CTR'),
-      value: $localStorage.checkCharCamp.ctr? true:false,
+      value: $localStorage.checkCharCamp.ctr,
       onValueChanged: function (e) {
-        if (e.value == true) {
-          $localStorage.checkCharCamp.ctr = true;
-          $localStorage.seriesCamp.push({
-            argumentField: "day",
-            valueField: "ctr"
-          });
-          $state.reload();
-        } else {
-          $localStorage.checkCharCamp.ctr = false;
-          for(var index in $localStorage.seriesCamp) {
-            if ($localStorage.seriesCamp[index].valueField == 'ctr') {
-              $localStorage.seriesCamp.splice(index, 1);
-            }
-          }
-          $state.reload();
-        }
+        vm.updateCharts('CTR', 'ctr', e.value);
       }
     };
     /** CHECKBOX CHART - END **/
@@ -479,13 +433,6 @@
       bindingOptions: {
         dataSource: 'campmain.boxPlotStore'
       },
-      commonSeriesSettings: {
-        type: 'candleStick'
-      },
-      // size: {
-      //   height: 205,
-      //   width:600
-      // },
       valueAxis: {
         valueType: 'numeric'
       },
@@ -510,18 +457,34 @@
         text: "Creating a chart..."
       },
       useAggregation: true,
-      series: [{
-        openValueField: 'Open',
-        highValueField: 'High',
-        lowValueField: 'Low',
-        closeValueField: 'Close',
-        argumentField: 'Date'
-      }]
+      commonSeriesSettings: {
+        candlestick: {
+          openValueField: 'open',
+          closeValueField: 'close',
+          highValueField: 'high',
+          lowValueField: 'low'
+        },
+        argumentField: 'date',
+        point: {
+          size: 2,
+          hoverStyle: {
+            border: {
+              visible: true,
+              width: 1
+            },
+            size: 4
+          }
+        }
+      },
+      series: [
+        { type: 'candlestick' },
+        { valueField: 'avg', color: 'silver' }
+      ]
     };
 
     vm.rangeOptionsSecond = {
       size: {
-        height: 100,
+        height: 100
       },
       margin: {
         left: 10
@@ -537,8 +500,8 @@
       chart: {
         series: {
           type: 'line',
-          valueField: 'Open',
-          argumentField: 'Date',
+          valueField: 'avg',
+          argumentField: 'date',
           placeholderHeight: 20
         },
         useAggregation: true,
@@ -875,182 +838,7 @@
       }
     };
     vm.pieChartHeader = $localStorage.pieChartHeader || vm.ctrlBbtns.os.header;
-    vm.btnsNodesArray = $('.label-container')[0].children;
 
-
-    /** SELECT SECTION/BTN UNDER LOADING PAGE - START **/
-    for(var key in vm.ctrlBbtns) {
-      if (vm.ctrlBbtns[key].header == vm.pieChartHeader) {
-        vm.selectedSection = vm.ctrlBbtns[key].btn;
-        $localStorage.selectedSection = vm.selectedSection;
-      }
-    }
-
-    Array.prototype.forEach.call(vm.btnsNodesArray, function(node) {
-      if (node.name == vm.selectedSection) {
-        node.classList.add('nav-btn-active');
-      }
-    });
-    /** SELECT SECTION/BTN UNDER LOADING PAGE - END **/
-
-
-    vm.selectInfoBtn = function ($event, value) {
-      vm.pieChartHeader = value;
-      $localStorage.pieChartHeader = vm.pieChartHeader;
-
-      Array.prototype.forEach.call(vm.btnsNodesArray, function(node) {
-        if(node.classList.contains('nav-btn-active')){
-          node.classList.remove('nav-btn-active');
-        }
-      });
-      $localStorage.pieChartHeader = vm.pieChartHeader;
-      $event.currentTarget.classList.add('nav-btn-active');
-
-    };
-
-    if(!vm.targetCpa) {
-      vm.targetCpa = $localStorage.targetCpa || 3;
-      $localStorage.targetCpa = vm.targetCpa;
-    }
-
-    vm.backetsRanges = {
-      first:{
-        min: 0,
-        max: Number(vm.targetCpa).toFixed(1)
-      },
-      second:{
-        min:Number(vm.targetCpa).toFixed(1),
-        max:Number(vm.targetCpa*2).toFixed(1)
-      },
-      third: {
-        min: Number(vm.targetCpa * 2).toFixed(1),
-        max: Number(vm.targetCpa * 3).toFixed(1)
-      },
-      fourth: {
-        min: Number(vm.targetCpa * 3).toFixed(1),
-        max: Number(vm.targetCpa * 1000).toFixed(1)
-      }
-    };
-
-    vm.targetCpaChange = function($event) {
-      var targetCpaInt = Number($event.currentTarget.value);
-      $localStorage.targetCpa = targetCpaInt;
-      vm.backetsRanges = {
-        first: {
-          min: 0,
-          max: (targetCpaInt).toFixed(1)
-        },
-        second: {
-          min: (targetCpaInt).toFixed(1),
-          max: (targetCpaInt * 2).toFixed(1)
-        },
-        third: {
-          min: (targetCpaInt * 2).toFixed(1),
-          max: (targetCpaInt * 3).toFixed(1)
-        },
-        fourth: {
-          min: (targetCpaInt * 3).toFixed(1),
-          max: (targetCpaInt * 1000).toFixed(1)
-        }
-      };
-      vm.cpaArrayFirst =  CampMain.cpaBuckets(vm.backetsRanges.first.min, vm.backetsRanges.first.max);
-      vm.cpaArraySecond =  CampMain.cpaBuckets(vm.backetsRanges.second.min, vm.backetsRanges.second.max);
-      vm.cpaArrayThird =  CampMain.cpaBuckets(vm.backetsRanges.third.min, vm.backetsRanges.third.max);
-      vm.cpaArrayFourth =  CampMain.cpaBuckets(vm.backetsRanges.fourth.min, vm.backetsRanges.fourth.max);
-
-
-      return vm.backetsRanges;
-    };
-
-    vm.cpaArrayFirst =  CampMain.cpaBuckets(vm.backetsRanges.first.min, vm.backetsRanges.first.max);
-    vm.cpaArraySecond =  CampMain.cpaBuckets(vm.backetsRanges.second.min, vm.backetsRanges.second.max);
-    vm.cpaArrayThird =  CampMain.cpaBuckets(vm.backetsRanges.third.min, vm.backetsRanges.third.max);
-    vm.cpaArrayFourth =  CampMain.cpaBuckets(vm.backetsRanges.fourth.min, vm.backetsRanges.fourth.max);
-
-
-    vm.pieChartAll = {
-      title: {
-        text: "All",
-        font: {
-          size: 20
-        },
-        margin: {
-          bottom: 1
-        }
-      },
-      bindingOptions: {
-        dataSource: 'campmain.detailsStoreAll'
-      },
-      series: [{
-        argumentField: 'section',
-        valueField: 'data',
-        label: {
-          visible: true,
-          connector: {
-            visible: true,
-            width: 0.5
-          },
-          format: "fixedPoint",
-          customizeText: function (point) {
-            return point.argumentText + ": " + point.valueText + "%";
-          }
-        },
-        smallValuesGrouping: {
-          mode: "smallValueThreshold",
-          threshold: 4.5
-        }
-      }],
-      legend: {
-        horizontalAlignment: "center",
-        verticalAlignment: "bottom"
-      },
-      size: {
-        width:370,
-        height:300
-      }
-    };
-
-    vm.pieChartConversions = {
-      title: {
-        text: "Conversions",
-        font: {
-          size: 20
-        },
-        margin: {
-          bottom: 1
-        }
-      },
-      bindingOptions: {
-        dataSource: 'campmain.detailsStoreConversion'
-      },
-      series: [{
-        argumentField: "section",
-        valueField: "data",
-        label: {
-          visible: true,
-          connector: {
-            visible: true,
-            width: 0.5
-          },
-          format: "fixedPoint",
-          customizeText: function (point) {
-            return point.argumentText + ": " + point.valueText + "%";
-          }
-        },
-        smallValuesGrouping: {
-          mode: "smallValueThreshold",
-          threshold: 4.5
-        }
-      }],
-      legend: {
-        horizontalAlignment: "center",
-        verticalAlignment: "bottom"
-      },
-      size: {
-        width:370,
-        height:300
-      }
-    }
   }
 })();
 

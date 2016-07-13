@@ -11,16 +11,16 @@
     vm.Camp = CampDetails;
     vm.multipleTotalCount = 0;
     vm.checkChart = [];
-    vm.by = '';
+    vm.by = 'imp,cvr,cpc,clicks,spend,conv,ctr';
     var LC = $translate.instant;
     vm.campName = Campaign.campaign;
     vm.campId = Campaign.id;
 
 
-    if ($localStorage.seriesCamp == null ){
+/*    if ($localStorage.seriesCamp == null ){
       $localStorage.seriesCamp = [{
         argumentField: "date",
-        valueField: "impression"
+        valueField: "impressions"
       }, {
         argumentField: "date",
         valueField: "cpa"
@@ -41,10 +41,10 @@
         valueField: "ctr"
       }];
 
-    }
+    }*/
     //$localStorage.checkCharCamp = null;
-    var tempIndex = [];
-    if ($localStorage.checkCharCamp== null ){
+
+/*    if ($localStorage.checkCharCamp== null ){
       $localStorage.checkCharCamp = {
         'impressions': true,
         'cpa': true,
@@ -54,22 +54,7 @@
         'conversions': true,
         'ctr': true
       };
-      tempIndex = [];
-      for(var index in $localStorage.checkCharCamp) {
-        if ($localStorage.checkCharCamp[index] == true) {
-          tempIndex.push(index);
-        }
-      }
-      vm.by = tempIndex.join();
-    } else {
-      tempIndex = [];
-      for(var index in $localStorage.checkCharCamp) {
-        if ($localStorage.checkCharCamp[index] == true) {
-          tempIndex.push(index);
-        }
-      }
-      vm.by = tempIndex.join();
-    }
+    }*/
 
     vm.totals = [];
     vm.chartStore = new $window.DevExpress.data.CustomStore({
@@ -135,6 +120,81 @@
       }
     });
 
+    vm.cpaBucketRequestFirst = new $window.DevExpress.data.CustomStore({
+      totalCount: function () {
+        return 0;
+      },
+      load: function () {
+        return vm.Camp.bucketsCpa(vm.campId, vm.dataStart, vm.dataEnd)
+          .then(function (result) {
+            var arrFirst = [];
+            console.log(result[0]);
+            for(var i=0; i<result.length; i++) {
+              if(+result[i].cpa>=vm.backetsRanges.first.min && +result[i].cpa<vm.backetsRanges.first.max) {
+                arrFirst.push(result[i]);
+              }
+            }
+            return arrFirst;
+          });
+      }
+    });
+
+    vm.cpaBucketRequestSecond = new $window.DevExpress.data.CustomStore({
+      totalCount: function () {
+        return 0;
+      },
+      load: function () {
+        return vm.Camp.bucketsCpa(vm.campId, vm.dataStart, vm.dataEnd)
+          .then(function (result) {
+            var arrFirst = [];
+            console.log(result[0]);
+            for(var i=0; i<result.length; i++) {
+              if(+result[i].cpa>=vm.backetsRanges.second.min && +result[i].cpa<vm.backetsRanges.second.max) {
+                arrFirst.push(result[i]);
+              }
+            }
+            return arrFirst;
+          });
+      }
+    });
+
+    vm.cpaBucketRequestThird = new $window.DevExpress.data.CustomStore({
+      totalCount: function () {
+        return 0;
+      },
+      load: function () {
+        return vm.Camp.bucketsCpa(vm.campId, vm.dataStart, vm.dataEnd)
+          .then(function (result) {
+            var arrFirst = [];
+            console.log(result[0]);
+            for(var i=0; i<result.length; i++) {
+              if(+result[i].cpa>=vm.backetsRanges.third.min && +result[i].cpa<vm.backetsRanges.third.max) {
+                arrFirst.push(result[i]);
+              }
+            }
+            return arrFirst;
+          });
+      }
+    });
+
+    vm.cpaBucketRequestFourth = new $window.DevExpress.data.CustomStore({
+      totalCount: function () {
+        return 0;
+      },
+      load: function () {
+        return vm.Camp.bucketsCpa(vm.campId, vm.dataStart, vm.dataEnd)
+          .then(function (result) {
+            var arrFirst = [];
+            console.log(result[0]);
+            for(var i=0; i<result.length; i++) {
+              if(+result[i].cpa>=vm.backetsRanges.fourth.min && +result[i].cpa<vm.backetsRanges.fourth.max) {
+                arrFirst.push(result[i]);
+              }
+            }
+            return arrFirst;
+          });
+      }
+    });
 
     vm.multipleStore = new $window.DevExpress.data.CustomStore({
       totalCount: function () {
@@ -163,236 +223,6 @@
       }
     });
 
-
-
-    /** BIG DIAGRAM  - START **/
-    vm.types = ['line', 'stackedLine', 'fullStackedLine'];
-
-    vm.chartOptionsFirst = {
-      argumentAxis: {
-        valueMarginsEnabled: false,
-        discreteAxisDivisionMode: 'crossLabels',
-        grid: {
-          visible: true
-        }
-      },
-      crosshair: {
-        enabled: true,
-        color: 'deepskyblue',
-        label: {
-          visible: true
-        }
-      },
-      commonSeriesSettings: {
-        point: {
-          size: 3,
-          hoverStyle: {
-            border: {
-              visible: true,
-              width: 2
-            },
-            size: 5
-          }
-        }
-      },
-      bindingOptions: {
-        dataSource: 'campdetails.chartStore'
-      },
-      series: $localStorage.seriesCamp,
-      legend:{
-        visible: false
-      },
-      loadingIndicator: {
-        show: true,
-        text: "Creating a chart..."
-      }
-    };
-
-    vm.rangeOptionsFirst = {
-      margin: {
-        left: 10
-      },
-      scale: {
-        minorTickCount:1
-      },
-      bindingOptions: {
-        dataSource: 'campdetails.chartStore'
-      },
-      chart: {
-        series: $localStorage.seriesCamp
-      },
-      behavior: {
-        callSelectedRangeChanged: "onMoving"
-      },
-      onSelectedRangeChanged: function (e) {
-        var zoomedChart = $("#zoomedContainerFirst #zoomedChartFirst").dxChart("instance");
-        zoomedChart.zoomArgument(e.startValue, e.endValue);
-      }
-    };
-
-    /** BIG DIAGRAM  - END **/
-
-    /** CHECKBOX CHART - START **/
-    vm.impressions = {
-      text: LC('MAIN.CHECKBOX.IMPRESSIONS'),
-      value: $localStorage.checkCharCamp.impressions? true:false,
-      onValueChanged: function (e) {
-        if (e.value == true) {
-          $localStorage.checkCharCamp.impressions = true;
-          $localStorage.seriesCamp.push({
-            argumentField: "day",
-            valueField: "impression"
-          });
-          $state.reload();
-        } else {
-          $localStorage.checkCharCamp.impressions = false;
-          for(var index in $localStorage.seriesCamp) {
-            if ($localStorage.seriesCamp[index].valueField == 'impression') {
-              $localStorage.seriesCamp.splice(index, 1);
-            }
-          }
-          $state.reload();
-        }
-      }
-    };
-
-
-
-    vm.CPA = {
-      text: LC('MAIN.CHECKBOX.CPA'),
-      value: $localStorage.checkCharCamp.cpa? true:false,
-      onValueChanged: function (e) {
-        if (e.value == true) {
-          $localStorage.checkCharCamp.cpa = true;
-          $localStorage.seriesCamp.push({
-            argumentField: "day",
-            valueField: "cpa"
-          });
-          $state.reload();
-        } else {
-          $localStorage.checkCharCamp.cpa = false;
-          for(var index in $localStorage.seriesCamp) {
-            if ($localStorage.seriesCamp[index].valueField == 'cpa') {
-              $localStorage.seriesCamp.splice(index, 1);
-            }
-          }
-          $state.reload();
-        }
-      }
-    };
-
-    vm.CPC = {
-      text: LC('MAIN.CHECKBOX.CPC'),
-      value: $localStorage.checkCharCamp.cpc? true:false,
-      onValueChanged: function (e) {
-        if (e.value == true) {
-          $localStorage.checkCharCamp.cpc = true;
-          $localStorage.seriesCamp.push({
-            argumentField: "day",
-            valueField: "cpc"
-          });
-          $state.reload();
-        } else {
-          $localStorage.checkCharCamp.cpc = false;
-          for(var index in $localStorage.seriesCamp) {
-            if ($localStorage.seriesCamp[index].valueField == 'cpc') {
-              $localStorage.seriesCamp.splice(index, 1);
-            }
-          }
-          $state.reload();
-        }
-      }
-    };
-
-    vm.clicks = {
-      text: LC('MAIN.CHECKBOX.CLICKS'),
-      value: $localStorage.checkCharCamp.clicks? true:false,
-      onValueChanged: function (e) {
-        if (e.value == true) {
-          $localStorage.checkCharCamp.clicks = true;
-          $localStorage.seriesCamp.push({
-            argumentField: "day",
-            valueField: "clicks"
-          });
-          $state.reload();
-        } else {
-          $localStorage.checkCharCamp.clicks = false;
-          for(var index in $localStorage.seriesCamp) {
-            if ($localStorage.seriesCamp[index].valueField == 'clicks') {
-              $localStorage.seriesCamp.splice(index, 1);
-            }
-          }
-          $state.reload();
-        }
-      }
-    };
-    vm.media = {
-      text: LC('MAIN.CHECKBOX.MEDIA_SPENT'),
-      value: $localStorage.checkCharCamp.mediaspent? true:false,
-      onValueChanged: function (e) {
-        if (e.value == true) {
-          $localStorage.checkCharCamp.mediaspent = true;
-          $localStorage.seriesCamp.push({
-            argumentField: "day",
-            valueField: "mediaspent"
-          });
-          $state.reload();
-        } else {
-          $localStorage.checkCharCamp.mediaspent = false;
-          for(var index in $localStorage.seriesCamp) {
-            if ($localStorage.seriesCamp[index].valueField == 'mediaspent') {
-              $localStorage.seriesCamp.splice(index, 1);
-            }
-          }
-          $state.reload();
-        }
-      }
-    };
-    vm.conversions = {
-      text: LC('MAIN.CHECKBOX.CONVERSIONS'),
-      value: $localStorage.checkCharCamp.conversions? true:false,
-      onValueChanged: function (e) {
-        if (e.value == true) {
-          $localStorage.checkCharCamp.conversions = true;
-          $localStorage.seriesCamp.push({
-            argumentField: "day",
-            valueField: "conversions"
-          });
-          $state.reload();
-        } else {
-          $localStorage.checkCharCamp.conversions = false;
-          for(var index in $localStorage.seriesCamp) {
-            if ($localStorage.seriesCamp[index].valueField == 'conversions') {
-              $localStorage.seriesCamp.splice(index, 1);
-            }
-          }
-          $state.reload();
-        }
-      }
-    };
-    vm.CTR = {
-      text: LC('MAIN.CHECKBOX.CTR'),
-      value: $localStorage.checkCharCamp.ctr? true:false,
-      onValueChanged: function (e) {
-        if (e.value == true) {
-          $localStorage.checkCharCamp.ctr = true;
-          $localStorage.seriesCamp.push({
-            argumentField: "day",
-            valueField: "ctr"
-          });
-          $state.reload();
-        } else {
-          $localStorage.checkCharCamp.ctr = false;
-          for(var index in $localStorage.seriesCamp) {
-            if ($localStorage.seriesCamp[index].valueField == 'ctr') {
-              $localStorage.seriesCamp.splice(index, 1);
-            }
-          }
-          $state.reload();
-        }
-      }
-    };
-    /** CHECKBOX CHART - END **/
 
     /** DATE PIKER - START **/
     if ($localStorage.dataStart == null && $localStorage.dataEnd == null ){
@@ -953,19 +783,19 @@
           max: (targetCpaInt * 1000).toFixed(1)
         }
       };
-      vm.cpaArrayFirst =  CampDetails.cpaBuckets(vm.backetsRanges.first.min, vm.backetsRanges.first.max);
-      vm.cpaArraySecond =  CampDetails.cpaBuckets(vm.backetsRanges.second.min, vm.backetsRanges.second.max);
-      vm.cpaArrayThird =  CampDetails.cpaBuckets(vm.backetsRanges.third.min, vm.backetsRanges.third.max);
-      vm.cpaArrayFourth =  CampDetails.cpaBuckets(vm.backetsRanges.fourth.min, vm.backetsRanges.fourth.max);
+      // vm.cpaArrayFirst =  CampDetails.cpaBuckets(vm.backetsRanges.first.min, vm.backetsRanges.first.max);
+      // vm.cpaArraySecond =  CampDetails.cpaBuckets(vm.backetsRanges.second.min, vm.backetsRanges.second.max);
+      // vm.cpaArrayThird =  CampDetails.cpaBuckets(vm.backetsRanges.third.min, vm.backetsRanges.third.max);
+      // vm.cpaArrayFourth =  CampDetails.cpaBuckets(vm.backetsRanges.fourth.min, vm.backetsRanges.fourth.max);
 
-
+      $state.reload();
       return vm.backetsRanges;
     };
 
-    vm.cpaArrayFirst =  CampDetails.cpaBuckets(vm.backetsRanges.first.min, vm.backetsRanges.first.max);
-    vm.cpaArraySecond =  CampDetails.cpaBuckets(vm.backetsRanges.second.min, vm.backetsRanges.second.max);
-    vm.cpaArrayThird =  CampDetails.cpaBuckets(vm.backetsRanges.third.min, vm.backetsRanges.third.max);
-    vm.cpaArrayFourth =  CampDetails.cpaBuckets(vm.backetsRanges.fourth.min, vm.backetsRanges.fourth.max);
+    // vm.cpaArrayFirst =  CampDetails.cpaBuckets(vm.backetsRanges.first.min, vm.backetsRanges.first.max);
+    // vm.cpaArraySecond =  CampDetails.cpaBuckets(vm.backetsRanges.second.min, vm.backetsRanges.second.max);
+    // vm.cpaArrayThird =  CampDetails.cpaBuckets(vm.backetsRanges.third.min, vm.backetsRanges.third.max);
+    // vm.cpaArrayFourth =  CampDetails.cpaBuckets(vm.backetsRanges.fourth.min, vm.backetsRanges.fourth.max);
 
 
     vm.pieChartAll = {
@@ -1050,7 +880,124 @@
         width:370,
         height:300
       }
-    }
+    };
+
+
+    vm.cpaBucketFirst = {
+      showBorders: true,
+      alignment: 'left',
+      bindingOptions: {
+        dataSource: 'campdetails.cpaBucketRequestFirst'
+        //allowColumnResizing: 'true'
+      },
+      howBorders: true,
+      showRowLines: true,
+      columns: [
+        {
+          caption: 'sellerid',
+          dataField: 'sellerid'
+        },
+        {
+          caption: 'sellername',
+          dataField: 'sellername'
+        },
+        {
+          caption: 'placementid',
+          dataField: 'placementid'
+        }, {
+          caption:  'placementname',
+          dataField: 'placementname'
+        }
+      ]
+    };
+
+    vm.cpaBucketSecond = {
+      showBorders: true,
+      alignment: 'left',
+      bindingOptions: {
+        dataSource: 'campdetails.cpaBucketRequestSecond'
+        //allowColumnResizing: 'true'
+      },
+      howBorders: true,
+      showRowLines: true,
+      columns: [
+        {
+          caption: 'sellerid',
+          dataField: 'sellerid'
+        },
+        {
+          caption: 'sellername',
+          dataField: 'sellername'
+        },
+        {
+          caption: 'placementid',
+          dataField: 'placementid'
+        }, {
+          caption:  'placementname',
+          dataField: 'placementname'
+        }
+      ]
+    };
+
+
+    vm.cpaBucketThird = {
+      showBorders: true,
+      alignment: 'left',
+      bindingOptions: {
+        dataSource: 'campdetails.cpaBucketRequestThird'
+        //allowColumnResizing: 'true'
+      },
+      howBorders: true,
+      showRowLines: true,
+      columns: [
+        {
+          caption: 'sellerid',
+          dataField: 'sellerid'
+        },
+        {
+          caption: 'sellername',
+          dataField: 'sellername'
+        },
+        {
+          caption: 'placementid',
+          dataField: 'placementid'
+        }, {
+          caption:  'placementname',
+          dataField: 'placementname'
+        }
+      ]
+    };
+
+
+    vm.cpaBucketFourth = {
+      showBorders: true,
+      alignment: 'left',
+      bindingOptions: {
+        dataSource: 'campdetails.cpaBucketRequestFourth'
+        //allowColumnResizing: 'true'
+      },
+      howBorders: true,
+      showRowLines: true,
+      columns: [
+        {
+          caption: 'sellerid',
+          dataField: 'sellerid'
+        },
+        {
+          caption: 'sellername',
+          dataField: 'sellername'
+        },
+        {
+          caption: 'placementid',
+          dataField: 'placementid'
+        }, {
+          caption:  'placementname',
+          dataField: 'placementname'
+        }
+      ]
+    };
+
+
   }
 })();
 

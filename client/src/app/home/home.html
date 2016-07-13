@@ -1,17 +1,17 @@
 <div id="wrapper">
   <!-- Brand and toggle get grouped for better mobile display -->
   <div class="row">
-    <div class="left-nav col-lg-1 col-md-2 col-sm-2">
+    <div class="left-nav col-lg-1 col-md-2 col-sm-2 col-xs-2">
       <ul class="nav nav-list">
         <li class="nav-header"><a  ui-sref="home.main" translate="INDEX.LEFT_NAV.HOME"></a></li>
-        <li class="active"><a ui-sref="home.campaign" translate="INDEX.LEFT_NAV.CAMPAIGN">Campaign</a></li>
+        <li class="active"><a ui-sref="home.campaign.details" translate="INDEX.LEFT_NAV.CAMPAIGN">Campaign</a></li>
         <li><a href="#/" translate="INDEX.LEFT_NAV.OPTIMIZER">Optimizer</a></li>
         <li><a href="#/" translate="INDEX.LEFT_NAV.BILLING">Billing</a></li>
       </ul>
     </div>
       <input class="open" id="top-box"  ng-model="home.value" ng-click="home.checked(home.value)" type="checkbox" value="true"  hidden>
       <label class="btn" for="top-box"></label>
-    <div class="main-nav navbar-header col-lg-11 col-md-10 col-sm-10">
+    <div class="main-nav navbar-header col-lg-11 col-md-10 col-sm-10 col-xs-10">
       <div class="row">
         <div class="col-lg-12 col-md-12 col-sm-12">
       <button type="button" data-target="#navbarCollapse" data-toggle="collapse" class="navbar-toggle">
@@ -34,7 +34,7 @@
       </div>
 
       <div class="row">
-        <ui-view class="allview col-lg-12 col-md-12 col-sm-12"></ui-view>
+        <ui-view class="allview col-lg-12 col-md-12 col-sm-12 col-xs-12"></ui-view>
       </div>
     </div>
 

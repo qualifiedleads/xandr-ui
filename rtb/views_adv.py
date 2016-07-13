@@ -36,13 +36,16 @@ zero_sum = {
 # cpa, cpc,  ctr, #clicks, mediaspent, conversions,impression
 def calc_another_fields(obj):
     res = {
+        "day":obj["day"],
         "cpa": None, "cpc": None, "ctr": None,
         "clicks": obj["clicks"],
         "mediaspent": obj["mediaspent"],
         "impression": obj["impression"],
     }
     try:
-        res['conversions'] = (obj['post_click_convs'] or 0) + (obj['post_view_convs'] or 0),
+        post_click_convs = obj['post_click_convs'] or 0
+        post_view_convs = obj['post_view_convs'] or 0
+        res['conversions'] = post_click_convs + post_view_convs
         res['cpc'] = float(obj['mediaspent']) / obj['clicks'] if obj['clicks'] else 0
         res['cpa'] = float(obj["mediaspent"]) / res['conversions'] if res['conversions'] else 0
         res['ctr'] = float(obj["clicks"]) / obj['impression'] if obj['impression'] else 0

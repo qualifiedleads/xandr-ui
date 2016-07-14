@@ -9,6 +9,17 @@ import utils
 #log_path=os.path.join(os.path.dirname(os.path.dirname(__file__)),'logs')
 log_path='rtb/logs'
 
+error_classes={
+'INTEGRITY':True,
+'LIMIT':True,	
+'NOAUTH':False,
+'NOAUTH_DISABLED':True,
+'NOAUTH_EXPIRED':True,
+'SYNTAX':True,
+'SYSTEM':False,
+'UNAUTH':True,
+}
+
 def get_str_time():
     return datetime.datetime.utcnow().strftime('%Y-%m-%dT%H-%M-%S')
     

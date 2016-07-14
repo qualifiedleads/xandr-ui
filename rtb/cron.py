@@ -294,7 +294,7 @@ def nexus_get_objects(token, url, params, object_class, force_update=False, get_
                 response={'error':e.message,'error_id':'NODATA'}
             if response.get('error'):
                 print response['error']
-                if response['error_id']=='SYNTAX':
+                if report.error_classes[response['error_id']]:
                     break
                 if response['error_id']=='NOAUTH':
                     token = report.get_auth_token()

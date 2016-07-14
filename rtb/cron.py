@@ -502,12 +502,12 @@ def load_depending_data(token):
                                        Category, False)
         print 'There is %d categories ' % len(categories)
 
-        brands = nexus_get_objects(token,
-                                   'https://api.appnexus.com/brand',
-                                   {},
-                                   Brand, False,
-                                   {'simple':"true"})
-        print 'There is %d brands ' % len(brands)
+        # brands = nexus_get_objects(token,
+        #                            'https://api.appnexus.com/brand',
+        #                            {},
+        #                            Brand, False,
+        #                            {'simple':"true"})
+        # print 'There is %d brands ' % len(brands)
 
         media_types = nexus_get_objects(token,
                                         'https://api.appnexus.com/media-type',

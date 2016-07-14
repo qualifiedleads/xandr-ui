@@ -3,11 +3,12 @@ from rest_framework.response import Response
 from django.http import JsonResponse
 from utils import parse_get_params, make_sum
 from models import SiteDomainPerformanceReport, Campaign, GeoAnaliticsReport, NetworkAnalyticsReport
-from django.db.models import Sum, Min, Max, Value, When, Case
+from django.db.models import Sum, Min, Max, Avg, Value, When, Case, F, Q, Func
 from django.db.models.functions import Coalesce
 from django.core.cache import cache
 import itertools
 import datetime
+from pytz import utc
 
 
 @api_view()
@@ -184,18 +185,46 @@ def get_campaign_cpa(advertiser_id, campaign_id, from_date, to_date):
     res = cache.get(key)
     if res: return res
     # no cache hit
-    from_date -= datetime.timedelta(hours=1)
+    # from_date -= datetime.timedelta(days=1)
+    # from_date = datetime.datetime(from_date.year, from_date.month, from_date.day, 23, tzinfo = utc)
+    from_date = datetime.datetime(from_date.year, from_date.month, from_date.day, tzinfo=utc)
+    to_date = datetime.datetime(to_date.year, to_date.month, to_date.day, 23, tzinfo=utc)
     q = NetworkAnalyticsReport.objects.filter(
         # advertiser_id=advertiser_id,
         campaign_id=campaign_id,
-        day__gte=from_date,
-        day__lte=to_date,
+        hour__gte=from_date,
+        hour__lte=to_date,
     ).values('hour').annotate(  # impression, cpa, cpc, clicks, mediaspent, conversions, ctr
-        cost=Sum('media_cost'),
-        total_convs=Sum('total_convs')
-    ).order_by('hour')
+        sum_cost=Sum('cost'),
+        convs=Sum('total_convs'),
+        # cpa = Case(When(Sum('total_convs'), then=Sum('media_cost')/Sum('total_convs')))
+    ).annotate(
+        cpa=Case(When(~Q(convs=0), then=F('sum_cost') / F('convs'))),
+        date=Func(Value("'day'"), 'hour', function="date_trunc")
+    ).order_by("hour")
+    # values("date").annotate(
+    #     low=Min("cpa"),
+    #     high=Max("cpa"),
+    #     avg=Avg("cpa")
+    # )
     print q.query
-    res = map(calc_cpa, q)
+    # first, last = None, None
+    res = []
+    key_func = lambda x: x["cpa"]
+    for key, g in itertools.groupby(q, lambda x: x["date"]):
+        group = list(g)
+        try:
+            avg = sum(itertools.imap(lambda x: x["sum_cost"], group)) / sum(itertools.imap(lambda x: x["convs"], group))
+        except:
+            avg = None
+        res.append({
+            "date": key,
+            "low": min(group, key_func)["cpa"],
+            "high": max(group, key_func)["cpa"],
+            "open": group[0]["cpa"],
+            "close": group[-1]["cpa"],
+            "avg": avg,
+        })
     cache.set(key, res)
     return res
 
@@ -223,7 +252,7 @@ Get single campaign cpa report for given period to create boxplots
         return Response({'error': "Unknown object id %d" % id})
     advertiser_id = c.advertiser_id
     params = parse_get_params(request.GET)
-    # res = get_campaign_cpa(advertiser_id, id, params['from_date'], params['to_date'])
+    res = get_campaign_cpa(advertiser_id, id, params['from_date'], params['to_date'])
     # return Response(res)
     return Response([
         {"date": "2016-06-19T00:00:00Z", "low": 24.00, "high": 25.00, "open": 25.00, "close": 24.875, "avg": 24.5},

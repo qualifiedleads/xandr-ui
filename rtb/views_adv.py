@@ -223,7 +223,7 @@ Get single campaign cpa report for given period to create boxplots
         return Response({'error': "Unknown object id %d" % id})
     advertiser_id = c.advertiser_id
     params = parse_get_params(request.GET)
-    res = get_campaign_cpa(advertiser_id, id, params['from_date'], params['to_date'])
+    # res = get_campaign_cpa(advertiser_id, id, params['from_date'], params['to_date'])
     # return Response(res)
     return Response([
         {"date": "2016-06-19T00:00:00Z", "low": 24.00, "high": 25.00, "open": 25.00, "close": 24.875, "avg": 24.5},
@@ -238,79 +238,6 @@ Get single campaign cpa report for given period to create boxplots
         {"date": "2016-06-28T00:00:00Z", "low": 25.125, "high": 26.00, "open": 25.625, "close": 25.75, "avg": 25.5625},
         {"date": "2016-06-29T00:00:00Z", "low": 25.875, "high": 26.625, "open": 26.125, "close": 26.375, "avg": 26.25},
     ])
-
-    return Response([{  # TODO: delete
-        "Date": "03/12/2013",
-        "Open": "827.90",
-        "High": "830.69",
-        "Low": "822.31",
-        "Close": "825.31",
-        "Volume": "1641413"
-    }, {
-        "Date": "03/13/2013",
-        "Open": "826.99",
-        "High": "826.99",
-        "Low": "817.39",
-        "Close": "821.54",
-        "Volume": "1651111"
-    }, {
-        "Date": "03/14/2013",
-        "Open": "818.50",
-        "High": "820.30",
-        "Low": "813.34",
-        "Close": "814.30",
-        "Volume": "3099791"
-    }, {
-        "Date": "03/17/2013",
-        "Open": "805.00",
-        "High": "812.76",
-        "Low": "801.47",
-        "Close": "807.79",
-        "Volume": "1838552"
-    }, {
-        "Date": "03/18/2013",
-        "Open": "811.24",
-        "High": "819.25",
-        "Low": "806.45",
-        "Close": "811.32",
-        "Volume": "2098176"
-
-    }, {
-        "Date": "03/19/2013",
-        "Open": "816.83",
-        "High": "817.51",
-        "Low": "811.44",
-        "Close": "814.71",
-        "Volume": "1464122"
-    }, {
-        "Date": "03/20/2013",
-        "Open": "811.29",
-        "High": "816.92",
-        "Low": "809.85",
-        "Close": "811.26",
-        "Volume": "1477590"
-    }, {
-        "Date": "03/21/2013",
-        "Open": "814.74",
-        "High": "815.24",
-        "Low": "809.64",
-        "Close": "810.31",
-        "Volume": "1491678"
-    }, {
-        "Date": "03/24/2013",
-        "Open": "812.41",
-        "High": "819.23",
-        "Low": "806.82",
-        "Close": "809.64",
-        "Volume": "1712684"
-    }, {
-        "Date": "03/25/2013",
-        "Open": "813.50",
-        "High": "814.00",
-        "Low": "807.79",
-        "Close": "812.42",
-        "Volume": "1191912"
-    }])
 
 
 @api_view()

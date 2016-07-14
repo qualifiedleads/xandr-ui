@@ -3285,6 +3285,8 @@ class NetworkAnalyticsReport(models.Model):
     data_costs_buying_currency = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
     data_costs_selling_currency = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
 
+    api_report_name = "network_analytics"
+
     class Meta:
         db_table = "network_analytics_report"
         index_together = ["advertiser", "hour"]

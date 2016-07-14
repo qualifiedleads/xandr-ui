@@ -116,11 +116,13 @@ def parse_get_params(params, field_list=['campaign', 'spend', 'conv', 'imp', 'cl
     res = {}
     field_list_re = '|'.join(field_list)
     try:
-        res['from_date'] = datetime.date.fromtimestamp(int(params["from_date"]))
+        # res['from_date'] = datetime.date.fromtimestamp(int(params.get("from_date", params.get("from"))))
+        res['from_date'] = datetime.date.fromtimestamp(int(params.get("from_date")))
     except:
         res['from_date'] = datetime.date.today() - one_day * 8
     try:
-        res['to_date'] = datetime.date.fromtimestamp(int(params["to_date"]))
+        # res['to_date'] = datetime.date.fromtimestamp(int(params.get("to_date", params.get("to"))))
+        res['to_date'] = datetime.date.fromtimestamp(int(params.get("to_date")))
     except:
         res['to_date'] = datetime.date.today() - one_day * 1
     try:

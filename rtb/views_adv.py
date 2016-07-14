@@ -3,7 +3,8 @@ from rest_framework.response import Response
 from django.http import JsonResponse
 from utils import parse_get_params, make_sum
 from models import SiteDomainPerformanceReport, Campaign, GeoAnaliticsReport, NetworkAnalyticsReport
-from django.db.models import Sum, Min, Max
+from django.db.models import Sum, Min, Max, Value, When, Case
+from django.db.models.functions import Coalesce
 from django.core.cache import cache
 import itertools
 import datetime

@@ -669,9 +669,9 @@ def dayly_task(day=None, load_objects_from_services=True, output=None):
         token = report.get_auth_token()
         if load_objects_from_services:
             load_depending_data(token)
+        load_report(token, day, NetworkAnalyticsReport)
         load_report(token, day, GeoAnaliticsReport)
         load_reports_for_all_advertisers(token, day, SiteDomainPerformanceReport)
-        load_reports_for_all_advertisers(token, day, NetworkAnalyticsReport)
     except Exception as e:
         print 'Error by fetching data: %s' % e
         print traceback.print_exc(file=output)
@@ -732,6 +732,7 @@ def load_reports_for_all_advertisers(token, day, ReportClass):
             print "%s for advertiser %s saved to DB" %(ReportClass, all_advertisers[advertiser_id])
     finally:
         for f in filenames:
+            print "Remove file ", f
             os.remove(f)
 
 

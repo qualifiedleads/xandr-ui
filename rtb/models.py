@@ -179,6 +179,7 @@ class Region(models.Model):
 class BrandInCountry(models.Model):  # TODO:ManyToManyField
     #See the model Category.countries_and_brands
     #brand = models.ForeignKey("Brand", null=True, blank=True)
+    brand_id = models.IntegerField(null=True, blank=True)
     category = models.ForeignKey("Category", null=True, blank=True)
 
     class Meta:
@@ -249,8 +250,8 @@ class Advertiser(models.Model):
 
 class AdvertiserBrand(models.Model):
     advertiser = models.ForeignKey("Advertiser", null=True, blank=True)
-
     #brand = models.ForeignKey("Brand", null=True, blank=True)
+    brand_id = models.IntegerField(null=True, blank=True)
 
     class Meta:
         db_table = "advertiser_brand"
@@ -549,6 +550,7 @@ class AdProfileMember(models.Model):
 class AdProfileBrand(models.Model):
     ad_profile = models.ForeignKey("AdProfile", null=True, blank=True)
     #brand = models.ForeignKey("Brand", null=True, blank=True)
+    brand_id = models.IntegerField(null=True, blank=True)
     status = models.TextField(
         choices=DEFAILT_BRAND_STATUS_CHOICES,
         null=True, blank=True)
@@ -967,9 +969,8 @@ class PublisherContact(models.Model):
 
 class PublisherBrandExceptions(models.Model): # TODO: ManyToMany field
     publisher = models.ForeignKey("Publisher", null=True, blank=True)
-
     #brand = models.ForeignKey("Brand", null=True, blank=True)
-
+    brand_id = models.IntegerField(null=True, blank=True)
     class Meta:
         db_table = "publisher_brand_exceptions"
 
@@ -1108,6 +1109,7 @@ class Creative(models.Model):
     advertiser = models.ForeignKey("Advertiser", null=True, blank=True)
     publisher = models.ForeignKey("Publisher", null=True, blank=True)
     #brand = models.ForeignKey("Brand", null=True, blank=True)
+    brand_id = models.IntegerField(null=True, blank=True)
     state = models.TextField(
         choices=STATE_CHOICES,
         null=True, blank=True)
@@ -1248,9 +1250,8 @@ class CreativeThirdpartyPixel(models.Model):
 
 class CreativeCompetitiveBrand(models.Model):
     creative = models.ForeignKey("Creative", null=True, blank=True)
-
     #brand = models.ForeignKey("Brand", null=True, blank=True)
-
+    brand_id = models.IntegerField(null=True, blank=True)
     class Meta:
         db_table = "creative_competitive_brand"
 
@@ -2825,9 +2826,8 @@ class MemberThirdpartyPixel(models.Model):
 
 class MemberBrandException(models.Model):
     member = models.ForeignKey("Member", null=True, blank=True)
-
     #brand = models.ForeignKey("Brand", null=True, blank=True)
-
+    brand_id = models.IntegerField(null=True, blank=True)
     class Meta:
         db_table = "member_brand_exception"
 
@@ -3064,6 +3064,7 @@ class DealCreative(models.Model):
 class DealBrand(models.Model):
     deal = models.ForeignKey("Deal", null=True, blank=True)
     #brand = models.ForeignKey("Brand", null=True, blank=True)
+    brand_id = models.IntegerField(null=True, blank=True)
     override = models.NullBooleanField(null=True, blank=True)
 
     class Meta:
@@ -3176,6 +3177,7 @@ class NetworkAnalyticsReport(models.Model):
     creative = models.ForeignKey("Creative", null=True, blank=True)
     size = models.TextField(null=True, blank=True)
     #brand = models.ForeignKey("Brand", null=True, blank=True)
+    brand_id = models.IntegerField(null=True, blank=True)
     billing_period_start_date = models.DateTimeField(null=True, blank=True, db_index=True)
     billing_period_end_date = models.DateTimeField(null=True, blank=True, db_index=True)
     geo_country = models.ForeignKey("Country", null=True, blank=True)

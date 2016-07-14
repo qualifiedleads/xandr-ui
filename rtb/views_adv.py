@@ -269,8 +269,8 @@ Get single campaign cpa report for given period to create boxplots
     ])
 
 
-def get_campaign_placement(advertiser_id, campaign_id, from_date, to_date):
-    key = '_'.join(('rtb_campaign_placement', str(advertiser_id), str(campaign_id), from_date.strftime('%Y-%m-%d'),
+def get_campaign_placement(campaign_id, from_date, to_date):
+    key = '_'.join(('rtb_campaign_placement', str(campaign_id), from_date.strftime('%Y-%m-%d'),
                     to_date.strftime('%Y-%m-%d'),))
     res = cache.get(key)
     if res: return res
@@ -282,18 +282,19 @@ def get_campaign_placement(advertiser_id, campaign_id, from_date, to_date):
         campaign_id=campaign_id,
         hour__gte=from_date,
         hour__lte=to_date,
-    ).values('placement').annotate(  # impression, cpa, cpc, clicks, mediaspent, conversions, ctr
-        sum_cost=Sum('cost'),
-        convs=Sum('total_convs'),
-        imp="5500",
-        clicks="21",
-
-        # cpa = Case(When(Sum('total_convs'), then=Sum('media_cost')/Sum('total_convs')))
+    ).values('placement', 'placement__name','publisher__name','placement__state').annotate(
+        cost=Sum('cost'),
+        conv=Sum('total_convs'),
+        imp=Sum('imps'),
+        clicks=Sum('clicks'),
     ).annotate(
-        cpa=Case(When(~Q(convs=0), then=F('sum_cost') / F('convs'))),
-        date=Func(Value("'day'"), 'hour', function="date_trunc")
+        cpc=Case(When(~Q(clicks=0), then=F('cost') / F('clicks'))),
+        cpm=Case(When(~Q(imp=0), then=F('cost') / F('imp') *1000)),
+        cvr=Case(When(~Q(imp=0), then=F('conv') / F('imp'))),
+        ctr=Case(When(~Q(imp=0), then=F('clicks') / F('imp'))),
     )
     print q.query
+    res=list(q)
     res = []
     cache.set(key, res)
     return res
@@ -325,6 +326,9 @@ Get single campaign details by domains
 
 
     """
+    params = parse_get_params(request.GET)
+    res = get_campaign_placement(id, params['from_date'], params['to_date'])
+    # return Response(res)
     return Response([{
         "placement": "CNN.com",
         "NetworkPublisher": "Google Adx",

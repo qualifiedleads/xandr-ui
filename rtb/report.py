@@ -18,6 +18,7 @@ error_classes={
 'SYNTAX':True,
 'SYSTEM':False,
 'UNAUTH':True,
+'NODATA':False,
 }
 
 def get_str_time():

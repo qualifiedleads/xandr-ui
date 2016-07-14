@@ -269,6 +269,35 @@ Get single campaign cpa report for given period to create boxplots
     ])
 
 
+def get_campaign_placement(advertiser_id, campaign_id, from_date, to_date):
+    key = '_'.join(('rtb_campaign_placement', str(advertiser_id), str(campaign_id), from_date.strftime('%Y-%m-%d'),
+                    to_date.strftime('%Y-%m-%d'),))
+    res = cache.get(key)
+    if res: return res
+    # no cache hit
+    from_date = datetime.datetime(from_date.year, from_date.month, from_date.day, tzinfo=utc)
+    to_date = datetime.datetime(to_date.year, to_date.month, to_date.day, 23, tzinfo=utc)
+    q = NetworkAnalyticsReport.objects.filter(
+        # advertiser_id=advertiser_id,
+        campaign_id=campaign_id,
+        hour__gte=from_date,
+        hour__lte=to_date,
+    ).values('placement').annotate(  # impression, cpa, cpc, clicks, mediaspent, conversions, ctr
+        sum_cost=Sum('cost'),
+        convs=Sum('total_convs'),
+        imp="5500",
+        clicks="21",
+
+        # cpa = Case(When(Sum('total_convs'), then=Sum('media_cost')/Sum('total_convs')))
+    ).annotate(
+        cpa=Case(When(~Q(convs=0), then=F('sum_cost') / F('convs'))),
+        date=Func(Value("'day'"), 'hour', function="date_trunc")
+    )
+    print q.query
+    res = []
+    cache.set(key, res)
+    return res
+
 @api_view()
 def campaignDomains(request, id):
     """

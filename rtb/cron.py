@@ -1,12 +1,14 @@
 #!/bin/env python
 import csv
-import datetime, time, decimal
+import datetime
+import time
+import decimal
 import gc
 import json
 import os
 import sys
 import traceback
-from itertools import imap, izip, islice,ifilter
+from itertools import imap, izip, islice, ifilter
 from multiprocessing.pool import ThreadPool, Pool
 from django.db.models import Avg, Count, Sum, Max
 import django.db.models as django_types
@@ -43,7 +45,7 @@ _default_values_for_types = {
     django_types.SmallIntegerField: 0,
     django_types.IPAddressField: '127.0.0.1',
     django_types.SlugField: '',
-    django_types.TimeField: lambda:get_current_time().timetz(),
+    django_types.TimeField: lambda: get_current_time().timetz(),
     # django_types.proxy.OrderWrt: 0,
     django_types.CommaSeparatedIntegerField: '0',
     # django_types.AutoField: None,
@@ -79,7 +81,9 @@ def fill_null_values(o):
 def try_resolve_foreign_key(objects, dicts, e):
     if e.message.find('foreign key constraint') < 0:
         return False
-    m = re.search(r'Key \((\w+)\)=\(([^\)]+)\) is not present in table "([^\"]+)"', e.message)
+    m = re.search(
+        r'Key \((\w+)\)=\(([^\)]+)\) is not present in table "([^\"]+)"',
+        e.message)
     if not m:
         return False
     key_field, key_value, table_name = m.groups()
@@ -90,9 +94,19 @@ def try_resolve_foreign_key(objects, dicts, e):
         cd = get_current_time()
         name = 'Unknown, autocreated at %s' % cd
         if key_field.endswith('_id'):
-            first = list(islice(ifilter(lambda x:str(getattr(x[1],key_field))==key_value,enumerate(objects)),0,1))
+            first = list(
+                islice(
+                    ifilter(
+                        lambda x: str(
+                            getattr(
+                                x[1],
+                                key_field)) == key_value,
+                        enumerate(objects)),
+                    0,
+                    1))
             if first:
-                new_name = dicts[first[0][0]].get(key_field[:-2] + 'name', '--')
+                new_name = dicts[first[0][0]].get(
+                    key_field[:-2] + 'name', '--')
                 if new_name != '--':
                     name = new_name
         if hasattr(o, 'name'):
@@ -106,7 +120,8 @@ def try_resolve_foreign_key(objects, dicts, e):
         return False
     return True
 
-_create_execute_context_={
+
+_create_execute_context_ = {
     # 'all_fields':None,
     # 'need_filter_fields':None,
     # 'foreign_fields':None,
@@ -117,9 +132,11 @@ _create_execute_context_={
     # 'fetch_date':None,
 }
 
+
 def context_initializer(context):
     global _create_execute_context_
     _create_execute_context_ = context
+
 
 def create_object_from_dict(data_row):
     try:
@@ -144,7 +161,8 @@ def create_object_from_dict(data_row):
             replace_tzinfo(c, _create_execute_context_['time_fields'])
         except:
             c = modelClass()
-            update_object_from_dict(c, data, _create_execute_context_['time_fields'])
+            update_object_from_dict(
+                c, data, _create_execute_context_['time_fields'])
         c.fetch_date = _create_execute_context_['fetch_date']
         if hasattr(c, 'TransformFields'):
             c.TransformFields(data_row, _create_execute_context_)
@@ -153,13 +171,19 @@ def create_object_from_dict(data_row):
         print "Interest error", e
         return None
 
+
 def get_all_class_fields(modelClass):
-    return [field.name + '_id' if isinstance(field, django_types.ForeignObject) else field.name
-                           for field in modelClass._meta.fields]
+    return [
+        field.name +
+        '_id' if isinstance(
+            field,
+            django_types.ForeignObject) else field.name for field in modelClass._meta.fields]
+
 
 def analize_csv(filename, modelClass, metadata={}):
     with open(filename, 'r') as csvFile:
-        reader = csv.DictReader(csvFile, delimiter=',')  # dialect='excel-tab' or excel ?
+        # dialect='excel-tab' or excel ?
+        reader = csv.DictReader(csvFile, delimiter=',')
         print 'Begin analyzing csv file ...'
         # result = []
         context = {}
@@ -168,24 +192,36 @@ def analize_csv(filename, modelClass, metadata={}):
         class_fields = set(get_all_class_fields(modelClass))
         csv_fields = set(reader.fieldnames)
         context['all_fields'] = class_fields & csv_fields
-        context['need_filter_fields'] = bool(csv_fields - class_fields) and modelClass.api_report_name not in column_sets_for_reports
-        context['time_fields'] = [field.name for field in modelClass._meta.fields if date_type(field)]
-        context['nullable_keys'] = [field.name for field in modelClass._meta.fields
-                         if field.null and not isinstance(field, (django_types.CharField, django_types.TextField))
-                         and field.name in csv_fields]
-        context['float_keys'] =  [field.name for field in modelClass._meta.fields if isinstance(field,(django_types.FloatField,django_types.DecimalField))]
-        foreign_fields = [field.name + '_id' for field in modelClass._meta.fields if
-                          isinstance(field, django_types.ForeignObject)]
-        context['foreign_fields'] = filter(lambda x: x in csv_fields, foreign_fields)
+        context['need_filter_fields'] = bool(
+            csv_fields -
+            class_fields) and modelClass.api_report_name not in column_sets_for_reports
+        context['time_fields'] = [
+            field.name for field in modelClass._meta.fields if date_type(field)]
+        context['nullable_keys'] = [
+            field.name for field in modelClass._meta.fields if field.null and not isinstance(
+                field, (django_types.CharField, django_types.TextField)) and field.name in csv_fields]
+        context['float_keys'] = [
+            field.name for field in modelClass._meta.fields if isinstance(
+                field, (django_types.FloatField, django_types.DecimalField))]
+        foreign_fields = [
+            field.name +
+            '_id' for field in modelClass._meta.fields if isinstance(
+                field,
+                django_types.ForeignObject)]
+        context['foreign_fields'] = filter(
+            lambda x: x in csv_fields, foreign_fields)
         context.update(metadata)
-        worker = Pool(initializer=context_initializer, initargs=(context,), maxtasksperchild=100000)
+        worker = Pool(
+            initializer=context_initializer, initargs=(
+                context,), maxtasksperchild=100000)
         counter = 0
         reset_queries()
         try:
             while True:
                 rows = list(islice(reader, 0, 4000))
-                if not rows: break
-                if len(rows)>100:
+                if not rows:
+                    break
+                if len(rows) > 100:
                     objects_to_save = worker.map(create_object_from_dict, rows)
                 else:
                     context_initializer(context)
@@ -205,7 +241,9 @@ def analize_csv(filename, modelClass, metadata={}):
                         if errors > 1000:
                             print 'Too many DB integrity errors'
                             raise
-                        if not try_resolve_foreign_key(objects_to_save, rows, e): raise
+                        if not try_resolve_foreign_key(
+                                objects_to_save, rows, e):
+                            raise
                 counter += len(objects_to_save)
                 print '%d rows fetched' % counter
                 print "Sql queries fired:", len(connection.queries)
@@ -221,10 +259,8 @@ def analize_csv(filename, modelClass, metadata={}):
             worker.join()
 
 
-
-
-#load data, needed for filling SiteDomainPerformanceReport
-#Data saved to local DB
+# load data, needed for filling SiteDomainPerformanceReport
+# Data saved to local DB
 def load_depending_data(token):
     # nexus_get_objects\(.*?'(https://api.appnexus.com/[\w-]+)',\s*\{[^\}]*\},\s*(\w+)
     try:
@@ -260,12 +296,10 @@ def load_depending_data(token):
                 print 'Created profile "%s"' % p.name
 
         developers = nexus_get_objects(token,
-
                                        {},
                                        Developer, False)
         print 'There is %d developers ' % len(developers)
         buyer_groups = nexus_get_objects(token,
-
                                          {},
                                          BuyerGroup, False)
         print 'There is %d buyer groups ' % len(buyer_groups)
@@ -273,32 +307,29 @@ def load_depending_data(token):
         # There is mutual dependence
         with transaction.atomic():
             ad_profiles = nexus_get_objects(token,
-
                                             {},
                                             AdProfile, False)
             print 'There is %d adware profiles ' % len(ad_profiles)
             members = nexus_get_objects(token,
-
                                         {},
                                         Member, False)
             print 'There is %d members ' % len(members)
 
         # Get all operating system families:
         operating_systems_families = nexus_get_objects(token,
-
                                                        {},
                                                        OSFamily, False)
         print 'There is %d operating system families' % len(operating_systems_families)
 
         # Get all operating systems:
         operating_systems = nexus_get_objects(token,
-
                                               {},
                                               OperatingSystemExtended, False)
         print 'There is %d operating systems ' % len(operating_systems)
 
         with transaction.atomic():
-            date_in_db = ContentCategory.objects.aggregate(m=Max('fetch_date'))['m']
+            date_in_db = ContentCategory.objects.aggregate(
+                m=Max('fetch_date'))['m']
             if cd - date_in_db > settings.INVALIDATE_TIME:
                 o1 = nexus_get_objects(token,
                                        {},  # {'type':'universal'}
@@ -311,14 +342,12 @@ def load_depending_data(token):
 
         # Get all optimisation zones:
         optimisation_zones = nexus_get_objects(token,
-
                                                {},
                                                OptimizationZone, False)
         print 'There is %d optimisation zones ' % len(optimisation_zones)
 
         # Get all mobile app instances:
         mobile_app_instances = nexus_get_objects(token,
-
                                                  {},
                                                  MobileAppInstance, False)
         print 'There is %d mobile app instances ' % len(mobile_app_instances)
@@ -326,82 +355,76 @@ def load_depending_data(token):
         with transaction.atomic():
             # Get all sites:
             sites = nexus_get_objects(token,
-
                                       {},
                                       Site, False)
             print 'There is %d sites ' % len(sites)
             # Get all publishers:
             publishers = nexus_get_objects(token,
-
                                            {},
                                            Publisher, False)
             print 'There is %d publishers ' % len(publishers)
             # Get all yield management profiles:
+            # loop ?
             yield_management_profiles = nexus_get_objects(token,
-
                                                           {},
-                                                          # Probary, its need to load data for all publishers in loop
                                                           YieldManagementProfile, False)
             print 'There is %d yield management profiles ' % len(yield_management_profiles)
 
             for pub in publishers:
                 payment_rules = nexus_get_objects(token,
-
-                                                  {'id':pub.base_payment_rule_id},
-                                                    PaymentRule, True,
-                                                    {'publisher_id': pub.pk, 'id':pub.base_payment_rule_id}
-                                                 )
+                                                  {'id': pub.base_payment_rule_id},
+                                                  PaymentRule,
+                                                  True,
+                                                  {'publisher_id': pub.pk, 'id': pub.base_payment_rule_id}
+                                                  )
                 print 'There is %d base payment rules ' % len(payment_rules)
 
         companies = nexus_get_objects(token,
-
                                       {},
                                       Company, False)
         print 'There is %d companies ' % len(companies)
         try:
             zero_company = Company.objects.get(pk=0)
         except:
-            zero_company=Company(id=0, name='<Unknown company>', fetch_date=get_current_time())
+            zero_company = Company(
+                id=0,
+                name='<Unknown company>',
+                fetch_date=get_current_time())
             zero_company.save()
 
         categories = nexus_get_objects(token,
-
                                        {},
                                        Category, False)
         print 'There is %d categories ' % len(categories)
-        unk_cat=Category(pk=0,name="Unknown category")
+        unk_cat = Category(pk=0, name="Unknown category")
         try:
             unk_cat.save()
-        except:pass
+        except:
+            pass
 
         brands = nexus_get_objects(token,
-
                                    {},
                                    Brand, False,
-                                   {'simple':"true"})
+                                   {'simple': "true"})
         print 'There is %d brands ' % len(brands)
 
         media_types = nexus_get_objects(token,
-
                                         {},
                                         MediaType, False)
         print 'There is %d creative media types' % len(media_types)
 
         media_sub_types = nexus_get_objects(token,
-
                                             {},
                                             MediaSubType, False)
         print 'There is %d creative media sub types' % len(media_sub_types)
 
         # https://api.appnexus.com/creative-format
         creative_formats = nexus_get_objects(token,
-
                                              {},
                                              CreativeFormat, False)
         print 'There is %d creative media sub types' % len(creative_formats)
 
         creative_templates = nexus_get_objects(token,
-
                                                {},
                                                CreativeTemplate, False)
         print 'There is %d creative templates' % len(creative_templates)
@@ -409,20 +432,16 @@ def load_depending_data(token):
         for adv in advertisers:
             advertiser_id = adv.id
             # Get all creative folders
-            creative_folders = nexus_get_objects(token,
-
-                                                 {'advertiser_id': advertiser_id},
-                                                 CreativeFolder, False)
+            creative_folders = nexus_get_objects(
+                token, {'advertiser_id': advertiser_id}, CreativeFolder, False)
             print 'There is %d  creative folders' % len(creative_folders)
 
         languages = nexus_get_objects(token,
-
                                       {},
                                       Language, False)
         print 'There is %d languages ' % len(languages)
 
         creatives = nexus_get_objects(token,
-
                                       {},
                                       Creative, False)
         print 'There is %d creatives ' % len(creatives)
@@ -430,24 +449,22 @@ def load_depending_data(token):
         # Get all payment rules:
         for pub in publishers:
             payment_rules = nexus_get_objects(token,
-
                                               {'publisher': pub},
                                               PaymentRule, True,
                                               {'publisher_id': pub.pk})
-            print 'There is %d payment rules for publisher %s' % (len(payment_rules),pub.name)
+            print 'There is %d payment rules for publisher %s' % (len(payment_rules), pub.name)
             print 'Ids:', ','.join(str(x.pk) for x in payment_rules)
             quality_rules = nexus_get_objects(token,
-
                                               {'publisher': pub},
                                               AdQualityRule, True,
                                               {'publisher_id': pub.pk})
             print 'There is %d quality rules for publisher %s' % (len(payment_rules), pub.name)
-            # Placement https://api.appnexus.com/placement?publisher_id=PUBLISHER_ID
+            # Placement
+            # https://api.appnexus.com/placement?publisher_id=PUBLISHER_ID
             placements = nexus_get_objects(token,
-
                                            {'publisher': pub},
                                            Placement, True,
-                                          {'publisher_id': pub.pk})
+                                           {'publisher_id': pub.pk})
             print 'There is %d placements for publisher %s' % (len(placements), pub.name)
 
         # Get all users:
@@ -457,7 +474,6 @@ def load_depending_data(token):
         print 'There is %d users ' % len(users)
         # Get all platform members:
         platform_members = nexus_get_objects(token,
-
                                              {},
                                              PlatformMember, False)
         print 'There is %d platform members ' % len(platform_members)
@@ -468,54 +484,46 @@ def load_depending_data(token):
         print 'There is %d deals ' % len(deals)
         # Get all demographic areas:
         demographic_areas = nexus_get_objects(token,
-
                                               {},
                                               DemographicArea, False)
         print 'There is %d  demographic areas' % len(demographic_areas)
         # Get all countries:
         countries = nexus_get_objects(token,
-
                                       {},
-                                              Country, False)
+                                      Country, False)
         print 'There is %d  countries' % len(countries)
         # Get all regions:
         regions = nexus_get_objects(token,
-
                                     {},
-                                              Region, False)
+                                    Region, False)
         print 'There is %d  regions' % len(regions)
 
         for adv in advertisers:
             advertiser_id = adv.id
             # Get all conversion pixels:
-            conversion_pixels = nexus_get_objects(token,
-
-                                                  {'advertiser_id': advertiser_id},
-                                             ConversionPixel, False)
+            conversion_pixels = nexus_get_objects(
+                token, {'advertiser_id': advertiser_id}, ConversionPixel, False)
             print 'There is %d  conversion pixels' % len(conversion_pixels)
             # Get all of the insertion orders for one of your advertisers:
             insert_order = nexus_get_objects(token,
-
                                              {'advertiser_id': advertiser_id},
                                              InsertionOrder, False)
             print 'There is %d  insertion orders' % len(insert_order)
 
             # Get all of an advertiser's line items:
             line_items = nexus_get_objects(token,
-
                                            {'advertiser_id': advertiser_id},
                                            LineItem, False)
             print 'There is %d  line items' % len(line_items)
             campaigns = nexus_get_objects(token,
-
                                           {'advertiser_id': advertiser_id},
                                           Campaign, False)
             print 'There is %d campaigns ' % len(campaigns)
 
     except Exception as e:
-            print "There is error in load_depending_data:",e
-            print e.message
-            print traceback.print_exc()
+        print "There is error in load_depending_data:", e
+        print e.message
+        print traceback.print_exc()
 
 
 # class fakeWith(object):
@@ -531,7 +539,7 @@ def dayly_task(day=None, load_objects_from_services=True, output=None):
     if not output:
         log_file_name = 'rtb/logs/Dayly_Task_%s.log' % get_current_time().strftime('%Y-%m-%dT%H-%M-%S')
         file_output = open(log_file_name, 'w')
-        output=file_output
+        output = file_output
     sys.stdout, sys.stderr = output, output
     print ('NexusApp API pooling...')
     # report.get_specifed_report('network_analytics')
@@ -541,13 +549,15 @@ def dayly_task(day=None, load_objects_from_services=True, output=None):
             load_depending_data(token)
         load_report(token, day, NetworkAnalyticsReport)
         load_report(token, day, GeoAnaliticsReport)
-        load_reports_for_all_advertisers(token, day, SiteDomainPerformanceReport)
+        load_reports_for_all_advertisers(
+            token, day, SiteDomainPerformanceReport)
     except Exception as e:
         print 'Error by fetching data: %s' % e
         print traceback.print_exc(file=output)
     finally:
         sys.stdout, sys.stderr = old_stdout, old_error
-        if file_output: file_output.close()
+        if file_output:
+            file_output.close()
     print "OK"
 
 
@@ -562,11 +572,12 @@ def load_report(token, day, ReportClass):
         filter_params = {"hour__date": day}
     q = ReportClass.objects.filter(**filter_params).count()
     if q > 0:
-        print  "There is %d records in %s, nothing to do."%(q, ReportClass._meta.db_table)
+        print "There is %d records in %s, nothing to do." % (q, ReportClass._meta.db_table)
         return
     f_name = get_specifed_report(ReportClass, {}, token, day)
     analize_csv(f_name, ReportClass, {})
     os.remove(f_name)
+
 
 def load_reports_for_all_advertisers(token, day, ReportClass):
     if not token:
@@ -581,7 +592,7 @@ def load_reports_for_all_advertisers(token, day, ReportClass):
 
     q = ReportClass.objects.filter(**filter_params).values('advertiser_id') \
         .annotate(cnt=Count('*')).filter(cnt__gt=0)
-    #print q.query
+    # print q.query
     # select advertisers, which do not have report data
     advertisers_having_data = set(x['advertiser_id'] for x in q)
     print advertisers_having_data
@@ -590,20 +601,20 @@ def load_reports_for_all_advertisers(token, day, ReportClass):
     campaign_dict = dict(Campaign.objects.all().values_list('id', 'name'))
     all_line_items = set(LineItem.objects.values_list("id", flat=True))
 
-    filenames = worker_pool.map(lambda id:
-                                get_specifed_report(ReportClass, {'advertiser_id': id}, token, day),
-                                advertisers_need_load)
+    filenames = worker_pool.map(lambda id: get_specifed_report(
+        ReportClass, {'advertiser_id': id}, token, day), advertisers_need_load)
     try:
         for f, advertiser_id in izip(filenames, advertisers_need_load):
             analize_csv(f, ReportClass,
                         metadata={"campaign_dict": campaign_dict,
                                   #"all_line_items": all_line_items,
                                   "advertiser_id": advertiser_id})
-            print "%s for advertiser %s saved to DB" %(ReportClass, all_advertisers[advertiser_id])
+            print "%s for advertiser %s saved to DB" % (ReportClass, all_advertisers[advertiser_id])
     finally:
         for f in filenames:
             print "Remove file ", f
             os.remove(f)
 
 
-if __name__ == '__main__': dayly_task()
+if __name__ == '__main__':
+    dayly_task()

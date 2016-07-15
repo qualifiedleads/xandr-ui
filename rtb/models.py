@@ -77,8 +77,9 @@ class User(models.Model):
         null=True, blank=True)
     send_safety_budget_notifications = models.NullBooleanField(null=True, blank=True)
     is_developer = models.NullBooleanField(null=True, blank=True)
-    last_modified = models.DateTimeField(default=now_tz) 
+    last_modified = models.DateTimeField(default=now_tz)
 
+    api_endpoint = 'user'
     class Meta:
         db_table = "user"
 

@@ -831,8 +831,9 @@ class YieldManagementProfile(models.Model):
     #modifiers = array - see model YieldManagementProfileModifiers below
     biases = models.TextField(null=True, blank=True) #TODO JSON - may be in future we need modell here
     floors = models.TextField(null=True, blank=True) #TODO JSON - may be in future we need modell here
-    last_modified = models.DateTimeField(default=now_tz) 
+    last_modified = models.DateTimeField(default=now_tz)
 
+    api_endpoint = 'ym-profile'
     class Meta:
         db_table = "yield_management_profile"
 

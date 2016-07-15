@@ -180,6 +180,19 @@ def get_all_class_fields(modelClass):
             django_types.ForeignObject) else field.name for field in modelClass._meta.fields]
 
 
+def test_foreign_keys(objects_to_save):
+    if not objects_to_save:
+        return
+    first = objects_to_save[0]
+    foreign_keys = {x.name: x for x in first._meta.fields if isinstance(x, django_types.ForeignKey)}
+    ids_dict = {}
+    for k in foreign_keys:
+        key_id = k + '_id'
+        entity_name = foreign_keys[k].related_name
+        ids = set(imap(lambda x: getattr(x, key_id), objects_to_save))
+        ids_dict[entity_name] = ids
+
+
 def analize_csv(filename, modelClass, metadata={}):
     with open(filename, 'r') as csvFile:
         # dialect='excel-tab' or excel ?
@@ -234,6 +247,7 @@ def analize_csv(filename, modelClass, metadata={}):
                 errors = 0
                 while not objects_saved:
                     try:
+                        test_foreign_keys(objects_to_save)
                         modelClass.objects.bulk_create(objects_to_save)
                         objects_saved = True
                     except IntegrityError as e:

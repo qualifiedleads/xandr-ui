@@ -136,21 +136,6 @@ def get_specifed_report(ReportClass, query_data={}, token=None, day=None):
         return ''
 
 
-# function to get all advertisers with API
-def get_all_advertisers(token):
-    url = 'https://api.appnexus.com/advertiser'
-    r = requests.get(url, headers={"Authorization": token});
-    return r.content
-
-
-# function to get all campaigns with API
-def get_all_campaigns(token, advertiser_id):
-    url = 'https://api.appnexus.com/campaign'
-    # url='https://api.appnexus.com/campaign?advertiser_code=ADVERTISER_CODE'
-    r = requests.get(url, params={"advertiser_id": advertiser_id}, headers={"Authorization": token});
-    return r.content
-
-
 def get_report_metadata(token, report_type=''):
     url = 'https://api.appnexus.com/report?meta'
     if report_type:

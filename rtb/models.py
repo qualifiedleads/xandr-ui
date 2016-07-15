@@ -3056,6 +3056,7 @@ class Deal(models.Model):
     #allowed_media_subtypes = array - see model DealAllowedMediaSubType below
     media_preference = models.TextField(null=True, blank=True)
 
+    api_endpoint = 'deal'
     class Meta:
         db_table = "deal"
 

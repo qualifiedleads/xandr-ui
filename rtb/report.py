@@ -17,6 +17,7 @@ log_path = 'rtb/logs'
 appnexus_url = settings.__dict__.get(
     'APPNEXUS_URL', 'https://api.appnexus.com/')
 
+# Value in dict - is error critical or not
 error_classes = {
     'INTEGRITY': True,
     'LIMIT': True,

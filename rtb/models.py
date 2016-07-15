@@ -1026,8 +1026,9 @@ class ContentCategory(models.Model):
     type = models.TextField(
         choices=CONTENT_CATEGORY_TYPE,
         null=True, blank=True)
-    last_modified = models.DateTimeField(default=now_tz) 
+    last_modified = models.DateTimeField(default=now_tz)
 
+    api_endpoint = 'content-category'
     class Meta:
         db_table = "content_category"
 

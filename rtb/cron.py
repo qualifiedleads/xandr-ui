@@ -5,6 +5,8 @@ import time
 import decimal
 import gc
 import json
+from trace import Trace
+
 import os
 import sys
 import traceback
@@ -15,7 +17,7 @@ import django.db.models as django_types
 from django.db import transaction, IntegrityError, reset_queries, connection
 import re
 from report import nexus_get_objects, replace_tzinfo, update_object_from_dict, date_type, get_auth_token, \
-    get_specifed_report
+    get_specifed_report, nexus_get_objects_by_id
 from django.conf import settings
 import models
 from models import Advertiser, Campaign, SiteDomainPerformanceReport, Profile, LineItem, InsertionOrder, \
@@ -180,17 +182,30 @@ def get_all_class_fields(modelClass):
             django_types.ForeignObject) else field.name for field in modelClass._meta.fields]
 
 
-def test_foreign_keys(objects_to_save):
+def test_foreign_keys(objects_to_save, rows):
     if not objects_to_save:
         return
+    token = get_auth_token()
     first = objects_to_save[0]
     foreign_keys = {x.name: x for x in first._meta.fields if isinstance(x, django_types.ForeignKey)}
     ids_dict = {}
     for k in foreign_keys:
         key_id = k + '_id'
-        entity_name = foreign_keys[k].related_name
+        entity = foreign_keys[k].related_model
         ids = set(imap(lambda x: getattr(x, key_id), objects_to_save))
-        ids_dict[entity_name] = ids
+        ids.discard(None)
+        ids_in_db = set(entity.objects.filter(pk__in=ids).values_list('pk', flat=True))
+        ids_to_load = ids - ids_in_db
+        if not ids_to_load:continue
+        saved = nexus_get_objects_by_id(token,entity,ids_to_load)
+        if len(saved)!=len(ids_to_load):
+            print "Auto-create of depended rows in %s failed"%entity
+            print "%d rows saved (to save: %d)"%(len(saved),len(ids_to_load))
+        ids_to_load -= saved
+        if ids_to_load:
+            # manual create of objects
+            pass
+
 
 
 def analize_csv(filename, modelClass, metadata={}):
@@ -247,7 +262,6 @@ def analize_csv(filename, modelClass, metadata={}):
                 errors = 0
                 while not objects_saved:
                     try:
-                        test_foreign_keys(objects_to_save)
                         modelClass.objects.bulk_create(objects_to_save)
                         objects_saved = True
                     except IntegrityError as e:
@@ -255,9 +269,7 @@ def analize_csv(filename, modelClass, metadata={}):
                         if errors > 1000:
                             print 'Too many DB integrity errors'
                             raise
-                        if not try_resolve_foreign_key(
-                                objects_to_save, rows, e):
-                            raise
+                        test_foreign_keys(objects_to_save, rows)
                 counter += len(objects_to_save)
                 print '%d rows fetched' % counter
                 print "Sql queries fired:", len(connection.queries)

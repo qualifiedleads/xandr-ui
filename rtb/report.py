@@ -10,6 +10,7 @@ from django.conf import settings
 import django.db.models as django_types
 from django.db.models import Max
 from pytz import utc
+import itertools
 
 # log_path=os.path.join(os.path.dirname(os.path.dirname(__file__)),'logs')
 log_path = 'rtb/logs'
@@ -79,13 +80,21 @@ def get_report_status(rid, token):
 
 # no_hours_reports = set(["site_domain_performance"])
 
+_last_token = None
+_last_token_time = None
+_two_hours= datetime.timedelta(hours=1,minutes=55)
 def get_auth_token():
+    global _last_token,_last_token_time
+    if _last_token and utils.get_current_time()-_last_token_time<_two_hours:
+        return _last_token
     try:
         auth_url = appnexus_url + "auth"
         data = {"auth": settings.NEXUS_AUTH_DATA}
         auth_request = requests.post(auth_url, data=json.dumps(data))
         response = json.loads(auth_request.content)
-        return response['response']['token']
+        _last_token = response['response']['token']
+        _last_token_time = utils.get_current_time()
+        return _last_token
     except:
         return None
 
@@ -93,7 +102,8 @@ def get_auth_token():
 one_day = datetime.timedelta(days=1)
 
 
-def get_specifed_report(ReportClass, query_data={}, token=None, day=None):
+def get_specifed_report(ReportClass, query_data=None, token=None, day=None):
+    if not query_data: query_data={}
     report_type = ReportClass.api_report_name
     if not token:
         token = get_auth_token()
@@ -117,7 +127,7 @@ def get_specifed_report(ReportClass, query_data={}, token=None, day=None):
     # report_data.update(query_data)
 
     headers = {"Authorization": token, 'Content-Type': 'application/json'}
-
+    data = json.dumps(report_data)
     report_id = 'Unassigned'
     start_time = datetime.datetime.utcnow()
     while report_id == 'Unassigned':
@@ -127,7 +137,7 @@ def get_specifed_report(ReportClass, query_data={}, token=None, day=None):
         r = requests.post(
             url,
             params=query_data,
-            data=json.dumps(report_data),
+            data=data,
             headers=headers)
         response = json.loads(r.content)['response']
         if response['status'] == 'error':
@@ -207,6 +217,15 @@ def update_object_from_dict(o, d, time_fields=None):
 
 unix_epoch = datetime.datetime.utcfromtimestamp(0).replace(tzinfo=utc)
 
+def nexus_get_objects_by_id(token, object_class, ids):
+    it = iter(ids)
+    res = set()
+    while True:
+        ids_list = ','.join(itertools.imap(str, itertools.islice(it,0,100)))
+        if not ids_list:break
+        lst = nexus_get_objects(token, {'pk':None},object_class,True,{'id':ids_list})
+        res += set(x.pk for x in lst)
+    return res
 
 def nexus_get_objects(
         token,

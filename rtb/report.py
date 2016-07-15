@@ -1,4 +1,11 @@
-import csv, re, json, datetime, time, requests, os, utils
+import csv
+import re
+import json
+import datetime
+import time
+import requests
+import os
+import utils
 from django.conf import settings
 import django.db.models as django_types
 from django.db.models import Max
@@ -7,7 +14,8 @@ from pytz import utc
 # log_path=os.path.join(os.path.dirname(os.path.dirname(__file__)),'logs')
 log_path = 'rtb/logs'
 
-appnexus_url = settings.__dict__.get('appnexus_url', 'https://api.appnexus.com/')
+appnexus_url = settings.__dict__.get(
+    'appnexus_url', 'https://api.appnexus.com/')
 
 error_classes = {
     'INTEGRITY': True,
@@ -58,7 +66,8 @@ def get_report_status(rid, token):
         response = requests.get(url, headers=headers)
         content = json.loads(response.content)
         exec_stat = content['response'].get('execution_status')
-        if exec_stat == "ready": break
+        if exec_stat == "ready":
+            break
         time.sleep(sleep_time)
         sleep_time = min(120, sleep_time * 2)
     if exec_stat != "ready":
@@ -101,7 +110,8 @@ def get_specifed_report(ReportClass, query_data={}, token=None, day=None):
         report_data['report']['report_interval'] = "yesterday"
     else:
         report_data['report']["start_date"] = day.strftime("%Y-%m-%d")
-        report_data['report']["end_date"] = (day + one_day).strftime("%Y-%m-%d")
+        report_data['report']["end_date"] = (
+            day + one_day).strftime("%Y-%m-%d")
     # report_data['report'].update(query_data)
     # report_data.update(query_data)
 
@@ -113,7 +123,11 @@ def get_specifed_report(ReportClass, query_data={}, token=None, day=None):
         current_time = datetime.datetime.utcnow()
         if current_time - start_time > settings.MAX_REPORT_WAIT:
             break
-        r = requests.post(url, params=query_data, data=json.dumps(report_data), headers=headers)
+        r = requests.post(
+            url,
+            params=query_data,
+            data=json.dumps(report_data),
+            headers=headers)
         response = json.loads(r.content)['response']
         if response['status'] == 'error':
             if response['error_id'] == 'NOAUTH':
@@ -145,7 +159,7 @@ def get_report_metadata(token, report_type=''):
     url = appnexus_url + 'report?meta'
     if report_type:
         url += '=' + report_type
-    r = requests.get(url, headers={"Authorization": token});
+    r = requests.get(url, headers={"Authorization": token})
     return r.content
 
 
@@ -156,23 +170,29 @@ except:
 
 
 def date_type(t):
-    return isinstance(t, (django_types.DateField, django_types.TimeField, django_types.DateField))
+    return isinstance(
+        t,
+        (django_types.DateField,
+         django_types.TimeField,
+         django_types.DateField))
 
 
 def replace_tzinfo(o, time_fields=None):
     if time_fields is None:
-        time_fields = [field.name for field in o._meta.fields if date_type(field)]
+        time_fields = [
+            field.name for field in o._meta.fields if date_type(field)]
     for name in time_fields:
         try:
             attr = getattr(o, name)
-            if type(attr) == unicode:
+            if isinstance(attr, unicode):
                 attr += '+00:00'
             else:
                 attr = attr.replace(tzinfo=utc)
             setattr(o, name, attr)
         except Exception as e:
             pass
-            # print "Error setting timezone for field %s in object %s (%s)"%(name, o, e)
+            # print "Error setting timezone for field %s in object %s
+            # (%s)"%(name, o, e)
 
 
 def update_object_from_dict(o, d, time_fields=None):
@@ -187,7 +207,12 @@ def update_object_from_dict(o, d, time_fields=None):
 unix_epoch = datetime.datetime.utcfromtimestamp(0).replace(tzinfo=utc)
 
 
-def nexus_get_objects(token, params, object_class, force_update=False, get_params=None):
+def nexus_get_objects(
+        token,
+        params,
+        object_class,
+        force_update=False,
+        get_params=None):
     if not get_params:
         get_params = params
     url = appnexus_url + object_class.api_endpoint
@@ -205,7 +230,8 @@ def nexus_get_objects(token, params, object_class, force_update=False, get_param
     last_date = None
     if not force_update:
         if object_class._meta.get_field('fetch_date'):
-            last_date = object_class.objects.aggregate(m=Max('fetch_date'))['m']
+            last_date = object_class.objects.aggregate(
+                m=Max('fetch_date'))['m']
         elif object_class._meta.get_field('last_modified'):
             last_date = query_set.aggregate(m=Max('last_modified'))['m']
     if not last_date:
@@ -219,12 +245,15 @@ def nexus_get_objects(token, params, object_class, force_update=False, get_param
         start_time = datetime.datetime.utcnow()
         while cur_records < count:
             current_time = datetime.datetime.utcnow()
-            if current_time - start_time > settings.MAX_REPORT_WAIT: break
+            if current_time - start_time > settings.MAX_REPORT_WAIT:
+                break
             if cur_records > 0:
                 params["start_element"] = cur_records
                 params["num_elements"] = min(100, count - cur_records)
             try:
-                r = requests.get(url, params=get_params, headers={"Authorization": token})
+                r = requests.get(
+                    url, params=get_params, headers={
+                        "Authorization": token})
                 response = json.loads(r.content)['response']
             except Exception as e:
                 response = {'error': e.message, 'error_id': 'NODATA'}
@@ -244,7 +273,8 @@ def nexus_get_objects(token, params, object_class, force_update=False, get_param
                 data_key_name = list(set(response.keys()) - \
                                      set([u'status', u'count', u'dbg_info', u'num_elements', u'start_element']))
                 if len(data_key_name) > 1:
-                    data_key_name = [x for x in data_key_name if x.startswith(last_word)]
+                    data_key_name = [
+                        x for x in data_key_name if x.startswith(last_word)]
                 if len(data_key_name) > 0:
                     data_key_name = data_key_name[0]
             print data_key_name
@@ -255,7 +285,8 @@ def nexus_get_objects(token, params, object_class, force_update=False, get_param
                 if count > 10000:
                     # TODO: This need to be replaced by "smart loading"
                     print "There is too many records (%d)" % count
-                    if len(objects_in_db) > 0: return objects_in_db
+                    if len(objects_in_db) > 0:
+                        return objects_in_db
                 cur_records = 0
             if isinstance(pack_of_objects, list):
                 objects_by_api.extend(pack_of_objects)
@@ -265,7 +296,7 @@ def nexus_get_objects(token, params, object_class, force_update=False, get_param
 
         print "Objects succefully fetched from Nexus API (%d records)" % len(objects_by_api)
         obj_by_code = {i.pk: i for i in objects_in_db}
-        primary_key_name = object_class._meta.pk.name;
+        primary_key_name = object_class._meta.pk.name
         for i in objects_by_api:
             object_db = obj_by_code.get(i[primary_key_name])
             if not object_db:
@@ -281,7 +312,8 @@ def nexus_get_objects(token, params, object_class, force_update=False, get_param
             except Exception as e:
                 print "Error by saving ", e
         if settings.DEBUG and len(objects_by_api) > 0:
-            # field_set_db = set(x.field_name for x in object_class._meta.get_fields())  # get_all_field_names())
+            # field_set_db = set(x.field_name for x in
+            # object_class._meta.get_fields())  # get_all_field_names())
             print "Calc field lists difference..."
             field_set_db = set(x.name for x in object_class._meta.fields)
             field_set_json = set(objects_by_api[0])

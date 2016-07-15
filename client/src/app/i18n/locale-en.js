@@ -71,7 +71,14 @@
 			},
 			"CAMP": {
 				"NAME":"Campaign"
-			}
+			},
+      "CO":{
+        "NAME":"Campaign optimiser",
+        "ORIGINAL": "Original",
+        "OPTIMISED": "Optimised (Whitelist)",
+        "RULES": "Rules for All Domains:",
+        "SPENDS": "if an app/domain spends more than"
+      }
 		})
 
 })();

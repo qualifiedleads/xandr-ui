@@ -155,9 +155,9 @@
     /** TOTALS - START **/
     vm.Main.statsTotals(vm.advertiser.id, vm.dataStart, vm.dataEnd)
       .then(function (result) {
-        vm.totals.spent = result.spend;
+        vm.totals.imp = result.imp.toString().split( /(?=(?:\d{3})+(?!\d))/ ).join();
+        vm.totals.spent = result.spend.toFixed(2);
         vm.totals.conv = result.conv;
-        vm.totals.imp = result.imp;
         vm.totals.cpc = result.cpc;
         vm.totals.cpm = result.cpm;
         vm.totals.cvr = result.cvr;
@@ -174,7 +174,7 @@
       },
       onInitialized: function (data) {
         vm.dataGridOptionsMultipleFunc = data.component;
-        vm.dataGridOptionsMultipleFunc._controllers.columns._commandColumns[1].visibleIndex = 15;
+        /*vm.dataGridOptionsMultipleFunc._controllers.columns._commandColumns[1].visibleIndex = 15;*/
       },
       showBorders: true,
       alignment: 'left',
@@ -280,6 +280,15 @@
                 },
                 grid: { visible: false }
               },
+              valueAxis: [
+                { name: 'imp' },
+                { name: 'cvr' },
+                { name: 'CPC' },
+                { name: 'clicks' },
+                { name: 'spend' },
+                { name: 'conv' },
+                { name: 'ctr' }
+              ],
               argumentAxis: {
                 valueMarginsEnabled: false,
                 discreteAxisDivisionMode: 'crossLabels',
@@ -327,9 +336,9 @@
 
           }
         }],
-      selection: {
-        mode: 'multiple'
-      },
+      // selection: {
+      //   mode: 'multiple'
+      // },
       onSelectionChanged: function (data) {
         vm.selectedItems = data.selectedRowsData;
         vm.disabled = !vm.selectedItems.length;
@@ -375,6 +384,15 @@
           visible: true
         }
       },
+      valueAxis: [
+        { name: 'imp' },
+        { name: 'cvr' },
+        { name: 'CPC' },
+        { name: 'clicks' },
+        { name: 'spend' },
+        { name: 'conv' },
+        { name: 'ctr' }
+      ],
       legend: {
         verticalAlignment: 'bottom',
         horizontalAlignment: 'center',
@@ -406,7 +424,6 @@
           $window.$(gridCharts[i]).dxChart('instance').getSeriesByName(seriesName).show();
         }
       } else {
-        $localStorage.checkChart.imp = false;
         vm.chartOptionsFunc.getSeriesByName(seriesName).hide();
         gridCharts = $window.$('.chartMulti');
         for(var i = 0; i < gridCharts.length; i++) {

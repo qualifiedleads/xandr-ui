@@ -1,0 +1,37 @@
+<div class="container-camp col-lg-12  col-md-12 col-sm-12 col-xs-12">
+  <div class="row">
+    <span translate="CO.NAME" class="camp-header"></span>:<span class="camp-header">
+    <a href="" ui-sref="home.campaign.details({id: CO.campId})"  >{{CO.campName}} </a>
+  </span>
+    <div class="subTitle">
+      <table>
+        <tr>
+          <td class="tdTitle"><b translate="CO.ORIGINAL">Original</b></td>
+          <td class="tdText" >-x-036_SLS_DYN_0_APX_0W0_CPM_MSM_MUL_US.California_300x250 (Direct)</td>
+        </tr>
+        <tr>
+          <td class="tdTitle"><b translate="CO.OPTIMISED">Optimised (Whitelist)</b></td>
+          <td class="tdText">-x-037_SLX_DYN_0_APX_0W0_CPM_MSM_MUL_US.California_300x250 (Direct)</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+  <div class="col-md-3 col-md-offset-8 piker col-sm-3 col-sm-offset-8 col-xs-5 col-xs-offset-6">
+    <div dx-select-box="CO.datePiker"></div>
+  </div>
+  <div class="row campOpt-content">
+    <h4 class="titleRules" translate="CO.RULES">Rules for All Domains:</h4>
+
+      <div dx-check-box="CO.spends" ></div>
+      <div dx-text-box="CO.moneySpends" class="moneySpends"></div>
+      <spend>and conversions are 0 then</spend>
+
+<!--    <div class="form-inline">
+      <input type="checkbox" class="checkbox-inline spends" name="spends" checked> {{'CO.SPENDS' | translate}}
+      <div class="input-group">
+        <div class="input-group-addon">$</div>
+        <input type="text" class="form-control moneySpends" id="exampleInputAmount" placeholder="">
+      </div>
+    </div>-->
+</div>
+</div>

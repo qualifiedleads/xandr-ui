@@ -128,7 +128,6 @@
         return vm.Camp.bucketsCpa(vm.campId, vm.dataStart, vm.dataEnd)
           .then(function (result) {
             var arrFirst = [];
-            console.log(result[0]);
             for(var i=0; i<result.length; i++) {
               if(+result[i].cpa>=vm.backetsRanges.first.min && +result[i].cpa<vm.backetsRanges.first.max) {
                 arrFirst.push(result[i]);
@@ -147,7 +146,6 @@
         return vm.Camp.bucketsCpa(vm.campId, vm.dataStart, vm.dataEnd)
           .then(function (result) {
             var arrFirst = [];
-            console.log(result[0]);
             for(var i=0; i<result.length; i++) {
               if(+result[i].cpa>=vm.backetsRanges.second.min && +result[i].cpa<vm.backetsRanges.second.max) {
                 arrFirst.push(result[i]);
@@ -166,7 +164,6 @@
         return vm.Camp.bucketsCpa(vm.campId, vm.dataStart, vm.dataEnd)
           .then(function (result) {
             var arrFirst = [];
-            console.log(result[0]);
             for(var i=0; i<result.length; i++) {
               if(+result[i].cpa>=vm.backetsRanges.third.min && +result[i].cpa<vm.backetsRanges.third.max) {
                 arrFirst.push(result[i]);
@@ -185,7 +182,6 @@
         return vm.Camp.bucketsCpa(vm.campId, vm.dataStart, vm.dataEnd)
           .then(function (result) {
             var arrFirst = [];
-            console.log(result[0]);
             for(var i=0; i<result.length; i++) {
               if(+result[i].cpa>=vm.backetsRanges.fourth.min && +result[i].cpa<vm.backetsRanges.fourth.max) {
                 arrFirst.push(result[i]);
@@ -414,14 +410,11 @@
       onSelectionChanged: function(e) {
         var selectedRows = $('#gridContainer2')[0].querySelectorAll('[aria-selected="true"]');
         var stateSelected = e.selectedItem.state;
-        console.log(stateSelected);
         if(selectedRows[0]) {
           var selectedArr = [];
           for (var i=0; i<selectedRows.length; i++){
             selectedArr.push(selectedRows[i].firstChild.innerText);
           }
-          console.log(selectedArr);
-
         }
       }
     };
@@ -435,7 +428,6 @@
       onRowPrepared: function(data) {
         vm.objectData = data;
         if(vm.objectData.rowType == 'data') {
-          //console.log(vm.objectData);
           var allRowBtns = data.rowElement[0].childNodes[9];
           var state = data.data.state;
           if(state.whiteList == "true"){
@@ -512,9 +504,7 @@
               width: 89,
               disabled: true,
               onClick: function (e) {
-                console.log(options.data);
                 var parentWhiteBtn = e.element[0].parentNode;
-                console.log(parentWhiteBtn);
                 if (parentWhiteBtn.classList.contains('active-white')) {
                   parentWhiteBtn.classList.remove('active-white');
                   parentWhiteBtn.classList.add('unactive-white');
@@ -538,9 +528,7 @@
               width: 89,
               disabled: true,
               onClick: function (e) {
-                //console.log(e);
                 var parentWhiteBtn = e.element[0].parentNode;
-                //console.log(parentWhiteBtn);
                 if (parentWhiteBtn.classList.contains('active-black')) {
                   parentWhiteBtn.classList.remove('active-black');
                   parentWhiteBtn.classList.add('unactive-black');
@@ -564,9 +552,7 @@
               width: 95,
               disabled: true,
               onClick: function (e) {
-                //console.log(e);
                 var parentWhiteBtn = e.element[0].parentNode;
-                //console.log(parentWhiteBtn);
                 if (parentWhiteBtn.classList.contains('active-suspended')) {
                   parentWhiteBtn.classList.remove('active-suspended');
                   parentWhiteBtn.classList.add('unactive-suspended');
@@ -788,7 +774,11 @@
       // vm.cpaArrayThird =  CampDetails.cpaBuckets(vm.backetsRanges.third.min, vm.backetsRanges.third.max);
       // vm.cpaArrayFourth =  CampDetails.cpaBuckets(vm.backetsRanges.fourth.min, vm.backetsRanges.fourth.max);
 
-      $state.reload();
+      $('#backets-1').dxDataGrid('instance').refresh();
+      $('#backets-2').dxDataGrid('instance').refresh();
+      $('#backets-3').dxDataGrid('instance').refresh();
+      $('#backets-4').dxDataGrid('instance').refresh();
+
       return vm.backetsRanges;
     };
 

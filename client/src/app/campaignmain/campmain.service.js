@@ -24,7 +24,7 @@
       return $http({
         method: 'GET',
         url: '/api/v1/campaigns/' + encodeURI(id) + '/details',
-        params: {from: from, to: to, section: section}
+        params: {from_date: from, to_date: to, section: section}
       })
         .then(function (res) {
           return res.data;
@@ -35,7 +35,7 @@
       return $http({
         method: 'GET',
         url:'/api/v1/campaigns/' + encodeURI(id) + '/graphinfo',
-        params: {from: from, to: to, by: by}
+        params: {from_date: from, to_date: to, by: by}
       })
         .then(function (res) {
           //return res.data;
@@ -96,11 +96,11 @@
       return $http({
         method: 'GET',
         url: '/api/v1/campaigns/' + encodeURI(id) + '/cpareport',
-        params: {id:id, from: from, to: to}
+        params: {id:id, from_date: from, to_date: to}
       })
         .then(function (res) {
-          //return res.data;
-
+          return res.data;
+/*
           return [{ date: new Date(1994, 2, 1), low: 24.00, high: 25.00, open: 25.00, close: 24.875, avg: 24.5 },
             { date: new Date(1994, 2, 2), low: 23.625, high: 25.125, open: 24.00, close: 24.875, avg: 24.375 },
             { date: new Date(1994, 2, 3), low: 26.25, high: 28.25, open: 26.75, close: 27.00, avg: 27.25 },
@@ -111,7 +111,7 @@
             { date: new Date(1994, 2, 10), low: 25.75, high: 26.375, open: 26.375, close: 25.875, avg: 26.0625 },
             { date: new Date(1994, 2, 11), low: 24.875, high: 26.125, open: 26.00, close: 25.375, avg: 25.5 },
             { date: new Date(1994, 2, 14), low: 25.125, high: 26.00, open: 25.625, close: 25.75, avg: 25.5625 },
-            { date: new Date(1994, 2, 15), low: 25.875, high: 26.625, open: 26.125, close: 26.375, avg: 26.25 }];
+            { date: new Date(1994, 2, 15), low: 25.875, high: 26.625, open: 26.125, close: 26.375, avg: 26.25 }];*/
         })
         .catch(function () {
           return [{ date: new Date(1994, 2, 1), low: 24.00, high: 25.00, open: 25.00, close: 24.875, avg: 24.5 },
@@ -133,10 +133,77 @@
       return $http({
         method: 'GET',
         url: '/api/v1/campaigns/' + encodeURI(id) + '/domains',
-        params: {id:id, from: from, to: to, skip: skip, take: take, order: order, filter:filter}
+        params: {id:id, from_date: from, to_date: to, skip: skip, take: take, order: order, filter:filter}
       })
         .then(function (res) {
           return res.data;
+
+        }).catch(function () {
+          return [{
+            "placement":"CNN.com",
+            "NetworkPublisher":"Google Adx",
+            "conv":"8",
+            "imp":"5500",
+            "clicks":"21",
+            "cpc":"$0,31",
+            "cpm":"$1,38",
+            "cvr":"",
+            "ctr":"",
+            "state": {
+              "whiteList": "true",
+              "blackList": "false",
+              "suspended": "false"
+            }
+          },
+            {
+              "placement":"Hidden",
+              "NetworkPublisher":"PubMatic",
+              "conv":"3",
+              "imp":"5500",
+              "clicks":"21",
+              "cpc":"$0,31",
+              "cpm":"$1,38",
+              "cvr":"",
+              "ctr":"",
+              "state": {
+                "whiteList": "false",
+                "blackList": "true",
+                "suspended": "false"
+              }
+            },
+            {
+              "placement":"BBC.com",
+              "NetworkPublisher":"OpenX",
+              "conv":"1",
+              "imp":"5500",
+              "clicks":"21",
+              "cpc":"$0,31",
+              "cpm":"$1,38",
+              "cvr":"",
+              "ctr":"",
+              "state": {
+                "whiteList": "false",
+                "blackList": "false",
+                "suspended": "true"
+              }
+            },
+            {
+              "placement":"msn.com",
+              "NetworkPublisher":"Rubicon",
+              "conv":"8",
+              "imp":"5500",
+              "clicks":"21",
+              "cpc":"$0,31",
+              "cpm":"$1,38",
+              "cvr":"",
+              "ctr":"",
+              "state": {
+                "whiteList": "true",
+                "blackList": "false",
+                "suspended": "false"
+              }
+            }
+          ]
         });
     }
 
@@ -145,7 +212,7 @@
       return $http({
         method: 'GET',
         url: 'http://private-anon-d71dffb7f-rtbs.apiary-mock.com/api/v1/campaigns',
-        params: {from: from, to: to,  skip: skip, take: take, sort: sort, order: order, stat_by: stat_by, filter: filter}
+        params: {from_date: from, to_date: to,  skip: skip, take: take, sort: sort, order: order, stat_by: stat_by, filter: filter}
       })
         .then(function (res) {
           return res.data;

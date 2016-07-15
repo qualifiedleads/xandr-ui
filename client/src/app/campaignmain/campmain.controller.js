@@ -28,6 +28,13 @@
       };
     }
 
+    vm.optimiser = {
+      text: 'Go to the Optimiser',
+      onClick: function () {
+        $state.go('home.campaignoptimiser',{"id":vm.campId});
+      }
+    };
+
       vm.seriesCamp = [{
         name: 'Impressions',
         argumentField: "date",
@@ -175,6 +182,15 @@
       onInitialized: function (data) {
         vm.chartOptionsFuncFirst = data.component;
       },
+      valueAxis: [
+        { name: 'impression' },
+        { name: 'cpc' },
+        { name: 'cpa' },
+        { name: 'clicks' },
+        { name: 'mediaspent' },
+        { name: 'conversions' },
+        { name: 'ctr' }
+      ],
       argumentAxis: {
         valueMarginsEnabled: false,
         discreteAxisDivisionMode: 'crossLabels',

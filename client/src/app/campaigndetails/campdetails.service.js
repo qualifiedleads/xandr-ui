@@ -24,7 +24,7 @@
       return $http({
         method: 'GET',
         url: '/api/v1/campaigns/' + encodeURI(id) + '/details',
-        params: {from: from, to: to, section: section}
+        params: {from_date: from, to_date: to, section: section}
       })
         .then(function (res) {
           return res.data;
@@ -35,7 +35,7 @@
       return $http({
         method: 'GET',
         url:'/api/v1/campaigns/' + encodeURI(id) + '/graphinfo',
-        params: {from: from, to: to, by: by}
+        params: {from_date: from, to_date: to, by: by}
       })
         .then(function (res) {
           return res.data;
@@ -48,7 +48,7 @@
     //   return $http({
     //     method: 'GET',
     //     url: '/api/v1/campaigns/' + encodeURI(id) + '/cpareport',
-    //     params: {id:id, from: from, to: to}
+    //     params: {id:id, from_date: from, to_date: to}
     //   })
     //     .then(function () {
     //       //return res.data;
@@ -71,7 +71,7 @@
       return $http({
         method: 'GET',
         url: '/api/v1/campaigns/' + encodeURI(id) + '/domains',
-        params: {id:id, from: from, to: to, skip: skip, take: take, order: order, filter:filter}
+        params: {id:id, from_date: from, to_date: to, skip: skip, take: take, order: order, filter:filter}
       })
         .then(function (res) {
           return res.data;
@@ -83,7 +83,7 @@
       return $http({
         method: 'GET',
         url: 'http://private-anon-d71dffb7f-rtbs.apiary-mock.com/api/v1/campaigns',
-        params: {from: from, to: to,  skip: skip, take: take, sort: sort, order: order, stat_by: stat_by, filter: filter}
+        params: {from_date: from, to_date: to,  skip: skip, take: take, sort: sort, order: order, stat_by: stat_by, filter: filter}
       })
         .then(function (res) {
           return res.data;
@@ -93,7 +93,7 @@
       return $http({
         method: 'GET',
         url: '/api/v1/campaigns/' + encodeURI(id) + '/cpabuckets',
-        params: {id:id, from: from, to: to}
+        params: {id:id, from_date: from, to_date: to}
       })
         .then(function (res) {
           //return res.data;

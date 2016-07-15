@@ -31,14 +31,23 @@
       }
     });
 
-      vm.selectAdvertisers = {
-        bindingOptions: {
-          dataSource: 'auth.selectAdvertisersStore',
-          value: 'auth.selectedService'
-        },
-        displayExpr: 'name',
-        width: '200px'
-      };
+    vm.selectAdvertisers = {
+      bindingOptions: {
+        dataSource: 'auth.selectAdvertisersStore',
+        value: 'auth.selectedService'
+      },
+      displayExpr: 'name',
+      width: '200px'
+    };
 
+    function submitForm (user) {
+
+      $('.reg-form-wrapper')[0].classList.add('hide');
+      $('.advertiser-wrapper')[0].classList.add('show');
+    }
+
+
+
+    vm.submitForm = submitForm;
   }
 })();

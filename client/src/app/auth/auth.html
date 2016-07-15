@@ -1,22 +1,60 @@
 <div class="location">
-	<a ng-click="root.changeLang('ru')">
-		<i class="fa fa-globe fa-fw"></i> Русский
-	</a>
-	/
-	<a ng-click="root.changeLang('en')">
-		<i class="fa fa-globe fa-fw"></i> English
-	</a>
+  <a ng-click="root.changeLang('ru')">
+    <i class="fa fa-globe fa-fw"></i> Русский
+  </a>
+  /
+  <a ng-click="root.changeLang('en')">
+    <i class="fa fa-globe fa-fw"></i> English
+  </a>
 </div>
-<div class="container">
-	<div class="row">
-		<div class="Absolute-Center is-Responsive">
-			<div id="logo-container"></div>
-			<div class="col-sm-12 col-md-10 col-md-offset-1">
-				<div class="mode-button">
-					<div dx-select-box="auth.selectAdvertisers"></div>
-					<div dx-button="auth.addButton" class="add-advertisers" ></div>
-				</div>
-			</div>
-		</div>
-	</div>
+<div class="authorization container">
+
+  <div class="row">
+    <div class="Absolute-Center is-Responsive reg-form-wrapper">
+      <form name="auth.userForm" ng-submit="auth.submitForm(auth.user)" novalidate>
+
+        <!-- insert the name -->
+        <div class="col-sm-10">
+          <div class="form-group" ng-class="{ 'has-error' : auth.userForm.login.$invalid && !auth.userForm.login.$pristine }">
+            <i class="fa fa-user fa-2x icon-for-user"></i>
+            <input type="text" name="login" class="form-control input-item-login"  placeholder="Enter your login" ng-model="auth.login.name" required>
+            <p ng-show="auth.userForm.login.$invalid && !auth.userForm.login.$pristine" class="help-block">Your login is required.</p>
+          </div>
+        </div>
+        <div class="col-sm-10">
+          <div class="form-group" ng-class="{ 'has-error' : auth.userForm.password.$invalid && !auth.userForm.password.$pristine }">
+            <i class="fa fa-unlock fa-2x icon-for-user"></i>
+            <input type="password" name="password" class="input-item-password form-control input-item-password"  ng-model="auth.password.name" placeholder="Enter your password" required max-length="10" min-length="4">
+            <p ng-show="auth.userForm.password.$invalid && !auth.userForm.password.$pristine" class="help-block">Your password is required.</p>
+          </div>
+        </div>
+        <div class="form-group">
+          <div class="col-sm-10">
+            <select class="select-user-type form-control" title="user">
+              <option value="select" disabled selected>Select the type of user</option>
+              <option>admin</option>
+              <option>admin read-only</option>
+              <option>user</option>
+              <option>user read-only</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <div class="col-sm-10">
+            <button type="submit" class="submitting-button btn btn-success">Submit</button>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="advertiser-wrapper">
+      <div class="Absolute-Center is-Responsive">
+        <div class="col-sm-12 col-md-10 col-md-offset-1">
+          <div class="mode-button">
+            <div dx-select-box="auth.selectAdvertisers"></div>
+            <div dx-button="auth.addButton" class="add-advertisers" ></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>

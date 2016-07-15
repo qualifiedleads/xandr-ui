@@ -3,10 +3,10 @@
 
 	angular
 		.module('pjtLayout')
-		.service('Main', Main);
+		.service('CampaignOptimiser', CampaignOptimiser);
 
 	/** @ngInject */
-	function Main($http, $translateLocalStorage, $window ) {
+	function CampaignOptimiser($http, $translateLocalStorage, $window ) {
 		var _this = this;
 
 		function statsChart(advertiser_id, from_date, to, by) {
@@ -23,7 +23,7 @@
 						res.data.statistics[index].cpc = +parseFloat(res.data.statistics[index].cpc).toFixed(4);
 						res.data.statistics[index].cpm = +parseFloat(res.data.statistics[index].cpm).toFixed(4);
 						res.data.statistics[index].spend = +parseFloat(res.data.statistics[index].spend).toFixed(4);
-						res.data.statistics[index].day = $window.moment(res.data.statistics[index].day).format('DD/MM');
+						res.data.statistics[index].day = $window.moment(res.data.statistics[index].day).locale(loc).format('L');
 					}
 					return res.data;
 				});

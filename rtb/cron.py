@@ -12,9 +12,8 @@ from django.db.models import Avg, Count, Sum, Max
 import django.db.models as django_types
 from django.db import transaction, IntegrityError, reset_queries, connection
 import re
-import requests
-import report
-from report import nexus_get_objects
+from report import nexus_get_objects, replace_tzinfo, update_object_from_dict, date_type, get_auth_token, \
+    get_specifed_report
 from django.conf import settings
 import models
 from models import Advertiser, Campaign, SiteDomainPerformanceReport, Profile, LineItem, InsertionOrder, \
@@ -541,7 +540,7 @@ def dayly_task(day=None, load_objects_from_services=True, output=None):
     print ('NexusApp API pooling...')
     # report.get_specifed_report('network_analytics')
     try:
-        token = report.get_auth_token()
+        token = get_auth_token()
         if load_objects_from_services:
             load_depending_data(token)
         load_report(token, day, NetworkAnalyticsReport)
@@ -559,7 +558,7 @@ def dayly_task(day=None, load_objects_from_services=True, output=None):
 # load report data, which is not linked with advertiser
 def load_report(token, day, ReportClass):
     if not token:
-        token = report.get_auth_token()
+        token = get_auth_token()
     try:
         ReportClass._meta.get_field('day')
         filter_params = {"day": day}
@@ -569,13 +568,13 @@ def load_report(token, day, ReportClass):
     if q > 0:
         print  "There is %d records in %s, nothing to do."%(q, ReportClass._meta.db_table)
         return
-    f_name = report.get_specifed_report(ReportClass, {}, token, day)
+    f_name = get_specifed_report(ReportClass, {}, token, day)
     analize_csv(f_name, ReportClass, {})
     os.remove(f_name)
 
 def load_reports_for_all_advertisers(token, day, ReportClass):
     if not token:
-        token = report.get_auth_token()
+        token = get_auth_token()
     # 5 report service processes per user admitted
     worker_pool = ThreadPool(5)
     try:
@@ -596,7 +595,7 @@ def load_reports_for_all_advertisers(token, day, ReportClass):
     all_line_items = set(LineItem.objects.values_list("id", flat=True))
 
     filenames = worker_pool.map(lambda id:
-                                report.get_specifed_report(ReportClass, {'advertiser_id': id}, token, day),
+                                get_specifed_report(ReportClass, {'advertiser_id': id}, token, day),
                                 advertisers_need_load)
     try:
         for f, advertiser_id in izip(filenames, advertisers_need_load):

@@ -7,6 +7,8 @@ from pytz import utc
 # log_path=os.path.join(os.path.dirname(os.path.dirname(__file__)),'logs')
 log_path = 'rtb/logs'
 
+appnexus_url = settings.__dict__.get('appnexus_url', 'https://api.appnexus.com/')
+
 error_classes = {
     'INTEGRITY': True,
     'LIMIT': True,
@@ -26,7 +28,7 @@ def get_str_time():
 
 def get_report(rid, token):
     print "Downloading report..."
-    url = "https://api.appnexus.com/report-download?id={0}".format(rid)
+    url = appnexus_url + "report-download?id={0}".format(rid)
     headers = {"Authorization": token}
 
     response = requests.get(url, headers=headers, stream=True)
@@ -43,7 +45,7 @@ def get_report(rid, token):
 def get_report_status(rid, token):
     print "Getting report status for rid %s with token %s" % (rid, token)
 
-    url = "https://api.appnexus.com/report?id={0}".format(rid)
+    url = appnexus_url + "report?id={0}".format(rid)
     headers = {"Authorization": token}
     start_time = datetime.datetime.utcnow()
     sleep_time = 1
@@ -69,7 +71,7 @@ def get_report_status(rid, token):
 
 def get_auth_token():
     try:
-        auth_url = "https://api.appnexus.com/auth"
+        auth_url = appnexus_url + "auth"
         data = {"auth": settings.NEXUS_AUTH_DATA}
         auth_request = requests.post(auth_url, data=json.dumps(data))
         response = json.loads(auth_request.content)
@@ -85,7 +87,7 @@ def get_specifed_report(ReportClass, query_data={}, token=None, day=None):
     report_type = ReportClass.api_report_name
     if not token:
         token = get_auth_token()
-    url = "https://api.appnexus.com/report"
+    url = appnexus_url + "report"
     report_data = {
         'report': {
             "report_type": report_type,
@@ -114,7 +116,10 @@ def get_specifed_report(ReportClass, query_data={}, token=None, day=None):
         r = requests.post(url, params=query_data, data=json.dumps(report_data), headers=headers)
         response = json.loads(r.content)['response']
         if response['status'] == 'error':
-            if response['error_id'] == 'LIMIT':
+            if response['error_id'] == 'NOAUTH':
+                token = get_auth_token()
+                time.sleep(10)
+            elif response['error_id'] == 'LIMIT':
                 print "Max report count limit reached, waiting..."
                 time.sleep(30)
             else:
@@ -137,7 +142,7 @@ def get_specifed_report(ReportClass, query_data={}, token=None, day=None):
 
 
 def get_report_metadata(token, report_type=''):
-    url = 'https://api.appnexus.com/report?meta'
+    url = appnexus_url + 'report?meta'
     if report_type:
         url += '=' + report_type
     r = requests.get(url, headers={"Authorization": token});
@@ -182,9 +187,10 @@ def update_object_from_dict(o, d, time_fields=None):
 unix_epoch = datetime.datetime.utcfromtimestamp(0).replace(tzinfo=utc)
 
 
-def nexus_get_objects(token, url, params, object_class, force_update=False, get_params=None):
+def nexus_get_objects(token, params, object_class, force_update=False, get_params=None):
     if not get_params:
         get_params = params
+    url = appnexus_url + object_class.api_endpoint
     print "Begin of Nexus_get_objects func"
     last_word = re.search(r'/(\w+)[^/]*$', url).group(1)
     current_date = utils.get_current_time()

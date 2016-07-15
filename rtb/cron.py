@@ -357,6 +357,7 @@ def nexus_get_objects(token, url, params, object_class, force_update=False, get_
 #load data, needed for filling SiteDomainPerformanceReport
 #Data saved to local DB
 def load_depending_data(token):
+    # nexus_get_objects\(.*?'(https://api.appnexus.com/[\w-]+)',\s*\{[^\}]*\},\s*(\w+)
     try:
         cd = get_current_time()
         with transaction.atomic():

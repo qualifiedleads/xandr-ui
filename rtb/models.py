@@ -111,6 +111,7 @@ class Category(models.Model):
     is_brand_eligible = models.NullBooleanField(null=True, blank=True)
     #countries_and_brands = db.Column(db.String) #array of objects !!! need to look at data returned by API ! it is a mess! See the model BrandInCountry below
 
+    api_endpoint = 'category'
     class Meta:
         db_table = "category"
 
@@ -121,8 +122,9 @@ class Company(models.Model):
     fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
     models.IntegerField(primary_key=True)  # No AutoIncrement
     name = models.TextField(null=True, blank=True, db_index=True)
-    last_modified = models.DateTimeField(default=now_tz) 
+    last_modified = models.DateTimeField(default=now_tz)
 
+    api_endpoint = 'brand-company'
     class Meta:
         db_table = "company"
 
@@ -137,8 +139,9 @@ class Brand(models.Model):
     category = models.ForeignKey("Category", null=True, blank=True)
     company = models.ForeignKey("Company", null=True, blank=True)
     num_creatives = models.IntegerField(null=True, blank=True)
-    last_modified = models.DateTimeField(default=now_tz) 
+    last_modified = models.DateTimeField(default=now_tz)
 
+    api_endpoint = 'brand'
     class Meta:
         db_table = "brand"
 
@@ -149,6 +152,7 @@ class DemographicArea(models.Model):
     fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
     name = models.TextField(null=True, blank=True, db_index=True)
 
+    api_endpoint = 'dma'
     class Meta:
         db_table = "demographic_area"
 
@@ -160,6 +164,7 @@ class Country(models.Model):
     name = models.TextField(null=True, blank=True, db_index=True)
     code = models.TextField(null=True, blank=True) #enum in origin
 
+    api_endpoint = 'country'
     class Meta:
         db_table = "country"
 
@@ -172,6 +177,7 @@ class Region(models.Model):
     code = models.TextField(null=True, blank=True) #enum in origin
     country = models.ForeignKey("Country", null=True, blank=True)
 
+    api_endpoint = 'region'
     class Meta:
         db_table = "region"
 
@@ -244,6 +250,7 @@ class Advertiser(models.Model):
     #object_stats	object #should be in sepparait model if needed
     #thirdparty_pixels	array # see the model AdvertiserThirdpartyPixels below
 
+    api_endpoint = 'advertiser'
     class Meta:
         db_table = "advertiser"
 
@@ -346,8 +353,9 @@ class MediaType(models.Model):
     uses_sizes = models.TextField(
         choices=MEDIA_TYPE_SIZES,
         null=True, blank=True)
-    last_modified = models.DateTimeField(default=now_tz) 
+    last_modified = models.DateTimeField(default=now_tz)
 
+    api_endpoint = 'media-type'
     class Meta:
         db_table = "media_type"
 
@@ -360,8 +368,9 @@ class MediaSubType(models.Model):
     media_type = models.ForeignKey("MediaType", null=True, blank=True)
     #permitted_sizes - see model MediaSubTypePermittedSizes below
     #native_assets - see model MediaSubTypeNativeAssets below
-    last_modified = models.DateTimeField(default=now_tz) 
+    last_modified = models.DateTimeField(default=now_tz)
 
+    api_endpoint = 'media-subtype'
     class Meta:
         db_table = "media_sub_type"
 
@@ -512,8 +521,9 @@ class AdProfile(models.Model):
     excluded_landing_page_urls = models.TextField(null=True, blank=True) # it is array in origine but it is marked as Not available.
     notes = models.TextField(null=True, blank=True)
     publisher = models.ForeignKey("Publisher", null=True, blank=True)
-    last_modified = models.DateTimeField(default=now_tz) 
+    last_modified = models.DateTimeField(default=now_tz)
 
+    api_endpoint = 'ad-profile'
     class Meta:
         db_table = "ad_profile"
 
@@ -679,6 +689,7 @@ class OptimizationZone(models.Model):
     #sites = array - see model Site below
     #manual_offer_rankings = array - see model ManualOfferRanking below
 
+    api_endpoint = 'optimization-zone'
     class Meta:
         db_table = "optimization_zone"
 
@@ -708,6 +719,7 @@ class MobileAppInstance(models.Model):
     last_modified = models.DateTimeField(default=now_tz) 
     created_on = models.DateTimeField(null=True, blank=True)
 
+    api_endpoint = 'mobile-app-instance'
     class Meta:
         db_table = "mobile_app_instance"
 
@@ -785,6 +797,7 @@ class Site(models.Model):
     marketplace_map = models.TextField(null=True, blank=True) # it is an array in origin but there is no description
     mobile_app_instance = models.ForeignKey("MobileAppInstance", null=True, blank=True)
 
+    api_endpoint = 'site'
     class Meta:
         db_table = "site"
 
@@ -953,6 +966,7 @@ class Publisher(models.Model):
     inventory_source_name = models.TextField(null=True, blank=True)
     #contact = array - see model PublisherContact below
 
+    api_endpoint = 'publisher'
     class Meta:
         db_table = "publisher"
 
@@ -1025,6 +1039,7 @@ class Language(models.Model):
     fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
     name = models.TextField(null=True, blank=True, db_index=True)
 
+    api_endpoint = 'language'
     class Meta:
         db_table = "language"
 
@@ -1117,7 +1132,7 @@ class Creative(models.Model):
         choices=CLICK_TEST_RESULT_COICES,
         null=True, blank=True)
     #campaigns = array - see model CampaignCreative
-    template = models.ForeignKey("CteativeTemplate", null=True, blank=True)
+    template = models.ForeignKey("CreativeTemplate", null=True, blank=True)
     thirdparty_page = object
     custom_macros = models.TextField(
         choices=CLICK_TEST_RESULT_COICES,
@@ -1213,6 +1228,7 @@ class Creative(models.Model):
     flash_backup_url_secure = models.TextField(null=True, blank=True)
     member = models.ForeignKey("Member", null=True, blank=True)
 
+    api_endpoint = 'creative'
     class Meta:
         db_table = "creative"
 
@@ -1339,13 +1355,14 @@ class CreativeFolder(models.Model):
     fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
     name = models.TextField(null=True, blank=True, db_index=True)
     advertiser = models.ForeignKey("Advertiser", null=True, blank=True)
-    last_modified = models.DateTimeField(default=now_tz) 
+    last_modified = models.DateTimeField(default=now_tz)
 
+    api_endpoint = 'creative-folder'
     class Meta:
         db_table = "creative_folder"
 
 
-class CteativeTemplate(models.Model):
+class CreativeTemplate(models.Model):
     #https://wiki.appnexus.com/display/api/Creative+Template+Service
     id = models.IntegerField(primary_key=True)  # No AutoIncrement
     fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
@@ -1353,7 +1370,7 @@ class CteativeTemplate(models.Model):
     description = models.TextField(null=True, blank=True)
     member = models.ForeignKey("Member", null=True, blank=True)
     media_subtype = models.ForeignKey("MediaSubType", null=True, blank=True)
-    format = models.ForeignKey("CteativeFormat", null=True, blank=True)
+    format = models.ForeignKey("CreativeFormat", null=True, blank=True)
     is_default = models.NullBooleanField(null=True, blank=True)
     is_archived = models.NullBooleanField(null=True, blank=True)
     content_js = models.TextField(null=True, blank=True)
@@ -1361,19 +1378,21 @@ class CteativeTemplate(models.Model):
     content_xml = models.TextField(null=True, blank=True)
     callback_content_html = models.TextField(null=True, blank=True)
     macros = models.TextField(null=True, blank=True) #array of object in origin. Later we can create separate model for it if needed
-    last_modified = models.DateTimeField(default=now_tz) 
+    last_modified = models.DateTimeField(default=now_tz)
 
+    api_endpoint = 'template'
     class Meta:
         db_table = "creative_template"
 
 
-class CteativeFormat(models.Model):
+class CreativeFormat(models.Model):
     #https://wiki.appnexus.com/display/api/Creative+Format+Service
     id = models.IntegerField(primary_key=True)  # No AutoIncrement
     fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
     name = models.TextField(null=True, blank=True, db_index=True)
-    last_modified = models.DateTimeField(default=now_tz) 
+    last_modified = models.DateTimeField(default=now_tz)
 
+    api_endpoint = 'creative-format'
     class Meta:
         db_table = "creative_format"
 
@@ -1497,6 +1516,7 @@ class Placement(models.Model):
     ad_types = models.TextField(null=True, blank=True) #TODO it is an array in origin but there is no description of it so we need to look at the API responce
     use_detected_domain = models.NullBooleanField(null=True, blank=True)
 
+    api_endpoint = 'placement'
     class Meta:
         db_table = "placement"
 
@@ -1698,6 +1718,7 @@ class ConversionPixel(models.Model):
     last_modified = models.DateTimeField(default=now_tz) 
     advertiser = models.ForeignKey("Advertiser", null=True, blank=True)
 
+    api_endpoint = 'pixel'
     class Meta:
         db_table = "conversion_pixel"
 
@@ -1765,8 +1786,9 @@ class OSFamily(models.Model):
     id = models.IntegerField(primary_key=True) #No AutoIncrement
     name = models.TextField(null=True, blank=True, db_index=True)
     fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
-    last_modified = models.DateTimeField(default=now_tz) 
+    last_modified = models.DateTimeField(default=now_tz)
 
+    api_endpoint = 'operating-system-family'
     class Meta:
         db_table = "os_family"
 
@@ -1796,6 +1818,7 @@ class OperatingSystemExtended(models.Model):
     def TransformFields(self, data, metadata={}):
         self.os_family_id = data["family"]["id"]
 
+    api_endpoint = 'operating-system-extended'
     class Meta:
         db_table = "operating_system_extended"
 
@@ -1964,6 +1987,7 @@ class Profile(models.Model):
     created_on = models.DateTimeField()
     is_expired = models.NullBooleanField(null=True, blank=True)
 
+    api_endpoint = 'profile'
     class Meta:
         db_table = "profile"
 
@@ -2137,6 +2161,7 @@ class Campaign(models.Model):
     campaign_modifiers = models.TextField(null=True, blank=True) #TODO JSON
     bid_modifier_model = models.TextField(null=True, blank=True) #TODO JSON
 
+    api_endpoint = 'campaign'
     class Meta:
         db_table = "campaign"
 
@@ -2249,6 +2274,7 @@ class LineItem(models.Model):
     inventory_type = models.TextField(null=True, blank=True) #no description in origin
     priority = models.TextField(null=True, blank=True) #no description in origin
 
+    api_endpoint = 'line-item'
     class Meta:
         db_table = "line_item"
 
@@ -2309,6 +2335,7 @@ class PaymentRule(models.Model):
         choices=DEMAND_FILTER_ACTION_CHOICES,
         null=True, blank=True)
 
+    api_endpoint = 'payment-rule'
     class Meta:
         db_table = "payment_rule"
 
@@ -2453,6 +2480,7 @@ class InsertionOrder(models.Model):
     lifetime_pacing_pct = models.FloatField(null=True, blank=True)
     #stats = object - late we'll decide if we need a model for stats
 
+    api_endpoint = 'insertion-order'
     class Meta:
         db_table = "insertion_order"
 
@@ -2593,8 +2621,9 @@ class BuyerGroup(models.Model):
     code = models.TextField(null=True, blank=True, db_index=True)
     name = models.TextField(null=True, blank=True, db_index=True)
     description = models.TextField(null=True, blank=True)
-    last_modified = models.DateTimeField(default=now_tz) 
+    last_modified = models.DateTimeField(default=now_tz)
 
+    api_endpoint = 'buyer-group'
     class Meta:
         db_table = "buyer_group"
 
@@ -2638,8 +2667,9 @@ class Developer(models.Model):
     billing_region = models.TextField(null=True, blank=True)
     billing_postal_code = models.TextField(null=True, blank=True)
     billing_country = models.TextField(null=True, blank=True)
-    last_modified = models.DateTimeField(default=now_tz) 
+    last_modified = models.DateTimeField(default=now_tz)
 
+    api_endpoint = 'developer'
     class Meta:
         db_table = "developer"
 
@@ -2736,6 +2766,7 @@ class Member(models.Model):
     daily_budget = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
     daily_budget_imps = models.IntegerField(null=True, blank=True)
 
+    api_endpoint = 'member'
     class Meta:
         db_table = "member"
 
@@ -2803,6 +2834,7 @@ class PlatformMember(models.Model):
     last_modified = models.DateTimeField(default=now_tz) 
     default_discrepancy_pct = models.FloatField(null=True, blank=True)
 
+    api_endpoint = 'platform-member'
     class Meta:
         db_table = "platform_member"
 
@@ -3149,8 +3181,9 @@ class AdQualityRule(models.Model):
     member = models.ForeignKey("Member", null=True, blank=True)
     profile = models.ForeignKey("Profile", null=True, blank=True)
     priority = models.IntegerField(null=True, blank=True)
-    last_modified = models.DateTimeField(default=now_tz) 
+    last_modified = models.DateTimeField(default=now_tz)
 
+    api_endpoint = 'ad-quality-rule'
     class Meta:
         db_table = "ad_quality_rule"
 

@@ -15,7 +15,7 @@ from pytz import utc
 log_path = 'rtb/logs'
 
 appnexus_url = settings.__dict__.get(
-    'appnexus_url', 'https://api.appnexus.com/')
+    'APPNEXUS_URL', 'https://api.appnexus.com/')
 
 error_classes = {
     'INTEGRITY': True,

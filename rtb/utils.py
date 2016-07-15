@@ -5,7 +5,7 @@ from pytz import utc
 import re
 
 column_sets_for_reports = {
-    "network_analytics": [
+    "network_analytics_": [
         "hour",
         "advertiser_id",
         "advertiser_name",

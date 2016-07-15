@@ -14,44 +14,17 @@ from django.db import transaction, IntegrityError, reset_queries, connection
 import re
 import requests
 import report
+from report import nexus_get_objects
 from django.conf import settings
 import models
 from models import Advertiser, Campaign, SiteDomainPerformanceReport, Profile, LineItem, InsertionOrder, \
     OSFamily, OperatingSystemExtended, NetworkAnalyticsReport, GeoAnaliticsReport, Member, Developer, BuyerGroup, \
     AdProfile, ContentCategory, Deal, PlatformMember, User, Publisher, Site, OptimizationZone, MobileAppInstance, \
     YieldManagementProfile, PaymentRule, ConversionPixel, Country, Region, DemographicArea, AdQualityRule, Placement, \
-    Creative, Brand, CteativeTemplate, Category, Company, MediaType, MediaSubType, CteativeFormat, CreativeFolder, \
+    Creative, Brand, CreativeTemplate, Category, Company, MediaType, MediaSubType, CreativeFormat, CreativeFolder, \
     Language
 from pytz import utc
 from utils import get_all_classes_in_models, column_sets_for_reports, get_current_time
-
-def date_type(t):
-    return isinstance(t, (django_types.DateField, django_types.TimeField, django_types.DateField))
-
-
-def replace_tzinfo(o, time_fields=None):
-    if time_fields is None:
-        time_fields = [field.name for field in o._meta.fields if date_type(field)]
-    for name in time_fields:
-        try:
-            attr = getattr(o, name)
-            if type(attr) == unicode:
-                attr += '+00:00'
-            else:
-                attr = attr.replace(tzinfo=utc)
-            setattr(o, name, attr)
-        except Exception as e:
-            pass
-            # print "Error setting timezone for field %s in object %s (%s)"%(name, o, e)
-
-
-def update_object_from_dict(o, d, time_fields=None):
-    for field in d:
-        try:
-            setattr(o, field, d[field])
-        except:pass
-    replace_tzinfo(o, time_fields)
-
 
 table_names = {c._meta.db_table: c for c in get_all_classes_in_models(models)}
 
@@ -250,109 +223,6 @@ def analize_csv(filename, modelClass, metadata={}):
 
 
 
-unix_epoch = datetime.datetime.utcfromtimestamp(0).replace(tzinfo=utc)
-
-def nexus_get_objects(token, url, params, object_class, force_update=False, get_params=None):
-    if not get_params:
-        get_params = params
-    print "Begin of Nexus_get_objects func"
-    last_word = re.search(r'/(\w+)[^/]*$', url).group(1)
-    current_date = get_current_time()
-    if params:
-        query_set = object_class.objects.filter(**params)
-    else:
-        query_set = object_class.objects.all()
-    for k in params.keys():
-        if k.endswith('__in'):
-            params[k[:-4]]=','.join(str(x) for x in params[k])
-            del params[k]
-    last_date = None
-    if not force_update:
-        if object_class._meta.get_field('fetch_date'):
-            last_date = object_class.objects.aggregate(m=Max('fetch_date'))['m']
-        elif object_class._meta.get_field('last_modified'):
-            last_date = query_set.aggregate(m=Max('last_modified'))['m']
-    if not last_date:
-        last_date = unix_epoch
-
-    objects_in_db = list(query_set)
-    if force_update or current_date - last_date > settings.INVALIDATE_TIME:
-        count, cur_records = -1, -2
-        objects_by_api = []
-        data_key_name = None
-        start_time = datetime.datetime.utcnow()
-        while cur_records < count:
-            current_time = datetime.datetime.utcnow()
-            if current_time - start_time > settings.MAX_REPORT_WAIT: break
-            if cur_records > 0:
-                params["start_element"] = cur_records
-                params["num_elements"] = min(100, count - cur_records)
-            try:
-                r = requests.get(url, params=get_params, headers={"Authorization": token})
-                response = json.loads(r.content)['response']
-            except Exception as e:
-                response={'error':e.message,'error_id':'NODATA'}
-            if response.get('error'):
-                print response['error']
-                if report.error_classes[response['error_id']]:
-                    break
-                if response['error_id']=='NOAUTH':
-                    token = report.get_auth_token()
-                time.sleep(10)
-                continue
-            dbg_info = response['dbg_info']
-            limit = dbg_info['reads']/dbg_info['read_limit']
-            if limit>0.9:
-                time.sleep((limit-0.9)*300)
-            if not data_key_name:
-                data_key_name = list(set(response.keys()) - \
-                                     set([u'status', u'count', u'dbg_info', u'num_elements', u'start_element']))
-                if len(data_key_name) > 1:
-                    data_key_name = [x for x in data_key_name if x.startswith(last_word)]
-                if len(data_key_name) > 0:
-                    data_key_name = data_key_name[0]
-            print data_key_name
-            pack_of_objects = response.get(data_key_name, [])
-
-            if count < 0:  # first portion of objects
-                count = response["count"]
-                if count > 10000:
-                    # TODO: This need to be replaced by "smart loading"
-                    print "There is too many records (%d)"%count
-                    if len(objects_in_db)>0: return objects_in_db
-                cur_records = 0
-            if isinstance(pack_of_objects,list):
-                objects_by_api.extend(pack_of_objects)
-            else:
-                objects_by_api.append(pack_of_objects)
-            cur_records += response['num_elements']
-
-        print "Objects succefully fetched from Nexus API (%d records)" % len(objects_by_api)
-        obj_by_code = {i.pk: i for i in objects_in_db}
-        primary_key_name = object_class._meta.pk.name;
-        for i in objects_by_api:
-            object_db = obj_by_code.get(i[primary_key_name])
-            if not object_db:
-                object_db = object_class()
-                objects_in_db.append(object_db)
-            update_object_from_dict(object_db, i)
-            if hasattr(object_db, "fetch_date"):
-                object_db.fetch_date = current_date
-            if hasattr(object_db, "TransformFields"):
-                object_db.TransformFields(i)
-            try:
-                object_db.save()
-            except Exception as e:
-                print "Error by saving ", e
-        if settings.DEBUG and len(objects_by_api) > 0:
-            # field_set_db = set(x.field_name for x in object_class._meta.get_fields())  # get_all_field_names())
-            print "Calc field lists difference..."
-            field_set_db = set(x.name for x in object_class._meta.fields)
-            field_set_json = set(objects_by_api[0])
-            print "Uncommon fields in DB:", field_set_db - field_set_json
-            print "Uncommon fields in API:", field_set_json - field_set_db
-            #print objects_by_api
-    return objects_in_db
 
 #load data, needed for filling SiteDomainPerformanceReport
 #Data saved to local DB
@@ -530,13 +400,13 @@ def load_depending_data(token):
         creative_formats = nexus_get_objects(token,
                                              'https://api.appnexus.com/creative-format',
                                              {},
-                                             CteativeFormat, False)
+                                             CreativeFormat, False)
         print 'There is %d creative media sub types' % len(creative_formats)
 
         creative_templates = nexus_get_objects(token,
                                                'https://api.appnexus.com/template',
                                                {},
-                                               CteativeTemplate, False)
+                                               CreativeTemplate, False)
         print 'There is %d creative templates' % len(creative_templates)
 
         for adv in advertisers:

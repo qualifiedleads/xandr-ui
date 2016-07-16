@@ -302,7 +302,7 @@ def nexus_get_objects(
 
             if count < 0:  # first portion of objects
                 count = response["count"]
-                if count > 3000:
+                if count > 10000:
                     print "There is too many records (%d)" % count
                     print "Entries will be uploaded later, on report loading"
                     return objects_in_db

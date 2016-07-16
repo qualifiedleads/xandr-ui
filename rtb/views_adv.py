@@ -253,7 +253,7 @@ Get single campaign cpa report for given period to create boxplots
     advertiser_id = c.advertiser_id
     params = parse_get_params(request.GET)
     res = get_campaign_cpa(advertiser_id, id, params['from_date'], params['to_date'])
-    # return Response(res)
+    return Response(res)
     return Response([
         {"date": "2016-06-19T00:00:00Z", "low": 24.00, "high": 25.00, "open": 25.00, "close": 24.875, "avg": 24.5},
         {"date": "2016-06-20T00:00:00Z", "low": 23.625, "high": 25.125, "open": 24.00, "close": 24.875, "avg": 24.375},
@@ -328,7 +328,7 @@ Get single campaign details by domains
     """
     params = parse_get_params(request.GET)
     res = get_campaign_placement(id, params['from_date'], params['to_date'])
-    # return Response(res)
+    return Response(res)
     return Response([{
         "placement": "CNN.com",
         "NetworkPublisher": "Google Adx",

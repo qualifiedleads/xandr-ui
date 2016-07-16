@@ -2087,7 +2087,7 @@ class Campaign(models.Model):
     advertiser = models.ForeignKey("Advertiser", null=True, blank=True)
     profile = models.ForeignKey("Profile", null=True, blank=True)
     line_item = models.ForeignKey("LineItem", null=True, blank=True)
-    start_date = models.DateTimeField(db_index=True)
+    start_date = models.DateTimeField(db_index=True, null=True, default=now_tz)
     end_date = models.DateTimeField(db_index=True, null=True, blank=True)
     #creatives - see model CampaignCreative below
     #creative_groups - se model CampaignLineItems below

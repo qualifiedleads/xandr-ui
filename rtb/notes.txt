@@ -1,0 +1,1 @@
+./manage.py loadcsvfile /home/alex/report.csv network_analytics

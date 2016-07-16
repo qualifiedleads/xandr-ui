@@ -302,11 +302,10 @@ def nexus_get_objects(
 
             if count < 0:  # first portion of objects
                 count = response["count"]
-                if count > 10000:
-                    # TODO: This need to be replaced by "smart loading"
+                if count > 3000:
                     print "There is too many records (%d)" % count
-                    if len(objects_in_db) > 0:
-                        return objects_in_db
+                    print "Entries will be uploaded later, on report loading"
+                    return objects_in_db
                 cur_records = 0
             if isinstance(pack_of_objects, list):
                 objects_by_api.extend(pack_of_objects)

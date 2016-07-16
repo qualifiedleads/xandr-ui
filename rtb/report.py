@@ -345,10 +345,11 @@ def nexus_get_objects(
                         return False
                     key_field, key_value, table_name = m.groups()
                     fk = foreign_keys[table_name] # TODO what on multiple foreign keys to same table - ???
-                    val = getattr(object_db, fk.name)
+                    val = getattr(object_db, key_field)
                     t = type(val)
-                    if t(key_value) == val: # simple control - field is right
-                        setattr(object_db, fk.name, None)
+                    # simple control - field is right
+                    if t(key_value) == val:
+                        setattr(object_db, key_field, None)
                         print 'Nulling field %s on object %s (was %s)'%(fk.name, object_db, val)
                 except Exception as e:
                     print "Error by saving ", e

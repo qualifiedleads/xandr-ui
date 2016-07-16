@@ -185,8 +185,8 @@ class Region(models.Model):
 
 class BrandInCountry(models.Model):  # TODO:ManyToManyField
     #See the model Category.countries_and_brands
-    #brand = models.ForeignKey("Brand", null=True, blank=True)
-    brand_id = models.IntegerField(null=True, blank=True)
+    brand = models.ForeignKey("Brand", null=True, blank=True)
+    #brand_id = models.IntegerField(null=True, blank=True)
     category = models.ForeignKey("Category", null=True, blank=True)
 
     class Meta:
@@ -258,8 +258,8 @@ class Advertiser(models.Model):
 
 class AdvertiserBrand(models.Model):
     advertiser = models.ForeignKey("Advertiser", null=True, blank=True)
-    #brand = models.ForeignKey("Brand", null=True, blank=True)
-    brand_id = models.IntegerField(null=True, blank=True)
+    brand = models.ForeignKey("Brand", null=True, blank=True)
+    #brand_id = models.IntegerField(null=True, blank=True)
 
     class Meta:
         db_table = "advertiser_brand"
@@ -560,8 +560,8 @@ class AdProfileMember(models.Model):
 
 class AdProfileBrand(models.Model):
     ad_profile = models.ForeignKey("AdProfile", null=True, blank=True)
-    #brand = models.ForeignKey("Brand", null=True, blank=True)
-    brand_id = models.IntegerField(null=True, blank=True)
+    brand = models.ForeignKey("Brand", null=True, blank=True)
+    #brand_id = models.IntegerField(null=True, blank=True)
     status = models.TextField(
         choices=DEFAILT_BRAND_STATUS_CHOICES,
         null=True, blank=True)
@@ -906,7 +906,7 @@ class Publisher(models.Model):
     reselling_exposure = models.TextField(
         choices=RESELLING_EXPOSURE_CHOICES,
         null=True, blank=True)
-    reselling_exposed_on = models.DateTimeField()
+    reselling_exposed_on = models.DateTimeField(null=True, blank=True)
     reselling_name = models.TextField(null=True, blank=True)
     description = models.TextField(null=True, blank=True)
     is_rtb = models.NullBooleanField(null=True, blank=True)
@@ -985,8 +985,8 @@ class PublisherContact(models.Model):
 
 class PublisherBrandExceptions(models.Model): # TODO: ManyToMany field
     publisher = models.ForeignKey("Publisher", null=True, blank=True)
-    #brand = models.ForeignKey("Brand", null=True, blank=True)
-    brand_id = models.IntegerField(null=True, blank=True)
+    brand = models.ForeignKey("Brand", null=True, blank=True)
+    #brand_id = models.IntegerField(null=True, blank=True)
     class Meta:
         db_table = "publisher_brand_exceptions"
 
@@ -1126,8 +1126,8 @@ class Creative(models.Model):
         null=True, blank=True)
     advertiser = models.ForeignKey("Advertiser", null=True, blank=True)
     publisher = models.ForeignKey("Publisher", null=True, blank=True)
-    #brand = models.ForeignKey("Brand", null=True, blank=True)
-    brand_id = models.IntegerField(null=True, blank=True)
+    brand = models.ForeignKey("Brand", null=True, blank=True)
+    #brand_id = models.IntegerField(null=True, blank=True)
     state = models.TextField(
         choices=STATE_CHOICES,
         null=True, blank=True)
@@ -1191,7 +1191,7 @@ class Creative(models.Model):
     flash_backup_url = models.TextField(null=True, blank=True)
     is_control = models.NullBooleanField(null=True, blank=True)
     #segments = array - see model CreativeSegment below
-    created_on = models.DateTimeField()
+    created_on = models.DateTimeField(default=now_tz)
     last_modified = models.DateTimeField(default=now_tz) 
     creative_upload_status = models.TextField(
         choices=CREATIVE_UPLOAD_STATUS_CHOICES,
@@ -1269,8 +1269,8 @@ class CreativeThirdpartyPixel(models.Model):
 
 class CreativeCompetitiveBrand(models.Model):
     creative = models.ForeignKey("Creative", null=True, blank=True)
-    #brand = models.ForeignKey("Brand", null=True, blank=True)
-    brand_id = models.IntegerField(null=True, blank=True)
+    brand = models.ForeignKey("Brand", null=True, blank=True)
+    #brand_id = models.IntegerField(null=True, blank=True)
     class Meta:
         db_table = "creative_competitive_brand"
 
@@ -1629,7 +1629,7 @@ class PlacementEstimatedClearPrices(models.Model):
 
 class InventoryAttribute(models.Model):
     name = models.TextField(null=True, blank=True)
-    last_activity = models.DateTimeField()
+    last_activity = models.DateTimeField(default=now_tz)
 
     class Meta:
         db_table = "inventory_attribute"
@@ -1717,7 +1717,7 @@ class ConversionPixel(models.Model):
     post_click_value = models.FloatField(null=True, blank=True)
     post_view_value = models.FloatField(null=True, blank=True)
     #piggyback_pixels - see model ConversionPixelPiggybackPixels below
-    created_on = models.DateTimeField()
+    created_on = models.DateTimeField(default=now_tz)
     last_modified = models.DateTimeField(default=now_tz) 
     advertiser = models.ForeignKey("Advertiser", null=True, blank=True)
 
@@ -1987,7 +1987,7 @@ class Profile(models.Model):
         choices=TARGETS_ACTION_CHOICE,
         null=True, blank=True)
     optimization_zone_targets = models.TextField(null=True, blank=True) #array of objects in origin TODO it is needed to be concidered if we need a sepparait model here
-    created_on = models.DateTimeField()
+    created_on = models.DateTimeField(default=now_tz)
     is_expired = models.NullBooleanField(null=True, blank=True)
 
     api_endpoint = 'profile'
@@ -2861,8 +2861,8 @@ class MemberThirdpartyPixel(models.Model):
 
 class MemberBrandException(models.Model):
     member = models.ForeignKey("Member", null=True, blank=True)
-    #brand = models.ForeignKey("Brand", null=True, blank=True)
-    brand_id = models.IntegerField(null=True, blank=True)
+    brand = models.ForeignKey("Brand", null=True, blank=True)
+    #brand_id = models.IntegerField(null=True, blank=True)
     class Meta:
         db_table = "member_brand_exception"
 
@@ -3099,8 +3099,8 @@ class DealCreative(models.Model):
 
 class DealBrand(models.Model):
     deal = models.ForeignKey("Deal", null=True, blank=True)
-    #brand = models.ForeignKey("Brand", null=True, blank=True)
-    brand_id = models.IntegerField(null=True, blank=True)
+    brand = models.ForeignKey("Brand", null=True, blank=True)
+    #brand_id = models.IntegerField(null=True, blank=True)
     override = models.NullBooleanField(null=True, blank=True)
 
     class Meta:
@@ -3213,8 +3213,8 @@ class NetworkAnalyticsReport(models.Model):
     campaign = models.ForeignKey("Campaign", null=True, blank=True)
     creative = models.ForeignKey("Creative", null=True, blank=True)
     size = models.TextField(null=True, blank=True)
-    #brand = models.ForeignKey("Brand", null=True, blank=True)
-    brand_id = models.IntegerField(null=True, blank=True)
+    brand = models.ForeignKey("Brand", null=True, blank=True)
+    #brand_id = models.IntegerField(null=True, blank=True)
     billing_period_start_date = models.DateTimeField(null=True, blank=True, db_index=True)
     billing_period_end_date = models.DateTimeField(null=True, blank=True, db_index=True)
     geo_country = models.ForeignKey("Country", null=True, blank=True)

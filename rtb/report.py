@@ -9,6 +9,7 @@ import utils
 from django.conf import settings
 import django.db.models as django_types
 from django.db.models import Max
+from django.db import IntegrityError
 from pytz import utc
 import itertools
 
@@ -316,6 +317,7 @@ def nexus_get_objects(
         print "Objects succefully fetched from Nexus API (%d records)" % len(objects_by_api)
         obj_by_code = {i.pk: i for i in objects_in_db}
         primary_key_name = object_class._meta.pk.name
+        foreign_keys = {x.related_model._meta.db_table:x for x in object_class._meta.fields if isinstance(x, django_types.ForeignKey)}
         for i in objects_by_api:
             object_db = obj_by_code.get(i[primary_key_name])
             if not object_db:
@@ -326,10 +328,31 @@ def nexus_get_objects(
                 object_db.fetch_date = current_date
             if hasattr(object_db, "TransformFields"):
                 object_db.TransformFields(i)
-            try:
-                object_db.save()
-            except Exception as e:
-                print "Error by saving ", e
+            is_saved = False
+            tries = 0
+            while not is_saved and tries<len(foreign_keys)+1:
+                try:
+                    tries += 1
+                    object_db.save()
+                    is_saved = True
+                except IntegrityError as e:
+                    if e.message.find('foreign key constraint') < 0:
+                        raise
+                    m = re.search(
+                        r'Key \((\w+)\)=\(([^\)]+)\) is not present in table "([^\"]+)"',
+                        e.message)
+                    if not m:
+                        return False
+                    key_field, key_value, table_name = m.groups()
+                    fk = foreign_keys[table_name] # TODO what on multiple foreign keys to same table - ???
+                    val = getattr(object_db, fk.name)
+                    t = type(val)
+                    if t(key_value) == val: # simple control - field is right
+                        setattr(object_db, fk.name, None)
+                        print 'Nulling field %s on object %s (was %s)'%(fk.name, object_db, val)
+                except Exception as e:
+                    print "Error by saving ", e
+                    break
         if settings.DEBUG and len(objects_by_api) > 0:
             # field_set_db = set(x.field_name for x in
             # object_class._meta.get_fields())  # get_all_field_names())

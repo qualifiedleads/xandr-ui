@@ -285,6 +285,10 @@ def analize_csv(filename, modelClass, metadata={}):
                         objects_saved = True
                     except IntegrityError as e:
                         errors += 1
+                        if errors > 3:
+                            print '---------------------------------------------------'
+                            print "Continue errors", errors
+                            print '---------------------------------------------------'
                         if errors > 1000:
                             print 'Too many DB integrity errors'
                             raise

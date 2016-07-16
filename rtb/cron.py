@@ -289,8 +289,9 @@ def analize_csv(filename, modelClass, metadata={}):
                             print '---------------------------------------------------'
                             print "Continue errors", errors
                             print '---------------------------------------------------'
-                        if errors > 1000:
+                        if errors > 10:
                             print 'Too many DB integrity errors'
+                            print e
                             raise
                         test_foreign_keys(objects_to_save, rows)
                 counter += len(objects_to_save)

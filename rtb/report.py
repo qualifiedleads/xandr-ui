@@ -224,7 +224,7 @@ def nexus_get_objects_by_id(token, object_class, ids):
         ids_list = ','.join(itertools.imap(str, itertools.islice(it,0,100)))
         if not ids_list:break
         lst = nexus_get_objects(token, {'pk':None},object_class,True,{'id':ids_list})
-        res += set(x.pk for x in lst)
+        res = res | set(x.pk for x in lst)
     return res
 
 def nexus_get_objects(

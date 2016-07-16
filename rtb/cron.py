@@ -188,7 +188,6 @@ def test_foreign_keys(objects_to_save, rows):
     token = get_auth_token()
     first = objects_to_save[0]
     foreign_keys = {x.name: x for x in first._meta.fields if isinstance(x, django_types.ForeignKey)}
-    ids_dict = {}
     for k in foreign_keys:
         key_id = k + '_id'
         entity = foreign_keys[k].related_model
@@ -204,8 +203,28 @@ def test_foreign_keys(objects_to_save, rows):
         ids_to_load -= saved
         if ids_to_load:
             # manual create of objects
-            pass
+            key_name= k + '_name'
+            try:
+                f=entity._meta.get_field('name')
+            except:
+                f=None
+            if f:
+                if key_name in rows[0]:
 
+                    ids_dict={int(x[key_id]):x[key_name] for x in rows
+                                   if int(x[key_id]) in ids_to_load}
+                    ids_and_names= [{'id': x[0], 'name':x[1]} for x in ids_dict.items()]
+                else:
+                    ids_and_names = [{'id': x, 'name': 'Automatically created object %d'%x} for x in ids_to_load]
+            else:
+                ids_and_names = [{'id': x} for x in ids_to_load]
+            for obj_dict in ids_and_names:
+                obj=entity(**obj_dict)
+                if hasattr(obj,'last_modifed'):
+                    obj.last_modifed = get_current_time()
+                if hasattr(obj, 'fetch_date'):
+                    obj.fetch_date = get_current_time()
+                obj.save()
 
 
 def analize_csv(filename, modelClass, metadata={}):

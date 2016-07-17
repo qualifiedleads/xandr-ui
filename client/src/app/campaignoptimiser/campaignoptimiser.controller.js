@@ -8,7 +8,7 @@
   /** @ngInject */
   function CampaignOptimiserController($window, $state, $localStorage, $translate, Campaign, CampaignOptimiser) {
     var vm = this;
-
+	  vm.CampaignOptimiser = CampaignOptimiser;
     vm.campName = Campaign.campaign;
     vm.campId = Campaign.id;
     var LC = $translate.instant;
@@ -90,20 +90,733 @@
     };
     /** DATE PIKER - END **/
 
-	  /**
-     * Rules for All Domains
-     */
-    vm.spends = {
-      text: LC('CO.SPENDS'),
-      value: true
-    };
 
-    vm.moneySpends = {
-      width: 50,
-      placeholder: '$',
-      height: 25
 
+
+
+
+	  /** MULTIPLE 2 - START **/
+
+	  vm.state='';
+	  vm.selectCell = {
+		  dataSource: [
+			  {'name': 'White List',
+				  'state':'whiteList'},
+			  {'name': 'Black List',
+				  'state':'blackList'},
+			  {'name': 'Suspended',
+				  'state':'suspended'}
+		  ],
+		  disabled:true,
+		  placeholder: 'Select a state',
+		  displayExpr: 'name',
+		  valueExpr: vm.state,
+		  onSelectionChanged: function(e) {
+			  var selectedRows = $('#gridContainer2')[0].querySelectorAll('[aria-selected="true"]');
+			  var stateSelected = e.selectedItem.state;
+			  console.log(stateSelected);
+			  if(selectedRows[0]) {
+				  var selectedArr = [];
+				  for (var i=0; i<selectedRows.length; i++){
+					  selectedArr.push(selectedRows[i].firstChild.innerText);
+				  }
+				  console.log(selectedArr);
+
+			  }
+		  }
+	  };
+
+
+	  vm.gridStore = new $window.DevExpress.data.CustomStore({
+		  totalCount: function () {
+			  return 0;
+		  },
+		  load: function (loadOptions) {
+			  return vm.CampaignOptimiser.campaignDomains(vm.campId, vm.dataEnd, vm.dataStart, loadOptions.skip,
+				  loadOptions.take, loadOptions.sort, loadOptions.order,loadOptions.filter)
+			  .then(function (result) {
+				  //$localStorage.gridStore = result;
+				  return result;
+			  });
+		  }
+	  });
+
+	  vm.selectedItems = [];
+	  vm.chartOptionsFuncgrid = [];
+	  if ($localStorage.boxPlotData == null){
+		  $localStorage.boxPlotData = vm.boxPlotData;
+	  }
+
+	  vm.state='';
+	  vm.selectCell = {
+		  dataSource: [
+			  {'name': 'White List',
+				  'state':'whiteList'},
+			  {'name': 'Black List',
+				  'state':'blackList'},
+			  {'name': 'Suspended',
+				  'state':'suspended'}
+		  ],
+		  disabled:true,
+		  placeholder: 'Select a state',
+		  displayExpr: 'name',
+		  valueExpr: vm.state,
+		  onSelectionChanged: function(e) {
+			  var selectedRows = $('#gridContainer2')[0].querySelectorAll('[aria-selected="true"]');
+			  var stateSelected = e.selectedItem.state;
+			  console.log(stateSelected);
+			  if(selectedRows[0]) {
+				  var selectedArr = [];
+				  for (var i=0; i<selectedRows.length; i++){
+					  selectedArr.push(selectedRows[i].firstChild.innerText);
+				  }
+				  console.log(selectedArr);
+
+			  }
+		  }
+	  };
+
+	  vm.dataGridOptionsCampaign = {
+	    onInitialized: function (data) {
+		    vm.dataGridOptionsMultipleFunc = data.component;
+		    vm.dataGridOptionsMultipleFunc._controllers.columns._commandColumns[1].visibleIndex = 9;
+	    },
+	    onRowPrepared: function(data) {
+		    vm.objectData = data;
+		    if(vm.objectData.rowType == 'data') {
+			    //console.log(vm.objectData);
+			    var allRowBtns = data.rowElement[0].childNodes[9];
+			    var state = data.data.state;
+			    if(state.whiteList == "true"){
+				    allRowBtns.classList.add('active-white');
+			    }
+			    if(state.blackList == "true"){
+				    allRowBtns.classList.add('active-black');
+			    }
+			    if(state.suspended == "true"){
+				    allRowBtns.classList.add('active-suspended');
+			    }
+		    }
+	    },
+	    showBorders: true,
+	    alignment: 'left',
+	    headerFilter: {
+		    visible: true
+	    },
+		  editing: {
+	    	allowUpdating: true,
+			  mode: "batch"
+	    },
+	    bindingOptions: {
+		    dataSource: 'CO.gridStore',
+		    allowColumnResizing: 'true'
+	    },
+	    pager: {
+		    showPageSizeSelector: true,
+		    allowedPageSizes: [10, 30, 50],
+		    visible: true,
+		    showNavigationButtons: true
+	    },
+	    howBorders: true,
+	    showRowLines: true,
+	    columns: [
+		    {
+			    caption: LC('MAIN.CAMPAIGN.COLUMNS.PLACEMENT'),
+			    dataField: 'placement',
+			    allowEditing: false
+		    },
+		    {
+			    caption: LC('MAIN.CAMPAIGN.COLUMNS.NETWORK'),
+			    dataField: 'NetworkPublisher',
+			    allowEditing: false
+		    },
+		    {
+			    caption: LC('MAIN.CAMPAIGN.COLUMNS.CONV'),
+			    dataField: 'conv',
+			    allowEditing: false
+		    }, {
+			    caption:  LC('MAIN.CAMPAIGN.COLUMNS.IMP'),
+			    dataField: 'imp',
+			    allowEditing: false
+		    }, {
+			    caption:  LC('MAIN.CAMPAIGN.COLUMNS.CLICKS'),
+			    dataField: 'clicks',
+			    allowEditing: false
+		    }, {
+			    caption:  LC('MAIN.CAMPAIGN.COLUMNS.CPC'),
+			    dataField: 'cpc',
+			    allowEditing: false
+		    },
+		    {
+			    caption: LC('MAIN.CAMPAIGN.COLUMNS.CPM'),
+			    dataField: 'cpm',
+			    allowEditing: false
+		    },
+		    {
+			    caption: LC('MAIN.CAMPAIGN.COLUMNS.CVR'),
+			    dataField: 'cvr',
+			    allowEditing: true
+		    },
+		    {
+			    caption: LC('MAIN.CAMPAIGN.COLUMNS.CTR'),
+			    dataField: 'ctr',
+			    allowEditing: true
+		    },
+		    {
+			    caption: 'State',
+			    width: 300,
+			    columnIndex: 16,
+			    headerCellTemplate: 'headerCellTemplate',
+			    cellTemplate: function (container, options) {
+				    $("<div />").dxButton({
+					    text: 'white list',
+					    height:30,
+					    width: 89,
+					    disabled: true,
+					    onClick: function (e) {
+						    console.log(options.data);
+						    var parentWhiteBtn = e.element[0].parentNode;
+						    console.log(parentWhiteBtn);
+						    if (parentWhiteBtn.classList.contains('active-white')) {
+							    parentWhiteBtn.classList.remove('active-white');
+							    parentWhiteBtn.classList.add('unactive-white');
+							    options.data.state.whiteList = 'false';
+						    } else if (!parentWhiteBtn.classList.contains('active-white')){
+							    parentWhiteBtn.classList.remove('unactive-white');
+							    parentWhiteBtn.classList.add('active-white');
+							    options.data.state.whiteList = 'true';
+							    options.data.state.suspended = 'false';
+							    options.data.state.blackList = 'false';
+							    parentWhiteBtn.classList.remove('active-black');
+							    parentWhiteBtn.classList.remove('active-suspended');
+						    }
+
+					    }
+				    }).addClass('white-list').appendTo(container);
+
+				    $("<div />").dxButton({
+					    text: 'black list',
+					    height:30,
+					    width: 89,
+					    disabled: true,
+					    onClick: function (e) {
+						    //console.log(e);
+						    var parentWhiteBtn = e.element[0].parentNode;
+						    //console.log(parentWhiteBtn);
+						    if (parentWhiteBtn.classList.contains('active-black')) {
+							    parentWhiteBtn.classList.remove('active-black');
+							    parentWhiteBtn.classList.add('unactive-black');
+							    options.data.state.blackList = 'false';
+						    } else if (!parentWhiteBtn.classList.contains('active-black')){
+							    parentWhiteBtn.classList.remove('unactive-black');
+							    parentWhiteBtn.classList.add('active-black');
+							    options.data.state.blackList = 'true';
+							    options.data.state.suspended = 'false';
+							    options.data.state.whiteList = 'false';
+							    parentWhiteBtn.classList.remove('active-white');
+							    parentWhiteBtn.classList.remove('active-suspended');
+						    }
+
+					    }
+				    }).addClass('black-list').appendTo(container);
+
+				    $("<div />").dxButton({
+					    text: 'suspended',
+					    height:30,
+					    width: 95,
+					    disabled: true,
+					    onClick: function (e) {
+						    //console.log(e);
+						    var parentWhiteBtn = e.element[0].parentNode;
+						    //console.log(parentWhiteBtn);
+						    if (parentWhiteBtn.classList.contains('active-suspended')) {
+							    parentWhiteBtn.classList.remove('active-suspended');
+							    parentWhiteBtn.classList.add('unactive-suspended');
+							    options.data.state.suspended = 'false';
+						    } else if (!parentWhiteBtn.classList.contains('active-suspended')){
+							    parentWhiteBtn.classList.remove('unactive-suspended');
+							    parentWhiteBtn.classList.add('active-suspended');
+							    options.data.state.suspended = 'true';
+							    options.data.state.whiteList = 'false';
+							    options.data.state.blackList = 'false';
+							    parentWhiteBtn.classList.remove('active-white');
+							    parentWhiteBtn.classList.remove('active-black');
+
+						    }
+
+					    }
+				    }).addClass('suspended').appendTo(container);
+			    }
+		    }
+	    ],
+	    selection: {
+		    mode: 'multiple',
+		    showCheckBoxesMode: 'always'
+	    },
+	    onSelectionChanged: function (data) {
+		    vm.selectedItems = data.selectedRowsData;
+		    vm.disabled = !vm.selectedItems.length;
+	    }
     };
+	  /** MULTIPLE - END **/
+
+
+	  /** MULTIPLE 3 - START **/
+
+	  vm.state3='';
+	  vm.selectCell3 = {
+		  dataSource: [
+			  {'name': 'White List',
+				  'state':'whiteList'},
+			  {'name': 'Black List',
+				  'state':'blackList'},
+			  {'name': 'Suspended',
+				  'state':'suspended'}
+		  ],
+		  disabled:true,
+		  placeholder: 'Select a state',
+		  displayExpr: 'name',
+		  valueExpr: vm.state,
+		  onSelectionChanged: function(e) {
+			  var selectedRows = $('#gridContainer3')[0].querySelectorAll('[aria-selected="true"]');
+			  var stateSelected = e.selectedItem.state;
+			  console.log(stateSelected);
+			  if(selectedRows[0]) {
+				  var selectedArr = [];
+				  for (var i=0; i<selectedRows.length; i++){
+					  selectedArr.push(selectedRows[i].firstChild.innerText);
+				  }
+				  console.log(selectedArr);
+
+			  }
+		  }
+	  };
+
+
+	  vm.gridStore3 = new $window.DevExpress.data.CustomStore({
+		  totalCount: function () {
+			  return 0;
+		  },
+		  load: function (loadOptions) {
+			  return vm.CampaignOptimiser.campaignDomains(vm.campId, vm.dataEnd, vm.dataStart, loadOptions.skip,
+				  loadOptions.take, loadOptions.sort, loadOptions.order,loadOptions.filter)
+			  .then(function (result) {
+				  //$localStorage.gridStore = result;
+				  return result;
+			  });
+		  }
+	  });
+
+	  vm.selectedItems = [];
+	  vm.chartOptionsFuncgrid = [];
+	  if ($localStorage.boxPlotData == null){
+		  $localStorage.boxPlotData = vm.boxPlotData;
+	  }
+
+	  vm.state='';
+	  vm.selectCell = {
+		  dataSource: [
+			  {'name': 'White List',
+				  'state':'whiteList'},
+			  {'name': 'Black List',
+				  'state':'blackList'},
+			  {'name': 'Suspended',
+				  'state':'suspended'}
+		  ],
+		  disabled:true,
+		  placeholder: 'Select a state',
+		  displayExpr: 'name',
+		  valueExpr: vm.state,
+		  onSelectionChanged: function(e) {
+			  var selectedRows = $('#gridContainer3')[0].querySelectorAll('[aria-selected="true"]');
+			  var stateSelected = e.selectedItem.state;
+			  console.log(stateSelected);
+			  if(selectedRows[0]) {
+				  var selectedArr = [];
+				  for (var i=0; i<selectedRows.length; i++){
+					  selectedArr.push(selectedRows[i].firstChild.innerText);
+				  }
+				  console.log(selectedArr);
+
+			  }
+		  }
+	  };
+
+	  vm.dataGridOptionsCampaign3 = {
+		  onInitialized: function (data) {
+			  vm.dataGridOptionsMultipleFunc3 = data.component;
+			  vm.dataGridOptionsMultipleFunc3._controllers.columns._commandColumns[1].visibleIndex = 9;
+		  },
+		  onRowPrepared: function(data) {
+			  vm.objectData = data;
+			  if(vm.objectData.rowType == 'data') {
+				  //console.log(vm.objectData);
+				  var allRowBtns = data.rowElement[0].childNodes[9];
+				  var state = data.data.state;
+				  if(state.whiteList == "true"){
+					  allRowBtns.classList.add('active-white');
+				  }
+				  if(state.blackList == "true"){
+					  allRowBtns.classList.add('active-black');
+				  }
+				  if(state.suspended == "true"){
+					  allRowBtns.classList.add('active-suspended');
+				  }
+			  }
+		  },
+		  showBorders: true,
+		  alignment: 'left',
+		  headerFilter: {
+			  visible: true
+		  },
+		  bindingOptions: {
+			  dataSource: 'CO.gridStore3',
+			  allowColumnResizing: 'true'
+		  },
+		  pager: {
+			  showPageSizeSelector: true,
+			  allowedPageSizes: [10, 30, 50],
+			  visible: true,
+			  showNavigationButtons: true
+		  },
+		  howBorders: true,
+		  showRowLines: true,
+		  columns: [
+			  {
+				  caption: LC('MAIN.CAMPAIGN.COLUMNS.PLACEMENT'),
+				  dataField: 'placement'
+			  },
+			  {
+				  caption: LC('MAIN.CAMPAIGN.COLUMNS.NETWORK'),
+				  dataField: 'NetworkPublisher'
+			  },
+			  {
+				  caption: LC('MAIN.CAMPAIGN.COLUMNS.CONV'),
+				  dataField: 'conv'
+			  }, {
+				  caption:  LC('MAIN.CAMPAIGN.COLUMNS.IMP'),
+				  dataField: 'imp'
+			  }, {
+				  caption:  LC('MAIN.CAMPAIGN.COLUMNS.CLICKS'),
+				  dataField: 'clicks'
+			  }, {
+				  caption:  LC('MAIN.CAMPAIGN.COLUMNS.CPC'),
+				  dataField: 'cpc'
+			  },
+			  {
+				  caption: LC('MAIN.CAMPAIGN.COLUMNS.CPM'),
+				  dataField: 'cpm'
+			  },
+			  {
+				  caption: LC('MAIN.CAMPAIGN.COLUMNS.CVR'),
+				  dataField: 'cvr'
+			  },
+			  {
+				  caption: LC('MAIN.CAMPAIGN.COLUMNS.CTR'),
+				  dataField: 'ctr'
+			  },
+			  {
+				  caption: 'State',
+				  width: 207,
+				  columnIndex: 16,
+				  headerCellTemplate: 'headerCellTemplate',
+				  cellTemplate: function (container, options) {
+					  $("<div />").dxButton({
+						  text: 'white list',
+						  height:30,
+						  width: 89,
+						  disabled: true,
+						  onClick: function (e) {
+							  console.log(options.data);
+							  var parentWhiteBtn = e.element[0].parentNode;
+							  console.log(parentWhiteBtn);
+							  if (parentWhiteBtn.classList.contains('active-white')) {
+								  parentWhiteBtn.classList.remove('active-white');
+								  parentWhiteBtn.classList.add('unactive-white');
+								  options.data.state.whiteList = 'false';
+							  } else if (!parentWhiteBtn.classList.contains('active-white')){
+								  parentWhiteBtn.classList.remove('unactive-white');
+								  parentWhiteBtn.classList.add('active-white');
+								  options.data.state.whiteList = 'true';
+								  options.data.state.suspended = 'false';
+								  options.data.state.blackList = 'false';
+								  parentWhiteBtn.classList.remove('active-black');
+								  parentWhiteBtn.classList.remove('active-suspended');
+							  }
+
+						  }
+					  }).addClass('white-list').appendTo(container);
+
+
+					  $("<div />").dxButton({
+						  text: 'suspended',
+						  height:30,
+						  width: 95,
+						  disabled: true,
+						  onClick: function (e) {
+							  //console.log(e);
+							  var parentWhiteBtn = e.element[0].parentNode;
+							  //console.log(parentWhiteBtn);
+							  if (parentWhiteBtn.classList.contains('active-suspended')) {
+								  parentWhiteBtn.classList.remove('active-suspended');
+								  parentWhiteBtn.classList.add('unactive-suspended');
+								  options.data.state.suspended = 'false';
+							  } else if (!parentWhiteBtn.classList.contains('active-suspended')){
+								  parentWhiteBtn.classList.remove('unactive-suspended');
+								  parentWhiteBtn.classList.add('active-suspended');
+								  options.data.state.suspended = 'true';
+								  options.data.state.whiteList = 'false';
+								  options.data.state.blackList = 'false';
+								  parentWhiteBtn.classList.remove('active-white');
+								  parentWhiteBtn.classList.remove('active-black');
+
+							  }
+
+						  }
+					  }).addClass('suspended').appendTo(container);
+				  }
+			  }
+		  ],
+		  selection: {
+			  mode: 'multiple',
+			  showCheckBoxesMode: 'always'
+		  },
+		  onSelectionChanged: function (data) {
+			  vm.selectedItems = data.selectedRowsData;
+			  vm.disabled = !vm.selectedItems.length;
+		  }
+	  };
+	  /** MULTIPLE - END **/
+
+
+
+	  /** MULTIPLE 4 - START **/
+
+	  vm.state4='';
+	  vm.selectCell4 = {
+		  dataSource: [
+			  {'name': 'White List',
+				  'state':'whiteList'},
+			  {'name': 'Black List',
+				  'state':'blackList'},
+			  {'name': 'Suspended',
+				  'state':'suspended'}
+		  ],
+		  disabled:true,
+		  placeholder: 'Select a state',
+		  displayExpr: 'name',
+		  valueExpr: vm.state,
+		  onSelectionChanged: function(e) {
+			  var selectedRows = $('#gridContainer4')[0].querySelectorAll('[aria-selected="true"]');
+			  var stateSelected = e.selectedItem.state;
+			  console.log(stateSelected);
+			  if(selectedRows[0]) {
+				  var selectedArr = [];
+				  for (var i=0; i<selectedRows.length; i++){
+					  selectedArr.push(selectedRows[i].firstChild.innerText);
+				  }
+				  console.log(selectedArr);
+
+			  }
+		  }
+	  };
+
+
+	  vm.gridStore4 = new $window.DevExpress.data.CustomStore({
+		  totalCount: function () {
+			  return 0;
+		  },
+		  load: function (loadOptions) {
+			  return vm.CampaignOptimiser.campaignDomains(vm.campId, vm.dataEnd, vm.dataStart, loadOptions.skip,
+				  loadOptions.take, loadOptions.sort, loadOptions.order,loadOptions.filter)
+			  .then(function (result) {
+				  //$localStorage.gridStore = result;
+				  return result;
+			  });
+		  }
+	  });
+
+	  vm.selectedItems = [];
+	  vm.chartOptionsFuncgrid = [];
+	  if ($localStorage.boxPlotData == null){
+		  $localStorage.boxPlotData = vm.boxPlotData;
+	  }
+
+	  vm.state='';
+	  vm.selectCell = {
+		  dataSource: [
+			  {'name': 'White List',
+				  'state':'whiteList'},
+			  {'name': 'Black List',
+				  'state':'blackList'},
+			  {'name': 'Suspended',
+				  'state':'suspended'}
+		  ],
+		  disabled:true,
+		  placeholder: 'Select a state',
+		  displayExpr: 'name',
+		  valueExpr: vm.state,
+		  onSelectionChanged: function(e) {
+			  var selectedRows = $('#gridContainer4')[0].querySelectorAll('[aria-selected="true"]');
+			  var stateSelected = e.selectedItem.state;
+			  console.log(stateSelected);
+			  if(selectedRows[0]) {
+				  var selectedArr = [];
+				  for (var i=0; i<selectedRows.length; i++){
+					  selectedArr.push(selectedRows[i].firstChild.innerText);
+				  }
+				  console.log(selectedArr);
+
+			  }
+		  }
+	  };
+
+	  vm.dataGridOptionsCampaign4 = {
+		  onInitialized: function (data) {
+			  vm.dataGridOptionsMultipleFunc4 = data.component;
+			  vm.dataGridOptionsMultipleFunc4._controllers.columns._commandColumns[1].visibleIndex = 9;
+		  },
+		  onRowPrepared: function(data) {
+			  vm.objectData = data;
+			  if(vm.objectData.rowType == 'data') {
+				  //console.log(vm.objectData);
+				  var allRowBtns = data.rowElement[0].childNodes[9];
+				  var state = data.data.state;
+				  if(state.whiteList == "true"){
+					  allRowBtns.classList.add('active-white');
+				  }
+				  if(state.blackList == "true"){
+					  allRowBtns.classList.add('active-black');
+				  }
+				  if(state.suspended == "true"){
+					  allRowBtns.classList.add('active-suspended');
+				  }
+			  }
+		  },
+		  showBorders: true,
+		  alignment: 'left',
+		  headerFilter: {
+			  visible: true
+		  },
+		  bindingOptions: {
+			  dataSource: 'CO.gridStore3',
+			  allowColumnResizing: 'true'
+		  },
+		  pager: {
+			  showPageSizeSelector: true,
+			  allowedPageSizes: [10, 30, 50],
+			  visible: true,
+			  showNavigationButtons: true
+		  },
+		  howBorders: true,
+		  showRowLines: true,
+		  columns: [
+			  {
+				  caption: LC('MAIN.CAMPAIGN.COLUMNS.PLACEMENT'),
+				  dataField: 'placement'
+			  },
+			  {
+				  caption: LC('MAIN.CAMPAIGN.COLUMNS.NETWORK'),
+				  dataField: 'NetworkPublisher'
+			  },
+			  {
+				  caption: LC('MAIN.CAMPAIGN.COLUMNS.CONV'),
+				  dataField: 'conv'
+			  }, {
+				  caption:  LC('MAIN.CAMPAIGN.COLUMNS.IMP'),
+				  dataField: 'imp'
+			  }, {
+				  caption:  LC('MAIN.CAMPAIGN.COLUMNS.CLICKS'),
+				  dataField: 'clicks'
+			  }, {
+				  caption:  LC('MAIN.CAMPAIGN.COLUMNS.CPC'),
+				  dataField: 'cpc'
+			  },
+			  {
+				  caption: LC('MAIN.CAMPAIGN.COLUMNS.CPM'),
+				  dataField: 'cpm'
+			  },
+			  {
+				  caption: LC('MAIN.CAMPAIGN.COLUMNS.CVR'),
+				  dataField: 'cvr'
+			  },
+			  {
+				  caption: LC('MAIN.CAMPAIGN.COLUMNS.CTR'),
+				  dataField: 'ctr'
+			  },
+			  {
+				  caption: 'State',
+				  width: 207,
+				  columnIndex: 16,
+				  headerCellTemplate: 'headerCellTemplate',
+				  cellTemplate: function (container, options) {
+
+
+					  $("<div />").dxButton({
+						  text: 'black list',
+						  height:30,
+						  width: 89,
+						  disabled: true,
+						  onClick: function (e) {
+							  //console.log(e);
+							  var parentWhiteBtn = e.element[0].parentNode;
+							  //console.log(parentWhiteBtn);
+							  if (parentWhiteBtn.classList.contains('active-black')) {
+								  parentWhiteBtn.classList.remove('active-black');
+								  parentWhiteBtn.classList.add('unactive-black');
+								  options.data.state.blackList = 'false';
+							  } else if (!parentWhiteBtn.classList.contains('active-black')){
+								  parentWhiteBtn.classList.remove('unactive-black');
+								  parentWhiteBtn.classList.add('active-black');
+								  options.data.state.blackList = 'true';
+								  options.data.state.suspended = 'false';
+								  options.data.state.whiteList = 'false';
+								  parentWhiteBtn.classList.remove('active-white');
+								  parentWhiteBtn.classList.remove('active-suspended');
+							  }
+
+						  }
+					  }).addClass('black-list').appendTo(container);
+
+					  $("<div />").dxButton({
+						  text: 'suspended',
+						  height:30,
+						  width: 95,
+						  disabled: true,
+						  onClick: function (e) {
+							  //console.log(e);
+							  var parentWhiteBtn = e.element[0].parentNode;
+							  //console.log(parentWhiteBtn);
+							  if (parentWhiteBtn.classList.contains('active-suspended')) {
+								  parentWhiteBtn.classList.remove('active-suspended');
+								  parentWhiteBtn.classList.add('unactive-suspended');
+								  options.data.state.suspended = 'false';
+							  } else if (!parentWhiteBtn.classList.contains('active-suspended')){
+								  parentWhiteBtn.classList.remove('unactive-suspended');
+								  parentWhiteBtn.classList.add('active-suspended');
+								  options.data.state.suspended = 'true';
+								  options.data.state.whiteList = 'false';
+								  options.data.state.blackList = 'false';
+								  parentWhiteBtn.classList.remove('active-white');
+								  parentWhiteBtn.classList.remove('active-black');
+
+							  }
+
+						  }
+					  }).addClass('suspended').appendTo(container);
+				  }
+			  }
+		  ],
+		  selection: {
+			  mode: 'multiple',
+			  showCheckBoxesMode: 'always'
+		  },
+		  onSelectionChanged: function (data) {
+			  vm.selectedItems = data.selectedRowsData;
+			  vm.disabled = !vm.selectedItems.length;
+		  }
+	  };
+	  /** MULTIPLE - END **/
 
   }
 })();

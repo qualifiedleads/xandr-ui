@@ -77,7 +77,13 @@
         "ORIGINAL": "Original",
         "OPTIMISED": "Optimised (Whitelist)",
         "RULES": "Rules for All Domains:",
-        "SPENDS": "if an app/domain spends more than"
+        "SPENDS": "if an app/domain spends more than",
+	      "CONVERSIONS1": "and conversions are 0 then",
+				"APP": "if an app/domain has more than",
+	      "CONVERSIONS2": "imp. and conversions are 0 then",
+	      "UNDISCLOSED": "if an app/domain is marked as \"Undisclosed\"",
+	      "DOMAIN-RULES": "Domain-specific rules:",
+	      "CURRENT-LIST": "Current list of placements - Live now",
       }
 		})
 

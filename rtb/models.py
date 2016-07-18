@@ -41,6 +41,19 @@ THOUSAND_SEPARATOR = (
     ('period', 'period')
 )
 
+class FrameworkUser(models.Model):
+    username = models.TextField(null=True, blank=True, db_index=True)
+    password = models.TextField(null=True, blank=True)
+    email = models.TextField(null=True, blank=True, db_index=True)
+    first_name = models.TextField(null=True, blank=True)
+    last_name = models.TextField(null=True, blank=True)
+    permission = models.TextField(null=True, blank=True, db_index=True)
+    apnexusname = models.TextField(null=True, blank=True, db_index=True)
+    apnexus_user = models.OneToOneField(User)
+
+    class Meta:
+        db_table = "framework_user"
+
 
 class User(models.Model):
     #https://wiki.appnexus.com/display/api/User+Service

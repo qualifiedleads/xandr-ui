@@ -198,11 +198,12 @@ def test_foreign_keys(objects_to_save, rows):
         if not ids_to_load:continue
         saved = nexus_get_objects_by_id(token,entity,ids_to_load)
         if len(saved)!=len(ids_to_load):
-            print "Auto-create of depended rows in %s failed"%entity
+            print "Auto-fetch of depended rows in %s completed partially"%entity
             print "%d rows saved (to save: %d)"%(len(saved),len(ids_to_load))
         ids_to_load -= saved
         if ids_to_load:
             # manual create of objects
+            print 'Some objects will created as stubs'
             key_name= k + '_name'
             try:
                 f=entity._meta.get_field('name')

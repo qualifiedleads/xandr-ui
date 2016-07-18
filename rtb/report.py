@@ -305,7 +305,7 @@ def nexus_get_objects(
                 count = response["count"]
                 if count > 10000:
                     print "There is too many records (%d)" % count
-                    print "Entries will be uploaded later, on repor&t loading"
+                    print "Entries will be uploaded later, on report loading"
                     return objects_in_db
                 cur_records = 0
             if isinstance(pack_of_objects, list):
@@ -344,6 +344,14 @@ def nexus_get_objects(
                     if not m:
                         return False
                     key_field, key_value, table_name = m.groups()
+                    if key_field=='id':
+                        print '-' * 79
+                        print '!' * 79
+                        print 'Try of null-ing id! Previos error was ', e
+                        print '-' * 79
+                        time.sleep(15)
+                        continue
+
                     fk = foreign_keys[table_name] # TODO what on multiple foreign keys to same table - ???
                     val = getattr(object_db, key_field)
                     t = type(val)

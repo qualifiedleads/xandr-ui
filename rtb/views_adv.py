@@ -397,7 +397,7 @@ Get single campaign details by domains
 
 
 @api_view()
-def campaignDetails(request, id):
+def campaignDetails(request):
     """
 Get single campaign details for given period 
 
@@ -419,28 +419,43 @@ Get single campaign details for given period
 
     """
     return Response({
-        'all': [{
-            'section': "Android",
-            'data': 60
-        }, {
-            'section': "iOs",
-            'data': 30
-        }, {
-            'section': "Windows",
-            'data': 10
-        }],
-        'conversions': [{
-            'section': "Android",
-            'data': 23
-        }, {
-            'section': "iOs",
-            'data': 72
-        }, {
-            'section': "Windows",
-            'data': 5
-        }]
+        'all': [
+            {
+                'section': "CNN.com",
+                'data': 42,
+            },
+            {
+                'section': "Hidden",
+                'data': 9,
+            },
+            {
+                'section': "BBC.com",
+                'data': 38,
+            },
+            {
+                'section': "msn.com",
+                'data': 11,
+            }
+        ],
+        'conversions': [
+            {
+                'section': "CNN.com",
+                'data': 40,
+            },
+            {
+                'section': "Hidden",
+                'data': 12,
+            },
+            {
+                'section': "BBC.com",
+                'data': 8,
+            },
+            {
+                'section': "msn.com",
+                'data': 40,
+            }
+        ]
     })
-
 
 @api_view()
 def bucketsCPA(request):

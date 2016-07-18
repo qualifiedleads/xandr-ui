@@ -322,6 +322,7 @@ def load_depending_data(token):
                                             {},
                                             Advertiser)
             print 'There is %d advertisers' % len(advertisers)
+            advertisers = filter(lambda x: x.id>0, advertisers)
 
             for adv in advertisers:
                 # Get all of the profiles for the advertiser
@@ -411,8 +412,8 @@ def load_depending_data(token):
             print 'There is %d sites ' % len(sites)
             # Get all publishers:
             publishers = nexus_get_objects(token,
-                                           {},
-                                           Publisher, False)
+                                           {"id__gt":0},
+                                           Publisher, False,{})
             print 'There is %d publishers ' % len(publishers)
             # Get all yield management profiles:
             # loop ?

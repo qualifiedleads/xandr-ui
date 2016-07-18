@@ -87,6 +87,7 @@
       })
         .then(function (res) {
           return res.data;
+          
         });
     }
     function bucketsCpa(id, from, to) {

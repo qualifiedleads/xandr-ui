@@ -80,6 +80,12 @@
             });
           }
         }
+      })
+      .state('admin', {
+        url: '/admin/:id',
+        templateUrl: 'app/admin/admin.html',
+        controller: 'AdminController',
+        controllerAs: 'admin'
       });
 
     $urlRouterProvider.otherwise('/');

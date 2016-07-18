@@ -5,7 +5,7 @@ angular
   .controller('RootController', RootController);
 
 /** @ngInject */
-function RootController($window, $state, $translate, $translateLocalStorage) {
+function RootController($window, $state, $translate, $translateLocalStorage,$cookies) {
   var vm = this;
 
   $window.Globalize.culture($translateLocalStorage.get('TRANSLATE_LANG_KEY'));
@@ -14,7 +14,13 @@ function RootController($window, $state, $translate, $translateLocalStorage) {
     $window.Globalize.culture(langKey);
     $state.reload();
   };
-  
 
+  function logout() {
+    $cookies.remove('role');
+    $cookies.remove('token');
+    $state.go('auth');
+  }
+
+  vm.logout = logout;
 
 }

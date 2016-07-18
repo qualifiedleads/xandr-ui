@@ -70,7 +70,8 @@
 				}
 			},
 			"CAMP": {
-				"NAME":"Campaign"
+				"NAME":"Campaign",
+        "GO-OPTIMISER": "Go to the Optimiser"
 			},
       "CO":{
         "NAME":"Campaign optimiser",
@@ -84,6 +85,9 @@
 	      "UNDISCLOSED": "if an app/domain is marked as \"Undisclosed\"",
 	      "DOMAIN-RULES": "Domain-specific rules:",
 	      "CURRENT-LIST": "Current list of placements - Live now",
+	      "CAMPAIGN-HOME": "Campaign Home",
+	      "OPTIMIZER-VIEW": "Optimizer View",
+	      "SUSPEND-LIST": "Suspend list"
       }
 		})
 

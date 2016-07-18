@@ -318,11 +318,9 @@ def load_depending_data(token):
         cd = get_current_time()
         with transaction.atomic():
             advertisers = nexus_get_objects(token,
-
-                                            {},
-                                            Advertiser)
+                                            {"id__gt": 0},
+                                            Advertiser, False, {})
             print 'There is %d advertisers' % len(advertisers)
-            advertisers = filter(lambda x: x.id>0, advertisers)
 
             for adv in advertisers:
                 # Get all of the profiles for the advertiser

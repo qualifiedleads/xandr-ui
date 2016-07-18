@@ -9,8 +9,8 @@ from . import views, views_rest, views_adv
 router = routers.DefaultRouter()
 #
 # router.register('raw', views.NetworkAnalyticsRawViewSet)
-# router.register('users', views.UsersViewSet)
 router.register('advertisers', views_rest.AdvertiserViewSet)
+router.register('user', views.UserViewSet)
 
 urlpatterns = [
     url(r'^', include(router.urls)),

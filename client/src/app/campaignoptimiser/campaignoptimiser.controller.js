@@ -12,6 +12,29 @@
     vm.campName = Campaign.campaign;
     vm.campId = Campaign.id;
     var LC = $translate.instant;
+    /**
+     *  Top navigator
+     * */
+    vm.navCamp = {
+      text: LC('CO.CAMPAIGN-HOME'),
+      onClick: function () {
+        $state.go('home.campaign.details',{"id":vm.campId});
+      }
+    };
+
+    vm.navView = {
+      text: LC('CO.OPTIMIZER-VIEW'),
+      onClick: function () {
+        $state.go('home.campaignoptimiser',{"id":vm.campId});
+      }
+    };
+
+    vm.navList = {
+      text: LC('CO.SUSPEND-LIST'),
+      onClick: function () {
+        $state.go('CO.campaignoptimiser',{"id":vm.campId});
+      }
+    };
 
     /** DATE PIKER - START **/
     if ($localStorage.dataStart == null && $localStorage.dataEnd == null ){

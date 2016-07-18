@@ -27,6 +27,9 @@
         wrapleft.classList.remove('left-menu-close');
         wrapmain.style.width = '';
        }
-    }
+    };
+
+
+
   }
 })();

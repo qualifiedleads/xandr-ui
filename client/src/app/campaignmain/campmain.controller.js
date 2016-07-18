@@ -29,7 +29,7 @@
     }
 
     vm.optimiser = {
-      text: 'Go to the Optimiser',
+      text: LC('CAMP.GO-OPTIMISER'),
       onClick: function () {
         $state.go('home.campaignoptimiser',{"id":vm.campId});
       }

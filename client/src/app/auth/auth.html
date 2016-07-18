@@ -1,4 +1,5 @@
 <div class="location">
+<div class="location-language">
   <a ng-click="root.changeLang('ru')">
     <i class="fa fa-globe fa-fw"></i> Русский
   </a>
@@ -6,7 +7,11 @@
   <a ng-click="root.changeLang('en')">
     <i class="fa fa-globe fa-fw"></i> English
   </a>
+  </div>
+  <input type="button" class="btn btn-primary admin-btn hide" ng-click="auth.goToAdminPanel()" value="admin panel">
+  <input type="button" class="btn btn-danger admin-btn hide" ng-click="auth.logout()" value="Log out">
 </div>
+
 <div class="authorization container">
 
   <div class="row">
@@ -15,30 +20,31 @@
 
         <!-- insert the name -->
         <div class="col-sm-10">
-          <div class="form-group" ng-class="{ 'has-error' : auth.userForm.login.$invalid && !auth.userForm.login.$pristine }">
+          <div class="form-group" ng-class="{ 'has-error' : auth.userForm.email.$invalid && !auth.userForm.email.$pristine }">
             <i class="fa fa-user fa-2x icon-for-user"></i>
-            <input type="text" name="login" class="form-control input-item-login"  placeholder="Enter your login" ng-model="auth.login.name" required>
-            <p ng-show="auth.userForm.login.$invalid && !auth.userForm.login.$pristine" class="help-block">Your login is required.</p>
+            <input type="email" name="email" class="form-control input-item-login"  placeholder="Enter your email" ng-model="auth.user.email" required>
+            <p ng-show="auth.userForm.email.$invalid && !auth.userForm.email.$pristine && auth.userForm.email.$error.required" class="help-block">Your email is required.</p>
+            <p ng-show="!auth.userForm.email.$error.required && auth.userForm.email.$invalid && !auth.userForm.email.$pristine" class="help-block">Your email is not valid.</p>
           </div>
         </div>
         <div class="col-sm-10">
           <div class="form-group" ng-class="{ 'has-error' : auth.userForm.password.$invalid && !auth.userForm.password.$pristine }">
             <i class="fa fa-unlock fa-2x icon-for-user"></i>
-            <input type="password" name="password" class="input-item-password form-control input-item-password"  ng-model="auth.password.name" placeholder="Enter your password" required max-length="10" min-length="4">
+            <input type="password" name="password" class="input-item-password form-control input-item-password"  ng-model="auth.user.password" placeholder="Enter your password" required max-length="10" min-length="4">
             <p ng-show="auth.userForm.password.$invalid && !auth.userForm.password.$pristine" class="help-block">Your password is required.</p>
           </div>
         </div>
-        <div class="form-group">
-          <div class="col-sm-10">
-            <select class="select-user-type form-control" title="user">
-              <option value="select" disabled selected>Select the type of user</option>
-              <option>admin</option>
-              <option>admin read-only</option>
-              <option>user</option>
-              <option>user read-only</option>
-            </select>
-          </div>
-        </div>
+        <!--<div class="form-group">-->
+          <!--<div class="col-sm-10">-->
+            <!--<select ng-model="auth.user.permission" class="select-user-type form-control" title="user">-->
+              <!--<option value="" disabled selected>Select the type of user</option>-->
+              <!--<option value="adminfull">admin full</option>-->
+              <!--<option value="adminread">admin read-only</option>-->
+              <!--<option value="userfull">user full</option>-->
+              <!--<option value="userread">user read-only</option>-->
+            <!--</select>-->
+          <!--</div>-->
+        <!--</div>-->
         <div class="form-group">
           <div class="col-sm-10">
             <button type="submit" class="submitting-button btn btn-success">Submit</button>

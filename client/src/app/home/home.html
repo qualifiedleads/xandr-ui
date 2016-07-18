@@ -22,6 +22,7 @@
       </button>
       <a href="#" class="navbar-brand" > {{ 'INDEX.ADVERTISER_TITLE' | translate }} {{ home.advertiser.name }}</a>
       <div class="location">
+        <div class="location-language">
         <a ng-click="root.changeLang('ru')">
           <i class="fa fa-globe fa-fw"></i> Русский
         </a>
@@ -29,6 +30,8 @@
         <a ng-click="root.changeLang('en')">
           <i class="fa fa-globe fa-fw"></i> English
         </a>
+          </div>
+        <input type="button" class="btn btn-danger admin-btn" ng-click="root.logout()" value="Log out">
       </div>
         </div>
       </div>

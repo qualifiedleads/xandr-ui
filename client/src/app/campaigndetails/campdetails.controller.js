@@ -656,7 +656,8 @@
       },
       creativeId: {
         btn:'creative_id',
-        header:'creative_id'},
+        header:'creative_id'
+      },
       creativeSize: {
         btn:'creative_size',
         header:'creative_size'
@@ -684,13 +685,9 @@
       device: {
         btn:'device',
         header:'device'
-      },
-      seller: {
-        btn:'seller',
-        header:'Seller'
       }
     };
-    vm.pieChartHeader = $localStorage.pieChartHeader || vm.ctrlBbtns.os.header;
+    vm.pieChartHeader = $localStorage.pieChartHeader || vm.ctrlBbtns.placement.header;
     vm.btnsNodesArray = $('.label-container')[0].children;
 
 
@@ -722,6 +719,7 @@
       $localStorage.pieChartHeader = vm.pieChartHeader;
       $event.currentTarget.classList.add('nav-btn-active');
 
+      $state.reload();
     };
 
     if(!vm.targetCpa) {
@@ -873,32 +871,87 @@
     };
 
 
+    vm.columnsPlacement = [
+      {
+        caption: 'sellerid',
+        dataField: 'sellerid'
+      },
+      {
+        caption: 'sellername',
+        dataField: 'sellername'
+      },
+      {
+        caption: 'placementid',
+        dataField: 'placementid'
+      }, {
+        caption:  'placementname',
+        dataField: 'placementname'
+      }
+    ];
+
+    vm.columnsCreativeId =  [{
+      caption: 'sellername',
+      dataField: 'sellername'
+    }];
+    vm.columnsCreativeSize =  [{
+      caption: 'sellername',
+      dataField: 'sellername'
+    }];
+    vm.columnsViewability =  [{
+      caption: 'sellername',
+      dataField: 'sellername'
+    }];
+    vm.columnsOs =  [{
+      caption: 'sellername',
+      dataField: 'sellername'
+    }];
+    vm.columnsCarrier =  [{
+      caption: 'sellername',
+      dataField: 'sellername'
+    }];
+    vm.columnsNetworkSeller =  [{
+      caption: 'sellername',
+      dataField: 'sellername'
+    }];
+    vm.columnsConnectionType =  [{
+      caption: 'sellername',
+      dataField: 'sellername'
+    }];
+    vm.columnsDevice =  [{
+      caption: 'sellername',
+      dataField: 'sellername'
+    }];
+
+    if ($localStorage.selectedSection == "Placement") {
+      vm.columnsSelected = vm.columnsPlacement;
+    } else if ($localStorage.selectedSection == "creative_id") {
+      vm.columnsSelected = vm.columnsCreativeId;
+    }else if ($localStorage.selectedSection == "creative_size") {
+      vm.columnsSelected = vm.columnsCreativeSize;
+    }else if ($localStorage.selectedSection == "viewability") {
+      vm.columnsSelected = vm.columnsViewability;
+    }else if ($localStorage.selectedSection == "OS") {
+      vm.columnsSelected = vm.columnsOs;
+    }else if ($localStorage.selectedSection == "carrier") {
+      vm.columnsSelected = vm.columnsCarrier;
+    }else if ($localStorage.selectedSection == "network(seller)") {
+      vm.columnsSelected = vm.columnsNetworkSeller;
+    }else if ($localStorage.selectedSection == "connection_type") {
+      vm.columnsSelected = vm.columnsConnectionType;
+    }else if ($localStorage.selectedSection == "device") {
+      vm.columnsSelected = vm.columnsDevice;
+    }
+
     vm.cpaBucketFirst = {
       showBorders: true,
       alignment: 'left',
       bindingOptions: {
         dataSource: 'campdetails.cpaBucketRequestFirst'
-        //allowColumnResizing: 'true'
+
       },
       howBorders: true,
       showRowLines: true,
-      columns: [
-        {
-          caption: 'sellerid',
-          dataField: 'sellerid'
-        },
-        {
-          caption: 'sellername',
-          dataField: 'sellername'
-        },
-        {
-          caption: 'placementid',
-          dataField: 'placementid'
-        }, {
-          caption:  'placementname',
-          dataField: 'placementname'
-        }
-      ]
+      columns: vm.columnsSelected
     };
 
     vm.cpaBucketSecond = {
@@ -910,23 +963,7 @@
       },
       howBorders: true,
       showRowLines: true,
-      columns: [
-        {
-          caption: 'sellerid',
-          dataField: 'sellerid'
-        },
-        {
-          caption: 'sellername',
-          dataField: 'sellername'
-        },
-        {
-          caption: 'placementid',
-          dataField: 'placementid'
-        }, {
-          caption:  'placementname',
-          dataField: 'placementname'
-        }
-      ]
+      columns: vm.columnsSelected
     };
 
 
@@ -939,23 +976,7 @@
       },
       howBorders: true,
       showRowLines: true,
-      columns: [
-        {
-          caption: 'sellerid',
-          dataField: 'sellerid'
-        },
-        {
-          caption: 'sellername',
-          dataField: 'sellername'
-        },
-        {
-          caption: 'placementid',
-          dataField: 'placementid'
-        }, {
-          caption:  'placementname',
-          dataField: 'placementname'
-        }
-      ]
+      columns: vm.columnsSelected
     };
 
 
@@ -968,23 +989,7 @@
       },
       howBorders: true,
       showRowLines: true,
-      columns: [
-        {
-          caption: 'sellerid',
-          dataField: 'sellerid'
-        },
-        {
-          caption: 'sellername',
-          dataField: 'sellername'
-        },
-        {
-          caption: 'placementid',
-          dataField: 'placementid'
-        }, {
-          caption:  'placementname',
-          dataField: 'placementname'
-        }
-      ]
+      columns: vm.columnsSelected
     };
 
 

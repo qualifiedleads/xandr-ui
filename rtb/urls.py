@@ -10,7 +10,7 @@ router = routers.DefaultRouter()
 #
 # router.register('raw', views.NetworkAnalyticsRawViewSet)
 router.register('advertisers', views_rest.AdvertiserViewSet)
-router.register('user', views.UserViewSet)
+router.register('user', views_rest.UsersViewSet)
 
 urlpatterns = [
     url(r'^', include(router.urls)),

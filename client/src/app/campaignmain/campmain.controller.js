@@ -3,10 +3,10 @@
 
   angular
     .module('pjtLayout')
-    .controller('CampaignControllerMain', CampaignControllerMain);
+    .controller('CampaignMainController', CampaignMainController);
 
   /** @ngInject */
-  function CampaignControllerMain($window, $state, $localStorage, $translate, CampMain, Campaign) {
+  function CampaignMainController($window, $state, $localStorage, $translate, CampMain, Campaign) {
     var vm = this;
     vm.Camp = CampMain;
     vm.multipleTotalCount = 0;
@@ -282,7 +282,7 @@
         callSelectedRangeChanged: "onMoving"
       },
       onSelectedRangeChanged: function (e) {
-        var zoomedChart = $("#zoomedContainerFirst #zoomedChartFirst").dxChart("instance");
+        var zoomedChart = $window.$("#zoomedContainerFirst #zoomedChartFirst").dxChart("instance");
         zoomedChart.zoomArgument(e.startValue, e.endValue);
       }
     };
@@ -299,7 +299,6 @@
       $localStorage.checkCharCamp[seriesShortName] = selected;
       vm.gridCharts = $window.$('#zoomedChartFirst').dxChart('instance');
       vm.rangeChartFirst = $window.$('#rangeChartFirst').dxRangeSelector('instance');
-      console.log(rangeChartFirst);
       if (selected) {
         $localStorage.checkCharCamp.seriesShortName = true;
         vm.gridCharts.getSeriesByName(seriesName).show();
@@ -529,7 +528,7 @@
         snapToTicks: false
       },
       onSelectedRangeChanged: function (e) {
-        var zoomedChart = $("#zoomedContainerSecond #zoomedChartSecond").dxChart("instance");
+        var zoomedChart = $window.$("#zoomedContainerSecond #zoomedChartSecond").dxChart("instance");
         zoomedChart.zoomArgument(new Date(e.startValue), new Date(e.endValue));
       }
     };
@@ -560,17 +559,13 @@
       placeholder: 'Select a state',
       displayExpr: 'name',
       valueExpr: vm.state,
-      onSelectionChanged: function(e) {
-        var selectedRows = $('#gridContainer2')[0].querySelectorAll('[aria-selected="true"]');
-        var stateSelected = e.selectedItem.state;
-        console.log(stateSelected);
+      onSelectionChanged: function() {
+        var selectedRows = $window.$('#gridContainer2')[0].querySelectorAll('[aria-selected="true"]');
         if(selectedRows[0]) {
           var selectedArr = [];
           for (var i=0; i<selectedRows.length; i++){
             selectedArr.push(selectedRows[i].firstChild.innerText);
           }
-          console.log(selectedArr);
-
         }
       }
     };
@@ -655,15 +650,13 @@
           columnIndex: 16,
           headerCellTemplate: 'headerCellTemplate',
           cellTemplate: function (container, options) {
-            $("<div />").dxButton({
+            $window.$("<div />").dxButton({
               text: 'white list',
               height:30,
               width: 89,
               disabled: true,
               onClick: function (e) {
-                console.log(options.data);
                 var parentWhiteBtn = e.element[0].parentNode;
-                console.log(parentWhiteBtn);
                 if (parentWhiteBtn.classList.contains('active-white')) {
                   parentWhiteBtn.classList.remove('active-white');
                   parentWhiteBtn.classList.add('unactive-white');
@@ -681,7 +674,7 @@
               }
             }).addClass('white-list').appendTo(container);
 
-            $("<div />").dxButton({
+            $window.$("<div />").dxButton({
               text: 'black list',
               height:30,
               width: 89,
@@ -707,7 +700,7 @@
               }
             }).addClass('black-list').appendTo(container);
 
-            $("<div />").dxButton({
+            $window.$("<div />").dxButton({
               text: 'suspended',
               height:30,
               width: 95,

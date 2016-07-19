@@ -417,16 +417,17 @@
     vm.updateCharts = function (seriesName, seriesShortName, selected) {
       var gridCharts = {};
       $localStorage.checkChart[seriesShortName] = selected;
+      var i = 0;
       if (selected) {
         vm.chartOptionsFunc.getSeriesByName(seriesName).show();
         gridCharts = $window.$('.chartMulti');
-        for(var i = 0; i < gridCharts.length; i++) {
+        for(i = 0; i < gridCharts.length; i++) {
           $window.$(gridCharts[i]).dxChart('instance').getSeriesByName(seriesName).show();
         }
       } else {
         vm.chartOptionsFunc.getSeriesByName(seriesName).hide();
         gridCharts = $window.$('.chartMulti');
-        for(var i = 0; i < gridCharts.length; i++) {
+        for(i = 0; i < gridCharts.length; i++) {
           $window.$(gridCharts[i]).dxChart('instance').getSeriesByName(seriesName).hide();
         }
       }

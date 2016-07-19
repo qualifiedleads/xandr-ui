@@ -2,44 +2,14 @@
   'use strict';
 
   angular
-    .module('pjtLayout')
-    .controller('AdminController', AdminController);
+  .module('pjtLayout')
+  .controller('AdminController', AdminController);
 
   /** @ngInject */
   function AdminController($window, $state, $localStorage, $translate, $cookies,  AdminService) {
     var vm = this;
-    var LC = $translate.instant;
+    //var LC = $translate.instant;
     vm.Admin = AdminService;
-
-
-    vm.admin = {
-      login:"admin",
-      password:"admin"
-    };
-
-/*    vm.appNexusUsers =  [{
-      "id": "1",
-      "login":"cnm@gmail.com",
-      "name":"CNM"
-    },{
-      "id": "2",
-      "login":"BBC@gmail.com",
-      "name":"BBC"
-    },{
-      "id": "3",
-      "login":"Discovery@gmail.com",
-      "name":"Discovery"
-    },{
-      "id": "4",
-      "login":"HTB@gmail.com",
-      "name":"HTB"
-    },{
-      "id": "5",
-      "login":"ICTV@gmail.com",
-      "name":"ICTV"
-    }];*/
-
-
 
     function goToMainPage () {
       $state.go('auth');
@@ -51,15 +21,14 @@
       },
       load: function () {
         return vm.Admin.usersList()
-          .then(function (result) {
-            //$localStorage.usersList = result;
-            return result;
-          });
+        .then(function (result) {
+          return result;
+        });
+      },
+      remove: function (user) {
+        return vm.Admin.usersRemove(user.id);
       }
     });
-/*    if (!$localStorage.usersList){
-      $localStorage.usersList = vm.users;
-    }*/
 
     vm.listOfUsers = {
       showBorders: true,
@@ -81,10 +50,28 @@
         {
           caption: 'email',
           dataField: 'email'
-        },  {
-          caption:  'appnexus',
-          dataField: 'name'
-        }, {
+        },
+        {
+          caption: 'username',
+          dataField: 'username'
+        },
+        {
+          caption: 'first_name',
+          dataField: 'first_name'
+        },
+        {
+          caption: 'last_name',
+          dataField: 'last_name'
+        },
+        {
+          caption:  'apnexusname',
+          dataField: 'apnexusname'
+        },
+        {
+          caption:  'apnexus user id',
+          dataField: 'apnexus_user'
+        },
+        {
           caption:  'permission',
           dataField: 'permission'
         }
@@ -97,9 +84,9 @@
       },
       load: function () {
         return vm.Admin.appNexusUser()
-          .then(function (result) {
-            return result;
-          });
+        .then(function (result) {
+          return result;
+        });
       }
     });
 
@@ -109,27 +96,33 @@
         value: 'admin.selectedService'
       },
       placeholder:'Select the appnexus user',
-      displayExpr: 'name'
+      displayExpr: 'username'
     };
 
 
 
     function submitForm(user) {
-      //$localStorage.usersList.push(user);
+      if (vm.selectedService) {
+        user.apnexus_user = vm.selectedService.id;
+        user.apnexusname = vm.selectedService.username;
+      } else {
+        user.apnexus_user = null;
+        user.apnexusname = null;
+      }
+      if ( user.permission == 'adminfull' || user.permission == 'adminread' ){
+        user.apnexus_user = null;
+      }
+
+      return vm.Admin.addUser(user)
+      .then(function () {
         vm.user = {};
-        vm.userForm.$setPristine(gulp);
-        console.log(vm.selectedService);
-        $('#usersList').dxDataGrid('instance').refresh();
-    }
+        vm.userForm.$setPristine();
+        $window.$('#usersList').dxDataGrid('instance').refresh();
+      });
 
-    function logout() {
-      $cookies.remove('role');
-      $cookies.remove('token');
-      $state.go('auth');
     }
 
 
-    vm.logout = logout;
     vm.submitForm = submitForm;
     vm.goToMainPage = goToMainPage;
   }

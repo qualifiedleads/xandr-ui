@@ -6,11 +6,11 @@
     .run(runBlock);
 
   /** @ngInject */
-  function runBlock($log, $state,$http,$rootScope,$stateParams,$localStorage,$window, $cookies) {
-    $rootScope.$state = $state;
+  function runBlock($log) {
+    /*$rootScope.$state = $state;
     $rootScope.$stateParams = $stateParams;
     $rootScope.$on('$stateChangeStart', function (event, toState) {
-/*      $http.get("/api/user/me")
+      $http.get("/api/user/me")
       .catch(function (error) {
         console.log(error.status);
         if (error.status == 401) {
@@ -47,8 +47,6 @@
           });
         }
       }*/
-    })
-
     $log.debug('runBlock end');
   }
 

@@ -31,7 +31,8 @@
           <i class="fa fa-globe fa-fw"></i> English
         </a>
           </div>
-        <input type="button" class="btn btn-danger admin-btn" ng-click="root.logout()" value="Log out">
+        <input type="button" class="btn btn-danger admin-btn"  ng-click="root.logout()" value="Log out">
+        <input type="button" id="homeAdm" ng-show="root.isEven" class="btn btn-primary admin-btn" ng-click="root.goToAdminPanel()" value="admin panel">
       </div>
         </div>
       </div>

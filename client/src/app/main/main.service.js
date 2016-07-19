@@ -17,7 +17,7 @@
 			})
 				.then(function (res) {
 					for(var index in res.data.statistics) {
-						var loc = $translateLocalStorage.get('TRANSLATE_LANG_KEY');
+						/*var loc = $translateLocalStorage.get('TRANSLATE_LANG_KEY');*/
 						res.data.statistics[index].cvr = +parseFloat(res.data.statistics[index].cvr).toFixed(4);
 						res.data.statistics[index].ctr = +parseFloat(res.data.statistics[index].ctr).toFixed(4);
 						res.data.statistics[index].cpc = +parseFloat(res.data.statistics[index].cpc).toFixed(4);

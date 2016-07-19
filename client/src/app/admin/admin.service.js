@@ -12,70 +12,52 @@
     function appNexusUser() {
       return $http({
         method: 'GET',
-        url: '/api/v1/'
+        url: '/api/v1/appnexus/user'
       })
         .then(function (res) {
-          //return res.data;
-          return  [{
-            "id": "1",
-            "login":"cnm@gmail.com",
-            "name":"CNM"
-          },{
-            "id": "2",
-            "login":"BBC@gmail.com",
-            "name":"BBC"
-          },{
-            "id": "3",
-            "login":"Discovery@gmail.com",
-            "name":"Discovery"
-          },{
-            "id": "4",
-            "login":"HTB@gmail.com",
-            "name":"HTB"
-          },{
-            "id": "5",
-            "login":"ICTV@gmail.com",
-            "name":"ICTV"
-          }];
+          return res.data;
         });
     }
 
     function usersList() {
       return $http({
         method: 'GET',
-        url: '/api/v1/'
+        url: '/api/v1/user/'
       })
         .then(function (res) {
-          //return res.data;
-          return  [{
-            "id": "1",
-            "email":"cnm@gmail.com",
-            "permission":"11111",
-            "name":"CNM"
-          },{
-            "id": "2",
-            "email":"BBC@gmail.com",
-            "permission":"11111",
-            "name":"BBC"
-          },{
-            "id": "3",
-            "email":"Discovery@gmail.com",
-            "permission":"11111",
-            "name":"Discovery"
-          },{
-            "id": "4",
-            "email":"HTB@gmail.com",
-            "permission":"11111",
-            "name":"HTB"
-          },{
-            "id": "5",
-            "email":"ICTV@gmail.com",
-            "permission":"11111",
-            "name":"ICTV"
-          }];
+          return res.data;
+
         });
     }
 
+    function addUser(user) {
+      return $http({
+        method: 'POST',
+        url: '/api/v1/user/',
+        data: user
+      })
+        .then(function (res) {
+          return res.data;
+
+        });
+    }
+
+		function usersRemove(id) {
+      return $http({
+        method: 'DELETE',
+        url: '/api/v1/user/' + id
+      })
+      .then(function (response) {
+        return response.data;
+      })
+      .catch(function () {
+        //ErrorMessages.process(response);
+        return [];
+      });
+    }
+
+		_this.usersRemove = usersRemove;
+		_this.addUser = addUser;
 		_this.appNexusUser = appNexusUser;
 		_this.usersList = usersList;
 	}

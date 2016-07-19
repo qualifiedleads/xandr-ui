@@ -35,12 +35,12 @@
         views: {
           details: {
             templateUrl: 'app/campaignmain/campmain.html',
-            controller: 'CampaignControllerMain',
+            controller: 'CampaignMainController',
             controllerAs: 'campmain',
             resolve: {
               Campaign:  function(CampMain,$stateParams, $state){
                 if (!$stateParams.id) {
-                  $state.go(home.main)
+                  $state.go('home.main');
                 }
                 return CampMain.nameCampaigns($stateParams.id).then(function (res) {
                   return res
@@ -50,12 +50,12 @@
           },
           info: {
             templateUrl: 'app/campaigndetails/campdetails.html',
-            controller: 'CampaignDetails',
+            controller: 'CampaignDetailsController',
             controllerAs: 'campdetails',
             resolve: {
               Campaign:  function(CampMain,$stateParams, $state){
                 if (!$stateParams.id) {
-                  $state.go(home.main)
+                  $state.go('home.main');
                 }
                 return CampMain.nameCampaigns($stateParams.id).then(function (res) {
                   return res
@@ -73,7 +73,7 @@
         resolve: {
           Campaign:  function(CampMain,$stateParams, $state){
             if (!$stateParams.id) {
-              $state.go(home.main)
+              $state.go('home.main');
             }
             return CampMain.nameCampaigns($stateParams.id).then(function (res) {
               return res
@@ -82,7 +82,7 @@
         }
       })
       .state('admin', {
-        url: '/admin/:id',
+        url: '/admin/',
         templateUrl: 'app/admin/admin.html',
         controller: 'AdminController',
         controllerAs: 'admin'

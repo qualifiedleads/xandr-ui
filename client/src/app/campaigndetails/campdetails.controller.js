@@ -3,10 +3,10 @@
 
   angular
     .module('pjtLayout')
-    .controller('CampaignDetails', CampaignDetails);
+    .controller('CampaignDetailsController', CampaignDetailsController);
 
   /** @ngInject */
-  function CampaignDetails($window, $state, $localStorage, $translate, CampDetails, Campaign) {
+  function CampaignDetailsController($window, $state, $localStorage, $translate, CampDetails, Campaign) {
     var vm = this;
     vm.Camp = CampDetails;
     vm.multipleTotalCount = 0;
@@ -69,18 +69,6 @@
       }
     });
 
-    vm.boxPlotStore = new $window.DevExpress.data.CustomStore({
-      totalCount: function () {
-        return 0;
-      },
-      load: function () {
-        return vm.Camp.cpaReport(vm.campId, vm.dataStart, vm.dataEnd)
-          .then(function (result) {
-            return result;
-          });
-      }
-    });
-
 
     vm.gridStore = new $window.DevExpress.data.CustomStore({
       totalCount: function () {
@@ -101,7 +89,7 @@
         return 0;
       },
       load: function () {
-        return vm.Camp.campaignDetails(vm.dataStart, vm.dataEnd,$localStorage.selectedSection)
+        return vm.Camp.campaignDetails(vm.campId, vm.dataStart, vm.dataEnd,$localStorage.selectedSection)
           .then(function (result) {
             return result.all;
           });
@@ -113,7 +101,7 @@
         return 0;
       },
       load: function () {
-        return vm.Camp.campaignDetails(vm.dataStart, vm.dataEnd,vm.by)
+        return vm.Camp.campaignDetails(vm.campId, vm.dataStart, vm.dataEnd,vm.by)
           .then(function (result) {
             return result.conversions;
           });
@@ -188,33 +176,6 @@
               }
             }
             return arrFirst;
-          });
-      }
-    });
-
-    vm.multipleStore = new $window.DevExpress.data.CustomStore({
-      totalCount: function () {
-        return vm.multipleTotalCount ;
-      },
-      load: function (loadOptions) {
-        if(loadOptions.take == null) {
-          loadOptions.take = 20;
-        }
-        if(loadOptions.skip == null) {
-          loadOptions.skip = 0;
-        }
-        if(loadOptions.sort == null) {
-          loadOptions.sort = 'campaign';
-        }
-        if(loadOptions.order == null) {
-          loadOptions.order = 'DESC';
-        }
-        return vm.Camp.statsCampaigns(vm.dataStart, vm.dataEnd, loadOptions.skip,
-          loadOptions.take, loadOptions.sort, loadOptions.order,
-          vm.by, loadOptions.filter)
-          .then(function (result) {
-            vm.multipleTotalCount = result.totalCount;
-            return result.campaigns;
           });
       }
     });
@@ -347,7 +308,7 @@
 
     vm.rangeOptionsSecond = {
       size: {
-        height: 100,
+        height: 100
       },
       margin: {
         left: 10
@@ -376,7 +337,7 @@
         snapToTicks: false
       },
       onSelectedRangeChanged: function (e) {
-        var zoomedChart = $("#zoomedContainerSecond #zoomedChartSecond").dxChart("instance");
+        var zoomedChart = $window.$("#zoomedContainerSecond #zoomedChartSecond").dxChart("instance");
         zoomedChart.zoomArgument(new Date(e.startValue), new Date(e.endValue));
       }
     };
@@ -407,9 +368,9 @@
       placeholder: 'Select a state',
       displayExpr: 'name',
       valueExpr: vm.state,
-      onSelectionChanged: function(e) {
-        var selectedRows = $('#gridContainer2')[0].querySelectorAll('[aria-selected="true"]');
-        var stateSelected = e.selectedItem.state;
+      onSelectionChanged: function() {
+        var selectedRows = $window.$('#gridContainer2')[0].querySelectorAll('[aria-selected="true"]');
+
         if(selectedRows[0]) {
           var selectedArr = [];
           for (var i=0; i<selectedRows.length; i++){
@@ -498,7 +459,7 @@
           columnIndex: 16,
           headerCellTemplate: 'headerCellTemplate',
           cellTemplate: function (container, options) {
-            $("<div />").dxButton({
+            $window.$("<div />").dxButton({
               text: 'white list',
               height:30,
               width: 89,
@@ -522,7 +483,7 @@
               }
             }).addClass('white-list').appendTo(container);
 
-            $("<div />").dxButton({
+            $window.$("<div />").dxButton({
               text: 'black list',
               height:30,
               width: 89,
@@ -546,7 +507,7 @@
               }
             }).addClass('black-list').appendTo(container);
 
-            $("<div />").dxButton({
+            $window.$("<div />").dxButton({
               text: 'suspended',
               height:30,
               width: 95,
@@ -688,7 +649,7 @@
       }
     };
     vm.pieChartHeader = $localStorage.pieChartHeader || vm.ctrlBbtns.placement.header;
-    vm.btnsNodesArray = $('.label-container')[0].children;
+    vm.btnsNodesArray = $window.$('.label-container')[0].children;
 
 
     /** SELECT SECTION/BTN UNDER LOADING PAGE - START **/
@@ -772,10 +733,10 @@
       // vm.cpaArrayThird =  CampDetails.cpaBuckets(vm.backetsRanges.third.min, vm.backetsRanges.third.max);
       // vm.cpaArrayFourth =  CampDetails.cpaBuckets(vm.backetsRanges.fourth.min, vm.backetsRanges.fourth.max);
 
-      $('#backets-1').dxDataGrid('instance').refresh();
-      $('#backets-2').dxDataGrid('instance').refresh();
-      $('#backets-3').dxDataGrid('instance').refresh();
-      $('#backets-4').dxDataGrid('instance').refresh();
+      $window.$('#backets-1').dxDataGrid('instance').refresh();
+      $window.$('#backets-2').dxDataGrid('instance').refresh();
+      $window.$('#backets-3').dxDataGrid('instance').refresh();
+      $window.$('#backets-4').dxDataGrid('instance').refresh();
 
       return vm.backetsRanges;
     };

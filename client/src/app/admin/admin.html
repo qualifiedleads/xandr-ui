@@ -9,7 +9,7 @@
       <i class="fa fa-globe fa-fw"></i> English
     </a>
       </div>
-    <input type="button" class="btn btn-danger admin-btn" ng-click="admin.logout()" value="Log out">
+    <input type="button" class="btn btn-danger admin-btn" ng-click="root.logout()" value="Log out">
     <input type="button" class="btn btn-primary admin-btn" ng-click="admin.goToMainPage()" value="to main page">
 
   </div>
@@ -31,6 +31,23 @@
           <p ng-show="!admin.userForm.passwordconfirm.$error.required && (admin.user.passwordconfirm !== admin.user.password) && !admin.userForm.passwordconfirm.$pristine" class="help-block">Incorrect password.</p>
           <p ng-show="admin.userForm.passwordconfirm.$invalid && !admin.userForm.passwordconfirm.$pristine && admin.userForm.passwordconfirm.$error.required" class="help-block">Password confirmation is required.</p>
         </div>
+        <div class="form-group" ng-class="{ 'has-error' : admin.userForm.username.$invalid && !admin.userForm.username.$pristine }">
+          <input type="text" name= "username" class="form-control input-item-login"  placeholder="Username" ng-model="admin.user.username" required>
+          <p ng-show="admin.userForm.username.$invalid && !admin.userForm.username.$pristine && admin.userForm.username.$error.required" class="help-block">Username is required.</p>
+          <p ng-show="!admin.userForm.username.$error.required && admin.userForm.username.$invalid && !admin.userForm.username.$pristine" class="help-block">Username is not valid.</p>
+        </div>
+        <div class="form-group" ng-class="{ 'has-error' : admin.userForm.first_name.$invalid && !admin.userForm.first_name.$pristine }">
+          <input type="text" name= "first_name" class="form-control input-item-login"  placeholder="first_name" ng-model="admin.user.first_name" required>
+          <p ng-show="admin.userForm.first_name.$invalid && !admin.userForm.first_name.$pristine && admin.userForm.first_name.$error.required" class="help-block">first_name is required.</p>
+          <p ng-show="!admin.userForm.first_name.$error.required && admin.userForm.first_name.$invalid && !admin.userForm.first_name.$pristine" class="help-block">first_name is not valid.</p>
+        </div>
+        <div class="form-group" ng-class="{ 'has-error' : admin.userForm.last_name.$invalid && !admin.userForm.last_name.$pristine }">
+          <input type="text" name= "last_name" class="form-control input-item-login"  placeholder="last_name" ng-model="admin.user.last_name" required>
+          <p ng-show="admin.userForm.last_name.$invalid && !admin.userForm.last_name.$pristine && admin.userForm.last_name.$error.required" class="help-block">last_name is required.</p>
+          <p ng-show="!admin.userForm.last_name.$error.required && admin.userForm.last_name.$invalid && !admin.userForm.last_name.$pristine" class="help-block">last_name is not valid.</p>
+        </div>
+
+
         <div class="form-group">
           <select ng-model="admin.user.permission" name="permission" class="select-user-type form-control" title="user">
             <option value="" disabled selected>Select the type of permission</option>

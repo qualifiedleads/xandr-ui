@@ -2,37 +2,31 @@
   'use strict';
 
   angular
-    .module('pjtLayout')
-    .controller('AuthController', AuthController);
+  .module('pjtLayout')
+  .controller('AuthController', AuthController);
 
   /** @ngInject */
-  function AuthController($window, $state, $localStorage, $translate,  Auth, $cookies) {
+  function AuthController($log, $window, $state, $localStorage, $translate,  Auth, $cookies) {
     var vm = this;
     var LC = $translate.instant;
     vm.Auth = Auth;
 
 
-    if ($cookies.get('token') && $cookies.get('role')=='adminfull'){
-      $('.reg-form-wrapper')[0].classList.add('hide');
-      $('.advertiser-wrapper')[0].classList.add('show');
-      $('.admin-btn')[0].classList.add('show');
-      $('.admin-btn')[1].classList.add('show');
+    if (($cookies.get('token')) &&
+      (($cookies.get('permission') =='adminfull') || $cookies.get('permission') =='adminread')){
+      $window.$('.reg-form-wrapper')[0].classList.add('hide');
+      $window.$('.advertiser-wrapper')[0].classList.add('show');
+      $window.$('.admin-btn')[0].classList.add('show');
+      $window.$('.admin-btn')[1].classList.add('show');
     }
 
-    if ($cookies.get('token') && $cookies.get('role')=='userfull'){
-      $('.reg-form-wrapper')[0].classList.add('hide');
-      $('.advertiser-wrapper')[0].classList.add('show');
-      $('.admin-btn')[0].classList.remove('show');
-      $('.admin-btn')[1].classList.add('show');
+    if (($cookies.get('token')) &&
+      (($cookies.get('permission') =='userfull') || $cookies.get('permission') =='userread')){
+      $window.$('.reg-form-wrapper')[0].classList.add('hide');
+      $window.$('.advertiser-wrapper')[0].classList.add('show');
+      $window.$('.admin-btn')[0].classList.remove('show');
+      $window.$('.admin-btn')[1].classList.add('show');
     }
-
-    vm.admin = {
-      id: 1,
-      email:"admin@admin",
-      password:"admin"
-  //    permission:"adminfull"
-    };
-
 
     vm.addButton={
       text: LC('AUTH.GO_BUTTON'),
@@ -48,9 +42,9 @@
       },
       load: function () {
         return vm.Auth.advertisersList()
-          .then(function (result) {
-            return result;
-          });
+        .then(function (result) {
+          return result;
+        });
       }
     });
 
@@ -64,28 +58,34 @@
     };
 
     function submitForm (user) {
-      if(user) {
-        $('.reg-form-wrapper')[0].classList.add('hide');
-        $('.advertiser-wrapper')[0].classList.add('show');
-        $('.admin-btn')[1].classList.remove('hide');
-        if(user.login === vm.admin.login && user.password === vm.admin.password) {
-          $('.admin-btn')[0].classList.remove('hide');
-          $cookies.put('token', 'token');
-          $cookies.put('role', 'adminfull');
-        } else {
-          $cookies.put('token', 'token');
-          $cookies.put('role', 'userfull');
-        }
+      if(user || user.email && user.password) {
+        return vm.Auth.authorization(user).then(function (res) {
+          $cookies.put('token', res.token);
+          $cookies.put('permission', res.permission);
+          if ((res.token) && ((res.permission =='adminfull') || (res.permission =='adminread'))){
+            $window.$('.reg-form-wrapper')[0].classList.add('hide');
+            $window.$('.advertiser-wrapper')[0].classList.add('show');
+            $window.$('.admin-btn')[0].classList.add('show');
+            $window.$('.admin-btn')[1].classList.add('show');
+          }
+          if ((res.token) && ((res.permission =='userfull') || (res.permission =='userread'))){
+            $window.$('.reg-form-wrapper')[0].classList.add('hide');
+            $window.$('.advertiser-wrapper')[0].classList.add('show');
+            $window.$('.admin-btn')[0].classList.remove('show');
+            $window.$('.admin-btn')[1].classList.add('show');
+          }
+        }).catch(function (err) {
+          $log(err);
+        })
       }
-
     }
 
     function goToAdminPanel() {
-      $state.go('admin', {"id":vm.admin.id});
+      $state.go('admin');
     }
 
     function logout() {
-      $cookies.remove('role');
+      $cookies.remove('permission');
       $cookies.remove('token');
       $state.reload();
     }

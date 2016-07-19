@@ -420,15 +420,17 @@ def load_depending_data(token):
                                                           YieldManagementProfile, False)
             print 'There is %d yield management profiles ' % len(yield_management_profiles)
 
+            payment_rules_ids = set(x.base_payment_rule_id for x in publishers)
             for pub in publishers:
                 print 'Publisher ', pub.name
-                payment_rules = nexus_get_objects(token,
-                                                  {'id': pub.base_payment_rule_id},
-                                                  PaymentRule,
-                                                  True,
-                                                  {'publisher_id': pub.pk, 'id': pub.base_payment_rule_id}
-                                                  )
-                print 'There is %d base payment rules ' % len(payment_rules)
+            payment_rules = nexus_get_objects(token,
+                                              {'id__in': payment_rules_ids},
+                                              PaymentRule,
+                                              True,
+                                              # {'publisher_id': pub.pk, 'id': pub.base_payment_rule_id}
+                                              {'id': ','.join(map(str, payment_rules_ids))}
+                                              )
+            print 'There is %d base payment rules ' % len(payment_rules)
 
         companies = nexus_get_objects(token,
                                       {},

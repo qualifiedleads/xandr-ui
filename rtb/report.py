@@ -237,7 +237,6 @@ def nexus_get_objects(
     if not get_params:
         get_params = params
     url = appnexus_url + object_class.api_endpoint
-    print "Begin of Nexus_get_objects func"
     last_word = re.search(r'/(\w+)[^/]*$', url).group(1)
     current_date = utils.get_current_time()
     if params:

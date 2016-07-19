@@ -3,7 +3,7 @@ from rest_framework import filters
 from rest_framework import serializers
 from rest_framework import viewsets
 
-from .models import NetworkAnalyticsRaw, FrameworkUser, Advertiser
+from .models import NetworkAnalyticsRaw, FrameworkUser, Advertiser, User
 
 
 class AdvertiserSerializer(serializers.ModelSerializer):
@@ -29,6 +29,12 @@ class UsersSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class AppnexusUsersSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = '__all__'
+
+
 class NetworkAnalyticsRawViewSet(viewsets.ModelViewSet):
     queryset = NetworkAnalyticsRaw.objects.all()
 
@@ -40,3 +46,9 @@ class UsersViewSet(viewsets.ModelViewSet):
     queryset = FrameworkUser.objects.all()
 
     serializer_class = UsersSerializer
+
+
+class AppnexusUsersViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = User.objects.all()
+
+    serializer_class = AppnexusUsersSerializer

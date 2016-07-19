@@ -92,7 +92,7 @@ class FrameworkUser(models.Model):
     last_name = models.TextField(null=True, blank=True)
     permission = models.TextField(null=True, blank=True, db_index=True)
     apnexusname = models.TextField(null=True, blank=True, db_index=True)
-    apnexus_user = models.OneToOneField(User)
+    apnexus_user = models.ForeignKey("User", null=True, blank=True)
 
     class Meta:
         db_table = "framework_user"

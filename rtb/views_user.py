@@ -1,24 +1,34 @@
 from rest_framework.decorators import api_view, parser_classes
 from rest_framework.response import Response
+from django.contrib.auth import authenticate
 
-@api_view()
-def permissionInfo(request):
+
+@api_view(['POST'])
+def login(request):
     """
-POST type of permission for certain user
+    Login specifed user
+    Return permission for that user
+
 
 ## Url format: /api/v1/login
 
 + data
 
-    + email(String) - email for getting information about users's permissions
-    + password(String) - password for getting information about users's permissions
+    + username(String) - username to login
+    + password(String) - password for that user
 
     """
-    return Response({
-        "id": 19,
-        "permission": "adminfull", #types of permission: "adminfull", "adminread", "userfull", "userread"
-        "token":"12qw34er56ty"
-    })
+    # user = authenticate(username='john', password='secret')
+    user = authenticate(request.data)
+    if user:
+        return Response({
+            "id": user.pk,
+            # "permission": "adminfull", #types of permission: "adminfull", "adminread", "userfull", "userread"
+            "permission": user.permission,
+            "token": "12qw34er56ty"
+        })
+    else:
+        return Response({'error': "Not authentificated"})
 
 
 

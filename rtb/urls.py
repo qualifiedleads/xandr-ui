@@ -11,6 +11,7 @@ router = routers.DefaultRouter()
 # router.register('raw', views.NetworkAnalyticsRawViewSet)
 router.register('advertisers', views_rest.AdvertiserViewSet)
 router.register('user', views_rest.UsersViewSet)
+router.register('appnexus/user', views_rest.AppnexusUsersViewSet)
 
 urlpatterns = [
     url(r'^', include(router.urls)),

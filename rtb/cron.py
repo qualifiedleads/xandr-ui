@@ -193,6 +193,11 @@ def test_foreign_keys(objects_to_save, rows):
         entity = foreign_keys[k].related_model
         ids = set(imap(lambda x: getattr(x, key_id), objects_to_save))
         ids.discard(None)
+        if 0 in ids:
+            for x in objects_to_save:
+                if getattr(x, key_id) == 0:
+                    setattr(x, key_id, None)
+            ids.discard(0)
         ids_in_db = set(entity.objects.filter(pk__in=ids).values_list('pk', flat=True))
         ids_to_load = ids - ids_in_db
         if not ids_to_load:continue

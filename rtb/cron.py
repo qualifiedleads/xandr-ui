@@ -498,7 +498,7 @@ def load_depending_data(token):
         print 'There is %d creatives ' % len(creatives)
 
         # Get all payment rules:
-        for pub in publishers:
+        for pub in []:  # publishers: There is too many publishers, disable loading depended objects
             payment_rules = nexus_get_objects(token,
                                               {'publisher': pub},
                                               PaymentRule, True,

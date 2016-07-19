@@ -337,6 +337,9 @@ def nexus_get_objects(
                     is_saved = True
                 except IntegrityError as e:
                     if e.message.find('foreign key constraint') < 0:
+                        print 'finded seeking error'
+                        print '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
+                        print e
                         raise
                     m = re.search(
                         r'Key \((\w+)\)=\(([^\)]+)\) is not present in table "([^\"]+)"',

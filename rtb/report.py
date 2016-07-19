@@ -103,7 +103,7 @@ def get_auth_token():
 one_day = datetime.timedelta(days=1)
 
 
-def get_specifed_report(ReportClass, query_data=None, token=None, day=None):
+def get_specified_report(ReportClass, query_data=None, token=None, day=None):
     if not query_data: query_data={}
     report_type = ReportClass.api_report_name
     if not token:
@@ -125,7 +125,7 @@ def get_specifed_report(ReportClass, query_data=None, token=None, day=None):
         report_data['report']["end_date"] = (
             day + one_day).strftime("%Y-%m-%d")
     # report_data['report'].update(query_data)
-    # report_data.update(query_data)
+    report_data.update(query_data)
 
     headers = {"Authorization": token, 'Content-Type': 'application/json'}
     data = json.dumps(report_data)

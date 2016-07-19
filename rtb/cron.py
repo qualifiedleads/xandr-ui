@@ -17,7 +17,7 @@ import django.db.models as django_types
 from django.db import transaction, IntegrityError, reset_queries, connection
 import re
 from report import nexus_get_objects, replace_tzinfo, update_object_from_dict, date_type, get_auth_token, \
-    get_specifed_report, nexus_get_objects_by_id
+    get_specified_report, nexus_get_objects_by_id
 from django.conf import settings
 import models
 from models import Advertiser, Campaign, SiteDomainPerformanceReport, Profile, LineItem, InsertionOrder, \
@@ -632,7 +632,7 @@ def load_report(token, day, ReportClass):
     if q > 0:
         print "There is %d records in %s, nothing to do." % (q, ReportClass._meta.db_table)
         return
-    f_name = get_specifed_report(ReportClass, {}, token, day)
+    f_name = get_specified_report(ReportClass, {}, token, day)
     analize_csv(f_name, ReportClass, {})
     os.remove(f_name)
 
@@ -659,7 +659,7 @@ def load_reports_for_all_advertisers(token, day, ReportClass):
     campaign_dict = dict(Campaign.objects.all().values_list('id', 'name'))
     all_line_items = set(LineItem.objects.values_list("id", flat=True))
 
-    filenames = worker_pool.map(lambda id: get_specifed_report(
+    filenames = worker_pool.map(lambda id: get_specified_report(
         ReportClass, {'advertiser_id': id}, token, day), advertisers_need_load)
     try:
         for f, advertiser_id in izip(filenames, advertisers_need_load):

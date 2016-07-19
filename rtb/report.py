@@ -363,6 +363,8 @@ def nexus_get_objects(
                         print 'Nulling field %s on object %s (was %s)'%(fk.name, object_db, val)
                 except Exception as e:
                     print "Error by saving ", e
+                    print type(e)
+                    print i
                     break
         if settings.DEBUG and len(objects_by_api) > 0:
             # field_set_db = set(x.field_name for x in

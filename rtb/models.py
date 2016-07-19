@@ -2835,9 +2835,9 @@ class PlatformMember(models.Model):
         choices=MEMBER_RESELLING_EXPOSURE,
         null=True, blank=True)
     email = models.TextField(null=True, blank=True)
-    daily_imps_any_audit_status = models.IntegerField(null=True, blank=True)
-    daily_imps_appnexus_reviewed = models.IntegerField(null=True, blank=True)
-    daily_imps_appnexus_seller_reviewed = models.IntegerField(null=True, blank=True)
+    daily_imps_any_audit_status = models.BigIntegerField(null=True, blank=True)
+    daily_imps_appnexus_reviewed = models.BigIntegerField(null=True, blank=True)
+    daily_imps_appnexus_seller_reviewed = models.BigIntegerField(null=True, blank=True)
     is_iash_compliant = models.NullBooleanField(null=True, blank=True)
     has_resold = models.NullBooleanField(null=True, blank=True)
     visibility_rules = models.TextField(null=True, blank=True) #TODO JSON

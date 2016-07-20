@@ -282,7 +282,10 @@ def get_campaign_placement(campaign_id, from_date, to_date):
         campaign_id=campaign_id,
         hour__gte=from_date,
         hour__lte=to_date,
-    ).values('placement', 'placement__name','publisher__name','placement__state').annotate(
+    ).values('placement_id').annotate(
+        placement = F('placement__name'),
+        NetworkPublisher = F('publisher__name'),
+        placementState = F('placement__state'),
         cost=Sum('cost'),
         conv=Sum('total_convs'),
         imp=Sum('imps'),
@@ -293,9 +296,15 @@ def get_campaign_placement(campaign_id, from_date, to_date):
         cvr=Case(When(~Q(imp=0), then=F('conv') / F('imp'))),
         ctr=Case(When(~Q(imp=0), then=F('clicks') / F('imp'))),
     )
-    print q.query
     res=list(q)
-    res = []
+    for x in res:
+        x['state']={
+            "whiteList": "true",
+            "blackList": "false",
+            "suspended": x['placementState']=='inactive'
+        }
+        x.pop('placement_id', None)
+        x.pop('placementState', None)
     cache.set(key, res)
     return res
 
@@ -327,6 +336,8 @@ Get single campaign details by domains
 
     """
     params = parse_get_params(request.GET)
+    if params['from_date'] > params['to_date']:
+        params['from_date'], params['to_date'] = params['to_date'], params['from_date']
     res = get_campaign_placement(id, params['from_date'], params['to_date'])
     return Response(res)
     return Response([{
@@ -423,8 +434,8 @@ Get single campaign details for given period
         'Placement':"placement"
     }
     # curl 'http://127.0.0.1:8000/api/v1/campaigns/13412702/details?from_date=1467320400&section=Placement&to_date=1469032344' --1.0 -H 'Host: 127.0.0.1:8000' -H 'User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:47.0) Gecko/20100101 Firefox/47.0' -H 'Accept: application/json, text/plain, */*' -H 'Accept-Language: en-US,en;q=0.5' --compressed -H 'Referer: http://127.0.0.1:8000/client/index.html' -H 'Cookie: csrftoken=tzdunvIQ55Ba7maBdr8WYeEW58S75rCn' -H 'Connection: keep-alive'
-    field_name = section_to_field.get()
     params = parse_get_params(request.GET)
+    field_name = section_to_field.get(params['section'],'placement')
     q = NetworkAnalyticsReport.objects.filter(
         # advertiser_id=advertiser_id,
         campaign_id=id,

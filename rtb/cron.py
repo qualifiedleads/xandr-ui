@@ -649,7 +649,7 @@ def load_reports_for_all_advertisers(token, day, ReportClass):
         filter_params = {"hour__date": day}
 
     # this prevent zero id value
-    filter_params['pk__gt'] = 0
+    # filter_params['pk__gt'] = 0
 
     q = ReportClass.objects.filter(**filter_params).values('advertiser_id') \
         .annotate(cnt=Count('*')).filter(cnt__gt=0)

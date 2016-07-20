@@ -124,8 +124,7 @@ def get_specified_report(ReportClass, query_data=None, token=None, day=None):
         report_data['report']["start_date"] = day.strftime("%Y-%m-%d")
         report_data['report']["end_date"] = (
             day + one_day).strftime("%Y-%m-%d")
-    # report_data['report'].update(query_data)
-    report_data.update(query_data)
+    report_data['report'].update(query_data)
 
     headers = {"Authorization": token, 'Content-Type': 'application/json'}
     data = json.dumps(report_data)

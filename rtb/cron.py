@@ -658,6 +658,7 @@ def load_reports_for_all_advertisers(token, day, ReportClass):
     advertisers_having_data = set(x['advertiser_id'] for x in q)
     print advertisers_having_data
     all_advertisers = dict(Advertiser.objects.all().values_list('id', 'name'))
+    all_advertisers.pop(0, None)
     advertisers_need_load = set(all_advertisers) - advertisers_having_data
     campaign_dict = dict(Campaign.objects.all().values_list('id', 'name'))
     all_line_items = set(LineItem.objects.values_list("id", flat=True))

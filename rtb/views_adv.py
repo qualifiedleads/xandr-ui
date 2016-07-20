@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from django.http import JsonResponse
 from utils import parse_get_params, make_sum
 from models import SiteDomainPerformanceReport, Campaign, GeoAnaliticsReport, NetworkAnalyticsReport
-from django.db.models import Sum, Min, Max, Avg, Value, When, Case, F, Q, Func
+from django.db.models import Sum, Min, Max, Avg, Value, When, Case, F, Q, Func, FloatField
 from django.db.models.functions import Coalesce
 from django.core.cache import cache
 import itertools
@@ -194,25 +194,22 @@ def get_campaign_cpa(advertiser_id, campaign_id, from_date, to_date):
         campaign_id=campaign_id,
         hour__gte=from_date,
         hour__lte=to_date,
-    ).values('hour').annotate(  # impression, cpa, cpc, clicks, mediaspent, conversions, ctr
+    ).values('hour').annotate(
         sum_cost=Sum('cost'),
         convs=Sum('total_convs'),
-        # cpa = Case(When(Sum('total_convs'), then=Sum('media_cost')/Sum('total_convs')))
         # date=Func(Value("'day'"), 'hour', function="date_trunc")
     ).annotate(
-        cpa=Case(When(~Q(convs=0), then=F('sum_cost') / F('convs'))),
-    ).order_by("hour")
+        cpa=Case(When(~Q(convs=0), then=F('sum_cost') / F('convs')),output_field=FloatField()),
+    )#.order_by("hour")
     # values("date").annotate(
     #     low=Min("cpa"),
     #     high=Max("cpa"),
     #     avg=Avg("cpa")
     # )
     # first, last = None, None
-    print q.query
-    lst = list(q)
     res = []
     key_func = lambda x: x["cpa"]
-    for key, g in itertools.groupby(lst, lambda x: x["hour"].date()):
+    for key, g in itertools.groupby(q, lambda x: x["hour"].date()):
         group = list(g)
         try:
             avg = sum(itertools.imap(lambda x: x["sum_cost"], group)) / sum(itertools.imap(lambda x: x["convs"], group))
@@ -220,8 +217,8 @@ def get_campaign_cpa(advertiser_id, campaign_id, from_date, to_date):
             avg = None
         res.append({
             "date": key,
-            "low": min(group, key_func)["cpa"],
-            "high": max(group, key_func)["cpa"],
+            "low":  (min(group, key_func))["cpa"],
+            "high": (max(group, key_func))["cpa"],
             "open": group[0]["cpa"],
             "close": group[-1]["cpa"],
             "avg": avg,

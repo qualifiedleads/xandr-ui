@@ -4,6 +4,7 @@ from django.db import models, IntegrityError
 from django.utils.timezone import now as now_tz
 #from django.contrib.postgres.fields import ArrayField
 #from django.contrib.postgres.fields import JSONField
+from django.contrib.auth.models import User as DjangoUser
 
 
 STATE_CHOICES = (
@@ -84,13 +85,10 @@ class User(models.Model):
         db_table = "user"
 
 
+# class FrameworkUser(DjangoUser):
 class FrameworkUser(models.Model):
-    username = models.TextField(null=True, blank=True, db_index=True)
-    password = models.TextField(null=True, blank=True)
-    email = models.TextField(null=True, blank=True, db_index=True)
-    first_name = models.TextField(null=True, blank=True)
-    last_name = models.TextField(null=True, blank=True)
-    permission = models.TextField(null=True, blank=True, db_index=True)
+    user = models.OneToOneField(DjangoUser, on_delete=models.CASCADE)
+    permission = models.TextField(null=True, blank=True, db_index=True)  # TODO delete
     apnexusname = models.TextField(null=True, blank=True, db_index=True)
     apnexus_user = models.ForeignKey("User", null=True, blank=True)
 

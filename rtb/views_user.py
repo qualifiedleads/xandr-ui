@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from django.contrib.auth import authenticate
 
 
+
 @api_view(['POST'])
 def login(request):
     """
@@ -21,12 +22,15 @@ def login(request):
     # user = authenticate(username='john', password='secret')
     user = authenticate(request.data)
     if user:
-        return Response({
-            "id": user.pk,
-            # "permission": "adminfull", #types of permission: "adminfull", "adminread", "userfull", "userread"
-            "permission": user.permission,
-            "token": "12qw34er56ty"
-        })
+        if user.is_active:
+            return Response({
+                "id": user.pk,
+                # "permission": "adminfull", #types of permission: "adminfull", "adminread", "userfull", "userread"
+                "permission": user.permission,
+                "token": "12qw34er56ty"
+            })
+        else:
+            return Response({'error': "User disabled"})
     else:
         return Response({'error': "Not authentificated"})
 

@@ -6,7 +6,7 @@
     .controller('CampaignMainController', CampaignMainController);
 
   /** @ngInject */
-  function CampaignMainController($window, $state, $localStorage, $translate, CampMain, Campaign) {
+  function CampaignMainController($window, $state, $localStorage, $translate, $timeout, CampMain, Campaign) {
     var vm = this;
     vm.Camp = CampMain;
     vm.multipleTotalCount = 0;
@@ -319,7 +319,6 @@
       var i=0;
       var checkTrue = [];
       var checkFalse = [];
-      console.log(vm.Init);
       for(i = 0; i < vm.Init.length; i++) {
         if (vm.Init[i]._options.value == true) {
           checkTrue.push(vm.Init[i]);
@@ -695,6 +694,26 @@
     };
     /** CHECKBOX CHART - END **/
 
+    $timeout(function(){
+      var i = 0;
+      var checkTrue = [];
+      var checkFalse = [];
+      for(i= 0; i < vm.Init.length; i++) {
+        if (vm.Init[i]._options.value == true) {
+          checkTrue.push(vm.Init[i]);
+        } else {
+          checkFalse.push(vm.Init[i]);
+        }
+      }
+      if (checkTrue.length >= 2 && checkFalse.length>4) {
+        for(i = 0; i < checkFalse.length; i++) {
+          checkFalse[i].option('disabled', true);
+        }
+      }
+
+    });
+
+
     /** DATE PIKER - START **/
     if ($localStorage.dataStart == null && $localStorage.dataEnd == null ){
       $localStorage.dataStart = $window.moment({ hour: '00' }).subtract(1, 'day').unix() ;
@@ -911,7 +930,6 @@
       onRowPrepared: function(data) {
         vm.objectData = data;
         if(vm.objectData.rowType == 'data') {
-          //console.log(vm.objectData);
           var allRowBtns = data.rowElement[0].childNodes[9];
           var state = data.data.state;
           if(state.whiteList == "true"){
@@ -1012,9 +1030,7 @@
               width: 89,
               disabled: true,
               onClick: function (e) {
-                //console.log(e);
                 var parentWhiteBtn = e.element[0].parentNode;
-                //console.log(parentWhiteBtn);
                 if (parentWhiteBtn.classList.contains('active-black')) {
                   parentWhiteBtn.classList.remove('active-black');
                   parentWhiteBtn.classList.add('unactive-black');
@@ -1038,9 +1054,7 @@
               width: 95,
               disabled: true,
               onClick: function (e) {
-                //console.log(e);
                 var parentWhiteBtn = e.element[0].parentNode;
-                //console.log(parentWhiteBtn);
                 if (parentWhiteBtn.classList.contains('active-suspended')) {
                   parentWhiteBtn.classList.remove('active-suspended');
                   parentWhiteBtn.classList.add('unactive-suspended');

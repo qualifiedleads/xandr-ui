@@ -6,7 +6,7 @@
   .controller('MainController', MainController);
 
   /** @ngInject */
-  function MainController($window, $state, $localStorage, $translate, Main) {
+  function MainController($window, $state, $timeout, $localStorage, $translate, Main) {
     var vm = this;
     vm.advertiser = $localStorage.advertiser;
     vm.Main = Main;
@@ -455,7 +455,6 @@
       var i=0;
       var checkTrue = [];
       var checkFalse = [];
-      console.log(vm.Init);
       for(i = 0; i < vm.Init.length; i++) {
         if (vm.Init[i]._options.value == true) {
           checkTrue.push(vm.Init[i]);
@@ -824,11 +823,10 @@
       }
     };
 
-   /* function disChek() {
+    $timeout(function(){
       var i = 0;
       var checkTrue = [];
       var checkFalse = [];
-      console.log(vm.Init);
       for(i= 0; i < vm.Init.length; i++) {
         if (vm.Init[i]._options.value == true) {
           checkTrue.push(vm.Init[i]);
@@ -836,23 +834,15 @@
           checkFalse.push(vm.Init[i]);
         }
       }
-
-      if (checkTrue.length == 2 && checkFalse.length>4) {
+      if (checkTrue.length >= 2 && checkFalse.length>4) {
         for(i = 0; i < checkFalse.length; i++) {
           checkFalse[i].option('disabled', true);
         }
       }
 
-      if (checkTrue.length <= 2) {
-        for(i = 0; i < checkFalse.length; i++) {
-          checkFalse[i].option('disabled', false);
-        }
-      }
+  });
 
-    }
-
-    disChek();*/
-    /** CHECKBOX CHART - END **/
+/** CHECKBOX CHART - END **/
 
     /** MAP CLICKS - START **/
     var clicksByCountry = {};

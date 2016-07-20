@@ -198,20 +198,21 @@ def get_campaign_cpa(advertiser_id, campaign_id, from_date, to_date):
         sum_cost=Sum('cost'),
         convs=Sum('total_convs'),
         # cpa = Case(When(Sum('total_convs'), then=Sum('media_cost')/Sum('total_convs')))
+        # date=Func(Value("'day'"), 'hour', function="date_trunc")
     ).annotate(
         cpa=Case(When(~Q(convs=0), then=F('sum_cost') / F('convs'))),
-        date=Func(Value("'day'"), 'hour', function="date_trunc")
     ).order_by("hour")
     # values("date").annotate(
     #     low=Min("cpa"),
     #     high=Max("cpa"),
     #     avg=Avg("cpa")
     # )
-    print q.query
     # first, last = None, None
+    print q.query
+    lst = list(q)
     res = []
     key_func = lambda x: x["cpa"]
-    for key, g in itertools.groupby(q, lambda x: x["date"]):
+    for key, g in itertools.groupby(lst, lambda x: x["hour"].date()):
         group = list(g)
         try:
             avg = sum(itertools.imap(lambda x: x["sum_cost"], group)) / sum(itertools.imap(lambda x: x["convs"], group))

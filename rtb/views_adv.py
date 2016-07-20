@@ -397,7 +397,7 @@ Get single campaign details by domains
 
 
 @api_view()
-def campaignDetails(request):
+def campaignDetails(request, id):
     """
 Get single campaign details for given period 
 
@@ -418,6 +418,26 @@ Get single campaign details for given period
 
 
     """
+    # TODO This dictionary need to fill with names of all grouping sections
+    section_to_field={
+        'Placement':"placement"
+    }
+    # curl 'http://127.0.0.1:8000/api/v1/campaigns/13412702/details?from_date=1467320400&section=Placement&to_date=1469032344' --1.0 -H 'Host: 127.0.0.1:8000' -H 'User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:47.0) Gecko/20100101 Firefox/47.0' -H 'Accept: application/json, text/plain, */*' -H 'Accept-Language: en-US,en;q=0.5' --compressed -H 'Referer: http://127.0.0.1:8000/client/index.html' -H 'Cookie: csrftoken=tzdunvIQ55Ba7maBdr8WYeEW58S75rCn' -H 'Connection: keep-alive'
+    field_name = section_to_field.get()
+    params = parse_get_params(request.GET)
+    q = NetworkAnalyticsReport.objects.filter(
+        # advertiser_id=advertiser_id,
+        campaign_id=id,
+        hour__gte=params['from_date'],
+        hour__lte=params['to_date'],
+    ).values(field_name).annotate(
+        conv=Sum('total_convs'),
+        imp=Sum('imps'),
+    )
+    results= list(q)
+    views = [{'section':x[field_name],'data':x['imp']} for x in results]
+    conversions = [{'section':x[field_name],'data':x['conv']} for x in results]
+    return Response({'all':views,'conversions':conversions})
     return Response({
         'all': [
             {
@@ -458,7 +478,7 @@ Get single campaign details for given period
     })
 
 @api_view()
-def bucketsCPA(request):
+def bucketsCPA(request,id):
     """
 Get single campaign details for given period
 

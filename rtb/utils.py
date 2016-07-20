@@ -155,4 +155,5 @@ def parse_get_params(params, field_list=['campaign', 'spend', 'conv', 'imp', 'cl
         res['filter'] = ' '.join(params.getlist('filter'))
     except:
         res['filter'] = ''
+    res['section']=params.get('section','')
     return res

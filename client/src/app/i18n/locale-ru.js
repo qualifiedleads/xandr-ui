@@ -4,8 +4,53 @@
   angular
   .module('pjtLayout')
   .constant('RussianTranslations', {
+    'COMMON': {
+      'GO-TO-ADMIN-PANEL': 'Панель администратора',
+      'LOGOUT': 'Выйти',
+      'TO-MAIN-PAGE': 'Главная'
+    },
     'AUTH':{
-      'GO_BUTTON':'Дальше'
+      'GO_BUTTON':'Дальше',
+      'MAIL-REQUIRED': 'Введите ваш email',
+      'MAIL-VALID': 'Некорректный адрес электронной почты',
+      'PASSWORD-REQUIRED': 'Введите ваш пароль',
+      'MAIL-PLACEHOLDER': 'Введите адрес электронной почты',
+      'MAIL-PASSWORD': 'Введите ваш пароль',
+      'MAIL-SUBMIT': 'Вход'
+    },
+    "ADMIN":{
+      "ANU":{
+        'ADD-NEW-USER':'Добавить нового пользователя',
+        'EMAIL':'Электронная почта',
+        'PASSWORD':'Пароль',
+        'CONFIRM-PASSWORD':'Подтвердите пароль',
+        'USER-NAME':'Имя пользователя',
+        'FIRST-NAME':'Имя',
+        'LAST-NAME':'Фамилия',
+        'MAIL-REQUIRED': 'Введите ваш email',
+        'MAIL-VALID': 'Некорректный адрес электронной почты',
+        'PASSWORD-REQUIRED': 'Введите ваш пароль',
+        'CONFIRM-PASSWORD-REQUIRED': 'Введите подтверждение пароля',
+        'CONFIRM-PASSWORD-INCORRECT': 'Неверный пароль',
+        'USER-NAME-REQUIRED': 'Введите имя пользователя',
+        'FIRST-NAME-REQUIRED': 'Введите имя',
+        'LAST-NAME-REQUIRED': 'Введите фамилию',
+        'SELECT-PERMISSION': 'Выберите тип доступа',
+        'SELECT-NEXUS-USER': 'Выберите пользователя с AppNexus',
+        'SUBMIT': 'Создать'
+      },
+      "LIST-USER" : {
+        "TITLE" : "Список пользователей",
+        'EMAIL':'Электронная почта',
+        'PASSWORD':'Пароль',
+        'CONFIRM-PASSWORD':'Подтвердите пароль',
+        'USER-NAME':'Имя пользователя',
+        'FIRST-NAME':'Имя',
+        'LAST-NAME':'Фамилия',
+        'APNEXUS-ID':'Id пользователя AppNexus',
+        'APNEXUS-NAME':'Имя пользователя AppNexus',
+        'PERMISSION':'Разрешение'
+      }
     },
     'INDEX':{
       'ADVERTISER_TITLE':'Статистика для',

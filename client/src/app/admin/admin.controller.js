@@ -8,7 +8,7 @@
   /** @ngInject */
   function AdminController($window, $state, $localStorage, $translate, $cookies,  AdminService) {
     var vm = this;
-    //var LC = $translate.instant;
+    var LC = $translate.instant;
     vm.Admin = AdminService;
 
     function goToMainPage () {
@@ -31,11 +31,29 @@
     });
 
     vm.listOfUsers = {
+      remoteOperations: false,
       showBorders: true,
       alignment: 'left',
       bindingOptions: {
         dataSource: 'admin.users'
       },
+      headerFilter: {
+        visible: true
+      },
+      filterRow: {
+        visible: true,
+        applyFilter: "auto"
+      },
+      pager: {
+        showPageSizeSelector: true,
+        allowedPageSizes: [10, 30, 50],
+        visible: true,
+        showNavigationButtons: true
+      },
+      allowColumnReordering: true,
+      allowColumnResizing: true,
+      columnAutoWidth: true,
+      wordWrapEnabled: true,
       howBorders: true,
       showRowLines: true,
       align: 'left',
@@ -45,35 +63,44 @@
       columns: [
         {
           caption: 'id',
-          dataField: 'id'
+          dataField: 'id',
+          alignment: 'center'
+
         },
         {
-          caption: 'email',
-          dataField: 'email'
+          caption: LC('ADMIN.LIST-USER.EMAIL'),
+          dataField: 'email',
+          alignment: 'center'
         },
         {
-          caption: 'username',
-          dataField: 'username'
+          caption: LC('ADMIN.LIST-USER.USER-NAME'),
+          dataField: 'username',
+          alignment: 'center'
         },
         {
-          caption: 'first_name',
-          dataField: 'first_name'
+          caption: LC('ADMIN.LIST-USER.FIRST-NAME'),
+          dataField: 'first_name',
+          alignment: 'center'
         },
         {
-          caption: 'last_name',
-          dataField: 'last_name'
+          caption: LC('ADMIN.LIST-USER.LAST-NAME'),
+          dataField: 'last_name',
+          alignment: 'center'
         },
         {
-          caption:  'apnexusname',
-          dataField: 'apnexusname'
+          caption:  LC('ADMIN.LIST-USER.APNEXUS-ID'),
+          dataField: 'apnexusname',
+          alignment: 'center'
         },
         {
-          caption:  'apnexus user id',
-          dataField: 'apnexus_user'
+          caption:  LC('ADMIN.LIST-USER.APNEXUS-NAME'),
+          dataField: 'apnexus_user',
+          alignment: 'center'
         },
         {
-          caption:  'permission',
-          dataField: 'permission'
+          caption:  LC('ADMIN.LIST-USER.PERMISSION'),
+          dataField: 'permission',
+          alignment: 'center'
         }
       ]
     };
@@ -95,7 +122,7 @@
         dataSource: 'admin.selectNexusUsers',
         value: 'admin.selectedService'
       },
-      placeholder:'Select the appnexus user',
+      placeholder: LC('ADMIN.ANU.SELECT-NEXUS-USER'),
       displayExpr: 'username'
     };
 

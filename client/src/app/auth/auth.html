@@ -8,8 +8,8 @@
     <i class="fa fa-globe fa-fw"></i> English
   </a>
   </div>
-  <input type="button" class="btn btn-primary admin-btn hide" ng-click="auth.goToAdminPanel()" value="admin panel">
-  <input type="button" class="btn btn-danger admin-btn hide" ng-click="auth.logout()" value="Log out">
+  <input type="button" class="btn btn-primary admin-btn hide" ng-click="auth.goToAdminPanel()" value="{{ 'COMMON.GO-TO-ADMIN-PANEL' | translate }}">
+  <input type="button" class="btn btn-danger admin-btn hide" ng-click="auth.logout()" value="{{ 'COMMON.LOGOUT' | translate }}">
 </div>
 
 <div class="authorization container">
@@ -22,32 +22,21 @@
         <div class="col-sm-10">
           <div class="form-group" ng-class="{ 'has-error' : auth.userForm.email.$invalid && !auth.userForm.email.$pristine }">
             <i class="fa fa-user fa-2x icon-for-user"></i>
-            <input type="email" name="email" class="form-control input-item-login"  placeholder="Enter your email" ng-model="auth.user.email" required>
-            <p ng-show="auth.userForm.email.$invalid && !auth.userForm.email.$pristine && auth.userForm.email.$error.required" class="help-block">Your email is required.</p>
-            <p ng-show="!auth.userForm.email.$error.required && auth.userForm.email.$invalid && !auth.userForm.email.$pristine" class="help-block">Your email is not valid.</p>
+            <input type="email" name="email" class="form-control input-item-login"  placeholder="{{ 'AUTH.MAIL-PLACEHOLDER' | translate }}" ng-model="auth.user.email" required>
+            <p ng-show="auth.userForm.email.$invalid && !auth.userForm.email.$pristine && auth.userForm.email.$error.required" class="help-block">{{ 'AUTH.MAIL-REQUIRED' | translate }}</p>
+            <p ng-show="!auth.userForm.email.$error.required && auth.userForm.email.$invalid && !auth.userForm.email.$pristine" class="help-block">{{ 'AUTH.MAIL-VALID' | translate }}</p>
           </div>
         </div>
         <div class="col-sm-10">
           <div class="form-group" ng-class="{ 'has-error' : auth.userForm.password.$invalid && !auth.userForm.password.$pristine }">
             <i class="fa fa-unlock fa-2x icon-for-user"></i>
-            <input type="password" name="password" class="input-item-password form-control input-item-password"  ng-model="auth.user.password" placeholder="Enter your password" required max-length="10" min-length="4">
-            <p ng-show="auth.userForm.password.$invalid && !auth.userForm.password.$pristine" class="help-block">Your password is required.</p>
+            <input type="password" name="password" class="input-item-password form-control input-item-password"  ng-model="auth.user.password" placeholder="{{ 'AUTH.MAIL-PASSWORD' | translate }}" required max-length="10" min-length="4">
+            <p ng-show="auth.userForm.password.$invalid && !auth.userForm.password.$pristine" class="help-block">{{ 'AUTH.PASSWORD-REQUIRED' | translate }}</p>
           </div>
         </div>
-        <!--<div class="form-group">-->
-          <!--<div class="col-sm-10">-->
-            <!--<select ng-model="auth.user.permission" class="select-user-type form-control" title="user">-->
-              <!--<option value="" disabled selected>Select the type of user</option>-->
-              <!--<option value="adminfull">admin full</option>-->
-              <!--<option value="adminread">admin read-only</option>-->
-              <!--<option value="userfull">user full</option>-->
-              <!--<option value="userread">user read-only</option>-->
-            <!--</select>-->
-          <!--</div>-->
-        <!--</div>-->
         <div class="form-group">
           <div class="col-sm-10">
-            <button type="submit" class="submitting-button btn btn-success">Submit</button>
+            <button type="submit" class="submitting-button btn btn-success">{{ 'AUTH.MAIL-SUBMIT' | translate }}</button>
           </div>
         </div>
       </form>

@@ -15,16 +15,17 @@
     var LC = $translate.instant;
     vm.campName = Campaign.campaign;
     vm.campId = Campaign.id;
+    vm.Init = [];
 
     if ($localStorage.checkCharCamp== null ){
       $localStorage.checkCharCamp = {
         'impressions': true,
-        'cpa': true,
-        'cpc':true,
-        'clicks': true,
-        'mediaspent': true,
-        'conversions': true,
-        'ctr': true
+        'cpa': false,
+        'cpc':false,
+        'clicks': false,
+        'mediaspent': false,
+        'conversions': false,
+        'ctr': false
       };
     }
 
@@ -184,8 +185,8 @@
       },
       valueAxis: [
         { name: 'impression' },
-        { name: 'cpc' },
         { name: 'cpa' },
+        { name: 'cpc' },
         { name: 'clicks' },
         { name: 'mediaspent' },
         { name: 'conversions' },
@@ -205,6 +206,11 @@
           visible: true
         }
       },
+      legend: {
+        verticalAlignment: 'top',
+        horizontalAlignment: 'center',
+        itemTextPosition: 'top'
+      },
       commonSeriesSettings: {
         point: {
           size: 3,
@@ -221,9 +227,6 @@
         dataSource: 'campmain.chartStore'
       },
       series: vm.seriesCamp,
-      legend:{
-        visible: false
-      },
       loadingIndicator: {
         show: true,
         text: "Creating a chart..."
@@ -295,70 +298,399 @@
      * @param seriesShortName {string}
      * @param selected {boolean}
      */
+
+
     vm.updateCharts = function (seriesName, seriesShortName, selected) {
       $localStorage.checkCharCamp[seriesShortName] = selected;
       vm.gridCharts = $window.$('#zoomedChartFirst').dxChart('instance');
       vm.rangeChartFirst = $window.$('#rangeChartFirst').dxRangeSelector('instance');
       if (selected) {
-        $localStorage.checkCharCamp.seriesShortName = true;
+        //$localStorage.checkCharCamp.seriesShortName = true;
         vm.gridCharts.getSeriesByName(seriesName).show();
       } else {
-        $localStorage.checkCharCamp.seriesShortName = false;
+        //$localStorage.checkCharCamp.seriesShortName = false;
         vm.chartOptionsFuncFirst.getSeriesByName(seriesName).hide();
       }
     };
+
+
+
+    vm.onlyTwo = function(value) {
+      var i=0;
+      var checkTrue = [];
+      var checkFalse = [];
+      console.log(vm.Init);
+      for(i = 0; i < vm.Init.length; i++) {
+        if (vm.Init[i]._options.value == true) {
+          checkTrue.push(vm.Init[i]);
+        } else {
+          checkFalse.push(vm.Init[i]);
+        }
+      }
+      if (value == true) {
+        if (checkTrue.length == 2 && checkFalse.length>4) {
+          for(i = 0; i < checkFalse.length; i++) {
+            checkFalse[i].option('disabled', true);
+          }
+        }
+      } else {
+        if (checkTrue.length <= 2) {
+          for(i = 0; i < checkFalse.length; i++) {
+            checkFalse[i].option('disabled', false);
+          }
+        }
+      }
+    };
+
+
+    function CheckLocalStorage () {
+      for (var i in $localStorage.checkCharCamp) {
+        if ($localStorage.checkCharCamp[i] == true) {
+          if (i == 'impressions') {
+            vm.gridCharts.getSeriesByName('Impressions').show();
+          }else if (i == 'cpa') {
+            vm.gridCharts.getSeriesByName('CPA').show();
+          } else if (i == 'cpc') {
+            vm.gridCharts.getSeriesByName('CPC').show();
+          } else if (i == 'clicks') {
+            vm.gridCharts.getSeriesByName('Clicks').show();
+          } else if (i == 'mediaspent') {
+            vm.gridCharts.getSeriesByName('mediaspent').show();
+          } else if (i == 'conversions') {
+            vm.gridCharts.getSeriesByName('Conversions').show();
+          } else if (i == 'ctr') {
+            vm.gridCharts.getSeriesByName('CTR').show();
+          }
+        } else if ($localStorage.checkCharCamp[i] == false) {
+          if (i == 'impressions') {
+            vm.chartOptionsFuncFirst.getSeriesByName('Impressions').hide();
+          }else if (i == 'cpa') {
+            vm.chartOptionsFuncFirst.getSeriesByName('CPA').hide();
+          } else if (i == 'cpc') {
+            vm.chartOptionsFuncFirst.getSeriesByName('CPC').hide();
+          } else if (i == 'clicks') {
+            vm.chartOptionsFuncFirst.getSeriesByName('Clicks').hide();
+          } else if (i == 'mediaspent') {
+            vm.chartOptionsFuncFirst.getSeriesByName('mediaspent').hide();
+          } else if (i == 'conversions') {
+            vm.chartOptionsFuncFirst.getSeriesByName('Conversions').hide();
+          } else if (i == 'ctr') {
+            vm.chartOptionsFuncFirst.getSeriesByName('CTR').hide();
+          }
+        }
+      }
+    }
 
     /** CHECKBOX CHART - START **/
     vm.impressions = {
       text: LC('MAIN.CHECKBOX.IMPRESSIONS'),
       value: $localStorage.checkCharCamp.impressions,
+      onInitialized: function (data) {
+        vm.Init.push(data.component);
+      },
       onValueChanged: function (e) {
+        var chart = $('#zoomedChartFirst').dxChart('instance');
+        chart.option('valueAxis', [
+          {
+            name: 'impression',
+            position: 'right'
+          },
+          {
+            name: 'cpa',
+            position: 'left'
+          },
+          {
+            name: 'cpc',
+            position: 'left'
+          },
+          {
+            name: 'clicks',
+            position: 'left'
+          },
+          {
+            name: 'mediaspent',
+            position: 'left'
+          },
+          {
+            name: 'conversions',
+            position: 'left'
+          },
+          {
+            name: 'ctr',
+            position: 'left'
+          }
+        ]);
+
         vm.updateCharts('Impressions', 'impressions', e.value);
+        vm.onlyTwo(e.value);
+        CheckLocalStorage();
       }
     };
 
     vm.CPA = {
       text: LC('MAIN.CHECKBOX.CPA'),
       value: $localStorage.checkCharCamp.cpa,
+      onInitialized: function (data) {
+        vm.Init.push(data.component);
+      },
       onValueChanged: function (e) {
+        var chart = $('#zoomedChartFirst').dxChart('instance');
+        chart.option('valueAxis', [
+          {
+            name: 'impression',
+            position: 'left'
+          },
+          {
+            name: 'cpa',
+            position: 'right'
+          },
+          {
+            name: 'cpc',
+            position: 'left'
+          },
+          {
+            name: 'clicks',
+            position: 'left'
+          },
+          {
+            name: 'mediaspent',
+            position: 'left'
+          },
+          {
+            name: 'conversions',
+            position: 'left'
+          },
+          {
+            name: 'ctr',
+            position: 'left'
+          }
+        ]);
+
         vm.updateCharts('CPA', 'cpa', e.value);
+        vm.onlyTwo(e.value);
+        CheckLocalStorage();
       }
     };
 
     vm.CPC = {
       text: LC('MAIN.CHECKBOX.CPC'),
       value: $localStorage.checkCharCamp.cpc,
+      onInitialized: function (data) {
+        vm.Init.push(data.component);
+      },
       onValueChanged: function (e) {
+        var chart = $('#zoomedChartFirst').dxChart('instance');
+        chart.option('valueAxis', [
+          {
+            name: 'impression',
+            position: 'left'
+          },
+          {
+            name: 'cpa',
+            position: 'left'
+          },
+          {
+            name: 'cpc',
+            position: 'right'
+          },
+          {
+            name: 'clicks',
+            position: 'left'
+          },
+          {
+            name: 'mediaspent',
+            position: 'left'
+          },
+          {
+            name: 'conversions',
+            position: 'left'
+          },
+          {
+            name: 'ctr',
+            position: 'left'
+          }
+        ]);
+
         vm.updateCharts('CPC', 'cpc', e.value);
+        vm.onlyTwo(e.value);
+        CheckLocalStorage();
       }
     };
 
     vm.clicks = {
       text: LC('MAIN.CHECKBOX.CLICKS'),
       value: $localStorage.checkCharCamp.clicks,
+      onInitialized: function (data) {
+        vm.Init.push(data.component);
+      },
       onValueChanged: function (e) {
+        var chart = $('#zoomedChartFirst').dxChart('instance');
+        chart.option('valueAxis', [
+          {
+            name: 'impression',
+            position: 'left'
+          },
+          {
+            name: 'cpa',
+            position: 'left'
+          },
+          {
+            name: 'cpc',
+            position: 'left'
+          },
+          {
+            name: 'clicks',
+            position: 'right'
+          },
+          {
+            name: 'mediaspent',
+            position: 'left'
+          },
+          {
+            name: 'conversions',
+            position: 'left'
+          },
+          {
+            name: 'ctr',
+            position: 'left'
+          }
+        ]);
+
         vm.updateCharts('Clicks', 'clicks', e.value);
+        vm.onlyTwo(e.value);
+        CheckLocalStorage();
       }
     };
     vm.media = {
       text: LC('MAIN.CHECKBOX.MEDIA_SPENT'),
       value: $localStorage.checkCharCamp.mediaspent,
+      onInitialized: function (data) {
+        vm.Init.push(data.component);
+      },
       onValueChanged: function (e) {
+        var chart = $('#zoomedChartFirst').dxChart('instance');
+        chart.option('valueAxis', [
+          {
+            name: 'impression',
+            position: 'left'
+          },
+          {
+            name: 'cpa',
+            position: 'left'
+          },
+          {
+            name: 'cpc',
+            position: 'left'
+          },
+          {
+            name: 'clicks',
+            position: 'left'
+          },
+          {
+            name: 'mediaspent',
+            position: 'right'
+          },
+          {
+            name: 'conversions',
+            position: 'left'
+          },
+          {
+            name: 'ctr',
+            position: 'left'
+          }
+        ]);
+
         vm.updateCharts('mediaspent', 'mediaspent', e.value);
+        vm.onlyTwo(e.value);
+        CheckLocalStorage();
       }
     };
     vm.conversions = {
       text: LC('MAIN.CHECKBOX.CONVERSIONS'),
       value: $localStorage.checkCharCamp.conversions,
+      onInitialized: function (data) {
+        vm.Init.push(data.component);
+      },
       onValueChanged: function (e) {
+        var chart = $('#zoomedChartFirst').dxChart('instance');
+        chart.option('valueAxis', [
+          {
+            name: 'impression',
+            position: 'left'
+          },
+          {
+            name: 'cpa',
+            position: 'left'
+          },
+          {
+            name: 'cpc',
+            position: 'left'
+          },
+          {
+            name: 'clicks',
+            position: 'left'
+          },
+          {
+            name: 'mediaspent',
+            position: 'left'
+          },
+          {
+            name: 'conversions',
+            position: 'right'
+          },
+          {
+            name: 'ctr',
+            position: 'left'
+          }
+        ]);
+
         vm.updateCharts('Conversions', 'conversions', e.value);
+        vm.onlyTwo(e.value);
+        CheckLocalStorage();
       }
     };
     vm.CTR = {
       text: LC('MAIN.CHECKBOX.CTR'),
       value: $localStorage.checkCharCamp.ctr,
+      onInitialized: function (data) {
+        vm.Init.push(data.component);
+      },
       onValueChanged: function (e) {
+        var chart = $('#zoomedChartFirst').dxChart('instance');
+        chart.option('valueAxis', [
+          {
+            name: 'impression',
+            position: 'left'
+          },
+          {
+            name: 'cpa',
+            position: 'left'
+          },
+          {
+            name: 'cpc',
+            position: 'left'
+          },
+          {
+            name: 'clicks',
+            position: 'left'
+          },
+          {
+            name: 'mediaspent',
+            position: 'left'
+          },
+          {
+            name: 'conversions',
+            position: 'left'
+          },
+          {
+            name: 'ctr',
+            position: 'right'
+          }
+        ]);
+
         vm.updateCharts('CTR', 'ctr', e.value);
+        vm.onlyTwo(e.value);
+        CheckLocalStorage();
       }
     };
     /** CHECKBOX CHART - END **/

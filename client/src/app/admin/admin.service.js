@@ -20,6 +20,7 @@
     }
 
     function usersList() {
+
       return $http({
         method: 'GET',
         url: '/api/v1/user/'

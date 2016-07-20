@@ -2,51 +2,31 @@
   'use strict';
 
   angular
-    .module('pjtLayout')
-    .run(runBlock);
+  .module('pjtLayout')
+  .run(runBlock);
 
   /** @ngInject */
-  function runBlock($log) {
-    /*$rootScope.$state = $state;
-    $rootScope.$stateParams = $stateParams;
-    $rootScope.$on('$stateChangeStart', function (event, toState) {
-      $http.get("/api/user/me")
-      .catch(function (error) {
-        console.log(error.status);
-        if (error.status == 401) {
-          $localStorage.$reset();
-          $http.get("/logout")
-          .then(function (response) {
-            $window.location = "/";
-          })
-        }
-      });*/
-/*      if (!$cookies.get('token') && !$cookies.get('role')){
-        $cookies.remove('role');
-        $cookies.remove('token');
-        $window.location = "/";
-      }*/
+  function runBlock($log, $state,$http,$rootScope,$stateParams,$localStorage,$window, $cookies) {
 
-/*      if ($window.location != "/") {
-        if (!$cookies.get('token') && !$cookies.get('role')){
-          $cookies.remove('role');
-          $cookies.remove('token');
+    //security watcher
+    $rootScope.$state = $state;
+    $rootScope.$stateParams = $stateParams;
+    var stateChange = $rootScope.$on('$stateChangeStart', function (event, toState) {
+      if (toState.name != 'auth') {
+        if (!$cookies.get('token') && !$cookies.get('permission')){
+          $localStorage.$reset();
           $window.location = "/";
         }
-      }*/
-
-/*      if (toState.name != 'head') {
-        if (localStorage.getItem('ngStorage-options') == null) {
+      }
+      if (toState.name == 'admin') {
+        if ((($cookies.get('permission') =='userfull') || $cookies.get('permission') =='userread')){
           $localStorage.$reset();
-          $http.get("/logout")
-          .then(function (response) {
-            $window.location = "/";
-          })
-          .catch(function (error) {
-            console.log(error);
-          });
+          $window.location = "/";
         }
-      }*/
+      }
+    });
+    $rootScope.$on('$destroy', stateChange);
+
     $log.debug('runBlock end');
   }
 

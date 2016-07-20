@@ -215,10 +215,12 @@ def get_campaign_cpa(advertiser_id, campaign_id, from_date, to_date):
             avg = sum(itertools.imap(lambda x: x["sum_cost"], group)) / sum(itertools.imap(lambda x: x["convs"], group))
         except:
             avg = None
+        min_val = min(group, key=key_func)
+        max_val = max(group, key=key_func)
         res.append({
             "date": key,
-            "low":  (min(group, key_func))["cpa"],
-            "high": (max(group, key_func))["cpa"],
+            "low":  min_val["cpa"],
+            "high": max_val["cpa"],
             "open": group[0]["cpa"],
             "close": group[-1]["cpa"],
             "avg": avg,

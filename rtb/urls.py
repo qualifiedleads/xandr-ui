@@ -19,6 +19,7 @@ urlpatterns = [
     url(r'^totals', views.totals),
     url(r'^statistics', views.statistics),
     url(r'^map/clicks', views.map_clicks),
+    url(r'^campaigns/(\d+)/cpabuckets', views_adv.bucketsCPA),
     url(r'^campaigns/(\d+)/graphinfo', views_adv.graphInfo),
     url(r'^campaigns/(\d+)/cpareport', views_adv.cpaReport),
     url(r'^campaigns/(\d+)/domains', views_adv.campaignDomains),

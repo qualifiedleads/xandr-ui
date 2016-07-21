@@ -504,9 +504,31 @@ Get single campaign details for given period
     + to_date (date) - Date to select statistics to
         + Format: Unixtime
         + Example: 1466667274
-
-
     """
+    params = parse_get_params(request.GET)
+    field_name = 'site'
+    # field_name='placement'
+    q = NetworkAnalyticsReport.objects.filter(
+        # advertiser_id=advertiser_id,
+        campaign_id=id,
+        hour__gte=params['from_date'],
+        hour__lte=params['to_date'],
+    ).values(field_name).annotate(
+        conv=Sum('total_convs'),
+        sum_cost=Sum('cost'),
+        placementid=F('site_id'),
+        placementname=F('site__name'),
+        sellerid=F('seller_member_id'),
+        sellername=F('seller_member__name'),
+    ).annotate(
+        cpa=Case(When(~Q(convs=0), then=F('sum_cost') / F('conv')), output_field=FloatField()),
+    )
+    res = list(q)
+    for x in res:
+        x.pop('conv', None)
+        x.pop('sum_cost', None)
+
+    return Response(res)
     return Response([
         {
             "cpa": 1.2,

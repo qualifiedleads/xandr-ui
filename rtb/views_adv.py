@@ -291,10 +291,10 @@ def get_campaign_placement(campaign_id, from_date, to_date):
         imp=Sum('imps'),
         clicks=Sum('clicks'),
     ).annotate(
-        cpc=Case(When(~Q(clicks=0), then=F('cost') / F('clicks'))),
-        cpm=Case(When(~Q(imp=0), then=F('cost') / F('imp') *1000)),
-        cvr=Case(When(~Q(imp=0), then=F('conv') / F('imp'))),
-        ctr=Case(When(~Q(imp=0), then=F('clicks') / F('imp'))),
+        cpc=Case(When(~Q(clicks=0), then=F('cost') / F('clicks')), output_field=FloatField()),
+        cpm=Case(When(~Q(imp=0), then=F('cost') / F('imp') *1000), output_field=FloatField()),
+        cvr=Case(When(~Q(imp=0), then=F('conv') / F('imp')), output_field=FloatField()),
+        ctr=Case(When(~Q(imp=0), then=F('clicks') / F('imp')), output_field=FloatField()),
     )
     res=list(q)
     for x in res:

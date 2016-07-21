@@ -521,13 +521,13 @@ Get single campaign details for given period
         sellerid=F('seller_member_id'),
         sellername=F('seller_member__name'),
     ).annotate(
-        cpa=Case(When(~Q(convs=0), then=F('sum_cost') / F('conv')), output_field=FloatField()),
+        cpa=Case(When(~Q(conv=0), then=F('sum_cost') / F('conv')), output_field=FloatField()),
     )
     res = list(q)
     for x in res:
         x.pop('conv', None)
         x.pop('sum_cost', None)
-
+    # convs
     return Response(res)
     return Response([
         {

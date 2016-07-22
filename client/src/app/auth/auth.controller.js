@@ -60,6 +60,7 @@
     function submitForm (user) {
       if(user || user.email && user.password) {
         return vm.Auth.authorization(user).then(function (res) {
+          $localStorage.$reset();
           $cookies.put('token', res.token);
           $cookies.put('permission', res.permission);
           if ((res.token) && ((res.permission =='adminfull') || (res.permission =='adminread'))){

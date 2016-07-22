@@ -106,7 +106,7 @@
       },
       'CHECKBOX':{
         "IMPRESSIONS":"Показы",
-        "CPA":"CPA",
+        "CVR":"CVR",
         "CPC":"CPC",
         "CLICKS":"Клики",
         "MEDIA_SPENT":"Затраты",
@@ -116,7 +116,16 @@
     },
     "CAMP": {
       "NAME":"Кампания",
-      "GO-OPTIMISER": "Перейти к оптимизатору"
+      "GO-OPTIMISER": "Перейти к оптимизатору",
+      'CHECKBOX':{
+        "IMPRESSIONS":"Показы",
+        "CPA":"CPA",
+        "CPC":"CPC",
+        "CLICKS":"Клики",
+        "MEDIA_SPENT":"Затраты",
+        "CONVERSIONS":"Конверсии",
+        "CTR":"CTR"
+      }
     },
     "CO":{
       "NAME":"Оптимизатор кампании",

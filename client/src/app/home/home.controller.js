@@ -38,9 +38,11 @@
       if(value === true){
         wrapleft.classList.add('left-menu-close');
         wrapmain.style.width = '100%';
+        wrapmain.style.marginLeft = 0;
        } else if (value === false) {
         wrapleft.classList.remove('left-menu-close');
         wrapmain.style.width = '';
+        wrapmain.style.marginLeft = '';
        }
     };
 

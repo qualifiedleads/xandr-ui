@@ -4,8 +4,53 @@
   angular
   .module('pjtLayout')
   .constant('EnglishTranslations', {
+    'COMMON': {
+      'GO-TO-ADMIN-PANEL': 'Admin panel',
+      'LOGOUT': 'Log out',
+      'TO-MAIN-PAGE': 'Main page'
+    },
     'AUTH':{
-      'GO_BUTTON':'GO'
+      'GO_BUTTON':'GO',
+      'MAIL-REQUIRED': 'Your email is required',
+      'MAIL-VALID': 'Your email is not valid.',
+      'PASSWORD-REQUIRED': 'Your password is required.',
+      'MAIL-PLACEHOLDER': 'Enter your email',
+      'MAIL-PASSWORD': 'Enter your password',
+      'MAIL-SUBMIT': 'Submit'
+    },
+    "ADMIN":{
+      "ANU":{
+        'ADD-NEW-USER':'Add new user',
+        'EMAIL':'Email',
+        'PASSWORD':'Password',
+        'CONFIRM-PASSWORD':'Confirm password',
+        'USER-NAME':'User name',
+        'FIRST-NAME':'First name',
+        'LAST-NAME':'Last name',
+        'MAIL-REQUIRED': 'Your email is required',
+        'MAIL-VALID': 'Your email is not valid',
+        'PASSWORD-REQUIRED': 'Your password is required',
+        'CONFIRM-PASSWORD-REQUIRED': 'Password confirmation is required',
+        'CONFIRM-PASSWORD-INCORRECT': 'Incorrect password',
+        'USER-NAME-REQUIRED': 'User name is required',
+        'FIRST-NAME-REQUIRED': 'First name is required',
+        'LAST-NAME-REQUIRED': 'Last name is required',
+        'SELECT-PERMISSION': 'Select the type of permission',
+        'SELECT-NEXUS-USER': 'Select the appnexus user',
+        'SUBMIT': 'Create'
+      },
+      "LIST-USER" : {
+        "TITLE" : "List of users",
+        'EMAIL':'Email',
+        'PASSWORD':'Password',
+        'CONFIRM-PASSWORD':'Confirm password',
+        'USER-NAME':'User name',
+        'FIRST-NAME':'First name',
+        'LAST-NAME':'Last name',
+        'APNEXUS-ID':'AppNexus user id',
+        'APNEXUS-NAME':'AppNexus user name',
+        'PERMISSION':'Permission'
+      }
     },
     'INDEX':{
       'ADVERTISER_TITLE':'Stats for',
@@ -61,7 +106,7 @@
       },
       'CHECKBOX':{
         "IMPRESSIONS":"Impressions",
-        "CPA":"CPA",
+        "CVR":"CVR",
         "CPC":"CPC",
         "CLICKS":"Clicks",
         "MEDIA_SPENT":"Media Spent",
@@ -71,7 +116,16 @@
     },
     "CAMP": {
       "NAME":"Campaign",
-      "GO-OPTIMISER": "Go to the Optimiser"
+      "GO-OPTIMISER": "Go to the Optimiser",
+      'CHECKBOX':{
+        "IMPRESSIONS":"Impressions",
+        "CPA":"CPA",
+        "CPC":"CPC",
+        "CLICKS":"Clicks",
+        "MEDIA_SPENT":"Media Spent",
+        "CONVERSIONS":"Conversions",
+        "CTR":"CTR"
+      }
     },
     "CO":{
       "NAME":"Campaign optimiser",

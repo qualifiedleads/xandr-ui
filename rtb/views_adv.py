@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from django.http import JsonResponse
 from utils import parse_get_params, make_sum
 from models import SiteDomainPerformanceReport, Campaign, GeoAnaliticsReport, NetworkAnalyticsReport
-from django.db.models import Sum, Min, Max, Avg, Value, When, Case, F, Q, Func
+from django.db.models import Sum, Min, Max, Avg, Value, When, Case, F, Q, Func, FloatField
 from django.db.models.functions import Coalesce
 from django.core.cache import cache
 import itertools
@@ -194,33 +194,33 @@ def get_campaign_cpa(advertiser_id, campaign_id, from_date, to_date):
         campaign_id=campaign_id,
         hour__gte=from_date,
         hour__lte=to_date,
-    ).values('hour').annotate(  # impression, cpa, cpc, clicks, mediaspent, conversions, ctr
+    ).values('hour').annotate(
         sum_cost=Sum('cost'),
         convs=Sum('total_convs'),
-        # cpa = Case(When(Sum('total_convs'), then=Sum('media_cost')/Sum('total_convs')))
+        # date=Func(Value("'day'"), 'hour', function="date_trunc")
     ).annotate(
-        cpa=Case(When(~Q(convs=0), then=F('sum_cost') / F('convs'))),
-        date=Func(Value("'day'"), 'hour', function="date_trunc")
-    ).order_by("hour")
+        cpa=Case(When(~Q(convs=0), then=F('sum_cost') / F('convs')),output_field=FloatField()),
+    )#.order_by("hour")
     # values("date").annotate(
     #     low=Min("cpa"),
     #     high=Max("cpa"),
     #     avg=Avg("cpa")
     # )
-    print q.query
     # first, last = None, None
     res = []
     key_func = lambda x: x["cpa"]
-    for key, g in itertools.groupby(q, lambda x: x["date"]):
+    for key, g in itertools.groupby(q, lambda x: x["hour"].date()):
         group = list(g)
         try:
             avg = sum(itertools.imap(lambda x: x["sum_cost"], group)) / sum(itertools.imap(lambda x: x["convs"], group))
         except:
             avg = None
+        min_val = min(group, key=key_func)
+        max_val = max(group, key=key_func)
         res.append({
             "date": key,
-            "low": min(group, key_func)["cpa"],
-            "high": max(group, key_func)["cpa"],
+            "low":  min_val["cpa"],
+            "high": max_val["cpa"],
             "open": group[0]["cpa"],
             "close": group[-1]["cpa"],
             "avg": avg,
@@ -282,20 +282,29 @@ def get_campaign_placement(campaign_id, from_date, to_date):
         campaign_id=campaign_id,
         hour__gte=from_date,
         hour__lte=to_date,
-    ).values('placement', 'placement__name','publisher__name','placement__state').annotate(
+    ).values('placement_id').annotate(
+        placement = F('placement__name'),
+        NetworkPublisher = F('publisher__name'),
+        placementState = F('placement__state'),
         cost=Sum('cost'),
         conv=Sum('total_convs'),
         imp=Sum('imps'),
         clicks=Sum('clicks'),
     ).annotate(
-        cpc=Case(When(~Q(clicks=0), then=F('cost') / F('clicks'))),
-        cpm=Case(When(~Q(imp=0), then=F('cost') / F('imp') *1000)),
-        cvr=Case(When(~Q(imp=0), then=F('conv') / F('imp'))),
-        ctr=Case(When(~Q(imp=0), then=F('clicks') / F('imp'))),
+        cpc=Case(When(~Q(clicks=0), then=F('cost') / F('clicks')), output_field=FloatField()),
+        cpm=Case(When(~Q(imp=0), then=F('cost') / F('imp') *1000), output_field=FloatField()),
+        cvr=Case(When(~Q(imp=0), then=F('conv') / F('imp')), output_field=FloatField()),
+        ctr=Case(When(~Q(imp=0), then=F('clicks') / F('imp')), output_field=FloatField()),
     )
-    print q.query
     res=list(q)
-    res = []
+    for x in res:
+        x['state']={
+            "whiteList": "true",
+            "blackList": "false",
+            "suspended": x['placementState']=='inactive'
+        }
+        x.pop('placement_id', None)
+        x.pop('placementState', None)
     cache.set(key, res)
     return res
 
@@ -327,6 +336,8 @@ Get single campaign details by domains
 
     """
     params = parse_get_params(request.GET)
+    if params['from_date'] > params['to_date']:
+        params['from_date'], params['to_date'] = params['to_date'], params['from_date']
     res = get_campaign_placement(id, params['from_date'], params['to_date'])
     return Response(res)
     return Response([{
@@ -397,7 +408,7 @@ Get single campaign details by domains
 
 
 @api_view()
-def campaignDetails(request):
+def campaignDetails(request, id):
     """
 Get single campaign details for given period 
 
@@ -418,6 +429,26 @@ Get single campaign details for given period
 
 
     """
+    # TODO This dictionary need to fill with names of all grouping sections
+    section_to_field={
+        'Placement':"placement"
+    }
+    # curl 'http://127.0.0.1:8000/api/v1/campaigns/13412702/details?from_date=1467320400&section=Placement&to_date=1469032344' --1.0 -H 'Host: 127.0.0.1:8000' -H 'User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:47.0) Gecko/20100101 Firefox/47.0' -H 'Accept: application/json, text/plain, */*' -H 'Accept-Language: en-US,en;q=0.5' --compressed -H 'Referer: http://127.0.0.1:8000/client/index.html' -H 'Cookie: csrftoken=tzdunvIQ55Ba7maBdr8WYeEW58S75rCn' -H 'Connection: keep-alive'
+    params = parse_get_params(request.GET)
+    field_name = section_to_field.get(params['section'],'placement')
+    q = NetworkAnalyticsReport.objects.filter(
+        # advertiser_id=advertiser_id,
+        campaign_id=id,
+        hour__gte=params['from_date'],
+        hour__lte=params['to_date'],
+    ).values(field_name).annotate(
+        conv=Sum('total_convs'),
+        imp=Sum('imps'),
+    )
+    results= list(q)
+    views = [{'section':x[field_name],'data':x['imp']} for x in results]
+    conversions = [{'section':x[field_name],'data':x['conv']} for x in results]
+    return Response({'all':views,'conversions':conversions})
     return Response({
         'all': [
             {
@@ -458,7 +489,7 @@ Get single campaign details for given period
     })
 
 @api_view()
-def bucketsCPA(request):
+def bucketsCPA(request,id):
     """
 Get single campaign details for given period
 
@@ -473,9 +504,31 @@ Get single campaign details for given period
     + to_date (date) - Date to select statistics to
         + Format: Unixtime
         + Example: 1466667274
-
-
     """
+    params = parse_get_params(request.GET)
+    field_name = 'site'
+    # field_name='placement'
+    q = NetworkAnalyticsReport.objects.filter(
+        # advertiser_id=advertiser_id,
+        campaign_id=id,
+        hour__gte=params['from_date'],
+        hour__lte=params['to_date'],
+    ).values(field_name).annotate(
+        conv=Sum('total_convs'),
+        sum_cost=Sum('cost'),
+        placementid=F('site_id'),
+        placementname=F('site__name'),
+        sellerid=F('seller_member_id'),
+        sellername=F('seller_member__name'),
+    ).annotate(
+        cpa=Case(When(~Q(conv=0), then=F('sum_cost') / F('conv')), output_field=FloatField()),
+    )
+    res = list(q)
+    for x in res:
+        x.pop('conv', None)
+        x.pop('sum_cost', None)
+    # convs
+    return Response(res)
     return Response([
         {
             "cpa": 1.2,

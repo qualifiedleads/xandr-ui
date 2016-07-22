@@ -106,7 +106,7 @@
       },
       'CHECKBOX':{
         "IMPRESSIONS":"Impressions",
-        "CPA":"CPA",
+        "CVR":"CVR",
         "CPC":"CPC",
         "CLICKS":"Clicks",
         "MEDIA_SPENT":"Media Spent",
@@ -116,7 +116,16 @@
     },
     "CAMP": {
       "NAME":"Campaign",
-      "GO-OPTIMISER": "Go to the Optimiser"
+      "GO-OPTIMISER": "Go to the Optimiser",
+      'CHECKBOX':{
+        "IMPRESSIONS":"Impressions",
+        "CPA":"CPA",
+        "CPC":"CPC",
+        "CLICKS":"Clicks",
+        "MEDIA_SPENT":"Media Spent",
+        "CONVERSIONS":"Conversions",
+        "CTR":"CTR"
+      }
     },
     "CO":{
       "NAME":"Campaign optimiser",

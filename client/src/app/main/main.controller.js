@@ -18,7 +18,7 @@
     /** LOCAL STORAGE CHECKBOX - START **/
 
 
-    if ($localStorage.checkChart == null ) {
+    if ($localStorage.checkChart == null) {
       $localStorage.checkChart = {
         'imp': true,
         'cvr': false,
@@ -30,22 +30,21 @@
       };
     }
     vm.chartSeries = [
-      { valueField: 'imp', name: 'Impressions', axis:'imp', visible: $localStorage.checkChart.imp }, //yes
-      { valueField: 'cvr', name: 'CVR', axis:'cvr', visible: $localStorage.checkChart.cvr },  //NET
-      { valueField: 'cpc', name: 'CPC', axis:'CPC', visible: $localStorage.checkChart.cpc },  //yes
-      { valueField: 'clicks', name: 'clicks', axis:'clicks', visible: $localStorage.checkChart.clicks }, //yes
-      { valueField: 'spend', name: 'media', axis:'spend', visible: $localStorage.checkChart.spend },//yes
-      { valueField: 'conv', name: 'conversions', axis:'conv', visible: $localStorage.checkChart.conv },//yes
-      { valueField: 'ctr', name: 'CTR', axis:'ctr', visible: $localStorage.checkChart.ctr } //yes
+      {valueField: 'imp', name: 'Impressions', axis: 'imp', visible: $localStorage.checkChart.imp}, //yes
+      {valueField: 'cvr', name: 'CVR', axis: 'cvr', visible: $localStorage.checkChart.cvr},  //NET
+      {valueField: 'cpc', name: 'CPC', axis: 'cpc', visible: $localStorage.checkChart.cpc},  //yes
+      {valueField: 'clicks', name: 'clicks', axis: 'clicks', visible: $localStorage.checkChart.clicks}, //yes
+      {valueField: 'spend', name: 'media', axis: 'spend', visible: $localStorage.checkChart.spend},//yes
+      {valueField: 'conv', name: 'conversions', axis: 'conv', visible: $localStorage.checkChart.conv},//yes
+      {valueField: 'ctr', name: 'CTR', axis: 'ctr', visible: $localStorage.checkChart.ctr} //yes
     ];
     /** LOCAL STORAGE CHECKBOX - END **/
 
 
-
     /** DATE PIKER - START **/
-    if ($localStorage.dataStart == null && $localStorage.dataEnd == null ){
-      $localStorage.dataStart = $window.moment({ hour: '00' }).subtract(1, 'day').unix() ;
-      $localStorage.dataEnd = $window.moment({ hour: '00' }).subtract(1, 'day').endOf('day').unix();
+    if ($localStorage.dataStart == null && $localStorage.dataEnd == null) {
+      $localStorage.dataStart = $window.moment({hour: '00'}).subtract(1, 'day').unix();
+      $localStorage.dataEnd = $window.moment({hour: '00'}).subtract(1, 'day').endOf('day').unix();
     } else {
       vm.dataStart = $localStorage.dataStart;
       vm.dataEnd = $localStorage.dataEnd;
@@ -58,28 +57,28 @@
       {
         ID: 0,
         Name: LC('MAIN.DATE_PICKER.YESTERDAY'),
-        dataStart: $window.moment({ hour: '00' }).subtract(1, 'day').unix() ,
-        dataEnd: $window.moment({ hour: '00' }).subtract(1, 'day').endOf('day').unix()
+        dataStart: $window.moment({hour: '00'}).subtract(1, 'day').unix(),
+        dataEnd: $window.moment({hour: '00'}).subtract(1, 'day').endOf('day').unix()
       }, {
         ID: 1,
         Name: LC('MAIN.DATE_PICKER.LAST_3_DAYS'),
-        dataStart:  $window.moment({ hour: '00' }).subtract(3, 'day').unix(),
-        dataEnd: $window.moment({ hour: '00' }).unix()
+        dataStart: $window.moment({hour: '00'}).subtract(3, 'day').unix(),
+        dataEnd: $window.moment({hour: '00'}).unix()
       }, {
         ID: 2,
         Name: LC('MAIN.DATE_PICKER.LAST_7_DAYS'),
-        dataStart:  $window.moment({ hour: '00' }).subtract(7, 'day').unix(),
-        dataEnd: $window.moment({ hour: '00' }).unix()
+        dataStart: $window.moment({hour: '00'}).subtract(7, 'day').unix(),
+        dataEnd: $window.moment({hour: '00'}).unix()
       }, {
         ID: 3,
         Name: LC('MAIN.DATE_PICKER.LAST_14_DAYS'),
-        dataStart:  $window.moment({ hour: '00' }).subtract(14, 'day').unix(),
-        dataEnd: $window.moment({ hour: '00' }).unix()
+        dataStart: $window.moment({hour: '00'}).subtract(14, 'day').unix(),
+        dataEnd: $window.moment({hour: '00'}).unix()
       }, {
         ID: 4,
         Name: LC('MAIN.DATE_PICKER.LAST_21_DAYS'),
-        dataStart:  $window.moment({ hour: '00' }).subtract(21, 'day').unix(),
-        dataEnd: $window.moment({ hour: '00' }).unix()
+        dataStart: $window.moment({hour: '00'}).subtract(21, 'day').unix(),
+        dataEnd: $window.moment({hour: '00'}).unix()
       }, {
         ID: 5,
         Name: LC('MAIN.DATE_PICKER.CURRENT_MONTH'),
@@ -93,7 +92,7 @@
       }, {
         ID: 7,
         Name: LC('MAIN.DATE_PICKER.LAST_90_DAYS'),
-        dataStart: $window.moment({ hour: '00' }).subtract(90, 'day').unix(),
+        dataStart: $window.moment({hour: '00'}).subtract(90, 'day').unix(),
         dataEnd: $window.moment().unix()
       }, {
         ID: 8,
@@ -127,7 +126,7 @@
         return 0;
       },
       load: function () {
-        return vm.Main.statsChart(vm.advertiser.id, vm.dataStart, vm.dataEnd,vm.by)
+        return vm.Main.statsChart(vm.advertiser.id, vm.dataStart, vm.dataEnd, vm.by)
         .then(function (result) {
 
           return result.statistics;
@@ -137,12 +136,12 @@
 
     vm.multipleStore = new $window.DevExpress.data.CustomStore({
       totalCount: function () {
-        return vm.multipleTotalCount ;
+        return vm.multipleTotalCount;
       },
       load: function (loadOptions) {
         return vm.Main.statsCampaigns(vm.advertiser.id, vm.dataStart, vm.dataEnd, loadOptions.skip,
           loadOptions.take, loadOptions.sort, loadOptions.order,
-          vm.by ,loadOptions.filter)
+          vm.by, loadOptions.filter)
         .then(function (result) {
           vm.multipleTotalCount = result.totalCount;
           return result.campaigns;
@@ -151,13 +150,12 @@
     });
 
 
-
     /** BINDING OPTIONS - END **/
 
     /** TOTALS - START **/
     vm.Main.statsTotals(vm.advertiser.id, vm.dataStart, vm.dataEnd)
     .then(function (result) {
-      vm.totals.imp = result.imp.toString().split( /(?=(?:\d{3})+(?!\d))/ ).join();
+      vm.totals.imp = result.imp.toString().split(/(?=(?:\d{3})+(?!\d))/).join();
       vm.totals.spent = result.spend.toFixed(2);
       vm.totals.conv = result.conv;
       vm.totals.cpc = result.cpc;
@@ -215,7 +213,7 @@
           fixed: true,
           cellTemplate: function (container, options) {
             container.addClass('a-campaign');
-            $window.angular.element('<a href="#/home/campaign/'+ options.data.id +'">' + options.data.campaign + '</a>')
+            $window.angular.element('<a href="#/home/campaign/' + options.data.id + '">' + options.data.campaign + '</a>')
             .appendTo(container);
           }
         },
@@ -227,13 +225,13 @@
           caption: LC('MAIN.CAMPAIGN.COLUMNS.CONV'),
           dataField: 'conv'
         }, {
-          caption:  LC('MAIN.CAMPAIGN.COLUMNS.IMP'),
+          caption: LC('MAIN.CAMPAIGN.COLUMNS.IMP'),
           dataField: 'imp'
         }, {
-          caption:  LC('MAIN.CAMPAIGN.COLUMNS.CLICKS'),
+          caption: LC('MAIN.CAMPAIGN.COLUMNS.CLICKS'),
           dataField: 'clicks'
         }, {
-          caption:  LC('MAIN.CAMPAIGN.COLUMNS.CPC'),
+          caption: LC('MAIN.CAMPAIGN.COLUMNS.CPC'),
           dataField: 'cpc'
         },
         {
@@ -280,16 +278,16 @@
                   label: {
                     visible: false
                   },
-                  grid: { visible: false }
+                  grid: {visible: false}
                 },
                 valueAxis: [
-                  { name: 'imp'},
-                  { name: 'cvr'},
-                  { name: 'CPC' },
-                  { name: 'clicks' },
-                  { name: 'spend' },
-                  { name: 'conv' },
-                  { name: 'ctr' }
+                  {name: 'imp'},
+                  {name: 'cvr'},
+                  {name: 'CPC'},
+                  {name: 'clicks'},
+                  {name: 'spend'},
+                  {name: 'conv'},
+                  {name: 'ctr'}
                 ],
                 argumentAxis: {
                   valueMarginsEnabled: false,
@@ -349,9 +347,45 @@
     /** MULTIPLE - END **/
 
     /** BIG DIAGRAM  - START **/
+    vm.charIsUpdating = false;
     vm.types = ['line', 'stackedLine', 'fullStackedLine'];
-
     vm.chartOptions = {
+      onDone: function () {
+        var chart = $('#chart').dxChart('instance');
+        if (!vm.charIsUpdating) {
+          var update = [];
+          var flag = 'left';
+          vm.chartOptions.valueAxis.forEach(function (item, index) {
+            var visible = $localStorage.checkChart[item.name];
+            update.push({
+              name: item.name,
+              position: flag,
+              label: {
+                alignment: 'center',
+                customizeText: function () {
+                  vm.charIsUpdating = true;
+                  var major = chart._valueAxes[index]._majorTicks;
+                  var maxMajor = null;
+                  if (Array.isArray(major) && maxMajor < major[major.length - 1].value) {
+                    maxMajor = major[major.length - 1].value;
+                  }
+                  if (this.value == maxMajor) {
+                    return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + item.name + '</span><br>' + this.value;
+                  }
+                  return this.value;
+                }
+              }
+            });
+            if (visible) {
+              if (flag == 'left')
+                flag = 'right';
+              else
+                flag = 'left';
+            }
+          });
+          chart.option('valueAxis', update);
+        }
+      },
       onInitialized: function (data) {
         vm.chartOptionsFunc = data.component;
       },
@@ -372,14 +406,14 @@
             size: 5
           }
         }
-      },crosshair: {
+      }, crosshair: {
         enabled: true,
         color: 'deepskyblue',
         label: {
           visible: true
         }
       },
-      commonAxisSettings:{
+      commonAxisSettings: {
         valueMarginsEnabled: true
       },
       margin: {
@@ -393,21 +427,34 @@
         }
       },
       valueAxis: [
-        { name: 'imp',
+        {
+          name: 'imp',
           position: 'left'
         },
-        { name: 'cvr',
-          position: 'left'},
-        { name: 'CPC',
-          position: 'left' },
-        { name: 'clicks',
-          position: 'left' },
-        { name: 'spend',
-          position: 'left' },
-        { name: 'conv',
-          position: 'left'},
-        { name: 'ctr',
-          position:'left' }
+        {
+          name: 'cvr',
+          position: 'left'
+        },
+        {
+          name: 'cpc',
+          position: 'left'
+        },
+        {
+          name: 'clicks',
+          position: 'left'
+        },
+        {
+          name: 'spend',
+          position: 'left'
+        },
+        {
+          name: 'conv',
+          position: 'left'
+        },
+        {
+          name: 'ctr',
+          position: 'left'
+        }
       ],
       legend: {
         verticalAlignment: 'bottom',
@@ -437,13 +484,13 @@
       if (selected) {
         vm.chartOptionsFunc.getSeriesByName(seriesName).show();
         gridCharts = $window.$('.chartMulti');
-        for(i = 0; i < gridCharts.length; i++) {
+        for (i = 0; i < gridCharts.length; i++) {
           $window.$(gridCharts[i]).dxChart('instance').getSeriesByName(seriesName).show();
         }
       } else {
         vm.chartOptionsFunc.getSeriesByName(seriesName).hide();
         gridCharts = $window.$('.chartMulti');
-        for(i = 0; i < gridCharts.length; i++) {
+        for (i = 0; i < gridCharts.length; i++) {
           $window.$(gridCharts[i]).dxChart('instance').getSeriesByName(seriesName).hide();
         }
       }
@@ -451,11 +498,11 @@
 
     /** CHECKBOX CHART - START **/
 
-    vm.onlyTwo = function(value) {
-      var i=0;
+    vm.onlyTwo = function (value) {
+      var i = 0;
       var checkTrue = [];
       var checkFalse = [];
-      for(i = 0; i < vm.Init.length; i++) {
+      for (i = 0; i < vm.Init.length; i++) {
         if (vm.Init[i]._options.value == true) {
           checkTrue.push(vm.Init[i]);
         } else {
@@ -463,52 +510,52 @@
         }
       }
       if (value == true) {
-        if (checkTrue.length == 2 && checkFalse.length>4) {
-          for(i = 0; i < checkFalse.length; i++) {
+        if (checkTrue.length == 2 && checkFalse.length > 4) {
+          for (i = 0; i < checkFalse.length; i++) {
             checkFalse[i].option('disabled', true);
           }
         }
       } else {
         if (checkTrue.length <= 2) {
-          for(i = 0; i < checkFalse.length; i++) {
+          for (i = 0; i < checkFalse.length; i++) {
             checkFalse[i].option('disabled', false);
           }
         }
       }
     };
 
-    function CheckLocalStorage () {
-      for (var i in $localStorage.checkChart) {
-        if ($localStorage.checkChart[i] == true) {
-          if (i == 'imp') {
+    function CheckLocalStorage() {
+      for (var item in $localStorage.checkChart) {
+        if ($localStorage.checkChart[item]) {
+          if (item == 'imp') {
             vm.chartOptionsFunc.getSeriesByName('Impressions').show();
-          }else if (i == 'cvr') {
+          } else if (item == 'cvr') {
             vm.chartOptionsFunc.getSeriesByName('CVR').show();
-          } else if (i == 'cpc') {
+          } else if (item == 'cpc') {
             vm.chartOptionsFunc.getSeriesByName('CPC').show();
-          } else if (i == 'clicks') {
+          } else if (item == 'clicks') {
             vm.chartOptionsFunc.getSeriesByName('clicks').show();
-          } else if (i == 'spend') {
+          } else if (item == 'spend') {
             vm.chartOptionsFunc.getSeriesByName('media').show();
-          } else if (i == 'conv') {
+          } else if (item == 'conv') {
             vm.chartOptionsFunc.getSeriesByName('conversions').show();
-          } else if (i == 'ctr') {
+          } else if (item == 'ctr') {
             vm.chartOptionsFunc.getSeriesByName('CTR').show();
           }
-        } else if ($localStorage.checkChart[i] == false) {
-          if (i == 'imp') {
+        } else {
+          if (item == 'imp') {
             vm.chartOptionsFunc.getSeriesByName('Impressions').hide();
-          }else if (i == 'cvr') {
+          } else if (item == 'cvr') {
             vm.chartOptionsFunc.getSeriesByName('CVR').hide();
-          } else if (i == 'cpc') {
+          } else if (item == 'cpc') {
             vm.chartOptionsFunc.getSeriesByName('CPC').hide();
-          } else if (i == 'clicks') {
+          } else if (item == 'clicks') {
             vm.chartOptionsFunc.getSeriesByName('clicks').hide();
-          } else if (i == 'spend') {
+          } else if (item == 'spend') {
             vm.chartOptionsFunc.getSeriesByName('media').hide();
-          } else if (i == 'conv') {
+          } else if (item == 'conv') {
             vm.chartOptionsFunc.getSeriesByName('conversions').hide();
-          } else if (i == 'ctr') {
+          } else if (item == 'ctr') {
             vm.chartOptionsFunc.getSeriesByName('CTR').hide();
           }
         }
@@ -523,86 +570,25 @@
         vm.Init.push(data.component);
       },
       onValueChanged: function (e) {
-        //vm.updateCharts('Impressions', 'imp', e.value);
-        var chart = $('#chart').dxChart('instance');
-        chart.option('valueAxis', [
-          {
-            name: 'imp',
-            position: 'right'
-          },
-          {
-            name: 'cvr',
-            position: 'left'
-          },
-          {
-            name: 'CPC',
-            position: 'left'
-          },
-          {
-            name: 'clicks',
-            position: 'left'
-          },
-          {
-            name: 'spend',
-            position: 'left'
-          },
-          {
-            name: 'conv',
-            position: 'left'
-          },
-          {
-            name: 'ctr',
-            position: 'left'
-          }
-        ]);
-
         vm.updateCharts('Impressions', 'imp', e.value);
         vm.onlyTwo(e.value);
+        vm.charIsUpdating = false;
+        vm.chartOptions.onDone();
         CheckLocalStorage();
       }
     };
 
-    vm.CPA = {
-      text: LC('MAIN.CHECKBOX.CPA'),
+    vm.CVR = {
+      text: LC('MAIN.CHECKBOX.CVR'),
       value: $localStorage.checkChart.cvr,
       onInitialized: function (data) {
         vm.Init.push(data.component);
       },
       onValueChanged: function (e) {
-        var chart = $('#chart').dxChart('instance');
-        chart.option('valueAxis', [
-          {
-            name: 'imp',
-            position: 'left'
-          },
-          {
-            name: 'cvr',
-            position: 'right'
-          },
-          {
-            name: 'CPC',
-            position: 'left'
-          },
-          {
-            name: 'clicks',
-            position: 'left'
-          },
-          {
-            name: 'spend',
-            position: 'left'
-          },
-          {
-            name: 'conv',
-            position: 'left'
-          },
-          {
-            name: 'ctr',
-            position: 'left'
-          }
-        ]);
-
         vm.updateCharts('CVR', 'cvr', e.value);
         vm.onlyTwo(e.value);
+        vm.charIsUpdating = false;
+        vm.chartOptions.onDone();
         CheckLocalStorage();
       }
     };
@@ -614,39 +600,10 @@
         vm.Init.push(data.component);
       },
       onValueChanged: function (e) {
-        var chart = $('#chart').dxChart('instance');
-        chart.option('valueAxis', [
-          {
-            name: 'imp',
-            position: 'left'
-          },
-          {
-            name: 'cvr',
-            position: 'left'
-          },
-          {
-            name: 'CPC',
-            position: 'right'
-          },
-          {
-            name: 'clicks',
-            position: 'left'
-          },
-          {
-            name: 'spend',
-            position: 'left'
-          },
-          {
-            name: 'conv',
-            position: 'left'
-          },
-          {
-            name: 'ctr',
-            position: 'left'
-          }
-        ]);
         vm.updateCharts('CPC', 'cpc', e.value);
         vm.onlyTwo(e.value);
+        vm.charIsUpdating = false;
+        vm.chartOptions.onDone();
         CheckLocalStorage();
       }
     };
@@ -657,39 +614,10 @@
         vm.Init.push(data.component);
       },
       onValueChanged: function (e) {
-        var chart = $('#chart').dxChart('instance');
-        chart.option('valueAxis', [
-          {
-            name: 'imp',
-            position: 'left'
-          },
-          {
-            name: 'cvr',
-            position: 'left'
-          },
-          {
-            name: 'CPC',
-            position: 'left'
-          },
-          {
-            name: 'clicks',
-            position: 'right'
-          },
-          {
-            name: 'spend',
-            position: 'left'
-          },
-          {
-            name: 'conv',
-            position: 'left'
-          },
-          {
-            name: 'ctr',
-            position: 'left'
-          }
-        ]);
         vm.updateCharts('clicks', 'clicks', e.value);
         vm.onlyTwo(e.value);
+        vm.charIsUpdating = false;
+        vm.chartOptions.onDone();
         CheckLocalStorage();
       }
     };
@@ -700,39 +628,10 @@
         vm.Init.push(data.component);
       },
       onValueChanged: function (e) {
-        var chart = $('#chart').dxChart('instance');
-        chart.option('valueAxis', [
-          {
-            name: 'imp',
-            position: 'left'
-          },
-          {
-            name: 'cvr',
-            position: 'left'
-          },
-          {
-            name: 'CPC',
-            position: 'left'
-          },
-          {
-            name: 'clicks',
-            position: 'left'
-          },
-          {
-            name: 'spend',
-            position: 'right'
-          },
-          {
-            name: 'conv',
-            position: 'left'
-          },
-          {
-            name: 'ctr',
-            position: 'left'
-          }
-        ]);
         vm.updateCharts('media', 'spend', e.value);
         vm.onlyTwo(e.value);
+        vm.charIsUpdating = false;
+        vm.chartOptions.onDone();
         CheckLocalStorage();
       }
     };
@@ -743,39 +642,10 @@
         vm.Init.push(data.component);
       },
       onValueChanged: function (e) {
-        var chart = $('#chart').dxChart('instance');
-        chart.option('valueAxis', [
-          {
-            name: 'imp',
-            position: 'left'
-          },
-          {
-            name: 'cvr',
-            position: 'left'
-          },
-          {
-            name: 'CPC',
-            position: 'left'
-          },
-          {
-            name: 'clicks',
-            position: 'left'
-          },
-          {
-            name: 'spend',
-            position: 'left'
-          },
-          {
-            name: 'conv',
-            position: 'right'
-          },
-          {
-            name: 'ctr',
-            position: 'left'
-          }
-        ]);
         vm.updateCharts('conversions', 'conv', e.value);
         vm.onlyTwo(e.value);
+        vm.charIsUpdating = false;
+        vm.chartOptions.onDone();
         CheckLocalStorage();
       }
     };
@@ -786,63 +656,34 @@
         vm.Init.push(data.component);
       },
       onValueChanged: function (e) {
-        var chart = $('#chart').dxChart('instance');
-        chart.option('valueAxis', [
-          {
-            name: 'imp',
-            position: 'left'
-          },
-          {
-            name: 'cvr',
-            position: 'left'
-          },
-          {
-            name: 'CPC',
-            position: 'left'
-          },
-          {
-            name: 'clicks',
-            position: 'left'
-          },
-          {
-            name: 'spend',
-            position: 'left'
-          },
-          {
-            name: 'conv',
-            position: 'left'
-          },
-          {
-            name: 'ctr',
-            position: 'right'
-          }
-        ]);
         vm.updateCharts('CTR', 'ctr', e.value);
         vm.onlyTwo(e.value);
+        vm.charIsUpdating = false;
+        vm.chartOptions.onDone();
         CheckLocalStorage();
       }
     };
 
-    $timeout(function(){
+    $timeout(function () {
       var i = 0;
       var checkTrue = [];
       var checkFalse = [];
-      for(i= 0; i < vm.Init.length; i++) {
+      for (i = 0; i < vm.Init.length; i++) {
         if (vm.Init[i]._options.value == true) {
           checkTrue.push(vm.Init[i]);
         } else {
           checkFalse.push(vm.Init[i]);
         }
       }
-      if (checkTrue.length >= 2 && checkFalse.length>4) {
-        for(i = 0; i < checkFalse.length; i++) {
+      if (checkTrue.length >= 2 && checkFalse.length > 4) {
+        for (i = 0; i < checkFalse.length; i++) {
           checkFalse[i].option('disabled', true);
         }
       }
 
-  });
+    });
 
-/** CHECKBOX CHART - END **/
+    /** CHECKBOX CHART - END **/
 
     /** MAP CLICKS - START **/
     var clicksByCountry = {};
@@ -880,14 +721,14 @@
         enabled: true,
         customizeTooltip: function (arg) {
           if (arg.attribute('clicks')) {
-            return { text: arg.attribute('name') + ": " + arg.attribute('clicks')};
+            return {text: arg.attribute('name') + ": " + arg.attribute('clicks')};
           } else {
-            return { text: arg.attribute('name')};
+            return {text: arg.attribute('name')};
           }
         }
       },
       legends: [{
-        source: { layer: 'areas', grouping: 'color' },
+        source: {layer: 'areas', grouping: 'color'},
         horizontalAlignment: 'left',
         verticalAlignment: 'bottom',
         customizeText: function (arg) {

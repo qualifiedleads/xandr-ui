@@ -88,16 +88,19 @@ class User(models.Model):
 
 class MembershipUserToAdvertiser(models.Model):
     advertiser = models.ForeignKey('Advertiser', on_delete=models.CASCADE)
-    user = models.ForeignKey('FrameworkUser', on_delete=models.CASCADE)
+    frameworkuser = models.ForeignKey('FrameworkUser', on_delete=models.CASCADE)
     can_write = models.BooleanField(default=False)
+    class Meta:
+        #auto_created = True #dirty trick
+        db_table = "rtb_membershipusertoadvertiser"
 
 # class FrameworkUser(models.Model):
 class FrameworkUser(DjangoUser):
     # these field created automatically
     # user = models.OneToOneField(DjangoUser, on_delete=models.CASCADE)
     apnexus_user = models.ForeignKey("User", null=True, blank=True)
-    # advertisers = models.ManyToManyField("Advertiser", through= "MembershipUserToAdvertiser")
-    advertisers = models.ManyToManyField("Advertiser")
+    advertisers = models.ManyToManyField("Advertiser", through= "MembershipUserToAdvertiser")
+    # advertisers = models.ManyToManyField("Advertiser")
     @property
     def apnexusname(self):
         return self.apnexus_user and self.apnexus_user.name

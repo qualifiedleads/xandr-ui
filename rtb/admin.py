@@ -1,9 +1,10 @@
 from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin, UserChangeForm
 from django.contrib.auth.models import User
 from rtb.models import FrameworkUser, SiteDomainPerformanceReport, NetworkAnalyticsReport
 from django.utils.translation import ugettext_lazy as _
 from django.forms.widgets import  CheckboxSelectMultiple
+from django.forms import ModelChoiceField
 
 
 
@@ -11,11 +12,13 @@ from django.forms.widgets import  CheckboxSelectMultiple
 # which acts a bit like a singleton
 class UsersInline(admin.StackedInline):
     model = FrameworkUser
-    #fields = ('apnexus_user', 'advertisers')
-    fields = ('apnexus_user', )
+    # fields = ('apnexus_user',)
     filter_horizontal = ('advertisers',)
     can_delete = False
     # verbose_name_plural = 'users'
+    def get_fields(self, request, obj=None):
+        return ('apnexus_user','advertisers')
+
     def get_formset(self, request, obj=None, **kwargs):
         """Returns a BaseInlineFormSet class for use in admin add/change views."""
         res = super(UsersInline, self).get_formset(request, obj, **kwargs)
@@ -23,7 +26,14 @@ class UsersInline(admin.StackedInline):
             pass
         return res
 
-    # def get_form(self, request, obj=None, **kwargs):
+    def formfield_for_dbfield(self, db_field, **kwargs):
+        if db_field.name == 'advertisers':
+            # kwargs['widget'] = admin.ChoicesFieldListFilter
+            pass
+        return super(UsersInline, self).formfield_for_dbfield(db_field, **kwargs)
+        # ModelChoiceField(AppnexusUser.objects)
+
+            # def get_form(self, request, obj=None, **kwargs):
     #     res = super(UsersInline, self).get_form(request, obj, **kwargs)
     #     if not obj:
     #         pass
@@ -34,6 +44,15 @@ class UsersInline(admin.StackedInline):
     #     db_field.name in self.filter_vertical
     # )
 
+# new User form
+class NewUserForm(UserChangeForm):
+    class Meta:
+        model = FrameworkUser
+        fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        super(UserChangeForm, self).__init__(*args, **kwargs)
+        f = self.fields.get('user_permissions')
 
 # Define a new User admin
 class UserAdmin(BaseUserAdmin):
@@ -47,21 +66,11 @@ class UserAdmin(BaseUserAdmin):
     )
     inlines = (UsersInline,)
 
-    # def formfield_for_dbfield(self, db_field, **kwargs):
-    #     if db_field.name == 'advertisers':
-    #       kwargs['widget'] = admin.ChoicesFieldListFilter
-    #     return super(UserAdmin,self).formfield_for_dbfield(db_field,**kwargs)
 
     # def get_fieldsets(self, request, obj=None):
     #     if not obj:
     #         return self.add_fieldsets
     #     return super(UserAdmin, self).get_fieldsets(request, obj)
-
-    # def get_form(self, request, obj=None, **kwargs):
-    #     res = super(UserAdmin, self).get_form(request, obj, **kwargs)
-    #     if not obj:
-    #         pass
-    #     return res
 
 # Re-register UserAdmin
 admin.site.unregister(User)

@@ -79,20 +79,31 @@ class User(models.Model):
     send_safety_budget_notifications = models.NullBooleanField(null=True, blank=True)
     is_developer = models.NullBooleanField(null=True, blank=True)
     last_modified = models.DateTimeField(default=now_tz)
+    def __unicode__(self):
+        return "%s (%s %s)"%(self.username, self.first_name, self.last_name)
 
     api_endpoint = 'user'
     class Meta:
         db_table = "user"
 
+class MembershipUserToAdvertiser(models.Model):
+    advertiser = models.ForeignKey('Advertiser', on_delete=models.CASCADE)
+    user = models.ForeignKey('FrameworkUser', on_delete=models.CASCADE)
+    can_write = models.BooleanField(default=False)
 
 # class FrameworkUser(models.Model):
 class FrameworkUser(DjangoUser):
     # these field created automatically
     # user = models.OneToOneField(DjangoUser, on_delete=models.CASCADE)
-    permission = models.TextField(null=True, blank=True, db_index=True)  # TODO delete
-    apnexusname = models.TextField(null=True, blank=True, db_index=True)
     apnexus_user = models.ForeignKey("User", null=True, blank=True)
-
+    # advertisers = models.ManyToManyField("Advertiser", through= "MembershipUserToAdvertiser")
+    advertisers = models.ManyToManyField("Advertiser")
+    @property
+    def apnexusname(self):
+        return self.apnexus_user and self.apnexus_user.name
+    @property
+    def permission(self):
+        return [{"name":x.advertiser.name,"can_read":True,"can_write":getattr(x,'can_write', False)} for x in self.advertisers]
     class Meta:
         db_table = "framework_user"
 
@@ -262,7 +273,8 @@ class Advertiser(models.Model):
     is_malicious = models.NullBooleanField(null=True, blank=True)
     #object_stats	object #should be in sepparait model if needed
     #thirdparty_pixels	array # see the model AdvertiserThirdpartyPixels below
-
+    def __unicode__(self):
+        return self.name
     api_endpoint = 'advertiser'
     class Meta:
         db_table = "advertiser"

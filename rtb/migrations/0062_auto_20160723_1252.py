@@ -7,6 +7,9 @@ import django.contrib.auth.models
 from django.db import migrations, models
 import django.db.models.deletion
 
+def delete_framework_users(apps, schema_editor):
+    MyModel = apps.get_model('rtb', 'frameworkuser')
+    MyModel.objects.all().delete()
 
 class Migration(migrations.Migration):
 
@@ -16,6 +19,7 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.RunPython(delete_framework_users, hints={'model_name': "frameworkuser"}, reverse_code=migrations.RunPython.noop),
         migrations.AlterModelManagers(
             name='frameworkuser',
             managers=[

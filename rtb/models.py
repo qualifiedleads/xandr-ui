@@ -85,9 +85,10 @@ class User(models.Model):
         db_table = "user"
 
 
-# class FrameworkUser(DjangoUser):
-class FrameworkUser(models.Model):
-    user = models.OneToOneField(DjangoUser, on_delete=models.CASCADE)
+# class FrameworkUser(models.Model):
+class FrameworkUser(DjangoUser):
+    # these field created automatically
+    # user = models.OneToOneField(DjangoUser, on_delete=models.CASCADE)
     permission = models.TextField(null=True, blank=True, db_index=True)  # TODO delete
     apnexusname = models.TextField(null=True, blank=True, db_index=True)
     apnexus_user = models.ForeignKey("User", null=True, blank=True)

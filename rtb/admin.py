@@ -5,65 +5,38 @@ from rtb.models import FrameworkUser, SiteDomainPerformanceReport, NetworkAnalyt
 from django.utils.translation import ugettext_lazy as _
 from django.forms.widgets import  CheckboxSelectMultiple
 from django.forms import ModelChoiceField
-from django import forms
+from django.utils.html import format_html
+from django.core.urlresolvers import reverse
 
-type_widget = type(UserChangeForm().fields.get('groups').widget)
 
-
-# class FrameworkUserForm(forms.ModelForm):
-#     class Meta:
-#         model = FrameworkUser
-#         # fields = '__all__'
-#         fields = ('apnexus_user','advertisers')
-#         widgets = {
-#             'advertisers': type_widget(),
-#         }
-
-# Define an inline admin descriptor
-# which acts a bit like a singleton
+# Define an inline user form descriptor
 class UsersInline(admin.StackedInline):
     model = FrameworkUser
-    fields = ('apnexus_user', 'advertisers')
+    fields = ('apnexus_user', 'link')
+    # list_display = ('apnexus_user', )
+    readonly_fields = ('link',)
     # filter_horizontal = ('advertisers',)
     can_delete = False
     # verbose_name_plural = 'users'
-    # def get_fields(self, request, obj=None):
-    #     return ('apnexus_user','advertisers')
+    show_change_link = True
 
-    def get_formset(self, request, obj=None, **kwargs):
-        """Returns a BaseInlineFormSet class for use in admin add/change views."""
-        res = super(UsersInline, self).get_formset(request, obj, **kwargs)
-        if not obj:
-            pass
-        return res
+    def link(self, obj):
+        url = reverse('admin:rtb_frameworkuser_change', args=(obj.pk,))
+        return format_html("<a href='{}'>{}</a>", url, 'Change')
 
-    def formfield_for_dbfield(self, db_field, **kwargs):
-        if db_field.name == 'advertisers':
-            # kwargs['widget'] = admin.ChoicesFieldListFilter
-            pass
-        return super(UsersInline, self).formfield_for_dbfield(db_field, **kwargs)
-        # ModelChoiceField(AppnexusUser.objects)
+    link.allow_tags = True
+    link.short_description = 'Advertiser permissions'
 
-            # def get_form(self, request, obj=None, **kwargs):
-    #     res = super(UsersInline, self).get_form(request, obj, **kwargs)
-    #     if not obj:
-    #         pass
-    #     return res
+    # def has_add_permission(self, request):
+    #     return True
+    #
+    # def has_delete_permission(self, request, obj):
+    #     return True
 
-    # admin.widgets.FilteredSelectMultiple(
-    #     db_field.verbose_name,
-    #     db_field.name in self.filter_vertical
-    # )
+    def save_model(self, request, obj, form, change):
+        print form
+        pass
 
-# new User form
-class NewUserForm(UserChangeForm):
-    class Meta:
-        model = FrameworkUser
-        fields = '__all__'
-
-    def __init__(self, *args, **kwargs):
-        super(UserChangeForm, self).__init__(*args, **kwargs)
-        f = self.fields.get('user_permissions')
 
 # Define a new User admin
 class UserAdmin(BaseUserAdmin):
@@ -76,16 +49,16 @@ class UserAdmin(BaseUserAdmin):
         (_('Important dates'), {'fields': ('last_login', 'date_joined')}),
     )
     inlines = (UsersInline,)
-
-
-    # def get_fieldsets(self, request, obj=None):
-    #     if not obj:
-    #         return self.add_fieldsets
-    #     return super(UserAdmin, self).get_fieldsets(request, obj)
+    # list_display = list(BaseUserAdmin.list_display) + ['advertiser_permission_url']
+    # show_change_link = True
+    # def advertiser_permission_url(self, obj):
+    #     return format_html("<a href='{url}'>Advertisers</a>", url='http://example.com')
+    # advertiser_permission_url.short_description = "Click to change advertiser permissions"
 
 # Re-register UserAdmin
 admin.site.unregister(User)
 admin.site.register(User, UserAdmin)
+admin.site.register(FrameworkUser)
 
 admin.site.register(NetworkAnalyticsReport, date_hierarchy='hour')
 admin.site.register(SiteDomainPerformanceReport, date_hierarchy='day')

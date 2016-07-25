@@ -94,10 +94,10 @@ class MembershipUserToAdvertiser(models.Model):
         #auto_created = True #dirty trick
         db_table = "rtb_membershipusertoadvertiser"
 
-# class FrameworkUser(models.Model):
-class FrameworkUser(DjangoUser):
-    # these field created automatically
-    # user = models.OneToOneField(DjangoUser, on_delete=models.CASCADE)
+
+class FrameworkUser(models.Model):
+    # class FrameworkUser(DjangoUser):
+    user = models.OneToOneField(DjangoUser, on_delete=models.CASCADE, primary_key=True)
     apnexus_user = models.ForeignKey("User", null=True, blank=True)
     advertisers = models.ManyToManyField("Advertiser", through= "MembershipUserToAdvertiser")
     # advertisers = models.ManyToManyField("Advertiser")

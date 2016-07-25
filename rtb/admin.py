@@ -26,11 +26,14 @@ class UsersInline(admin.StackedInline):
     # link.allow_tags = True
     link.short_description = 'Advertiser permissions'
 
-    # def has_add_permission(self, request):
-    #     return True
-    #
-    # def has_delete_permission(self, request, obj):
-    #     return True
+    def save_model(self, request, obj, form, change):
+        """
+        Given a model instance save it to the database.
+        """
+        obj.save()
+
+
+        # def save_formset(self, request, form, formset, change):
 
 
 class MembershipInline(admin.TabularInline):
@@ -40,7 +43,8 @@ class MembershipInline(admin.TabularInline):
 
 class FrameworkUserModel(admin.ModelAdmin):
     model = FrameworkUser
-    readonly_fields = ('user',)
+    fields = ('username',)
+    readonly_fields = ('username',)
     inlines = (MembershipInline,)
 
 # Define a new User admin

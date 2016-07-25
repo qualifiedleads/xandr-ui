@@ -5,19 +5,30 @@ from rtb.models import FrameworkUser, SiteDomainPerformanceReport, NetworkAnalyt
 from django.utils.translation import ugettext_lazy as _
 from django.forms.widgets import  CheckboxSelectMultiple
 from django.forms import ModelChoiceField
+from django import forms
+
+type_widget = type(UserChangeForm().fields.get('groups').widget)
 
 
+# class FrameworkUserForm(forms.ModelForm):
+#     class Meta:
+#         model = FrameworkUser
+#         # fields = '__all__'
+#         fields = ('apnexus_user','advertisers')
+#         widgets = {
+#             'advertisers': type_widget(),
+#         }
 
 # Define an inline admin descriptor
 # which acts a bit like a singleton
 class UsersInline(admin.StackedInline):
     model = FrameworkUser
-    # fields = ('apnexus_user',)
-    filter_horizontal = ('advertisers',)
+    fields = ('apnexus_user', 'advertisers')
+    # filter_horizontal = ('advertisers',)
     can_delete = False
     # verbose_name_plural = 'users'
-    def get_fields(self, request, obj=None):
-        return ('apnexus_user','advertisers')
+    # def get_fields(self, request, obj=None):
+    #     return ('apnexus_user','advertisers')
 
     def get_formset(self, request, obj=None, **kwargs):
         """Returns a BaseInlineFormSet class for use in admin add/change views."""

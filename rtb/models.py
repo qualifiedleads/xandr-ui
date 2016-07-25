@@ -102,11 +102,18 @@ class FrameworkUser(models.Model):
     advertisers = models.ManyToManyField("Advertiser", through= "MembershipUserToAdvertiser")
     # advertisers = models.ManyToManyField("Advertiser")
     @property
+    def name(self):
+        return self.user and self.user.username
+    @property
     def apnexusname(self):
         return self.apnexus_user and self.apnexus_user.name
+
     @property
     def permission(self):
         return [{"name":x.advertiser.name,"can_read":True,"can_write":getattr(x,'can_write', False)} for x in self.advertisers]
+
+    def __unicode__(self):
+        return self.name
     class Meta:
         db_table = "framework_user"
 

@@ -12,12 +12,10 @@ from django.core.urlresolvers import reverse
 class UsersInline(admin.StackedInline):
     model = FrameworkUser
     fields = ('apnexus_user', 'link')
-    # list_display = ('apnexus_user', )
     readonly_fields = ('link',)
     # filter_horizontal = ('advertisers',)
     can_delete = False
-    # verbose_name_plural = 'users'
-    show_change_link = True
+    verbose_name_plural = 'Appnexus'
 
     def link(self, obj):
         url = reverse('admin:rtb_frameworkuser_change', args=(obj.pk,))
@@ -33,7 +31,9 @@ class UsersInline(admin.StackedInline):
         obj.save()
 
 
-        # def save_formset(self, request, form, formset, change):
+    def save_formset(self, request, form, formset, change):
+        print form
+        print formset
 
 
 class MembershipInline(admin.TabularInline):
@@ -57,9 +57,30 @@ class UserAdmin(BaseUserAdmin):
         (_('User permissions'), {'fields': ('user_permissions',),'classes': ('collapse', )}),
         (_('Important dates'), {'fields': ('last_login', 'date_joined')}),
     )
-    inlines = (UsersInline,)
     list_display = list(BaseUserAdmin.list_display) + ['advertiser_permission_url']
-    show_change_link = True
+    # show_change_link = True
+
+    def add_view(self, *args, **kwargs):
+        self.inlines = []
+        return super(UserAdmin, self).add_view(*args, **kwargs)
+
+    def change_view(self, *args, **kwargs):
+        self.inlines = [UsersInline]
+        return super(UserAdmin, self).change_view(*args, **kwargs)
+
+    # def save_formset(self, request, form, formset, change):
+    #     return super(UserAdmin, self).save_formset(request, form, formset, change)
+
+    def save_model(self, request, obj, form, change):
+        super(UserAdmin,self).save_model(request, obj, form, change)
+        # Check existing FrameworkUser
+        # FrameworkUser.objects.get_or_create(pk=obj.pk)
+        try:
+            fu=FrameworkUser.objects.get(pk=obj.pk)
+        except FrameworkUser.DoesNotExist:
+            print "No!!!!!!!!!!!!"
+            n=FrameworkUser(pk=obj.pk)
+            n.save_base(raw=True, force_insert=True)
 
     def advertiser_permission_url(self, obj):
         url = reverse('admin:rtb_frameworkuser_change', args=(obj.pk,))

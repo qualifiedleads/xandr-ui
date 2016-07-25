@@ -1,0 +1,29 @@
+http://127.0.0.1:8000/api/v1/campaigns/13412702/domains?
+from_date=1469032344&
+id=13412702&skip=0&take=20&
+  to_date=1467320400
+
+SELECT
+    "network_analytics_report"."placement_id",
+    SUM("network_analytics_report"."imps") AS "imp",
+    SUM("network_analytics_report"."total_convs") AS "conv"
+FROM "network_analytics_report"
+WHERE(
+    "network_analytics_report"."hour" <= 2016-07-20 00:00:00+00:00 AND
+    "network_analytics_report"."hour" >= 2016-06-30 00:00:00+00:00 AND
+    "network_analytics_report"."campaign_id" = 13412702)
+GROUP BY "network_analytics_report"."placement_id"
+
+SELECT
+  "network_analytics_report"."hour",
+  SUM("network_analytics_report"."total_convs") AS "convs",
+  date_trunc('day', "network_analytics_report"."hour") AS "date",
+  SUM("network_analytics_report"."cost") AS "sum_cost",
+   CASE WHEN NOT (SUM("network_analytics_report"."total_convs") = 0) THEN (SUM("network_analytics_report"."cost") / SUM("network_analytics_report"."total_convs")) ELSE NULL END AS "cpa"
+FROM "network_analytics_report"
+WHERE (
+    "network_analytics_report"."hour" <= '2016-07-20 23:00:00+00:00' AND
+    "network_analytics_report"."hour" >= '2016-04-20 00:00:00+00:00' AND
+    "network_analytics_report"."campaign_id" = 13412702)
+ GROUP BY "network_analytics_report"."hour", date_trunc('day', "network_analytics_report"."hour")
+ ORDER BY "network_analytics_report"."hour" ASC

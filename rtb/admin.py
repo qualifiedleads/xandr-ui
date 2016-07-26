@@ -24,17 +24,6 @@ class UsersInline(admin.StackedInline):
     # link.allow_tags = True
     link.short_description = 'Advertiser permissions'
 
-    def save_model(self, request, obj, form, change):
-        """
-        Given a model instance save it to the database.
-        """
-        obj.save()
-
-
-    def save_formset(self, request, form, formset, change):
-        print form
-        print formset
-
 
 class MembershipInline(admin.TabularInline):
     model = MembershipUserToAdvertiser

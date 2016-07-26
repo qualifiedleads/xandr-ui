@@ -93,6 +93,9 @@ class MembershipUserToAdvertiser(models.Model):
     class Meta:
         #auto_created = True #dirty trick
         db_table = "rtb_membershipusertoadvertiser"
+        unique_together = (
+            ('advertiser', 'frameworkuser')
+        )
 
 
 # class FrameworkUser(models.Model):

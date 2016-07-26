@@ -34,9 +34,9 @@ def login_api(request):
                 "token": request.session.session_key
             })
         else:
-            return Response({'error': "User disabled"})
+            return Response({'error': "User disabled"}, status=401)
     else:
-        return Response({'error': "Not authentificated"})
+        return Response({'error': "Not authentificated"}, status=401)
 
 
 

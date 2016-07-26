@@ -1,6 +1,7 @@
 from rest_framework.decorators import api_view, parser_classes
 from rest_framework.response import Response
-from django.contrib.auth import authenticate
+from django.contrib.auth import authenticate, login as auth_login
+from django.contrib.auth.models import User
 
 
 
@@ -8,18 +9,17 @@ from django.contrib.auth import authenticate
 def login(request):
     """
     Login specifed user
-    Return permission for that user
-
+    Return permission for that user and auth token
 
 ## Url format: /api/v1/login
 
-+ data
-
-    + username(String) - username to login
-    + password(String) - password for that user
+    :param  email(String) - email of user to login
+    :param  password(String) - password for that user
 
     """
     # user = authenticate(username='john', password='secret')
+    if 'username' not in request.data:
+        request.data['username'] = User.objects.values_list('username', flat=True).get(email=request.data.email)
     user = authenticate(request.data)
     if user:
         if user.is_active:

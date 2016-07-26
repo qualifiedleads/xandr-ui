@@ -49,11 +49,21 @@ class UserAdmin(BaseUserAdmin):
     list_display = list(BaseUserAdmin.list_display) + ['advertiser_permission_url']
     # show_change_link = True
 
+    # Check existing FrameworkUser
+    # FrameworkUser.objects.get_or_create(pk=obj.pk)
+    def check_existing_framework_user(self, id):
+        try:
+            fu = FrameworkUser.objects.get(pk=id)
+        except FrameworkUser.DoesNotExist:
+            n = FrameworkUser(pk=id)
+            n.save_base(raw=True, force_insert=True)
+
     def add_view(self, *args, **kwargs):
         self.inlines = []
         return super(UserAdmin, self).add_view(*args, **kwargs)
 
     def change_view(self, *args, **kwargs):
+        self.check_existing_framework_user(args[1])
         self.inlines = [UsersInline]
         return super(UserAdmin, self).change_view(*args, **kwargs)
 
@@ -62,14 +72,7 @@ class UserAdmin(BaseUserAdmin):
 
     def save_model(self, request, obj, form, change):
         super(UserAdmin,self).save_model(request, obj, form, change)
-        # Check existing FrameworkUser
-        # FrameworkUser.objects.get_or_create(pk=obj.pk)
-        try:
-            fu=FrameworkUser.objects.get(pk=obj.pk)
-        except FrameworkUser.DoesNotExist:
-            print "No!!!!!!!!!!!!"
-            n=FrameworkUser(pk=obj.pk)
-            n.save_base(raw=True, force_insert=True)
+        self.check_existing_framework_user(obj.pk)
 
     def advertiser_permission_url(self, obj):
         url = reverse('admin:rtb_frameworkuser_change', args=(obj.pk,))

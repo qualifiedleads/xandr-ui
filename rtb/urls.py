@@ -4,7 +4,7 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from rest_framework import routers
 
-from . import views, views_rest, views_adv
+from . import views, views_rest, views_adv, views_user
 
 router = routers.DefaultRouter()
 #
@@ -15,7 +15,8 @@ router.register('appnexus/user', views_rest.AppnexusUsersViewSet)
 
 urlpatterns = [
     url(r'^', include(router.urls)),
-    url(r'^admin', include(admin.site.urls)),
+    # url(r'^admin', include(admin.site.urls)),
+    url(r'^login', views_user.login_api),
     url(r'^totals', views.totals),
     url(r'^statistics', views.statistics),
     url(r'^map/clicks', views.map_clicks),

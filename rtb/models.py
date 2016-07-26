@@ -104,18 +104,22 @@ class FrameworkUser(DjangoUser):
     apnexus_user = models.ForeignKey("User", null=True, blank=True)
     advertisers = models.ManyToManyField("Advertiser", through= "MembershipUserToAdvertiser")
     # advertisers = models.ManyToManyField("Advertiser")
+
     @property
     def name(self):
         if hasattr(self, 'username'):
             return self.username
         return self.user and self.user.username
+
     @property
     def apnexusname(self):
         return self.apnexus_user and self.apnexus_user.name
 
     @property
     def permission(self):
-        return [{"name":x.advertiser.name,"can_read":True,"can_write":getattr(x,'can_write', False)} for x in self.advertisers]
+        membership_info = MembershipUserToAdvertiser.objects.filter(frameworkuser=self)
+        return [{"name": x.advertiser.name, "can_read": True, "can_write": x.can_write}
+                for x in membership_info]
 
     def __unicode__(self):
         return self.name

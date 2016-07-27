@@ -1,6 +1,5 @@
 
 .container-home {
-  position: absolute;
   top: 5%;
 }
 
@@ -78,28 +77,22 @@ label.btn:after {
 .home-title {
   margin: 0;
 }
-//
-//@media(min-width: 1900px) {
-//  .allview {
-//    left: 162px;
-//    margin-top: -1500px;
-//  }
-//}
-//
-//@media (min-width: 1800px) {
-//  .allview {
-//    left: 138px;
-//    margin-top: -1500px;
-//  }
-//}
-//
-//  .allview {
-//    left: 105px;
-//    margin-top: -1500px;
-//  }
-//
 
 .left-menu-close {
   display: none;
   transition: 1s ease-out 0.5s
+}
+
+#wrapper.hidden-menu {
+  .left-nav {
+    display: none;
+  }
+  .main-nav {
+    width: 100%;
+    margin-left: 0;
+  }
+  .page-view {
+    width: 100%;
+    margin-left: 0;
+  }
 }

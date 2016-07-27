@@ -1,7 +1,12 @@
 .container-camp {
-  //position: absolute;
   padding-top:10px;
-  //margin-top: -45px;
+
+  .stats-header {
+    .control {
+      vertical-align: middle;
+      display: inline-block;
+    }
+  }
 
   .camp-content1 {
     margin-top: 3em;
@@ -17,10 +22,9 @@
     }
   }
 
-  #zoomedContainerSecond {
-    float: left;
+  .charts-block {
+    text-align: center;
   }
-
 
   #gridContainer1 {
     height: auto;
@@ -29,7 +33,7 @@
   }
   #gridContainer2 {
     height: auto;
-    width: 95%;
+    width: 100%;
     margin-top: 1%;
   }
 
@@ -44,21 +48,10 @@
     display: block;
     padding-top: 1%;
   }
-  @media (min-width: 2300px) {
-    #zoomedContainerSecond {
-      margin-left: -198px;
-    }
-  }
-
-  @media (min-width: 2300px) {
-    #zoomedContainerSecond {
-      margin-left: -61px;
-    }
-  }
-
 
   .first-chart {
-    float: left;
+    display: inline-block;
+    float: none;
     padding: 0;
     .first-range {
       margin-top:-20px;
@@ -71,24 +64,6 @@
     font-size: 12px;
     color: black;
   }
-  //
-  //.active-white {
-  //  .white-list {
-  //    background-color: rgba(0, 210, 212, 0.63);
-  //  }
-  //}
-  //
-  //.active-black {
-  //  .black-list {
-  //    background-color: rgba(0, 210, 212, 0.63);
-  //  }
-  //}
-  //
-  //.active-suspended {
-  //  .suspended {
-  //    background-color: rgba(0, 210, 212, 0.63);
-  //  }
-  //}
 
   .unactive-white {
     .white-list {
@@ -108,40 +83,15 @@
     }
   }
 
-  @media (min-width: 899px) {
   .checkbox-container {
-    margin-left: 27px;
-    margin-right: -44px;
-  }}
-  @media (min-width: 700px) {
-    .checkbox-container {
-      width: 114px;
-      margin-left: 33px;
-    }}
-  @media (min-width: 1000px) {
-    .checkbox-container {
-      width: auto;
-      margin-left: 19px;
-      margin-right: 16px;
-    }}
-  @media (min-width: 2250px) {
-    .checkbox-container {
-      width: auto;
-      margin-left: -10px;
-      margin-right: 116px;
-    }}
-
-  @media (min-width: 2250px) {
-    .checkbox-container {
-      width: auto;
-      margin-left: 61px;
-      margin-right: 116px;
-
-    }}
-
-  .checkbox-container {
-    float: left;
+    display: inline-block;
+    float: none;
+    vertical-align: top;
+    text-align: left;
     padding: 1% 0 0 0;
+    margin-right: 3vw;
+    margin-left: 15px;
+    margin-top: 35px;
     @media (min-width: 500px) {
       .dx-checkbox-text {
         font-size: 8px;
@@ -190,48 +140,6 @@
       float: left;
 
     }
-  }
-
-  .pie-chart-container {
-    width: 68%;
-    border: 1px solid black;
-    height: 600px;
-    float: left;
-    border-radius: 25px;
-  }
-
-  .label-container {
-    margin-top: 3%;
-    width: 11%;
-    height: 600px;
-    float: left;
-    margin-left: 8.2%;
-  }
-  .nav-btn {
-    float: right;
-    padding: 9%;
-    color: black;
-    background-color: rgba(51, 122, 183, 0.51);
-    outline: none;
-    border: 1px solid rgba(45, 45, 45, 0.65);
-    border-radius: 10px 0 0 10px;
-    clear: both;
-    width: 94%;
-    &:hover {
-      color: rgb(255, 251, 251);
-      background-color: rgba(234, 68, 68, 0.85);
-      border: 1px solid #FFFFFF;}
-  }
-
-  .nav-btn-active{
-    float: right;
-    padding: 9%;
-    color: rgb(255, 251, 251);
-    background-color: rgba(234, 68, 68, 0.85);
-    outline: none;
-    border: 1px solid #FFFFFF;
-    border-radius: 10px 0 0 10px;
-    clear: both;
   }
 
   .pie-chart-header {

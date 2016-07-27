@@ -344,14 +344,15 @@ Get single campaign details by domains
         filter_function = filter_func.get_filter_function(params['filter'])
         res = filter(filter_function, res)
     reverse_order = params['order'] == 'desc'
-    allowed_key_names = set("placement", "NetworkPublisher", "placementState", "cost", "conv", "imp", "clicks", "cpc", "cpm", "cvr", "ctr")
+    allowed_key_names = set(["placement", "NetworkPublisher", "placementState", "cost", "conv", "imp", "clicks", "cpc", "cpm", "cvr", "ctr"])
     key_name = params['sort']
     if key_name not in allowed_key_names:
         key_name='placement'
     res.sort(key=lambda x: x[key_name], reverse=reverse_order)
+    totalCount = len(res)
     res = res[params['skip']:params['skip'] + params['take']]
-
-    return Response(res)
+    result = { "data": res, "totalCount": totalCount}
+    return Response(result)
     return Response([{
         "placement": "CNN.com",
         "NetworkPublisher": "Google Adx",

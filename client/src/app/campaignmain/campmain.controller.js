@@ -116,7 +116,7 @@
           loadOptions.take, loadOptions.sort, loadOptions.order, loadOptions.filter)
         .then(function (result) {
           vm.multipleTotalCount = result.totalCount || 0;
-          return result;
+          return result.data;
         });
       }
     });

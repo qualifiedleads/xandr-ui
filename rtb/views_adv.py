@@ -9,6 +9,7 @@ from django.core.cache import cache
 import itertools
 import datetime
 from pytz import utc
+import filter_func
 
 
 @api_view()
@@ -339,7 +340,19 @@ Get single campaign details by domains
     if params['from_date'] > params['to_date']:
         params['from_date'], params['to_date'] = params['to_date'], params['from_date']
     res = get_campaign_placement(id, params['from_date'], params['to_date'])
-    return Response(res)
+    if params['filter']:
+        filter_function = filter_func.get_filter_function(params['filter'])
+        res = filter(filter_function, res)
+    reverse_order = params['order'] == 'desc'
+    allowed_key_names = set(["placement", "NetworkPublisher", "placementState", "cost", "conv", "imp", "clicks", "cpc", "cpm", "cvr", "ctr"])
+    key_name = params['sort']
+    if key_name not in allowed_key_names:
+        key_name='placement'
+    res.sort(key=lambda x: x[key_name], reverse=reverse_order)
+    totalCount = len(res)
+    res = res[params['skip']:params['skip'] + params['take']]
+    result = { "data": res, "totalCount": totalCount}
+    return Response(result)
     return Response([{
         "placement": "CNN.com",
         "NetworkPublisher": "Google Adx",

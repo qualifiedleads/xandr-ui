@@ -4,6 +4,7 @@ from django.db import models, IntegrityError
 from django.utils.timezone import now as now_tz
 #from django.contrib.postgres.fields import ArrayField
 #from django.contrib.postgres.fields import JSONField
+from django.contrib.auth.models import User as DjangoUser
 
 
 STATE_CHOICES = (
@@ -78,22 +79,50 @@ class User(models.Model):
     send_safety_budget_notifications = models.NullBooleanField(null=True, blank=True)
     is_developer = models.NullBooleanField(null=True, blank=True)
     last_modified = models.DateTimeField(default=now_tz)
+    def __unicode__(self):
+        return "%s (%s %s)"%(self.username, self.first_name, self.last_name)
 
     api_endpoint = 'user'
     class Meta:
         db_table = "user"
 
+class MembershipUserToAdvertiser(models.Model):
+    advertiser = models.ForeignKey('Advertiser', on_delete=models.CASCADE)
+    frameworkuser = models.ForeignKey('FrameworkUser', on_delete=models.CASCADE)
+    can_write = models.BooleanField(default=False)
+    class Meta:
+        #auto_created = True #dirty trick
+        db_table = "rtb_membershipusertoadvertiser"
+        unique_together = (
+            ('advertiser', 'frameworkuser')
+        )
 
-class FrameworkUser(models.Model):
-    username = models.TextField(null=True, blank=True, db_index=True)
-    password = models.TextField(null=True, blank=True)
-    email = models.TextField(null=True, blank=True, db_index=True)
-    first_name = models.TextField(null=True, blank=True)
-    last_name = models.TextField(null=True, blank=True)
-    permission = models.TextField(null=True, blank=True, db_index=True)
-    apnexusname = models.TextField(null=True, blank=True, db_index=True)
+
+# class FrameworkUser(models.Model):
+class FrameworkUser(DjangoUser):
+    # user = models.OneToOneField(DjangoUser, on_delete=models.CASCADE, primary_key=True)
     apnexus_user = models.ForeignKey("User", null=True, blank=True)
+    advertisers = models.ManyToManyField("Advertiser", through= "MembershipUserToAdvertiser")
+    # advertisers = models.ManyToManyField("Advertiser")
 
+    @property
+    def name(self):
+        if hasattr(self, 'username'):
+            return self.username
+        return self.user and self.user.username
+
+    @property
+    def apnexusname(self):
+        return self.apnexus_user and self.apnexus_user.name
+
+    @property
+    def permission(self):
+        membership_info = MembershipUserToAdvertiser.objects.filter(frameworkuser=self)
+        return [{"name": x.advertiser.name, "can_read": True, "can_write": x.can_write}
+                for x in membership_info]
+
+    def __unicode__(self):
+        return self.name
     class Meta:
         db_table = "framework_user"
 
@@ -263,7 +292,8 @@ class Advertiser(models.Model):
     is_malicious = models.NullBooleanField(null=True, blank=True)
     #object_stats	object #should be in sepparait model if needed
     #thirdparty_pixels	array # see the model AdvertiserThirdpartyPixels below
-
+    def __unicode__(self):
+        return self.name
     api_endpoint = 'advertiser'
     class Meta:
         db_table = "advertiser"

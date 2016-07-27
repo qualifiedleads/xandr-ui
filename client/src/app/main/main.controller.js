@@ -30,13 +30,13 @@
       };
     }
     vm.chartSeries = [
-      {valueField: 'imp', name: 'Impressions', axis: 'imp', visible: $localStorage.checkChart.imp}, //yes
-      {valueField: 'cvr', name: 'CVR', axis: 'cvr', visible: $localStorage.checkChart.cvr},  //NET
-      {valueField: 'cpc', name: 'CPC', axis: 'cpc', visible: $localStorage.checkChart.cpc},  //yes
-      {valueField: 'clicks', name: 'clicks', axis: 'clicks', visible: $localStorage.checkChart.clicks}, //yes
-      {valueField: 'spend', name: 'media', axis: 'spend', visible: $localStorage.checkChart.spend},//yes
-      {valueField: 'conv', name: 'conversions', axis: 'conv', visible: $localStorage.checkChart.conv},//yes
-      {valueField: 'ctr', name: 'CTR', axis: 'ctr', visible: $localStorage.checkChart.ctr} //yes
+      {valueField: 'imp', name: 'Impressions', axis: 'imp', visible: $localStorage.checkChart.imp},
+      {valueField: 'cvr', name: 'CVR', axis: 'cvr', visible: $localStorage.checkChart.cvr},
+      {valueField: 'cpc', name: 'CPC', axis: 'cpc', visible: $localStorage.checkChart.cpc},
+      {valueField: 'clicks', name: 'clicks', axis: 'clicks', visible: $localStorage.checkChart.clicks},
+      {valueField: 'spend', name: 'media', axis: 'spend', visible: $localStorage.checkChart.spend},
+      {valueField: 'conv', name: 'conversions', axis: 'conv', visible: $localStorage.checkChart.conv},
+      {valueField: 'ctr', name: 'CTR', axis: 'ctr', visible: $localStorage.checkChart.ctr} 
     ];
     /** LOCAL STORAGE CHECKBOX - END **/
 
@@ -283,7 +283,7 @@
                 valueAxis: [
                   {name: 'imp'},
                   {name: 'cvr'},
-                  {name: 'CPC'},
+                  {name: 'cpc'},
                   {name: 'clicks'},
                   {name: 'spend'},
                   {name: 'conv'},

@@ -87,7 +87,7 @@
         return 0;
       },
       load: function () {
-        return vm.Camp.statsChart(vm.campId, vm.dataStart, vm.dataEnd, vm.by)
+        return vm.Camp.graphinfo(vm.campId, vm.dataStart, vm.dataEnd, vm.by)
         .then(function (result) {
           return result;
         });
@@ -109,42 +109,17 @@
 
     vm.gridStore = new $window.DevExpress.data.CustomStore({
       totalCount: function () {
-        return 0;
+        return vm.multipleTotalCount;
       },
       load: function (loadOptions) {
         return vm.Camp.campaignDomains(vm.campId, vm.dataStart, vm.dataEnd, loadOptions.skip,
           loadOptions.take, loadOptions.sort, loadOptions.order, loadOptions.filter)
         .then(function (result) {
-          $localStorage.gridStore = result;
-          return result;
+          vm.multipleTotalCount = result.totalCount || 0;
+          return result.data;
         });
       }
     });
-
-    vm.detailsStoreAll = new $window.DevExpress.data.CustomStore({
-      totalCount: function () {
-        return 0;
-      },
-      load: function () {
-        return vm.Camp.campaignDetails(vm.dataStart, vm.dataEnd, $localStorage.selectedSection)
-        .then(function (result) {
-          return result.all;
-        });
-      }
-    });
-
-    vm.detailsStoreConversion = new $window.DevExpress.data.CustomStore({
-      totalCount: function () {
-        return 0;
-      },
-      load: function () {
-        return vm.Camp.campaignDetails(vm.dataStart, vm.dataEnd, vm.by)
-        .then(function (result) {
-          return result.conversions;
-        });
-      }
-    });
-
 
     /** BIG DIAGRAM  - START **/
     vm.types = ['line', 'stackedLine', 'fullStackedLine'];
@@ -613,9 +588,9 @@
           visible: true
         },
         label: {
-          visible: false
-        },
-        argumentType: 'datetime'
+          visible: false,
+		      format: "shortDate"
+	      }
       },
       tooltip: {
         enabled: true
@@ -901,10 +876,6 @@
     vm.rangeFirstChartOptions = {
       margin: {
         left: 50
-      },
-      size: {
-        height: 150,
-        width: 450
       },
       scale: {
         startValue: new Date($localStorage.dataStart),

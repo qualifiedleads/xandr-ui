@@ -33,16 +33,11 @@
     }
 
     vm.checked = function(value) {
-      var wrapleft = angular.element($window.document.querySelector(".left-nav"))[0];
-      var wrapmain = angular.element($window.document.querySelector(".main-nav"))[0];
-      if(value === true){
-        wrapleft.classList.add('left-menu-close');
-        wrapmain.style.width = '100%';
-        wrapmain.style.marginLeft = 0;
-       } else if (value === false) {
-        wrapleft.classList.remove('left-menu-close');
-        wrapmain.style.width = '';
-        wrapmain.style.marginLeft = '';
+      var wrapper = angular.element($window.document.querySelector("#wrapper"))[0];
+      if(value) {
+        wrapper.classList.add('hidden-menu');
+       } else {
+        wrapper.classList.remove('hidden-menu');
        }
     };
 

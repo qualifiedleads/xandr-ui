@@ -6,13 +6,14 @@
 		.service('Main', Main);
 
 	/** @ngInject */
-	function Main($http, $translateLocalStorage, $window ) {
+	function Main($http, $window, $cookies ) {
 		var _this = this;
 
 		function statsChart(advertiser_id, from_date, to, by) {
 			return $http({
 				method: 'GET',
 				url: '/api/v1/statistics',
+        headers: { 'Authorization': 'Token ' + $cookies.get('token') },
 				params: {advertiser_id: advertiser_id, from_date: from_date, to_date: to, by: by}
 			})
 				.then(function (res) {
@@ -20,9 +21,9 @@
 						/*var loc = $translateLocalStorage.get('TRANSLATE_LANG_KEY');*/
 						res.data.statistics[index].cvr = +parseFloat(res.data.statistics[index].cvr).toFixed(4);
 						res.data.statistics[index].ctr = +parseFloat(res.data.statistics[index].ctr).toFixed(4);
-						res.data.statistics[index].cpc = +parseFloat(res.data.statistics[index].cpc).toFixed(4);
+						res.data.statistics[index].cpc = +parseFloat(res.data.statistics[index].cpc).toFixed(2);
 						res.data.statistics[index].cpm = +parseFloat(res.data.statistics[index].cpm).toFixed(4);
-						res.data.statistics[index].spend = +parseFloat(res.data.statistics[index].spend).toFixed(4);
+						res.data.statistics[index].spend = +parseFloat(res.data.statistics[index].spend).toFixed(2);
 						res.data.statistics[index].day = $window.moment(res.data.statistics[index].day).format('DD/MM');
 					}
 					return res.data;
@@ -33,14 +34,15 @@
 			return $http({
 				method: 'GET',
 				url: '/api/v1/totals',
+        headers: { 'Authorization': 'Token ' + $cookies.get('token') },
 				params: {advertiser_id: advertiser_id, from_date: from_date, to_date: to}
 			})
 				.then(function (res) {
           res.data.totals.cvr = +parseFloat(res.data.totals.cvr).toFixed(4);
           res.data.totals.ctr = +parseFloat(res.data.totals.ctr).toFixed(4);
-					res.data.totals.cpc = +parseFloat(res.data.totals.cpc).toFixed(4);
-					res.data.totals.cpm = +parseFloat(res.data.totals.cpm).toFixed(4);
-					res.data.totals.spend = +parseFloat(res.data.totals.spend).toFixed(4);
+					res.data.totals.cpc = +parseFloat(res.data.totals.cpc).toFixed(2);
+					res.data.totals.cpm = +parseFloat(res.data.totals.cpm).toFixed(2);
+					res.data.totals.spend = +parseFloat(res.data.totals.spend).toFixed(2);
 					return res.data.totals;
 				});
 		}
@@ -67,6 +69,7 @@
 			return $http({
 				method: 'GET',
 				url: '/api/v1/campaigns',
+        headers: { 'Authorization': 'Token ' + $cookies.get('token') },
 				params: {advertiser_id: advertiser_id, from_date: from_date, to_date: to,  skip: skip, take: take, sort: sort, order: order, stat_by: stat_by, filter: filters}
 			})
 				.then(function (res) {
@@ -85,6 +88,7 @@
 			return $http({
 				method: 'GET',
 				url: '/api/v1/map/clicks',
+        headers: { 'Authorization': 'Token ' + $cookies.get('token') },
 				params: {advertiser_id: advertiser_id, from_date: from_date, to_date: to}
 			})
 				.then(function (res) {

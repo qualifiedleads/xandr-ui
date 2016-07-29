@@ -37,15 +37,23 @@
     };
 
     /** DATE PIKER - START **/
-    if ($localStorage.dataStart == null && $localStorage.dataEnd == null ){
-      $localStorage.dataStart = $window.moment({ hour: '00' }).subtract(1, 'day').unix() ;
-      $localStorage.dataEnd = $window.moment({ hour: '00' }).subtract(1, 'day').endOf('day').unix();
-    } else {
-      vm.dataStart = $localStorage.dataStart;
-      vm.dataEnd = $localStorage.dataEnd;
-    }
     if ($localStorage.SelectedTime == null) {
       $localStorage.SelectedTime = 0;
+      $localStorage.dataStart = $window.moment({hour: '00'}).subtract(1, 'day').unix();
+      $localStorage.dataEnd = $window.moment({hour: '00'}).subtract(1, 'day').endOf('day').unix();
+      vm.dataStart = $window.moment({hour: '00'}).subtract(1, 'day').unix();
+      vm.dataEnd = $window.moment({hour: '00'}).subtract(1, 'day').endOf('day').unix();
+    } else {
+      if ($localStorage.dataStart == null || $localStorage.dataEnd == null) {
+        $localStorage.SelectedTime = 0;
+        $localStorage.dataStart = $window.moment({hour: '00'}).subtract(1, 'day').unix();
+        $localStorage.dataEnd = $window.moment({hour: '00'}).subtract(1, 'day').endOf('day').unix();
+        vm.dataStart = $window.moment({hour: '00'}).subtract(1, 'day').unix();
+        vm.dataEnd = $window.moment({hour: '00'}).subtract(1, 'day').endOf('day').unix();
+      } else {
+        vm.dataStart = $localStorage.dataStart;
+        vm.dataEnd = $localStorage.dataEnd;
+      }
     }
 
     var products = [
@@ -120,7 +128,6 @@
 
     /** MULTIPLE 2 - START **/
 
-    vm.state='';
     vm.selectCell = {
       dataSource: [
         {'name': 'White List',
@@ -133,7 +140,7 @@
       disabled:true,
       placeholder: 'Select a state',
       displayExpr: 'name',
-      valueExpr: vm.state,
+      valueExpr: '',
       onSelectionChanged: function() {
         var selectedRows = angular.element('#gridContainer2')[0].querySelectorAll('[aria-selected="true"]');
         if(selectedRows[0]) {
@@ -167,7 +174,6 @@
       $localStorage.boxPlotData = vm.boxPlotData;
     }
 
-    vm.state='';
     vm.selectCell = {
       dataSource: [
         {'name': 'White List',
@@ -180,7 +186,7 @@
       disabled:true,
       placeholder: 'Select a state',
       displayExpr: 'name',
-      valueExpr: vm.state,
+      valueExpr: '',
       onSelectionChanged: function() {
         var selectedRows = $window.$('#gridContainer2')[0].querySelectorAll('[aria-selected="true"]');
         if(selectedRows[0]) {
@@ -374,7 +380,6 @@
 
     /** MULTIPLE 3 - START **/
 
-    vm.state3='';
     vm.selectCell3 = {
       dataSource: [
         {'name': 'White List',
@@ -387,7 +392,7 @@
       disabled:true,
       placeholder: 'Select a state',
       displayExpr: 'name',
-      valueExpr: vm.state,
+      valueExpr: '',
       onSelectionChanged: function() {
         var selectedRows = $window.$('#gridContainer3')[0].querySelectorAll('[aria-selected="true"]');
         if(selectedRows[0]) {
@@ -421,7 +426,6 @@
       $localStorage.boxPlotData = vm.boxPlotData;
     }
 
-    vm.state='';
     vm.selectCell = {
       dataSource: [
         {'name': 'White List',
@@ -434,7 +438,7 @@
       disabled:true,
       placeholder: 'Select a state',
       displayExpr: 'name',
-      valueExpr: vm.state,
+      valueExpr: '',
       onSelectionChanged: function() {
         var selectedRows = $window.$('#gridContainer3')[0].querySelectorAll('[aria-selected="true"]');
         if(selectedRows[0]) {
@@ -592,7 +596,6 @@
 
     /** MULTIPLE 4 - START **/
 
-    vm.state4='';
     vm.selectCell4 = {
       dataSource: [
         {'name': 'White List',
@@ -605,7 +608,7 @@
       disabled:true,
       placeholder: 'Select a state',
       displayExpr: 'name',
-      valueExpr: vm.state,
+      valueExpr: '',
       onSelectionChanged: function() {
         var selectedRows = $window.$('#gridContainer4')[0].querySelectorAll('[aria-selected="true"]');
         if(selectedRows[0]) {
@@ -638,7 +641,6 @@
       $localStorage.boxPlotData = vm.boxPlotData;
     }
 
-    vm.state='';
     vm.selectCell = {
       dataSource: [
         {'name': 'White List',
@@ -651,7 +653,7 @@
       disabled:true,
       placeholder: 'Select a state',
       displayExpr: 'name',
-      valueExpr: vm.state,
+      valueExpr: '',
       onSelectionChanged: function() {
         var selectedRows = $window.$('#gridContainer4')[0].querySelectorAll('[aria-selected="true"]');
         if(selectedRows[0]) {

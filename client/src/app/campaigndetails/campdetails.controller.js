@@ -344,6 +344,7 @@
       bindingOptions: {
         dataSource: 'campdetails.detailsStoreAll'
       },
+      resolveLabelOverlapping: 'shift',
       series: [{
         argumentField: 'section',
         valueField: 'data',
@@ -355,7 +356,7 @@
           },
           format: "fixedPoint",
           customizeText: function (point) {
-            return point.argumentText + ": " + point.valueText + "%";
+            return point.argumentText + ': <spend style="color: black; font-weight: bold"> ' + point.valueText + '</spend>';
           }
         },
         smallValuesGrouping: {
@@ -492,10 +493,23 @@
       alignment: 'left',
       bindingOptions: {
         dataSource: 'campdetails.cpaBucketRequestFirst'
-
       },
       howBorders: true,
       showRowLines: true,
+      paging: {
+        enabled: true,
+        pageSize:10
+      },
+      remoteOperations: false,
+      allowColumnReordering: true,
+      allowColumnResizing: true,
+      columnAutoWidth: true,
+      pager: {
+        showPageSizeSelector: true,
+        allowedPageSizes: [10, 30, 50],
+        visible: true,
+        showNavigationButtons: true
+      },
       columns: vm.columnsSelected
     };
 
@@ -504,10 +518,23 @@
       alignment: 'left',
       bindingOptions: {
         dataSource: 'campdetails.cpaBucketRequestSecond'
-        //allowColumnResizing: 'true'
       },
       howBorders: true,
       showRowLines: true,
+      paging: {
+        enabled: true,
+        pageSize:10
+      },
+      remoteOperations: false,
+      allowColumnReordering: true,
+      allowColumnResizing: true,
+      columnAutoWidth: true,
+      pager: {
+        showPageSizeSelector: true,
+        allowedPageSizes: [10, 30, 50],
+        visible: true,
+        showNavigationButtons: true
+      },
       columns: vm.columnsSelected
     };
 
@@ -517,10 +544,23 @@
       alignment: 'left',
       bindingOptions: {
         dataSource: 'campdetails.cpaBucketRequestThird'
-        //allowColumnResizing: 'true'
       },
       howBorders: true,
       showRowLines: true,
+      paging: {
+        enabled: true,
+        pageSize:10
+      },
+      remoteOperations: false,
+      allowColumnReordering: true,
+      allowColumnResizing: true,
+      columnAutoWidth: true,
+      pager: {
+        showPageSizeSelector: true,
+        allowedPageSizes: [10, 30, 50],
+        visible: true,
+        showNavigationButtons: true
+      },
       columns: vm.columnsSelected
     };
 
@@ -530,10 +570,23 @@
       alignment: 'left',
       bindingOptions: {
         dataSource: 'campdetails.cpaBucketRequestFourth'
-        //allowColumnResizing: 'true'
       },
       howBorders: true,
       showRowLines: true,
+      paging: {
+        enabled: true,
+        pageSize:10
+      },
+      remoteOperations: false,
+      allowColumnReordering: true,
+      allowColumnResizing: true,
+      columnAutoWidth: true,
+      pager: {
+        showPageSizeSelector: true,
+        allowedPageSizes: [10, 30, 50],
+        visible: true,
+        showNavigationButtons: true
+      },
       columns: vm.columnsSelected
     };
 

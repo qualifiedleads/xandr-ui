@@ -36,21 +36,31 @@
       {valueField: 'clicks', name: 'clicks', axis: 'clicks', visible: $localStorage.checkChart.clicks},
       {valueField: 'spend', name: 'media', axis: 'spend', visible: $localStorage.checkChart.spend},
       {valueField: 'conv', name: 'conversions', axis: 'conv', visible: $localStorage.checkChart.conv},
-      {valueField: 'ctr', name: 'CTR', axis: 'ctr', visible: $localStorage.checkChart.ctr} 
+      {valueField: 'ctr', name: 'CTR', axis: 'ctr', visible: $localStorage.checkChart.ctr}
     ];
     /** LOCAL STORAGE CHECKBOX - END **/
 
 
+
     /** DATE PIKER - START **/
-    if ($localStorage.dataStart == null && $localStorage.dataEnd == null) {
-      $localStorage.dataStart = $window.moment({hour: '00'}).subtract(1, 'day').unix();
-      $localStorage.dataEnd = $window.moment({hour: '00'}).subtract(1, 'day').endOf('day').unix();
-    } else {
-      vm.dataStart = $localStorage.dataStart;
-      vm.dataEnd = $localStorage.dataEnd;
-    }
+
     if ($localStorage.SelectedTime == null) {
       $localStorage.SelectedTime = 0;
+      $localStorage.dataStart = $window.moment({hour: '00'}).subtract(1, 'day').unix();
+      $localStorage.dataEnd = $window.moment({hour: '00'}).subtract(1, 'day').endOf('day').unix();
+      vm.dataStart = $window.moment({hour: '00'}).subtract(1, 'day').unix();
+      vm.dataEnd = $window.moment({hour: '00'}).subtract(1, 'day').endOf('day').unix();
+    } else {
+      if ($localStorage.dataStart == null || $localStorage.dataEnd == null) {
+        $localStorage.SelectedTime = 0;
+        $localStorage.dataStart = $window.moment({hour: '00'}).subtract(1, 'day').unix();
+        $localStorage.dataEnd = $window.moment({hour: '00'}).subtract(1, 'day').endOf('day').unix();
+        vm.dataStart = $window.moment({hour: '00'}).subtract(1, 'day').unix();
+        vm.dataEnd = $window.moment({hour: '00'}).subtract(1, 'day').endOf('day').unix();
+      } else {
+        vm.dataStart = $localStorage.dataStart;
+        vm.dataEnd = $localStorage.dataEnd;
+      }
     }
 
     var products = [
@@ -370,7 +380,24 @@
                     maxMajor = major[major.length - 1].value;
                   }
                   if (this.value == maxMajor) {
-                    return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + item.name + '</span><br>' + this.value;
+                    switch ( item.name) {
+                      case 'imp':
+                        return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('MAIN.CHECKBOX.IMPRESSIONS') + '</span><br>' + this.value;
+                      case 'cvr':
+                        return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('MAIN.CHECKBOX.CVR') + '</span><br>' + this.value;
+                      case 'cpc':
+                        return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('MAIN.CHECKBOX.CPC') + '</span><br>' + this.value;
+                      case 'clicks':
+                        return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('MAIN.CHECKBOX.CLICKS') + '</span><br>' + this.value;
+                      case 'spend':
+                        return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('MAIN.CHECKBOX.MEDIA_SPENT') + '</span><br>' + this.value;
+                      case 'conv':
+                        return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('MAIN.CHECKBOX.CONVERSIONS') + '</span><br>' + this.value;
+                      case 'ctr':
+                        return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('MAIN.CHECKBOX.CTR') + '</span><br>' + this.value;
+                      default:
+                        return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + item.name + '</span><br>' + this.value;
+                    }
                   }
                   return this.value;
                 }
@@ -464,6 +491,17 @@
       tooltip: {
         enabled: true,
         customizeTooltip: function (arg) {
+          console.log(arg);
+          if (arg.seriesName == 'media' || arg.seriesName == 'CPC') {
+            return {
+              text: '$'+arg.valueText
+            };
+          }
+          if (arg.seriesName == 'CTR') {
+            return {
+              text: arg.valueText+'%'
+            };
+          }
           return {
             text: arg.valueText
           };

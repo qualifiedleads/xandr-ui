@@ -17,6 +17,7 @@ urlpatterns = [
     url(r'^', include(router.urls)),
     # url(r'^admin', include(admin.site.urls)),
     url(r'^login', views_user.login_api),
+    url(r'^logout', views_user.logout_api),
     url(r'^totals', views.totals),
     url(r'^statistics', views.statistics),
     url(r'^map/clicks', views.map_clicks),

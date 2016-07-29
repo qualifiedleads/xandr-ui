@@ -1,6 +1,7 @@
+from django.contrib.sites import requests
 from rest_framework.decorators import api_view, parser_classes
 from rest_framework.response import Response
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.views.decorators.csrf import csrf_exempt,ensure_csrf_cookie
 
@@ -39,6 +40,18 @@ def login_api(request):
     else:
         return Response({'error': "Not authentificated"}, status=401)
 
+@api_view(['POST'])
+def logout_api(request):
+    """
+    Logout specifed user
+    Return status {"status":"ok"} or {"status":"error"}
 
+## Url format: /api/v1/logout
+    """
+    try:
+        logout(request)
+        return Response({"status":"ok"})
+    except Exception as e:
+        return Response({"status":"error", "error":e.message})
 
 

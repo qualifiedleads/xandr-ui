@@ -82,14 +82,6 @@ class UserAdmin(BaseUserAdmin):
 
     advertiser_permission_url.short_description = "Click to change advertiser permissions"
 
-# Create token for all exiting users
-try:
-    for user in User.objects.all():
-        Token.objects.get_or_create(user=user)
-except:
-    print "You must run python manage.py migrate"
-    pass
-
 # Automatically create token for new users
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
 def create_auth_token(sender, instance=None, created=False, **kwargs):

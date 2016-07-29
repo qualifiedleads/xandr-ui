@@ -97,6 +97,11 @@ class MembershipUserToAdvertiser(models.Model):
             ('advertiser', 'frameworkuser')
         )
 
+def get_permissions_for_user(user_id):
+    membership_info = MembershipUserToAdvertiser.objects.filter(frameworkuser_id=user_id)
+    return [{"name": x.advertiser.name, "can_read": True, "can_write": x.can_write}
+            for x in membership_info]
+
 
 # class FrameworkUser(models.Model):
 class FrameworkUser(DjangoUser):
@@ -117,9 +122,7 @@ class FrameworkUser(DjangoUser):
 
     @property
     def permission(self):
-        membership_info = MembershipUserToAdvertiser.objects.filter(frameworkuser=self)
-        return [{"name": x.advertiser.name, "can_read": True, "can_write": x.can_write}
-                for x in membership_info]
+        return get_permissions_for_user(self.pk)
 
     def __unicode__(self):
         return self.name

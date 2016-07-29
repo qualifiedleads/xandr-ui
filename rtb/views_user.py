@@ -1,11 +1,13 @@
 from django.contrib.sites import requests
-from rest_framework.decorators import api_view, parser_classes
+from rest_framework.decorators import api_view, parser_classes, throttle_classes, permission_classes
 from rest_framework.response import Response
+from rest_framework.parsers import JSONParser
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.views.decorators.csrf import csrf_exempt,ensure_csrf_cookie
 from rest_framework.authtoken import views as views_auth
-
+from rest_framework.authtoken.models import Token
+from models import get_permissions_for_user
 def find_user_name(request):
     if 'username' not in request.data:
         mail = request.data["email"]
@@ -13,11 +15,19 @@ def find_user_name(request):
         request.data['username'] = uname
 
 
+
 @api_view(['POST'])
-@csrf_exempt
+@parser_classes((JSONParser,))
+@throttle_classes([])
+@permission_classes([])
 def login_api_new(request):
-    find_user_name(request)
-    return views_auth(request)
+    user = User.objects.get(email=request.data['email'])
+    token, created = Token.objects.get_or_create(user=user)
+    perm = get_permissions_for_user(user.pk)
+    res = {"id":user.pk, 'token': token.key, "permission":perm}
+    return Response(res)
+
+login_api_new.csrf_exempt = True
 
 @csrf_exempt
 @api_view(['POST'])

@@ -3,6 +3,7 @@ import django.db.models as django_types
 import datetime
 from pytz import utc
 import re
+import os, time
 
 column_sets_for_reports = {
     "network_analytics": [
@@ -74,6 +75,13 @@ column_sets_for_reports = {
         "view_measurement_rate",
     ]
 }
+
+def clean_old_files(path):
+    now = time.time()
+    for f in os.listdir(path):
+        fname = os.path.join(path, f)
+        if os.stat(fname).st_mtime < now - 7 * 86400:
+            os.remove(fname)
 
 def get_current_time():
     return datetime.datetime.utcnow().replace(tzinfo=utc)

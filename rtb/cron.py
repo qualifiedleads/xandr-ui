@@ -27,7 +27,7 @@ from models import Advertiser, Campaign, SiteDomainPerformanceReport, Profile, L
     Creative, Brand, CreativeTemplate, Category, Company, MediaType, MediaSubType, CreativeFormat, CreativeFolder, \
     Language
 from pytz import utc
-from utils import get_all_classes_in_models, column_sets_for_reports, get_current_time
+from utils import get_all_classes_in_models, column_sets_for_reports, get_current_time, clean_old_files
 
 table_names = {c._meta.db_table: c for c in get_all_classes_in_models(models)}
 
@@ -595,7 +595,10 @@ def dayly_task(day=None, load_objects_from_services=True, output=None):
     old_stdout, old_error = sys.stdout, sys.stderr
     file_output = None
     if not output:
-        log_file_name = 'rtb/logs/Dayly_Task_%s.log' % get_current_time().strftime('%Y-%m-%dT%H-%M-%S')
+        catalog_name = os.path.join(os.path.dirname(__file__), 'logs')
+        clean_old_files(catalog_name)
+        log_file_name = 'Dayly_Task_%s.log' % get_current_time().strftime('%Y-%m-%dT%H-%M-%S')
+        log_file_name = os.path.join(catalog_name, log_file_name)
         file_output = open(log_file_name, 'w')
         output = file_output
     sys.stdout, sys.stderr = output, output

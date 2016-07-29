@@ -8,6 +8,8 @@ from django.views.decorators.csrf import csrf_exempt,ensure_csrf_cookie
 from rest_framework.authtoken import views as views_auth
 from rest_framework.authtoken.models import Token
 from models import get_permissions_for_user
+import json
+
 def find_user_name(request):
     if 'username' not in request.data:
         mail = request.data["email"]
@@ -21,11 +23,17 @@ def find_user_name(request):
 @throttle_classes([])
 @permission_classes([])
 def login_api_new(request):
-    user = User.objects.get(email=request.data['email'])
-    token, created = Token.objects.get_or_create(user=user)
-    perm = get_permissions_for_user(user.pk)
-    res = {"id":user.pk, 'token': token.key, "permission":perm}
-    return Response(res)
+    try:
+        user = User.objects.get(email=request.data['email'])
+        request.data['username'] = user.username
+        view = views_auth.ObtainAuthToken()
+        res = view.post(request)
+        token = res.data['token']
+        perm = get_permissions_for_user(user.pk)
+        return Response({"id":user.pk, 'token': token, "permission":perm})
+    except Exception as e:
+        return Response({'error': e.message}, status=401)
+
 
 login_api_new.csrf_exempt = True
 

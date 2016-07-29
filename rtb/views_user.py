@@ -5,7 +5,6 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.views.decorators.csrf import csrf_exempt,ensure_csrf_cookie
 
-@ensure_csrf_cookie
 @csrf_exempt
 @api_view(['POST'])
 def login_api(request):

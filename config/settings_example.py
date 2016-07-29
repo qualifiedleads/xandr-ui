@@ -39,6 +39,7 @@ INSTALLED_APPS = (
     'corsheaders',
     'rest_framework',
     'rest_framework_docs',
+    'rest_framework.authtoken',
     'django_crontab',
     'rtb',
 )
@@ -132,7 +133,7 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         # 'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.SessionAuthentication',
-        #'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
     )
 }
 # Periodic jobs

@@ -1,12 +1,14 @@
 from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin as BaseUserAdmin, UserChangeForm
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User
 from rtb.models import FrameworkUser, SiteDomainPerformanceReport, NetworkAnalyticsReport, MembershipUserToAdvertiser
 from django.utils.translation import ugettext_lazy as _
-from django.forms.widgets import  CheckboxSelectMultiple
-from django.forms import ModelChoiceField
 from django.utils.html import format_html
 from django.core.urlresolvers import reverse
+from django.conf import settings
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from rest_framework.authtoken.models import Token
 
 # Define an inline user form descriptor
 class UsersInline(admin.StackedInline):
@@ -79,6 +81,20 @@ class UserAdmin(BaseUserAdmin):
         return format_html("<a href='{}'>{}</a>", url, 'Advertiser permissions')
 
     advertiser_permission_url.short_description = "Click to change advertiser permissions"
+
+# Create token for all exiting users
+try:
+    for user in User.objects.all():
+        Token.objects.get_or_create(user=user)
+except:
+    print "You must run python manage.py migrate"
+    pass
+
+# Automatically create token for new users
+@receiver(post_save, sender=settings.AUTH_USER_MODEL)
+def create_auth_token(sender, instance=None, created=False, **kwargs):
+    if created:
+        Token.objects.create(user=instance)
 
 # Re-register UserAdmin
 admin.site.unregister(User)

@@ -14,3 +14,4 @@ django-crontab
 uwsgi
 drfdocs
 pympler
+requests

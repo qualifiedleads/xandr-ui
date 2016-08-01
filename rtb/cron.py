@@ -638,6 +638,8 @@ def load_report(token, day, ReportClass):
     f_name = get_specified_report(ReportClass, {}, token, day)
     analize_csv(f_name, ReportClass, {})
     os.remove(f_name)
+    if hasattr(ReportClass,'post_load'):
+        ReportClass.post_load(day)
 
 
 def load_reports_for_all_advertisers(token, day, ReportClass):
@@ -675,6 +677,8 @@ def load_reports_for_all_advertisers(token, day, ReportClass):
                                   #"all_line_items": all_line_items,
                                   "advertiser_id": advertiser_id})
             print "%s for advertiser %s saved to DB" % (ReportClass, all_advertisers[advertiser_id])
+        if hasattr(ReportClass, 'post_load'):
+            ReportClass.post_load(day)
     finally:
         for f in filenames:
             print "Remove file ", f

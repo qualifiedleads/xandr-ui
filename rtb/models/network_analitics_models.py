@@ -2,7 +2,7 @@ import datetime
 from django.db import models, transaction
 from pytz import utc
 from ..report import nexus_get_objects_by_id
-from .models import Placement, Campaign, Site
+from .models import Placement, Campaign, Site, PlatformMember
 
 class NetworkAnalyticsReport_ByPlacement(models.Model):
     hour = models.DateTimeField(null=True, blank=True, db_index=True)
@@ -29,6 +29,15 @@ class NetworkAnalyticsReport_ByPlacement(models.Model):
         saved_ids = nexus_get_objects_by_id(None,Campaign,campaigns_mising)
         if saved_ids != campaigns_mising:
             print 'Some campaigns not saved'
+        sellers_mising = self.objects.filter(
+            hour__gte=from_date,
+            hour__lte=to_date,
+            seller_member__name=None
+        ).values_list('seller_member_id', flat=True)
+        sellers_mising = set(sellers_mising)
+        saved_ids = nexus_get_objects_by_id(None,PlatformMember,sellers_mising)
+        if saved_ids != sellers_mising:
+            print 'Some sellers not saved'
         with transaction.atomic():
             placements_mising = self.objects.filter(
                 hour__gte=from_date,

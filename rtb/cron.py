@@ -660,11 +660,17 @@ def load_reports_for_all_advertisers(token, day, ReportClass):
     # this prevent zero id value
     # filter_params['pk__gt'] = 0
 
-    q = ReportClass.objects.filter(**filter_params).values('advertiser_id') \
-        .annotate(cnt=Count('*')).filter(cnt__gt=0)
+    q = list(ReportClass.objects.filter(**filter_params).values('advertiser_id') \
+        .annotate(cnt=Count('*')))
+    for g in q:
+        if g['cnt'] % 4000 == 0:
+            ReportClass.objects.filter(**filter_params).values('advertiser_id')\
+                .filter(advertiser_id=g['advertiser_id']).delete()
+            g['cnt']=0
+
     # print q.query
     # select advertisers, which do not have report data
-    advertisers_having_data = set(x['advertiser_id'] for x in q)
+    advertisers_having_data = set(x['advertiser_id'] for x in q if x['cnt']>0)
     print advertisers_having_data
     all_advertisers = dict(Advertiser.objects.all().values_list('id', 'name'))
     all_advertisers.pop(0, None)

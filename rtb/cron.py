@@ -666,7 +666,7 @@ def load_reports_for_all_advertisers(token, day, ReportClass):
     for g in q:
         if g['cnt'] % 4000 == 0 and g['cnt']>0:
             print 'Delete partially loaded data (load_reports_for_all_advertisers)'
-            ReportClass.objects.filter(**filter_params).values('advertiser_id')\
+            ReportClass.objects.filter(**filter_params)\
                 .filter(advertiser_id=g['advertiser_id']).delete()
             g['cnt']=0
 

@@ -428,7 +428,7 @@ def campaignDetails(request, id):
     """
 Get single campaign details for given period 
 
-## Url format: /api/v1/campaigns/:id/details?from_date={from_date}&to_date={to_date}&section={section}
+## Url format: /api/v1/campaigns/:id/details?from_date={from_date}&to_date={to_date}&category={category}
 
 + Parameters
 
@@ -439,11 +439,15 @@ Get single campaign details for given period
     + to_date (date) - Date to select statistics to
         + Format: Unixtime
         + Example: 1466667274
-    + section (string) - statistic fields to select (select every field if param is empty)
+    + category (string) - category for selecting imps
         + Format: string
         + Example: placement
-
-
+For "all":
+    field "section" - selected category (if category="placement"  then field "section" hold placement id),
+    field "data" - impressions for this category values.
+For "conversions":
+    field "section" - selected category where CTR<>0 (if category="placement"  then field "section" hold placement id),
+    field "data" - impressions for this category values.
     """
     # TODO This dictionary need to fill with names of all grouping sections
     section_to_field={
@@ -460,10 +464,13 @@ Get single campaign details for given period
     ).values(field_name).annotate(
         conv=Sum('total_convs'),
         imp=Sum('imps'),
+        clicks=Sum('clicks'),
+    ).annotate(
+        ctr=Case(When(~Q(imp=0), then=F('clicks') / F('imp')), output_field=FloatField()),
     )
     results= list(q)
     views = [{'section':x[field_name],'data':x['imp']} for x in results]
-    conversions = [{'section':x[field_name],'data':x['conv']} for x in results]
+    conversions = [{'section':x[field_name],'data':x['conv']} for x in results if x['ctr']]
     return Response({'all':views,'conversions':conversions})
     return Response({
         'all': [

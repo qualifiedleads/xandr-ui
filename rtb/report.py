@@ -103,16 +103,18 @@ def get_auth_token():
 one_day = datetime.timedelta(days=1)
 
 
-def get_specified_report(ReportClass, query_data=None, token=None, day=None):
+def get_specified_report(ReportClass, query_data=None, token=None, day=None, columns=None):
     if not query_data: query_data={}
     report_type = ReportClass.api_report_name
     if not token:
         token = get_auth_token()
     url = appnexus_url + "report"
+    if columns is None:
+        columns = utils.get_column_list_for_report(ReportClass)
     report_data = {
         'report': {
             "report_type": report_type,
-            "columns": utils.get_column_list_for_report(ReportClass),
+            "columns": columns,
             "timezone": "UTC",
             "format": "csv"
         }

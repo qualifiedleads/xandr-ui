@@ -247,7 +247,7 @@ def analize_csv(filename, modelClass, metadata={}):
         context['all_fields'] = class_fields & csv_fields
         context['need_filter_fields'] = bool(
             csv_fields -
-            class_fields) and modelClass.api_report_name not in column_sets_for_reports
+            class_fields) and not hasattr(modelClass,'api_columns')
         context['time_fields'] = [
             field.name for field in modelClass._meta.fields if date_type(field)]
         context['nullable_keys'] = [

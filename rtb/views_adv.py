@@ -301,6 +301,8 @@ def get_campaign_placement(campaign_id, from_date, to_date):
     for x in res:
         if x['placement'] is None:
             x['placement'] = 'Hidden ({})'.format(x['placement_id'])
+        else:
+            x['placement'] = '{} ({})'.format(x['placement'],x['placement_id'])
         x['state']={
             "whiteList": "true",
             "blackList": "false",

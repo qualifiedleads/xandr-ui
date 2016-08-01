@@ -6,7 +6,6 @@ from django.utils.timezone import now as now_tz
 #from django.contrib.postgres.fields import JSONField
 from django.contrib.auth.models import User as DjangoUser
 
-
 STATE_CHOICES = (
     ('active', 'Active'),
     ('inactive', 'Inactive'),
@@ -3369,6 +3368,33 @@ class NetworkAnalyticsReport(models.Model):
     data_costs_selling_currency = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
 
     api_report_name = "network_analytics"
+    api_columns = [
+        "hour",
+        "advertiser_id",
+        "advertiser_name",
+        "campaign_id",
+        "campaign_name",
+        "creative_id",
+        "creative_name",
+        "geo_country",
+        "insertion_order_id",
+        "insertion_order_name",
+        "line_item_id",
+        "line_item_name",
+        "site_id",
+        "site_name",
+        "placement_id",
+        "placement_name",
+        "publisher_id",
+        "publisher_name",
+        "imps",
+        "clicks",
+        "total_convs",
+        "cost",
+        "commissions",
+        "serving_fees"
+    ]
+
 
     class Meta:
         db_table = "network_analytics_report"

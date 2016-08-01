@@ -1,6 +1,8 @@
 import datetime
 from django.db import models
 from pytz import utc
+from ..report import nexus_get_objects_by_id
+from .models import Placement
 
 class NetworkAnalyticsReport_ByPlacement(models.Model):
     hour = models.DateTimeField(null=True, blank=True, db_index=True)
@@ -17,12 +19,16 @@ class NetworkAnalyticsReport_ByPlacement(models.Model):
     def post_load(self, day):
         from_date = datetime.datetime(day.year, day.month, day.day, tzinfo=utc)
         to_date = datetime.datetime(day.year, day.month, day.day, 23, tzinfo=utc)
-        placements = NetworkAnalyticsReport_ByPlacement.objects.filter(
+        placements_mising = self.objects.filter(
             hour__gte=from_date,
             hour__lte=to_date,
-        ).values_list('placement_id', 'placement')
-        print placements
-        # load all
+            placement__id=None
+        ).values_list('placement_id', flat=True)
+        print placements_mising
+        # load all missing placements
+        saved_ids = nexus_get_objects_by_id(None,Placement,placements_mising)
+        if saved_ids !=placements_mising:
+            print 'Some objects not saved'
 
     class Meta:
         app_label = 'rtb'

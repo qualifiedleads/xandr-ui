@@ -25,9 +25,9 @@ from models import Advertiser, Campaign, SiteDomainPerformanceReport, Profile, L
     AdProfile, ContentCategory, Deal, PlatformMember, User, Publisher, Site, OptimizationZone, MobileAppInstance, \
     YieldManagementProfile, PaymentRule, ConversionPixel, Country, Region, DemographicArea, AdQualityRule, Placement, \
     Creative, Brand, CreativeTemplate, Category, Company, MediaType, MediaSubType, CreativeFormat, CreativeFolder, \
-    Language
+    Language, NetworkAnalyticsReport_ByPlacement
 from pytz import utc
-from utils import get_all_classes_in_models, column_sets_for_reports, get_current_time, clean_old_files
+from utils import get_all_classes_in_models, get_current_time, clean_old_files
 
 table_names = {c._meta.db_table: c for c in get_all_classes_in_models(models)}
 
@@ -608,7 +608,8 @@ def dayly_task(day=None, load_objects_from_services=True, output=None):
         token = get_auth_token()
         if load_objects_from_services:
             load_depending_data(token)
-        load_report(token, day, NetworkAnalyticsReport)
+        #load_report(token, day, NetworkAnalyticsReport)
+        load_report(token, day, NetworkAnalyticsReport_ByPlacement)
         load_report(token, day, GeoAnaliticsReport)
         load_reports_for_all_advertisers(
             token, day, SiteDomainPerformanceReport)

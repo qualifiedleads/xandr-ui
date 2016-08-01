@@ -633,7 +633,8 @@ def load_report(token, day, ReportClass):
     except:  # Hour
         filter_params = {"hour__date": day}
     q = ReportClass.objects.filter(**filter_params).count()
-    if q % 4000 == 0:
+    if q % 4000 == 0 and q>0:
+        print 'Delete partially loaded data (load_report)'
         ReportClass.objects.filter(**filter_params).delete()
         q = 0
     if q > 0:
@@ -663,7 +664,8 @@ def load_reports_for_all_advertisers(token, day, ReportClass):
     q = list(ReportClass.objects.filter(**filter_params).values('advertiser_id') \
         .annotate(cnt=Count('*')))
     for g in q:
-        if g['cnt'] % 4000 == 0:
+        if g['cnt'] % 4000 == 0 and g['cnt']>0:
+            print 'Delete partially loaded data (load_reports_for_all_advertisers)'
             ReportClass.objects.filter(**filter_params).values('advertiser_id')\
                 .filter(advertiser_id=g['advertiser_id']).delete()
             g['cnt']=0

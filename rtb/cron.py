@@ -633,6 +633,9 @@ def load_report(token, day, ReportClass):
     except:  # Hour
         filter_params = {"hour__date": day}
     q = ReportClass.objects.filter(**filter_params).count()
+    if q % 4000 == 0:
+        ReportClass.objects.filter(**filter_params).delete()
+        q = 0
     if q > 0:
         print "There is %d records in %s, nothing to do." % (q, ReportClass._meta.db_table)
         return

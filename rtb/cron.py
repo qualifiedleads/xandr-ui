@@ -625,6 +625,9 @@ def dayly_task(day=None, load_objects_from_services=True, output=None):
 
 # load report data, which is not linked with advertiser
 def load_report(token, day, ReportClass):
+    if not day:
+        day = datetime.datetime.utcnow()-datetime.timedelta(days=1)
+        day = day.replace(hour=0,minute=0,second=0,microsecond=0,tzinfo=utc)
     if not token:
         token = get_auth_token()
     try:
@@ -648,6 +651,9 @@ def load_report(token, day, ReportClass):
 
 
 def load_reports_for_all_advertisers(token, day, ReportClass):
+    if not day:
+        day = datetime.datetime.utcnow()-datetime.timedelta(days=1)
+        day = day.replace(hour=0,minute=0,second=0,microsecond=0,tzinfo=utc)
     if not token:
         token = get_auth_token()
     # 5 report service processes per user admitted

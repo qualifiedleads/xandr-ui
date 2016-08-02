@@ -2,7 +2,7 @@ from rest_framework.decorators import api_view, parser_classes
 from rest_framework.response import Response
 from django.http import JsonResponse
 from utils import parse_get_params, make_sum
-from models import SiteDomainPerformanceReport, Campaign, GeoAnaliticsReport, NetworkAnalyticsReport
+from models import SiteDomainPerformanceReport, Campaign, GeoAnaliticsReport, NetworkAnalyticsReport_ByPlacement
 from django.db.models import Sum, Min, Max, Avg, Value, When, Case, F, Q, Func, FloatField
 from django.db.models.functions import Coalesce
 from django.core.cache import cache
@@ -190,7 +190,7 @@ def get_campaign_cpa(advertiser_id, campaign_id, from_date, to_date):
     # from_date = datetime.datetime(from_date.year, from_date.month, from_date.day, 23, tzinfo = utc)
     from_date = datetime.datetime(from_date.year, from_date.month, from_date.day, tzinfo=utc)
     to_date = datetime.datetime(to_date.year, to_date.month, to_date.day, 23, tzinfo=utc)
-    q = NetworkAnalyticsReport.objects.filter(
+    q = NetworkAnalyticsReport_ByPlacement.objects.filter(
         # advertiser_id=advertiser_id,
         campaign_id=campaign_id,
         hour__gte=from_date,
@@ -278,14 +278,14 @@ def get_campaign_placement(campaign_id, from_date, to_date):
     # no cache hit
     from_date = datetime.datetime(from_date.year, from_date.month, from_date.day, tzinfo=utc)
     to_date = datetime.datetime(to_date.year, to_date.month, to_date.day, 23, tzinfo=utc)
-    q = NetworkAnalyticsReport.objects.filter(
+    q = NetworkAnalyticsReport_ByPlacement.objects.filter(
         # advertiser_id=advertiser_id,
         campaign_id=campaign_id,
         hour__gte=from_date,
         hour__lte=to_date,
     ).values('placement_id').annotate(
         placement = F('placement__name'),
-        NetworkPublisher = F('publisher__name'),
+        NetworkPublisher = F('placement__publisher__name'),
         placementState = F('placement__state'),
         cost=Sum('cost'),
         conv=Sum('total_convs'),
@@ -299,6 +299,10 @@ def get_campaign_placement(campaign_id, from_date, to_date):
     )
     res=list(q)
     for x in res:
+        if x['placement'] is None:
+            x['placement'] = 'Hidden ({})'.format(x['placement_id'])
+        else:
+            x['placement'] = '{} ({})'.format(x['placement'],x['placement_id'])
         x['state']={
             "whiteList": "true",
             "blackList": "false",
@@ -334,7 +338,7 @@ Get single campaign details by domains
         + Default: desc
     + filter (string, optional) - devextreme JSON serialized filter
 
-
+Field "placement" must contain name and id of placement. Id in parenthesis
     """
     params = parse_get_params(request.GET)
     if params['from_date'] > params['to_date']:
@@ -354,22 +358,21 @@ Get single campaign details by domains
     result = { "data": res, "totalCount": totalCount}
     return Response(result)
     return Response([{
-        "placement": "CNN.com",
-        "NetworkPublisher": "Google Adx",
-        "conv": "8",
-        "imp": "5500",
-        "clicks": "21",
-        "cpc": "$0,31",
-        "cpm": "$1,38",
-        "cvr": "",
-        "ctr": "",
-        "state": {
-            "whiteList": "true",
-            "blackList": "false",
-            "suspended": "false"
-        }
-    },
-        {
+            "placement": "CNN.com (23627368)",
+            "NetworkPublisher": "Google Adx",
+            "conv": "8",
+            "imp": "5500",
+            "clicks": "21",
+            "cpc": "$0,31",
+            "cpm": "$1,38",
+            "cvr": "",
+            "ctr": "",
+            "state": {
+                "whiteList": "true",
+                "blackList": "false",
+                "suspended": "false"
+            }
+        }, {
             "placement": "Hidden",
             "NetworkPublisher": "PubMatic",
             "conv": "3",
@@ -425,7 +428,7 @@ def campaignDetails(request, id):
     """
 Get single campaign details for given period 
 
-## Url format: /api/v1/campaigns/:id/details?from_date={from_date}&to_date={to_date}&section={section}
+## Url format: /api/v1/campaigns/:id/details?from_date={from_date}&to_date={to_date}&category={category}
 
 + Parameters
 
@@ -436,11 +439,15 @@ Get single campaign details for given period
     + to_date (date) - Date to select statistics to
         + Format: Unixtime
         + Example: 1466667274
-    + section (string) - statistic fields to select (select every field if param is empty)
+    + category (string) - category for selecting imps
         + Format: string
         + Example: placement
-
-
+For "all":
+    field "section" - selected category (if category="placement"  then field "section" hold placement id),
+    field "data" - impressions for this category values.
+For "conversions":
+    field "section" - selected category where CTR<>0 (if category="placement"  then field "section" hold placement id),
+    field "data" - impressions for this category values.
     """
     # TODO This dictionary need to fill with names of all grouping sections
     section_to_field={
@@ -449,7 +456,7 @@ Get single campaign details for given period
     # curl 'http://127.0.0.1:8000/api/v1/campaigns/13412702/details?from_date=1467320400&section=Placement&to_date=1469032344' --1.0 -H 'Host: 127.0.0.1:8000' -H 'User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:47.0) Gecko/20100101 Firefox/47.0' -H 'Accept: application/json, text/plain, */*' -H 'Accept-Language: en-US,en;q=0.5' --compressed -H 'Referer: http://127.0.0.1:8000/client/index.html' -H 'Cookie: csrftoken=tzdunvIQ55Ba7maBdr8WYeEW58S75rCn' -H 'Connection: keep-alive'
     params = parse_get_params(request.GET)
     field_name = section_to_field.get(params['section'],'placement')
-    q = NetworkAnalyticsReport.objects.filter(
+    q = NetworkAnalyticsReport_ByPlacement.objects.filter(
         # advertiser_id=advertiser_id,
         campaign_id=id,
         hour__gte=params['from_date'],
@@ -457,10 +464,13 @@ Get single campaign details for given period
     ).values(field_name).annotate(
         conv=Sum('total_convs'),
         imp=Sum('imps'),
+        clicks=Sum('clicks'),
+    ).annotate(
+        ctr=Case(When(~Q(imp=0), then=F('clicks') / F('imp')), output_field=FloatField()),
     )
     results= list(q)
     views = [{'section':x[field_name],'data':x['imp']} for x in results]
-    conversions = [{'section':x[field_name],'data':x['conv']} for x in results]
+    conversions = [{'section':x[field_name],'data':x['conv']} for x in results if x['ctr']]
     return Response({'all':views,'conversions':conversions})
     return Response({
         'all': [
@@ -519,9 +529,10 @@ Get single campaign details for given period
         + Example: 1466667274
     """
     params = parse_get_params(request.GET)
-    field_name = 'site'
+    field_name = 'placement'
+    #field_name = 'placement__site'
     # field_name='placement'
-    q = NetworkAnalyticsReport.objects.filter(
+    q = NetworkAnalyticsReport_ByPlacement.objects.filter(
         # advertiser_id=advertiser_id,
         campaign_id=id,
         hour__gte=params['from_date'],
@@ -529,8 +540,8 @@ Get single campaign details for given period
     ).values(field_name).annotate(
         conv=Sum('total_convs'),
         sum_cost=Sum('cost'),
-        placementid=F('site_id'),
-        placementname=F('site__name'),
+        placementid=F('placement_id'),
+        placementname=F('placement__name'),
         sellerid=F('seller_member_id'),
         sellername=F('seller_member__name'),
     ).annotate(

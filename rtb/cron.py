@@ -25,9 +25,9 @@ from models import Advertiser, Campaign, SiteDomainPerformanceReport, Profile, L
     AdProfile, ContentCategory, Deal, PlatformMember, User, Publisher, Site, OptimizationZone, MobileAppInstance, \
     YieldManagementProfile, PaymentRule, ConversionPixel, Country, Region, DemographicArea, AdQualityRule, Placement, \
     Creative, Brand, CreativeTemplate, Category, Company, MediaType, MediaSubType, CreativeFormat, CreativeFolder, \
-    Language
+    Language, NetworkAnalyticsReport_ByPlacement
 from pytz import utc
-from utils import get_all_classes_in_models, column_sets_for_reports, get_current_time, clean_old_files
+from utils import get_all_classes_in_models, get_current_time, clean_old_files
 
 table_names = {c._meta.db_table: c for c in get_all_classes_in_models(models)}
 
@@ -247,7 +247,7 @@ def analize_csv(filename, modelClass, metadata={}):
         context['all_fields'] = class_fields & csv_fields
         context['need_filter_fields'] = bool(
             csv_fields -
-            class_fields) and modelClass.api_report_name not in column_sets_for_reports
+            class_fields) and not hasattr(modelClass,'api_columns')
         context['time_fields'] = [
             field.name for field in modelClass._meta.fields if date_type(field)]
         context['nullable_keys'] = [
@@ -608,7 +608,8 @@ def dayly_task(day=None, load_objects_from_services=True, output=None):
         token = get_auth_token()
         if load_objects_from_services:
             load_depending_data(token)
-        load_report(token, day, NetworkAnalyticsReport)
+        #load_report(token, day, NetworkAnalyticsReport)
+        load_report(token, day, NetworkAnalyticsReport_ByPlacement)
         load_report(token, day, GeoAnaliticsReport)
         load_reports_for_all_advertisers(
             token, day, SiteDomainPerformanceReport)
@@ -624,6 +625,9 @@ def dayly_task(day=None, load_objects_from_services=True, output=None):
 
 # load report data, which is not linked with advertiser
 def load_report(token, day, ReportClass):
+    if not day:
+        day = datetime.datetime.utcnow()-datetime.timedelta(days=1)
+        day = day.replace(hour=0,minute=0,second=0,microsecond=0,tzinfo=utc)
     if not token:
         token = get_auth_token()
     try:
@@ -632,15 +636,24 @@ def load_report(token, day, ReportClass):
     except:  # Hour
         filter_params = {"hour__date": day}
     q = ReportClass.objects.filter(**filter_params).count()
+    if q % 4000 == 0 and q>0:
+        print 'Delete partially loaded data (load_report)'
+        ReportClass.objects.filter(**filter_params).delete()
+        q = 0
     if q > 0:
         print "There is %d records in %s, nothing to do." % (q, ReportClass._meta.db_table)
         return
     f_name = get_specified_report(ReportClass, {}, token, day)
     analize_csv(f_name, ReportClass, {})
     os.remove(f_name)
+    if hasattr(ReportClass,'post_load'):
+        ReportClass.post_load(day)
 
 
 def load_reports_for_all_advertisers(token, day, ReportClass):
+    if not day:
+        day = datetime.datetime.utcnow()-datetime.timedelta(days=1)
+        day = day.replace(hour=0,minute=0,second=0,microsecond=0,tzinfo=utc)
     if not token:
         token = get_auth_token()
     # 5 report service processes per user admitted
@@ -654,11 +667,18 @@ def load_reports_for_all_advertisers(token, day, ReportClass):
     # this prevent zero id value
     # filter_params['pk__gt'] = 0
 
-    q = ReportClass.objects.filter(**filter_params).values('advertiser_id') \
-        .annotate(cnt=Count('*')).filter(cnt__gt=0)
+    q = list(ReportClass.objects.filter(**filter_params).values('advertiser_id') \
+        .annotate(cnt=Count('*')))
+    for g in q:
+        if g['cnt'] % 4000 == 0 and g['cnt']>0:
+            print 'Delete partially loaded data (load_reports_for_all_advertisers)'
+            ReportClass.objects.filter(**filter_params)\
+                .filter(advertiser_id=g['advertiser_id']).delete()
+            g['cnt']=0
+
     # print q.query
     # select advertisers, which do not have report data
-    advertisers_having_data = set(x['advertiser_id'] for x in q)
+    advertisers_having_data = set(x['advertiser_id'] for x in q if x['cnt']>0)
     print advertisers_having_data
     all_advertisers = dict(Advertiser.objects.all().values_list('id', 'name'))
     all_advertisers.pop(0, None)
@@ -675,6 +695,8 @@ def load_reports_for_all_advertisers(token, day, ReportClass):
                                   #"all_line_items": all_line_items,
                                   "advertiser_id": advertiser_id})
             print "%s for advertiser %s saved to DB" % (ReportClass, all_advertisers[advertiser_id])
+        if hasattr(ReportClass, 'post_load'):
+            ReportClass.post_load(day)
     finally:
         for f in filenames:
             print "Remove file ", f

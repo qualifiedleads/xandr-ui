@@ -10,8 +10,11 @@ class tee(object):
         self.fd1 =_fd1
         self.fd2 = _fd2
     def write(self, text):
-        self.fd1.write(text)
-        self.fd2.write(text)
+        try:
+            self.fd1.write(text)
+            self.fd2.write(text)
+        except:
+            pass
     def flush(self):
         self.fd1.flush()
         self.fd2.flush()

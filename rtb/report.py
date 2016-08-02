@@ -235,6 +235,8 @@ def nexus_get_objects(
         object_class,
         force_update=False,
         get_params=None):
+    if not token:
+        token = get_auth_token()
     if not get_params:
         get_params = params
     url = appnexus_url + object_class.api_endpoint

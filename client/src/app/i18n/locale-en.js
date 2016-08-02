@@ -109,7 +109,7 @@
         "CVR":"CVR",
         "CPC":"CPC",
         "CLICKS":"Clicks",
-        "MEDIA_SPENT":"Media Spent",
+        "MEDIA_SPENT":"$ Cost",
         "CONVERSIONS":"Conversions",
         "CTR":"CTR"
       }
@@ -122,9 +122,26 @@
         "CPA":"CPA",
         "CPC":"CPC",
         "CLICKS":"Clicks",
-        "MEDIA_SPENT":"Media Spent",
+        "MEDIA_SPENT":"$ Cost",
         "CONVERSIONS":"Conversions",
         "CTR":"CTR"
+      },
+      'CAMPAIGN': {
+        'COLUMNS':{
+          "CAMPAIGN":"Campaign",
+          "PLACEMENT": "Placement",
+          "NETWORK":"Network+Publisher",
+          "SPENT":"Spent",
+          "CONV":"Conv",
+          "COST":"Cost",
+          "IMP":"Imp",
+          "CLICKS":"Clicks",
+          "CPC":"CPC",
+          "CPM":"CPM",
+          "CVR":"CVR",
+          "CTR":"CTR",
+          "STATS":"Stats"
+        }
       }
     },
     "CO":{

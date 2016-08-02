@@ -6,6 +6,7 @@ from rest_framework import routers
 
 from . import views, views_rest, views_adv, views_user
 
+
 router = routers.DefaultRouter()
 #
 # router.register('raw', views.NetworkAnalyticsRawViewSet)
@@ -16,7 +17,9 @@ router.register('appnexus/user', views_rest.AppnexusUsersViewSet)
 urlpatterns = [
     url(r'^', include(router.urls)),
     # url(r'^admin', include(admin.site.urls)),
-    url(r'^login', views_user.login_api),
+    url(r'^login', views_user.login_api_new),
+    # url(r'^login/', views_auth.obtain_auth_token),
+    url(r'^logout', views_user.logout_api),
     url(r'^totals', views.totals),
     url(r'^statistics', views.statistics),
     url(r'^map/clicks', views.map_clicks),

@@ -109,7 +109,7 @@
         "CVR":"CVR",
         "CPC":"CPC",
         "CLICKS":"Клики",
-        "MEDIA_SPENT":"Затраты",
+        "MEDIA_SPENT":"$ Затраты",
         "CONVERSIONS":"Конверсии",
         "CTR":"CTR"
       }
@@ -122,9 +122,26 @@
         "CPA":"CPA",
         "CPC":"CPC",
         "CLICKS":"Клики",
-        "MEDIA_SPENT":"Затраты",
+        "MEDIA_SPENT":"$ Затраты",
         "CONVERSIONS":"Конверсии",
         "CTR":"CTR"
+      },
+      'CAMPAIGN': {
+        'COLUMNS':{
+          "CAMPAIGN":"Кампания",
+          "PLACEMENT":"Размещение",
+          "NETWORK":"Сеть_Издатель",
+          "SPENT":"Потрачено",
+          "CONV":"Конв",
+          "COST":"Стоимость",
+          "IMP":"Показы",
+          "CLICKS":"Клики",
+          "CPC":"CPC",
+          "CPM":"CPM",
+          "CVR":"CVR",
+          "CTR":"CTR",
+          "STATS":"Стат"
+        }
       }
     },
     "CO":{

@@ -6,7 +6,7 @@
   .controller('AuthController', AuthController);
 
   /** @ngInject */
-  function AuthController($log, $window, $state, $localStorage, $translate, Auth, $cookies, $cookieStore) {
+  function AuthController($log, $window, $state, $localStorage, $translate, Auth, $cookies) {
     var vm = this;
     var LC = $translate.instant;
     vm.Auth = Auth;
@@ -58,13 +58,12 @@
     };
 
     function submitForm(user) {
-
       if (user || user.email && user.password) {
         $cookies.remove('csrftoken');
         $cookies.remove('sessionid');
         $cookies.remove('permission');
         return vm.Auth.authorization(user).then(function (res) {
-          if (res.status == 200 ){
+          if (res.status == 200) {
             $localStorage.$reset();
             $cookies.put('token', res.data.token);
             res.data.permission = 'adminfull';
@@ -82,11 +81,8 @@
               $window.$('.admin-btn')[1].classList.add('show');
             }
           } else {
-            $cookies.remove('csrftoken');
-            $cookies.remove('sessionid');
             $cookies.remove('permission');
             $cookies.remove('token');
-            console.log(res.statusText);
           }
         }).catch(function (err) {
           $log(err);
@@ -102,11 +98,8 @@
     function logout() {
       $cookies.remove('permission');
       $cookies.remove('token');
-      $cookies.remove('csrftoken');
-      $cookies.remove('sessionid');
       $state.reload();
     }
-
 
     vm.goToAdminPanel = goToAdminPanel;
     vm.logout = logout;

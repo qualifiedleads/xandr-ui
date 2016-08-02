@@ -109,15 +109,11 @@
 
     vm.gridStore = new $window.DevExpress.data.CustomStore({
       totalCount: function () {
-        return vm.multipleTotalCount;
+        return vm.Camp.totalCount;
       },
       load: function (loadOptions) {
         return vm.Camp.campaignDomains(vm.campId, vm.dataStart, vm.dataEnd, loadOptions.skip,
           loadOptions.take, loadOptions.sort, loadOptions.order, loadOptions.filter)
-        .then(function (result) {
-          vm.multipleTotalCount = result.totalCount || 0;
-          return result.data;
-        });
       }
     });
 
@@ -145,7 +141,24 @@
                     maxMajor = major[major.length - 1].value;
                   }
                   if (this.value == maxMajor) {
-                    return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + item.name + '</span><br>' + this.value;
+                    switch ( item.name) {
+                      case 'impression':
+                        return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('CAMP.CHECKBOX.IMPRESSIONS') + '</span><br>' + this.value;
+                      case 'cpa':
+                        return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('CAMP.CHECKBOX.CPA') + '</span><br>' + this.value;
+                      case 'cpc':
+                        return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('CAMP.CHECKBOX.CPC') + '</span><br>' + this.value;
+                      case 'clicks':
+                        return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('CAMP.CHECKBOX.CLICKS') + '</span><br>' + this.value;
+                      case 'mediaspent':
+                        return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('CAMP.CHECKBOX.MEDIA_SPENT') + '</span><br>' + this.value;
+                      case 'conversions':
+                        return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('CAMP.CHECKBOX.CONVERSIONS') + '</span><br>' + this.value;
+                      case 'ctr':
+                        return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('CAMP.CHECKBOX.CTR') + '</span><br>' + this.value;
+                      default:
+                        return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + item.name + '</span><br>' + this.value;
+                    }
                   }
                   return this.value;
                 }
@@ -174,7 +187,7 @@
         {name: 'ctr', position: 'left'}
       ],
       argumentAxis: {
-        valueMarginsEnabled: false,
+        //valueMarginsEnabled: false,
         discreteAxisDivisionMode: 'crossLabels',
         grid: {
           visible: true
@@ -194,7 +207,7 @@
       },
       commonSeriesSettings: {
         point: {
-          size: 3,
+          size: 7,
           hoverStyle: {
             border: {
               visible: true,
@@ -215,52 +228,24 @@
     };
 
     vm.rangeOptionsFirst = {
-      margin: {
-        left: 10
+      size:{
+        height:80
       },
       scale: {
-        minorTickCount: 1
+        minorTickInterval: "day",
+        tickInterval: { days: 1 },
+        minRange: "day",
+        maxRange: "year",
+        minorTick: {
+          visible: true
+        }
       },
       bindingOptions: {
         dataSource: 'campmain.chartStore'
       },
-      chart: {
-        series: [{
-          name: 'Impressions',
-          argumentField: "day",
-          valueField: "impression",
-          axis: 'impression'
-        }, {
-          argumentField: "day",
-          valueField: "cpa",
-          name: 'CPA',
-          axis: 'cpa'
-        }, {
-          argumentField: "day",
-          valueField: "cpc",
-          name: 'CPC',
-          axis: 'cpc'
-        }, {
-          argumentField: "day",
-          valueField: "clicks",
-          name: 'Clicks',
-          axis: 'clicks'
-        }, {
-          argumentField: "day",
-          valueField: "mediaspent",
-          name: 'mediaspent',
-          axis: 'mediaspent'
-        }, {
-          argumentField: "day",
-          valueField: "conversions",
-          name: 'Conversions',
-          axis: 'conversions'
-        }, {
-          argumentField: "day",
-          valueField: "ctr",
-          name: 'CTR',
-          axis: 'ctr'
-        }]
+      dataSourceField: 'day',
+      sliderMarker: {
+        format: "monthAndDay"
       },
       behavior: {
         callSelectedRangeChanged: "onMoving"
@@ -495,15 +480,23 @@
 
 
     /** DATE PIKER - START **/
-    if ($localStorage.dataStart == null && $localStorage.dataEnd == null) {
-      $localStorage.dataStart = $window.moment({hour: '00'}).subtract(1, 'day').unix();
-      $localStorage.dataEnd = $window.moment({hour: '00'}).subtract(1, 'day').endOf('day').unix();
-    } else {
-      vm.dataStart = $localStorage.dataStart;
-      vm.dataEnd = $localStorage.dataEnd;
-    }
     if ($localStorage.SelectedTime == null) {
       $localStorage.SelectedTime = 0;
+      $localStorage.dataStart = $window.moment({hour: '00'}).subtract(1, 'day').unix();
+      $localStorage.dataEnd = $window.moment({hour: '00'}).subtract(1, 'day').endOf('day').unix();
+      vm.dataStart = $window.moment({hour: '00'}).subtract(1, 'day').unix();
+      vm.dataEnd = $window.moment({hour: '00'}).subtract(1, 'day').endOf('day').unix();
+    } else {
+      if ($localStorage.dataStart == null || $localStorage.dataEnd == null) {
+        $localStorage.SelectedTime = 0;
+        $localStorage.dataStart = $window.moment({hour: '00'}).subtract(1, 'day').unix();
+        $localStorage.dataEnd = $window.moment({hour: '00'}).subtract(1, 'day').endOf('day').unix();
+        vm.dataStart = $window.moment({hour: '00'}).subtract(1, 'day').unix();
+        vm.dataEnd = $window.moment({hour: '00'}).subtract(1, 'day').endOf('day').unix();
+      } else {
+        vm.dataStart = $localStorage.dataStart;
+        vm.dataEnd = $localStorage.dataEnd;
+      }
     }
 
     var products = [
@@ -553,6 +546,7 @@
         dataStart: 0,
         dataEnd: $window.moment().unix()
       }];
+
     vm.datePiker = {
       items: products,
       displayExpr: 'Name',
@@ -580,17 +574,18 @@
         dataSource: 'campmain.boxPlotStore'
       },
       valueAxis: {
-        valueType: 'numeric'
+        title: 'CPA, $'
       },
       argumentAxis: {
-        valueMarginsEnabled: false,
+        //valueMarginsEnabled: false,
         grid: {
           visible: true
         },
-        label: {
-          visible: false,
-		      format: "shortDate"
-	      }
+        // label: {
+        //   //visible: true,
+		 //      format: "shortDate"
+	     //  },
+        discreteAxisDivisionMode: 'crossLabels'
       },
       tooltip: {
         enabled: true
@@ -612,7 +607,7 @@
         },
         argumentField: 'day',
         point: {
-          size: 2,
+          size: 6,
           hoverStyle: {
             border: {
               visible: true,
@@ -629,34 +624,27 @@
     };
 
     vm.rangeOptionsSecond = {
-      size: {
-        height: 100
-      },
-      margin: {
-        left: 10
-      },
-      scale: {
-        minorTickCount: 'day',
-        valueType: 'date',
-        tickInterval: 'day'
+      size:{
+        height:80
       },
       bindingOptions: {
         dataSource: 'campmain.boxPlotStore'
       },
-      chart: {
-        series: {
-          type: 'line',
-          valueField: 'avg',
-          argumentField: 'day',
-          placeholderHeight: 20
-        },
-        useAggregation: true,
-        valueAxis: {valueType: 'numeric'}
+      scale: {
+        minorTickInterval: "day",
+        tickInterval: { days: 1 },
+        minRange: "day",
+        maxRange: "year",
+        minorTick: {
+          visible: true
+        }
       },
-
+      dataSourceField: 'day',
+      sliderMarker: {
+        format: "monthAndDay"
+      },
       behavior: {
-        callSelectedRangeChanged: "onMoving",
-        snapToTicks: false
+        callSelectedRangeChanged: "onMoving"
       },
       onSelectedRangeChanged: function (e) {
         var zoomedChart = $window.$("#zoomedContainerSecond #zoomedChartSecond").dxChart("instance");
@@ -711,6 +699,7 @@
       onInitialized: function (data) {
         vm.dataGridOptionsMultipleFunc = data.component;
         vm.dataGridOptionsMultipleFunc._controllers.columns._commandColumns[1].visibleIndex = 9;
+        vm.dataGridOptionsMultipleFunc._controllers.columns._commandColumns[1].width = 35;
       },
       onRowPrepared: function (data) {
         vm.objectData = data;
@@ -734,8 +723,7 @@
         visible: true
       },
       bindingOptions: {
-        dataSource: 'campmain.gridStore',
-        allowColumnResizing: 'true'
+        dataSource: 'campmain.gridStore'
       },
       pager: {
         showPageSizeSelector: true,
@@ -743,40 +731,49 @@
         visible: true,
         showNavigationButtons: true
       },
+      allowColumnReordering: true,
+      allowColumnResizing: true,
+      columnAutoWidth: true,
       howBorders: true,
       showRowLines: true,
       columns: [
         {
-          caption: LC('MAIN.CAMPAIGN.COLUMNS.PLACEMENT'),
+          caption: LC('CAMP.CAMPAIGN.COLUMNS.PLACEMENT'),
           dataField: 'placement'
         },
         {
-          caption: LC('MAIN.CAMPAIGN.COLUMNS.NETWORK'),
+          caption: LC('CAMP.CAMPAIGN.COLUMNS.NETWORK'),
           dataField: 'NetworkPublisher'
         },
         {
-          caption: LC('MAIN.CAMPAIGN.COLUMNS.CONV'),
+          caption: LC('CAMP.CAMPAIGN.COLUMNS.CONV'),
           dataField: 'conv'
-        }, {
-          caption: LC('MAIN.CAMPAIGN.COLUMNS.IMP'),
+        },
+        {
+          caption: LC('CAMP.CAMPAIGN.COLUMNS.IMP'),
           dataField: 'imp'
-        }, {
-          caption: LC('MAIN.CAMPAIGN.COLUMNS.CLICKS'),
+        },
+        {
+          caption: LC('CAMP.CAMPAIGN.COLUMNS.COST'),
+          dataField: 'cost'
+        },
+        {
+          caption: LC('CAMP.CAMPAIGN.COLUMNS.CLICKS'),
           dataField: 'clicks'
         }, {
-          caption: LC('MAIN.CAMPAIGN.COLUMNS.CPC'),
+          caption: LC('CAMP.CAMPAIGN.COLUMNS.CPC'),
           dataField: 'cpc'
         },
         {
-          caption: LC('MAIN.CAMPAIGN.COLUMNS.CPM'),
+          caption: LC('CAMP.CAMPAIGN.COLUMNS.CPM'),
           dataField: 'cpm'
         },
         {
-          caption: LC('MAIN.CAMPAIGN.COLUMNS.CVR'),
+          caption: LC('CAMP.CAMPAIGN.COLUMNS.CVR'),
           dataField: 'cvr'
         },
         {
-          caption: LC('MAIN.CAMPAIGN.COLUMNS.CTR'),
+          caption: LC('CAMP.CAMPAIGN.COLUMNS.CTR'),
           dataField: 'ctr'
         },
         {
@@ -786,7 +783,7 @@
           headerCellTemplate: 'headerCellTemplate',
           cellTemplate: function (container, options) {
             $window.$("<div />").dxButton({
-              text: 'white list',
+              text: 'white',
               height: 30,
               width: 89,
               disabled: true,
@@ -810,7 +807,7 @@
             }).addClass('white-list').appendTo(container);
 
             $window.$("<div />").dxButton({
-              text: 'black list',
+              text: 'black',
               height: 30,
               width: 89,
               disabled: true,
@@ -834,7 +831,7 @@
             }).addClass('black-list').appendTo(container);
 
             $window.$("<div />").dxButton({
-              text: 'suspended',
+              text: 'suspend',
               height: 30,
               width: 95,
               disabled: true,

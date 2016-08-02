@@ -6,12 +6,13 @@
   .service('Auth', Auth);
 
   /** @ngInject */
-  function Auth($http,$cookieStore,$cookies) {
+  function Auth($http, $cookies) {
     var _this = this;
 
     function advertisersList() {
       return $http({
         method: 'GET',
+        headers: { 'Authorization': 'Token ' + $cookies.get('token') },
         url: '/api/v1/advertisers'
       })
       .then(function (res) {
@@ -20,26 +21,16 @@
     }
 
     function authorization(user) {
-      $cookieStore.remove('csrftoken');
-      $cookieStore.remove('sessionid');
       return $http({
         method: 'POST',
-        url: '/api/v1/login',
+        url: '/api/v1/login/',
         data: {email: user.email, password: user.password}
       })
       .then(function (res) {
         return res;
       })
-      .catch(function () {
-        var res = {};
-        res.status = 200;
-        res.data = {
-          id: 19,
-          token: "123123123123",
-          permission: 'adminfull' // userfull
-        };
-        return res;
-        //return err;
+      .catch(function (err) {
+        return err;
       });
     }
 

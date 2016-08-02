@@ -424,7 +424,7 @@
         argumentField: 'day',
         type: 'Line',
         point: {
-          size: 3,
+          size: 6,
           hoverStyle: {
             border: {
               visible: true,
@@ -447,7 +447,7 @@
         bottom: 20
       },
       argumentAxis: {
-        valueMarginsEnabled: false,
+        //valueMarginsEnabled: false,
         discreteAxisDivisionMode: 'crossLabels',
         grid: {
           visible: true
@@ -491,7 +491,7 @@
       tooltip: {
         enabled: true,
         customizeTooltip: function (arg) {
-          console.log(arg);
+          //console.log(arg);
           if (arg.seriesName == 'media' || arg.seriesName == 'CPC') {
             return {
               text: '$'+arg.valueText

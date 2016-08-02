@@ -109,15 +109,11 @@
 
     vm.gridStore = new $window.DevExpress.data.CustomStore({
       totalCount: function () {
-        return vm.multipleTotalCount;
+        return vm.Camp.totalCount;
       },
       load: function (loadOptions) {
         return vm.Camp.campaignDomains(vm.campId, vm.dataStart, vm.dataEnd, loadOptions.skip,
           loadOptions.take, loadOptions.sort, loadOptions.order, loadOptions.filter)
-        .then(function (result) {
-          vm.multipleTotalCount = result.totalCount || 0;
-          return result.data;
-        });
       }
     });
 
@@ -191,7 +187,7 @@
         {name: 'ctr', position: 'left'}
       ],
       argumentAxis: {
-        valueMarginsEnabled: false,
+        //valueMarginsEnabled: false,
         discreteAxisDivisionMode: 'crossLabels',
         grid: {
           visible: true
@@ -211,7 +207,7 @@
       },
       commonSeriesSettings: {
         point: {
-          size: 3,
+          size: 7,
           hoverStyle: {
             border: {
               visible: true,
@@ -581,14 +577,15 @@
         title: 'CPA, $'
       },
       argumentAxis: {
-        valueMarginsEnabled: false,
+        //valueMarginsEnabled: false,
         grid: {
           visible: true
         },
-        label: {
-          visible: false,
-		      format: "shortDate"
-	      }
+        // label: {
+        //   //visible: true,
+		 //      format: "shortDate"
+	     //  },
+        discreteAxisDivisionMode: 'crossLabels'
       },
       tooltip: {
         enabled: true
@@ -610,7 +607,7 @@
         },
         argumentField: 'day',
         point: {
-          size: 2,
+          size: 6,
           hoverStyle: {
             border: {
               visible: true,

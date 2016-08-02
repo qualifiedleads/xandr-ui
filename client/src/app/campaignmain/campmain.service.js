@@ -8,7 +8,7 @@
   /** @ngInject */
   function CampMain($http, $window, $cookies) {
     var _this = this;
-
+    _this.totalCount = 0;
 
     function nameCampaigns(id) {
       return $http({
@@ -112,6 +112,10 @@
           res.data.data[index].cost = +parseFloat(res.data.data[index].cost).toFixed(2);
         }
         return res.data;
+      })
+      .then(function (result) {
+        _this.totalCount = result.totalCount || 0;
+        return result.data;
       })
       .catch(function (err) {
         return err;

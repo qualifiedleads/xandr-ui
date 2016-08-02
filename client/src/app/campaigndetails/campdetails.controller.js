@@ -367,11 +367,11 @@
       legend: {
         horizontalAlignment: "center",
         verticalAlignment: "bottom"
-      },
-      size: {
-        width:370,
-        height:300
       }
+      // size: {
+      //   width:370,
+      //   height:300
+      // }
     };
 
     vm.pieChartConversions = {
@@ -409,11 +409,11 @@
       legend: {
         horizontalAlignment: "center",
         verticalAlignment: "bottom"
-      },
-      size: {
-        width:370,
-        height:300
       }
+      // size: {
+      //   width:370,
+      //   height:300
+      // }
     };
 
 

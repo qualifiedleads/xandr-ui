@@ -465,12 +465,12 @@ For "conversions":
         conv=Sum('total_convs'),
         imp=Sum('imps'),
         clicks=Sum('clicks'),
-    ).annotate(
-        ctr=Case(When(~Q(imp=0), then=F('clicks') / F('imp')), output_field=FloatField()),
-    )
+    )#.annotate(
+#        ctr=Case(When(~Q(imp=0), then=F('clicks') / F('imp')), output_field=FloatField()),
+#    )
     results= list(q)
     views = [{'section':x[field_name],'data':x['imp']} for x in results]
-    conversions = [{'section':x[field_name],'data':x['conv']} for x in results if x['ctr']]
+    conversions = [{'section':x[field_name],'data':x['imp']} for x in results if x['conv']]
     return Response({'all':views,'conversions':conversions})
     return Response({
         'all': [

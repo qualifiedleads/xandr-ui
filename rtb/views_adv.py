@@ -448,7 +448,7 @@ For "all":
     field "section" - selected category (if category="placement"  then field "section" hold placement id),
     field "data" - impressions for this category values.
 For "conversions":
-    field "section" - selected category where CTR<>0 (if category="placement"  then field "section" hold placement id),
+    field "section" - selected category where conversionR<>0 (if category="placement"  then field "section" hold placement id),
     field "data" - impressions for this category values.
     """
     # TODO This dictionary need to fill with names of all grouping sections

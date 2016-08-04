@@ -222,7 +222,8 @@ def get_campaign_placement(campaign_id, from_date, to_date):
         else:
             x['placement'] = '{} ({})'.format(x['placement'],x['placement_id'])
         if x['NetworkPublisher'] is None:
-            x['NetworkPublisher'] = 'Hidden publisher({})'.format(x['placement__publisher_id'])
+            #x['NetworkPublisher'] = 'Hidden publisher({})'.format(x['placement__publisher_id']) # this field not exist
+            x['NetworkPublisher'] = 'Hidden publisher'
         x['state']={
             "whiteList": "true",
             "blackList": "false",

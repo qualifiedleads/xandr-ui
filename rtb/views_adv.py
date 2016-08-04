@@ -10,6 +10,7 @@ import itertools
 import datetime
 from pytz import utc
 import filter_func
+import bisect
 
 
 @api_view()
@@ -279,6 +280,53 @@ Field "placement" must contain name and id of placement. Id in parenthesis
     result = { "data": res, "totalCount": totalCount}
     return Response(result)
 
+def sum_for_data_and_percent(arr, group_others=False):
+    s = sum(x['data'] for x in arr)
+    for x in arr:
+        x['data']=100.0*x['data']/s
+    if group_others:
+        arr.sort(key = lambda x: x['data'])
+        #ind = bisect.bisect((x['data'] for x in arr) , 0.4)
+        l = list(itertools.takewhile(lambda x: x['data']<0.5, arr))
+        ind = len(l)
+        new_arr = [{'section':'Other', 'data':sum(x['data'] for x in arr[:ind])}]
+        new_arr.extend(arr[ind:])
+        return new_arr
+    else:
+        return arr
+
+def get_campaign_detals(campaign_id,from_date, to_date, section):
+    section_to_field={
+        'Placement':"placement"
+    }
+    key = '_'.join(('rtb_campaign_detals', str(campaign_id), from_date.strftime('%Y-%m-%d'),
+                    to_date.strftime('%Y-%m-%d'),section))
+    res = cache.get(key)
+    if res: return res
+    field_name = section_to_field.get(section,'placement')
+    q = NetworkAnalyticsReport_ByPlacement.objects.filter(
+        campaign_id=campaign_id,
+        hour__gte=from_date,
+        hour__lte=to_date,
+    ).values(field_name).annotate(
+        conv=Sum('total_convs'),
+        imp=Sum('imps'),
+        clicks=Sum('clicks'),
+    )#.annotate(
+#        ctr=Case(When(~Q(imp=0), then=F('clicks') / F('imp')), output_field=FloatField()),
+#    )
+    results= list(q)
+    if field_name == 'placement':
+        placement_ids = set (x['placement'] for x in results)
+        placements = Placement.objects.filter(pk__in=placement_ids).exclude(name='Hidden Placement')
+        placement_names = {p.pk:p.name for p in placements}
+        for x in results:
+            x['placement']=placement_names.get(x['placement'], 'Hidden placement ({})'.format(x['placement']))
+    views = sum_for_data_and_percent([{'section':x[field_name],'data':x['imp']} for x in results])
+    conversions = sum_for_data_and_percent([{'section':x[field_name],'data':x['imp']} for x in results if x['conv']])
+    res = {'all':views,'conversions':conversions}
+    cache.set(key, res)
+    return res
 
 @api_view()
 def campaignDetails(request, id):
@@ -306,35 +354,42 @@ For "conversions":
     field "section" - selected category where conversionR<>0 (if category="placement"  then field "section" hold placement id),
     field "data" - impressions for this category values.
     """
-    # TODO This dictionary need to fill with names of all grouping sections
-    section_to_field={
-        'Placement':"placement"
-    }
-    # curl 'http://127.0.0.1:8000/api/v1/campaigns/13412702/details?from_date=1467320400&section=Placement&to_date=1469032344' --1.0 -H 'Host: 127.0.0.1:8000' -H 'User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:47.0) Gecko/20100101 Firefox/47.0' -H 'Accept: application/json, text/plain, */*' -H 'Accept-Language: en-US,en;q=0.5' --compressed -H 'Referer: http://127.0.0.1:8000/client/index.html' -H 'Cookie: csrftoken=tzdunvIQ55Ba7maBdr8WYeEW58S75rCn' -H 'Connection: keep-alive'
     params = parse_get_params(request.GET)
-    field_name = section_to_field.get(params['section'],'placement')
+    res = get_campaign_detals(id, params['from_date'], params['to_date'], params['section'])
+    return Response(res)
+
+def get_cpa_buckets(campaign_id,from_date, to_date):
+    key = '_'.join(('rtb_cpa_buckets', str(campaign_id), from_date.strftime('%Y-%m-%d'),
+                    to_date.strftime('%Y-%m-%d'),))
+    res = cache.get(key)
+    if res: return res
+    field_name = 'placement'
+    #field_name = 'placement__site'
+    # field_name='placement'
     q = NetworkAnalyticsReport_ByPlacement.objects.filter(
         # advertiser_id=advertiser_id,
-        campaign_id=id,
-        hour__gte=params['from_date'],
-        hour__lte=params['to_date'],
+        campaign_id=campaign_id,
+        hour__gte=from_date,
+        hour__lte=to_date,
     ).values(field_name).annotate(
         conv=Sum('total_convs'),
-        imp=Sum('imps'),
-        clicks=Sum('clicks'),
-    )#.annotate(
-#        ctr=Case(When(~Q(imp=0), then=F('clicks') / F('imp')), output_field=FloatField()),
-#    )
-    results= list(q)
-    if field_name == 'placement':
-        placement_ids = set (x['placement'] for x in results)
-        placements = Placement.objects.filter(pk__in=placement_ids)
-        placement_names = {p.pk:p.name for p in placements}
-        for x in results:
-            x['placement']=placement_names.get(x['placement'], 'Hidden placement ({})'.format(x['placement']))
-    views = [{'section':x[field_name],'data':x['imp']} for x in results]
-    conversions = [{'section':x[field_name],'data':x['imp']} for x in results if x['conv']]
-    return Response({'all':views,'conversions':conversions})
+        sum_cost=Sum('cost'),
+        placementid=F('placement_id'),
+        placementname=F('placement__name'),
+        sellerid=F('seller_member_id'),
+        sellername=F('seller_member__name'),
+    ).annotate(
+        cpa=Case(When(~Q(conv=0), then=F('sum_cost') / F('conv')), output_field=FloatField()),
+    ).filter(
+        conv__gt=0
+    )
+    print q.query
+    res = list(q)    
+    for x in res:
+        x.pop('conv', None)
+        x.pop('sum_cost', None)
+    cache.set(key, res)
+    return res
 
 @api_view()
 def bucketsCPA(request,id):
@@ -354,27 +409,6 @@ Get single campaign details for given period
         + Example: 1466667274
     """
     params = parse_get_params(request.GET)
-    field_name = 'placement'
-    #field_name = 'placement__site'
-    # field_name='placement'
-    q = NetworkAnalyticsReport_ByPlacement.objects.filter(
-        # advertiser_id=advertiser_id,
-        campaign_id=id,
-        hour__gte=params['from_date'],
-        hour__lte=params['to_date'],
-    ).values(field_name).annotate(
-        conv=Sum('total_convs'),
-        sum_cost=Sum('cost'),
-        placementid=F('placement_id'),
-        placementname=F('placement__name'),
-        sellerid=F('seller_member_id'),
-        sellername=F('seller_member__name'),
-    ).annotate(
-        cpa=Case(When(~Q(conv=0), then=F('sum_cost') / F('conv')), output_field=FloatField()),
-    )
-    res = list(q)
-    for x in res:
-        x.pop('conv', None)
-        x.pop('sum_cost', None)
+    res = get_cpa_buckets(id, params['from_date'], params['to_date'])
     # convs
     return Response(res)

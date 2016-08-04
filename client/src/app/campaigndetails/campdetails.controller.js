@@ -344,34 +344,43 @@
       bindingOptions: {
         dataSource: 'campdetails.detailsStoreAll'
       },
-      resolveLabelOverlapping: 'shift',
+      tooltip: {
+        enabled: true,
+        format: {
+          type: "millions",
+          percentPrecision: 2
+        },
+        customizeTooltip: function (arg) {
+          console.log(arguments);
+          return {
+            text: arg.argument + " - " + arg.value
+          };
+        }
+      },
+      //resolveLabelOverlapping: 'shift',
       series: [{
         argumentField: 'section',
         valueField: 'data',
-        label: {
-          visible: true,
-          connector: {
-            visible: true,
-            width: 0.5
-          },
-          format: "fixedPoint",
-          customizeText: function (point) {
-            return point.argumentText + ': <spend style="color: black; font-weight: bold"> ' + point.valueText + '</spend>';
-          }
-        },
+        // label: {
+        //   visible: true,
+        //   connector: {
+        //     visible: true,
+        //     width: 0.5
+        //   },
+        //   format: "fixedPoint",
+        //   customizeText: function (point) {
+        //     return point.argumentText + ': <spend style="color: black; font-weight: bold"> ' + point.valueText + '</spend>';
+        //   }
+        // },
         smallValuesGrouping: {
           mode: "smallValueThreshold",
-          threshold: 4.5
+          threshold: 0.4
         }
       }],
       legend: {
         horizontalAlignment: "center",
         verticalAlignment: "bottom"
       }
-      // size: {
-      //   width:370,
-      //   height:300
-      // }
     };
 
     vm.pieChartConversions = {
@@ -387,33 +396,37 @@
       bindingOptions: {
         dataSource: 'campdetails.detailsStoreConversion'
       },
+      tooltip: {
+        enabled: true,
+        customizeTooltip: function (arg) {
+          return {
+            text: arg.argument + " - " + arg.value
+          };
+        }
+      },
       series: [{
         argumentField: "section",
         valueField: "data",
-        label: {
-          visible: true,
-          connector: {
-            visible: true,
-            width: 0.5
-          },
-          format: "fixedPoint",
-          customizeText: function (point) {
-            return point.argumentText + ": " + point.valueText + "%";
-          }
-        },
+        // label: {
+        //   visible: true,
+        //   connector: {
+        //     visible: true,
+        //     width: 0.5
+        //   },
+        //   format: "fixedPoint",
+        //   customizeText: function (point) {
+        //     return point.argumentText + ': <spend style="color: black; font-weight: bold"> ' + point.valueText + '</spend>';
+        //   }
+        // },
         smallValuesGrouping: {
           mode: "smallValueThreshold",
-          threshold: 4.5
+          threshold: 0.4
         }
       }],
       legend: {
         horizontalAlignment: "center",
         verticalAlignment: "bottom"
       }
-      // size: {
-      //   width:370,
-      //   height:300
-      // }
     };
 
 

@@ -9,6 +9,8 @@ class NetworkAnalyticsReport_ByPlacement(models.Model):
     placement = models.ForeignKey("Placement", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     campaign = models.ForeignKey("Campaign", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     seller_member = models.ForeignKey("PlatformMember", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    #creative = models.ForeignKey("Creative", null=True, blank=True,db_constraint=False, on_delete = models.DO_NOTHING)
+    #size = models.TextField(null=True, blank=True)
     imps = models.IntegerField(null=True, blank=True)
     clicks = models.IntegerField(null=True, blank=True)
     cost = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)

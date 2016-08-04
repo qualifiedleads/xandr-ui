@@ -222,7 +222,8 @@ def get_campaign_placement(campaign_id, from_date, to_date):
         else:
             x['placement'] = '{} ({})'.format(x['placement'],x['placement_id'])
         if x['NetworkPublisher'] is None:
-            x['NetworkPublisher'] = 'Hidden publisher({})'.format(x['placement__publisher_id'])
+            #x['NetworkPublisher'] = 'Hidden publisher({})'.format(x['placement__publisher_id']) # this field not exist
+            x['NetworkPublisher'] = 'Hidden publisher'
         x['state']={
             "whiteList": "true",
             "blackList": "false",
@@ -328,7 +329,7 @@ For "conversions":
     if field_name == 'placement':
         placement_ids = set (x['placement'] for x in results)
         placements = Placement.objects.filter(pk__in=placement_ids)
-        placement_names = {p['id']:p['name'] for p in placements}
+        placement_names = {p.pk:p.name for p in placements}
         for x in results:
             x['placement']=placement_names.get(x['placement'], 'Hidden placement ({})'.format(x['placement']))
     views = [{'section':x[field_name],'data':x['imp']} for x in results]

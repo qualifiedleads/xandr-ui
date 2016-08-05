@@ -44,7 +44,7 @@ class PostLoadMix(object):
 
 class TransformMix(object):
     def TransformFields(self, data, metadata={}):
-        if data['media_type']:
+        if 'media_type' in data:
             self.media_type_name = data['media_type']
 
 
@@ -168,6 +168,7 @@ class NetworkCarrierReport_Simple(models.Model, PostLoadMix, TransformMix):
     cost = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
 
     api_report_name='network_carrier_analytics'
+    add_api_columns = ('media_type',)
 
     class Meta:
         db_table = "network_carrier_report_simple"
@@ -211,6 +212,7 @@ class NetworkDeviceReport_Simple(models.Model, PostLoadMix, TransformMix):
     cost = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
 
     api_report_name = 'network_device_analytics'
+    add_api_columns = ('media_type',)
 
     class Meta:
         db_table = "network_device_report_simple"

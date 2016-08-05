@@ -28,7 +28,8 @@ def get_column_list_for_report(ReportClass):
                   for field in ReportClass._meta.fields]
     name_fields = [field.name + '_name' for field in ReportClass._meta.fields if isinstance(field, django_types.ForeignObject)]
     meta_fields = [column['column'] for column in meta[ReportClass.api_report_name]['columns']]
-
+    if hasattr(ReportClass, 'add_api_columns'):
+        all_fields.extend(ReportClass.add_api_columns)
     return list((set(all_fields)|set(name_fields)) & set(meta_fields))
 
 

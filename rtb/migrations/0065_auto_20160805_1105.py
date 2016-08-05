@@ -24,7 +24,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.IntegerField(primary_key=True, serialize=False)),
                 ('name', models.TextField(blank=True, null=True)),
-                ('country_code', models.IntegerField(blank=True, null=True)),
+                ('country_code', models.CharField(blank=True, max_length=2, null=True)),
                 ('country_name', models.TextField(blank=True, null=True)),
                 ('codes', models.TextField(blank=True, null=True)),
             ],

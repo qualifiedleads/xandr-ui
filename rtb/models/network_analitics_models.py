@@ -47,14 +47,13 @@ class TransformMix(object):
         if 'media_type' in data:
             self.media_type_name = data['media_type']
 
-
 class Carrier(models.Model):
     """
     https://wiki.appnexus.com/display/api/Carrier+Service
     """
     id = models.IntegerField(primary_key=True) # The ID of the mobile carrier.
     name = models.TextField(null=True, blank=True) # The name of the mobile carrier.
-    country_code = models.IntegerField(null=True, blank=True) # The ISO code for the country in which the carrier operates.
+    country_code = models.CharField(max_length=2, null=True, blank=True) # The ISO code for the country in which the carrier operates.
     country_name = models.TextField(null=True, blank=True) # The name of the country in which the carrier operates.
     codes = models.TextField(null=True, blank=True) # Third-party representations for the mobile carrier. See Codes below for more details.
 

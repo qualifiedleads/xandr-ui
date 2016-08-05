@@ -148,10 +148,12 @@ def create_object_from_dict(data_row):
         for k in _create_execute_context_['foreign_fields']:
             try:
                 data[k] = int(data.get(k))
+                if not data[k]:
+                    data[k] = None
             except:
                 data[k] = None
         for k in _create_execute_context_['nullable_keys']:
-            val = data.get(k)
+            val = str(data.get(k))
             if val[:2] == '--' or val == 'Undisclosed':
                 data[k] = None
         for k in _create_execute_context_['float_keys']:

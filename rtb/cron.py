@@ -25,7 +25,8 @@ from models import Advertiser, Campaign, SiteDomainPerformanceReport, Profile, L
     AdProfile, ContentCategory, Deal, PlatformMember, User, Publisher, Site, OptimizationZone, MobileAppInstance, \
     YieldManagementProfile, PaymentRule, ConversionPixel, Country, Region, DemographicArea, AdQualityRule, Placement, \
     Creative, Brand, CreativeTemplate, Category, Company, MediaType, MediaSubType, CreativeFormat, CreativeFolder, \
-    Language, NetworkAnalyticsReport_ByPlacement
+    Language, NetworkAnalyticsReport_ByPlacement, NetworkCarrierReport_Simple, NetworkDeviceReport_Simple
+
 from pytz import utc
 from utils import get_all_classes_in_models, get_current_time, clean_old_files
 
@@ -611,6 +612,8 @@ def dayly_task(day=None, load_objects_from_services=True, output=None):
         #load_report(token, day, NetworkAnalyticsReport)
         load_report(token, day, NetworkAnalyticsReport_ByPlacement)
         load_report(token, day, GeoAnaliticsReport)
+        load_report(token, day, NetworkCarrierReport_Simple)
+        load_report(token, day, NetworkDeviceReport_Simple)
         load_reports_for_all_advertisers(
             token, day, SiteDomainPerformanceReport)
     except Exception as e:

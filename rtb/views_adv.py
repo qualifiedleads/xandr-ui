@@ -284,8 +284,8 @@ def sum_for_data_and_percent(arr, group_others=False):
     s = sum(x['data'] for x in arr)
     for x in arr:
         x['data']=100.0*x['data']/s
+    arr.sort(key=lambda x: x['data'])
     if group_others:
-        arr.sort(key = lambda x: x['data'])
         #ind = bisect.bisect((x['data'] for x in arr) , 0.4)
         l = list(itertools.takewhile(lambda x: x['data']<0.5, arr))
         ind = len(l)

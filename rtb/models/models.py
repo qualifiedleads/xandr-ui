@@ -3570,6 +3570,8 @@ class DeviceMake(models.Model):
 
     # codes = array - see model DeviceMakeCodes below
 
+    api_endpoint = 'device-make'
+
     class Meta:
         db_table = "device_make"
 
@@ -3611,6 +3613,9 @@ class DeviceModel(models.Model):
 
     # codes = array - see model DeviceMakeCodes below
 
+    api_endpoint = 'device-model'
+
+
     class Meta:
         db_table = "device_model"
 
@@ -3630,7 +3635,9 @@ class Browser(models.Model):
     # https://wiki.appnexus.com/display/api/Browser+Service
     id = models.IntegerField(primary_key=True)  # No AutoIncrement
     name = models.TextField(null=True, blank=True, db_index=True)
-    last_modified = models.DateTimeField(default=now_tz) 
+    last_modified = models.DateTimeField(default=now_tz)
+
+    api_endpoint='browser'
 
     class Meta:
         db_table = "browser"

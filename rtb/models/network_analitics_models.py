@@ -25,6 +25,15 @@ def load_foreign_objects(cls, field_name, ObjectClass, from_date, to_date):
     if saved_ids != ids_missing:
         print 'Some {}s not saved'.format(field_name)
 
+class PostLoadMix(object):
+    @classmethod
+    def post_load(self, day):
+        from_date = datetime.datetime(day.year, day.month, day.day, tzinfo=utc)
+        to_date = from_date
+        if hasattr(self,'hour'):
+            to_date += datetime.timedelta(hours=23)
+        load_foreign_objects(self, 'publisher', Publisher, from_date, to_date)
+
 
 class Carrier(models.Model):
     """
@@ -48,9 +57,13 @@ class NetworkAnalyticsReport_ByPlacement(models.Model):
     publisher = models.ForeignKey("Publisher", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     publisher_name = models.TextField(null=True, blank=True)
     placement = models.ForeignKey("Placement", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    placement_name = models.TextField(null=True, blank=True)
     campaign = models.ForeignKey("Campaign", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    campaign_name = models.TextField(null=True, blank=True)
     seller_member = models.ForeignKey("PlatformMember", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    seller_member_name = models.TextField(null=True, blank=True)
     creative = models.ForeignKey("Creative", null=True, blank=True,db_constraint=False, on_delete = models.DO_NOTHING)
+    creative_name = models.TextField(null=True, blank=True)
     size = models.TextField(null=True, blank=True)
     imps = models.IntegerField(null=True, blank=True)
     clicks = models.IntegerField(null=True, blank=True)
@@ -109,12 +122,13 @@ class NetworkAnalyticsReport_ByPlacement(models.Model):
         db_table = "network_analytics_report_by_placement"
         index_together = ["campaign", "hour"]
 
-class NetworkCarrierReport_Simple(models.Model):
+class NetworkCarrierReport_Simple(models.Model, PostLoadMix):
     # https://wiki.appnexus.com/display/api/Network+Carrier+Analytics
     fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
     # month = time
     day = models.DateTimeField(null=True, blank=True, db_index=True)
     carrier_id = models.ForeignKey("Carrier", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    carrier_name = models.TextField(null=True, blank=True)
     device_type = models.TextField(
         choices=DEVICE_TYPE_INREPORT_CHOICES,
         null=True, blank=True)
@@ -122,14 +136,19 @@ class NetworkCarrierReport_Simple(models.Model):
         choices=CONNECTION_TYPE_CHOICES,
         null=True, blank=True)
     seller_member = models.ForeignKey("PlatformMember", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    seller_member_name = models.TextField(null=True, blank=True)
     seller_type = models.TextField(
         choices=SELLER_TYPE_NetworkDeviceReport_CHOICES,
         null=True, blank=True)
     campaign = models.ForeignKey("Campaign", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    campaign_name = models.TextField(null=True, blank=True)
     media_type = models.ForeignKey("MediaType", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    media_type_name = models.TextField(null=True, blank=True) # Need special loading
     size = models.TextField(null=True, blank=True)
     geo_country = models.ForeignKey("Country", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    geo_country_name = models.TextField(null=True, blank=True)
     publisher = models.ForeignKey("Publisher", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    publisher_name = models.TextField(null=True, blank=True)
     imps = models.IntegerField(null=True, blank=True)
     clicks = models.IntegerField(null=True, blank=True)
     total_convs = models.IntegerField(null=True, blank=True)
@@ -141,29 +160,38 @@ class NetworkCarrierReport_Simple(models.Model):
         db_table = "network_carrier_report_simple"
         app_label = 'rtb'
 
-class NetworkDeviceReport_Simple(models.Model):
+class NetworkDeviceReport_Simple(models.Model, PostLoadMix):
     # https://wiki.appnexus.com/display/api/Network+Device+Analytics
     fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
     # month = time
     day = models.DateTimeField(null=True, blank=True, db_index=True)
     device_make = models.ForeignKey("DeviceMake", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    device_make_name = models.TextField(null=True, blank=True)
     device_model = models.ForeignKey("DeviceModel", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    device_model_name = models.TextField(null=True, blank=True)
     device_type = models.TextField(
         choices=DEVICE_TYPE_INREPORT_CHOICES,
         null=True, blank=True)
     connection_type = models.TextField(
         choices=CONNECTION_TYPE_CHOICES,
         null=True, blank=True)
-    operating_system = models.ForeignKey("OperatingSystem", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    operating_system = models.ForeignKey("OperatingSystemExtended", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    operating_system_name = models.TextField(null=True, blank=True)
     browser = models.ForeignKey("Browser", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    browser_name = models.TextField(null=True, blank=True)
     seller_member = models.ForeignKey("PlatformMember", related_name='+', null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    seller_member_name = models.TextField(null=True, blank=True)
     seller_type = models.TextField(
         choices=SELLER_TYPE_NetworkDeviceReport_CHOICES,
         null=True, blank=True)
     campaign = models.ForeignKey("Campaign", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    campaign_name = models.TextField(null=True, blank=True)
     media_type = models.ForeignKey("MediaType", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    media_type_name = models.TextField(null=True, blank=True) # Need special loading
     geo_country = models.ForeignKey("Country", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    geo_country_name = models.TextField(null=True, blank=True)
     publisher = models.ForeignKey("Publisher", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    publisher_name = models.TextField(null=True, blank=True)
     imps = models.IntegerField(null=True, blank=True)
     clicks = models.IntegerField(null=True, blank=True)
     total_convs = models.IntegerField(null=True, blank=True)

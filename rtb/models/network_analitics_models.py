@@ -154,8 +154,8 @@ class NetworkCarrierReport_Simple(models.Model, PostLoadMix, TransformMix):
         null=True, blank=True)
     campaign = models.ForeignKey("Campaign", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     campaign_name = models.TextField(null=True, blank=True)
-    media_type = models.ForeignKey("MediaType", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
-    media_type_name = models.TextField(null=True, blank=True) # Need special loading
+    media_type_id = models.ForeignKey("MediaType", null=True, blank=True, db_column= 'media_type_id', db_constraint=False, on_delete = models.DO_NOTHING)
+    media_type = models.TextField(null=True, blank=True) # Need special loading
     size = models.TextField(null=True, blank=True)
     geo_country = models.ForeignKey("Country", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     geo_country_name = models.TextField(null=True, blank=True)
@@ -199,8 +199,8 @@ class NetworkDeviceReport_Simple(models.Model, PostLoadMix, TransformMix):
         null=True, blank=True)
     campaign = models.ForeignKey("Campaign", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     campaign_name = models.TextField(null=True, blank=True)
-    media_type = models.ForeignKey("MediaType", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
-    media_type_name = models.TextField(null=True, blank=True) # Need special loading
+    media_type_id = models.ForeignKey("MediaType", null=True, blank=True, db_column= 'media_type_id', db_constraint=False, on_delete = models.DO_NOTHING)
+    media_type = models.TextField(null=True, blank=True) # Need special loading
     geo_country = models.ForeignKey("Country", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     geo_country_name = models.TextField(null=True, blank=True)
     publisher = models.ForeignKey("Publisher", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)

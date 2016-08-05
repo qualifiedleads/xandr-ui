@@ -29,6 +29,13 @@
         params: {from_date: from, to_date: to, section: section}
       })
         .then(function (res) {
+
+          for (var index in res.data.all) {
+            res.data.all[index].data = +parseFloat(res.data.all[index].data).toFixed(4);
+          }
+          for (var index in res.data.conversions) {
+            res.data.conversions[index].data = +parseFloat(res.data.conversions[index].data).toFixed(4);
+          }
           return res.data;
         });
     }

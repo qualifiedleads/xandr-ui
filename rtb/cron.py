@@ -178,7 +178,7 @@ def create_object_from_dict(data_row):
 
 
 def get_all_class_fields(modelClass):
-    return [field.db_column for field in modelClass._meta.fields]
+    return [field.attname for field in modelClass._meta.fields]
 
 
 def test_foreign_keys(objects_to_save, rows):
@@ -255,7 +255,7 @@ def analize_csv(filename, modelClass, metadata={}):
         context['float_keys'] = [
             field.name for field in modelClass._meta.fields if isinstance(
                 field, (django_types.FloatField, django_types.DecimalField))]
-        foreign_fields = [field.db_column for field in modelClass._meta.fields
+        foreign_fields = [field.attname for field in modelClass._meta.fields
             if isinstance(field, django_types.ForeignObject)]
         context['foreign_fields'] = filter(
             lambda x: x in csv_fields, foreign_fields)

@@ -20,8 +20,8 @@ def load_foreign_objects(cls, field_name, ObjectClass, from_date, to_date):
             filter_params['day__gte']=from_date
             filter_params['day__lte']=to_date
 
-        ids_missing = cls.objects.filter(**filter_params)\
-            .values_list(field_name+'_id', flat=True)
+        ids_missing = cls.objects.filter(**filter_params).exclude(**{ field_name+'_id':None})\
+            .values_list(field_name+'_id', flat=True).distinct()
         ids_missing = set(ids_missing)
         saved_ids = nexus_get_objects_by_id(None, ObjectClass, ids_missing)
         if saved_ids != ids_missing:

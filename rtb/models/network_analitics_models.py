@@ -26,6 +26,7 @@ def load_foreign_objects(cls, field_name, ObjectClass, from_date, to_date):
         saved_ids = nexus_get_objects_by_id(None, ObjectClass, ids_missing)
         if saved_ids != ids_missing:
             print 'Some {}s not saved'.format(field_name)
+        return saved_ids
     except Exception as e:
         print 'Error by saving foreign objects for field {}. {}'.format(field_name, e.message)
 
@@ -88,43 +89,19 @@ class NetworkAnalyticsReport_ByPlacement(models.Model):
     def post_load(self, day):
         from_date = datetime.datetime(day.year, day.month, day.day, tzinfo=utc)
         to_date = datetime.datetime(day.year, day.month, day.day, 23, tzinfo=utc)
-        campaigns_mising = self.objects.filter(
-            hour__gte=from_date,
-            hour__lte=to_date,
-            campaign__name=None
-        ).values_list('campaign_id', flat=True)
-        campaigns_mising = set(campaigns_mising)
-        saved_ids = nexus_get_objects_by_id(None,Campaign,campaigns_mising)
-        if saved_ids != campaigns_mising:
-            print 'Some campaigns not saved'
-        sellers_mising = self.objects.filter(
-            hour__gte=from_date,
-            hour__lte=to_date,
-            seller_member__name=None
-        ).values_list('seller_member_id', flat=True)
-        sellers_mising = set(sellers_mising)
-        saved_ids = nexus_get_objects_by_id(None,PlatformMember,sellers_mising)
-        if saved_ids != sellers_mising:
-            print 'Some sellers not saved'
-
+        load_foreign_objects(self, 'campaign', Campaign, from_date, to_date)
+        load_foreign_objects(self, 'seller_member', PlatformMember, from_date, to_date)
         load_foreign_objects(self, 'publisher', Publisher, from_date, to_date)
 
         with transaction.atomic():
-            placements_mising = self.objects.filter(
-                hour__gte=from_date,
-                hour__lte=to_date,
-                placement__name=None
-            ).values_list('placement_id', flat=True)
-            placements_mising = set(placements_mising)
-            # load all missing placements
-            saved_ids = nexus_get_objects_by_id(None,Placement,placements_mising)
-            if saved_ids != placements_mising:
-                print 'Some placements not saved'
+            placements_mising=load_foreign_objects(self, 'placement', Placement, from_date, to_date)
             sites_missing = Placement.objects.filter(
                 pk__in=placements_mising,
                 site__name=None
             ).values_list('site_id', flat=True)
             sites_missing = set(sites_missing)
+            sites_missing.discard(None)
+            sites_missing.discard(0)
             saved_ids = nexus_get_objects_by_id(None,Site,sites_missing)
             if saved_ids != sites_missing:
                 print 'Some sites not saved'

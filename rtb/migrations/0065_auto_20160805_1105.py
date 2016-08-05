@@ -53,7 +53,7 @@ class Migration(migrations.Migration):
                 ('total_convs', models.IntegerField(blank=True, null=True)),
                 ('cost', models.DecimalField(blank=True, decimal_places=10, max_digits=35, null=True)),
                 ('campaign', models.ForeignKey(blank=True, db_constraint=False, null=True, on_delete=django.db.models.deletion.DO_NOTHING, to='rtb.Campaign')),
-                ('carrier_id', models.ForeignKey(blank=True, db_constraint=False, null=True, on_delete=django.db.models.deletion.DO_NOTHING, to='rtb.Carrier')),
+                ('carrier', models.ForeignKey(blank=True, db_constraint=False, null=True, on_delete=django.db.models.deletion.DO_NOTHING, to='rtb.Carrier')),
                 ('geo_country', models.ForeignKey(blank=True, db_constraint=False, null=True, on_delete=django.db.models.deletion.DO_NOTHING, to='rtb.Country')),
                 ('media_type', models.ForeignKey(blank=True, db_constraint=False, null=True, on_delete=django.db.models.deletion.DO_NOTHING, to='rtb.MediaType')),
                 ('publisher', models.ForeignKey(blank=True, db_constraint=False, null=True, on_delete=django.db.models.deletion.DO_NOTHING, to='rtb.Publisher')),

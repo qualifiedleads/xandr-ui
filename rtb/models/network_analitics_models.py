@@ -39,7 +39,7 @@ class PostLoadMix(object):
         foreign_keys = [field  for field in self._meta.fields
                         if isinstance(field, models.ForeignObject)]
         for f in foreign_keys:
-            load_foreign_objects(self, f.name, f.remote_field, from_date, to_date)
+            load_foreign_objects(self, f.name, f.related_model, from_date, to_date)
 
 
 class TransformMix(object):
@@ -140,7 +140,7 @@ class NetworkCarrierReport_Simple(models.Model, PostLoadMix, TransformMix):
     fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
     # month = time
     day = models.DateTimeField(null=True, blank=True, db_index=True)
-    carrier_id = models.ForeignKey("Carrier", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    carrier = models.ForeignKey("Carrier", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     carrier_name = models.TextField(null=True, blank=True)
     device_type = models.TextField(
         choices=DEVICE_TYPE_INREPORT_CHOICES,

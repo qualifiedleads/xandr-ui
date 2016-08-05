@@ -609,11 +609,11 @@ def dayly_task(day=None, load_objects_from_services=True, output=None):
         token = get_auth_token()
         if load_objects_from_services:
             load_depending_data(token)
+        load_report(token, day, NetworkCarrierReport_Simple)
+        load_report(token, day, NetworkDeviceReport_Simple)
         #load_report(token, day, NetworkAnalyticsReport)
         load_report(token, day, NetworkAnalyticsReport_ByPlacement)
         load_report(token, day, GeoAnaliticsReport)
-        load_report(token, day, NetworkCarrierReport_Simple)
-        load_report(token, day, NetworkDeviceReport_Simple)
         load_reports_for_all_advertisers(
             token, day, SiteDomainPerformanceReport)
     except Exception as e:

@@ -10,20 +10,24 @@ from .models import Placement, Campaign, Site, PlatformMember, Publisher, \
 
 
 def load_foreign_objects(cls, field_name, ObjectClass, from_date, to_date):
-    filter_params = { field_name+'__name':None}
-    if hasattr(cls, 'hour'):
-        filter_params['hour__gte']=from_date
-        filter_params['hour__lte']=to_date
-    else:
-        filter_params['day__gte']=from_date
-        filter_params['day__lte']=to_date
+    try:
+        print 'Try to save {}, needed for field {} in class {}'.format(ObjectClass, field_name, cls.__name__)
+        filter_params = { field_name+'__name':None}
+        if hasattr(cls, 'hour'):
+            filter_params['hour__gte']=from_date
+            filter_params['hour__lte']=to_date
+        else:
+            filter_params['day__gte']=from_date
+            filter_params['day__lte']=to_date
 
-    ids_missing = cls.objects.filter(**filter_params)\
-        .values_list(field_name+'_id', flat=True)
-    ids_missing = set(ids_missing)
-    saved_ids = nexus_get_objects_by_id(None, ObjectClass, ids_missing)
-    if saved_ids != ids_missing:
-        print 'Some {}s not saved'.format(field_name)
+        ids_missing = cls.objects.filter(**filter_params)\
+            .values_list(field_name+'_id', flat=True)
+        ids_missing = set(ids_missing)
+        saved_ids = nexus_get_objects_by_id(None, ObjectClass, ids_missing)
+        if saved_ids != ids_missing:
+            print 'Some {}s not saved'.format(field_name)
+    except Exception as e:
+        print 'Error by saving foreign objects for field {}. {}'.format(field_name, e.message)
 
 class PostLoadMix(object):
     @classmethod
@@ -32,7 +36,16 @@ class PostLoadMix(object):
         to_date = from_date
         if hasattr(self,'hour'):
             to_date += datetime.timedelta(hours=23)
-        load_foreign_objects(self, 'publisher', Publisher, from_date, to_date)
+        foreign_keys = [field  for field in self._meta.fields
+                        if isinstance(field, models.ForeignObject)]
+        for f in foreign_keys:
+            load_foreign_objects(self, f.name, f.remote_field, from_date, to_date)
+
+
+class TransformMix(object):
+    def TransformFields(self, data, metadata={}):
+        if data['media_type']:
+            self.media_type_name = data['media_type']
 
 
 class Carrier(models.Model):
@@ -122,7 +135,7 @@ class NetworkAnalyticsReport_ByPlacement(models.Model):
         db_table = "network_analytics_report_by_placement"
         index_together = ["campaign", "hour"]
 
-class NetworkCarrierReport_Simple(models.Model, PostLoadMix):
+class NetworkCarrierReport_Simple(models.Model, PostLoadMix, TransformMix):
     # https://wiki.appnexus.com/display/api/Network+Carrier+Analytics
     fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
     # month = time
@@ -160,7 +173,7 @@ class NetworkCarrierReport_Simple(models.Model, PostLoadMix):
         db_table = "network_carrier_report_simple"
         app_label = 'rtb'
 
-class NetworkDeviceReport_Simple(models.Model, PostLoadMix):
+class NetworkDeviceReport_Simple(models.Model, PostLoadMix, TransformMix):
     # https://wiki.appnexus.com/display/api/Network+Device+Analytics
     fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
     # month = time

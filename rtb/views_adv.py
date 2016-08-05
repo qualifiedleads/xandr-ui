@@ -204,7 +204,7 @@ def get_campaign_placement(campaign_id, from_date, to_date):
         hour__lte=to_date,
     ).values('placement_id').annotate(
         placement = F('placement__name'),
-        NetworkPublisher = F('placement__publisher__name'),
+        NetworkPublisher = F('publisher_name'),
         placementState = F('placement__state'),
         cost=Sum('cost'),
         conv=Sum('total_convs'),
@@ -222,9 +222,6 @@ def get_campaign_placement(campaign_id, from_date, to_date):
             x['placement'] = 'Hidden ({})'.format(x['placement_id'])
         else:
             x['placement'] = '{} ({})'.format(x['placement'],x['placement_id'])
-        if x['NetworkPublisher'] is None:
-            #x['NetworkPublisher'] = 'Hidden publisher({})'.format(x['placement__publisher_id']) # this field not exist
-            x['NetworkPublisher'] = 'Hidden publisher'
         x['state']={
             "whiteList": "true",
             "blackList": "false",

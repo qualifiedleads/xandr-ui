@@ -13,16 +13,18 @@ def load_foreign_objects(cls, field_name, ObjectClass, from_date, to_date):
     try:
         print 'Try to save {}, needed for field {} in class {}'.format(ObjectClass, field_name, cls.__name__)
         filter_params = { field_name+'__name':None}
-        if hasattr(cls, 'hour'):
+        try:
+            cls._meta.get_field('hour')
             filter_params['hour__gte']=from_date
             filter_params['hour__lte']=to_date
-        else:
+        except:
             filter_params['day__gte']=from_date
             filter_params['day__lte']=to_date
 
-        ids_missing = cls.objects.filter(**filter_params).exclude(**{ field_name+'_id':None})\
+        # .exclude(**{ field_name+'_id':None})\
+        ids_missing = cls.objects.filter(**filter_params)\
             .values_list(field_name+'_id', flat=True).distinct()
-        ids_missing = set(ids_missing)
+        ids_missing = set(ids_missing) - set([None, 0])
         saved_ids = nexus_get_objects_by_id(None, ObjectClass, ids_missing)
         if saved_ids != ids_missing:
             print 'Some {}s not saved'.format(field_name)

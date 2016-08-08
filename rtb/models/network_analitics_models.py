@@ -195,16 +195,3 @@ class NetworkDeviceReport_Simple(models.Model, PostLoadMix, TransformMix):
     class Meta:
         db_table = "network_device_report_simple"
         app_label = 'rtb'
-
-docs="""
-<input ng-click="campdetails.selectInfoBtn($event, campdetails.ctrlBbtns.placement.header)" name="Placement"
-value="Placement" class="nav-btn nav-btn-active" type="button"> <input ng-click="campdetails.selectInfoBtn($event, campdetails.ctrlBbtns.creativeId.header)" name="creative_id"
-value="creative_id" class="nav-btn" type="button"> <input ng-click="campdetails.selectInfoBtn($event, campdetails.ctrlBbtns.creativeSize.header)" name="creative_size"
-value="creative_size" class="nav-btn" type="button"> <input ng-click="campdetails.selectInfoBtn($event, campdetails.ctrlBbtns.viewability.header)" name="viewability"
-value="viewability" class="nav-btn" type="button"> <input ng-click="campdetails.selectInfoBtn($event, campdetails.ctrlBbtns.os.header)" name="OS"
-SiteDomainPerformanceReport value="OS" class="nav-btn" type="button"> <input ng-click="campdetails.selectInfoBtn($event, campdetails.ctrlBbtns.carrier.header)" name="carrier"
-NetworkCarrierReport value="carrier" class="nav-btn" type="button"> <input ng-click="campdetails.selectInfoBtn($event, campdetails.ctrlBbtns.networkSeller.header)" name="network(seller)"
-value="network(seller)" class="nav-btn" type="button"> <input ng-click="campdetails.selectInfoBtn($event, campdetails.ctrlBbtns.connectionType.header)" name="connection_type"
-NetworkDeviceReport value="connection_type" class="nav-btn" type="button"> <input ng-click="campdetails.selectInfoBtn($event, campdetails.ctrlBbtns.device.header)" name="device"
-NetworkDeviceReport value="device" class="nav-btn" type="button">
-"""

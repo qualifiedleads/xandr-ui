@@ -588,7 +588,24 @@
         discreteAxisDivisionMode: 'crossLabels'
       },
       tooltip: {
-        enabled: true
+        enabled: true,
+        customizeTooltip: function (arg) {
+          console.log(arg);
+          if (arg.seriesName === "Series 2") {
+            return {
+              text: "Average: $" + arg.originalValue
+            }; 
+          }
+          if (arg.seriesName === "Series 1") {
+            return {
+              text: "Open: $" + arg.openValue + "<br/>" +
+              "Close: $" + arg.closeValue + "<br/>" +
+              "High: $" + arg.highValue + "<br/>" +
+              "Low: $" + arg.lowValue + "<br/>"
+            };
+          }
+        }
+
       },
       legend: {
         visible: false

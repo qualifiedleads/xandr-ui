@@ -279,10 +279,10 @@ Field "placement" must contain name and id of placement. Id in parenthesis
     return Response(result)
 
 def sum_for_data_and_percent(arr, group_others=False):
+    arr.sort(key=lambda x: x['data'])
     s = sum(x['data'] for x in arr)
     for x in arr:
-        x['data']=100.0*x['data']/s
-    arr.sort(key=lambda x: x['data'])
+        x['data'] = 100.0 * x['data'] / s
     if group_others:
         #ind = bisect.bisect((x['data'] for x in arr) , 0.4)
         l = list(itertools.takewhile(lambda x: x['data']<0.5, arr))
@@ -299,7 +299,8 @@ section_to_db = {
     'creative_id':(NetworkAnalyticsReport_ByPlacement, "creative"),
     'creative_size':(NetworkAnalyticsReport_ByPlacement, "size"),
     #'viewability'
-    'OS':(SiteDomainPerformanceReport,"operating_system"),
+    #'OS':(SiteDomainPerformanceReport,"operating_system"),
+    'OS':(NetworkDeviceReport_Simple,"operating_system"),
     'carrier': (NetworkCarrierReport_Simple, "carrier"),
     'network(seller)': (NetworkAnalyticsReport_ByPlacement, "seller_member"),
     'connection_type': (NetworkDeviceReport_Simple, "connection_type"),
@@ -325,19 +326,27 @@ def get_campaign_detals(campaign_id,from_date, to_date, section):
     try:
         table_name._meta.get_field(name_for_field)
         group_fields.append(name_for_field)
+        _name=name_for_field
     except:
-        pass
-    q = table_name.objects.filter(
-        campaign_id=campaign_id,
-        hour__gte=from_date,
-        hour__lte=to_date,
-    ).values(*group_fields).annotate(**group_adv_fields)
+        _name=field_name
+    filter_params={'campaign_id':campaign_id}
+    try:
+        table_name._meta.get_field('hour')
+        filter_params['hour__gte']=from_date
+        filter_params['hour__lte'] = to_date
+    except:
+        filter_params['day__gte'] = from_date
+        filter_params['day__lte'] = to_date
+    q = table_name.objects.filter(**filter_params).values(*group_fields).annotate(**group_adv_fields)
     #.annotate(
 #        ctr=Case(When(~Q(imp=0), then=F('clicks') / F('imp')), output_field=FloatField()),
 #    )
     results= list(q)
-    views = sum_for_data_and_percent([{'section':x[field_name],'data':x['imp']} for x in results])
-    conversions = sum_for_data_and_percent([{'section':x[field_name],'data':x['imp']} for x in results if x['conv']])
+    for x in results:
+        if x[_name] is None or (hasattr(x[_name],'startswith') and x[_name].startswith('Hidden')):
+            x[_name]='Hidden({})'.format(x[field_name])
+    views = sum_for_data_and_percent([{'section':x[_name],'data':x['imp']} for x in results])
+    conversions = sum_for_data_and_percent([{'section':x[_name],'data':x['imp']} for x in results if x['conv']])
     res = {'all':views,'conversions':conversions}
     cache.set(key, res)
     return res
@@ -347,7 +356,7 @@ def campaignDetails(request, id):
     """
 Get single campaign details for given period 
 
-## Url format: /api/v1/campaigns/:id/details?from_date={from_date}&to_date={to_date}&category={category}
+## Url format: /api/v1/campaigns/:id/details?from_date={from_date}&to_date={to_date}&section={section}
 
 + Parameters
 
@@ -358,14 +367,14 @@ Get single campaign details for given period
     + to_date (date) - Date to select statistics to
         + Format: Unixtime
         + Example: 1466667274
-    + category (string) - category for selecting imps
+    + section (string) - category for selecting imps
         + Format: string
         + Example: placement
 For "all":
     field "section" - selected category (if category="placement"  then field "section" hold placement id),
     field "data" - impressions for this category values.
 For "conversions":
-    field "section" - selected category where conversionR<>0 (if category="placement"  then field "section" hold placement id),
+    field "section" - selected category where conversion<>0 (if category="placement"  then field "section" hold placement id),
     field "data" - impressions for this category values.
     """
     params = parse_get_params(request.GET)
@@ -423,6 +432,6 @@ Get single campaign details for given period
         + Example: 1466667274
     """
     params = parse_get_params(request.GET)
-    res = get_cpa_buckets(id, params['from_date'], params['to_date'], params.get('section','placement'))
+    res = get_cpa_buckets(id, params['from_date'], params['to_date'], params['section'])
     # convs
     return Response(res)

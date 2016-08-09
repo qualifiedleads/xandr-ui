@@ -23,7 +23,7 @@
         return 0;
       },
       load: function () {
-        return vm.Camp.detailsStoreAll(vm.campId, vm.dataStart, vm.dataEnd,$localStorage.selectedSection)
+        return vm.Camp.detailsStoreAll(vm.campId, vm.dataStart, vm.dataEnd, $localStorage.selectedSection)
           .then(function (result) {
             return result.all;
           });
@@ -35,7 +35,7 @@
         return 0;
       },
       load: function () {
-        return vm.Camp.detailsStoreAll(vm.campId, vm.dataStart, vm.dataEnd,vm.by)
+        return vm.Camp.detailsStoreAll(vm.campId, vm.dataStart, vm.dataEnd, $localStorage.selectedSection)
           .then(function (result) {
             return result.conversions;
           });
@@ -357,30 +357,14 @@
           };
         }
       },
-      //resolveLabelOverlapping: 'shift',
       series: [{
         argumentField: 'section',
         valueField: 'data',
-        // label: {
-        //   visible: true,
-        //   connector: {
-        //     visible: true,
-        //     width: 0.5
-        //   },
-        //   format: "fixedPoint",
-        //   customizeText: function (point) {
-        //     return point.argumentText + ': <spend style="color: black; font-weight: bold"> ' + point.valueText + '</spend>';
-        //   }
-        // },
         smallValuesGrouping: {
           mode: "smallValueThreshold",
           threshold: 0.4
         }
-      }],
-      legend: {
-        horizontalAlignment: "center",
-        verticalAlignment: "bottom"
-      }
+      }]
     };
 
     vm.pieChartConversions = {
@@ -407,26 +391,11 @@
       series: [{
         argumentField: "section",
         valueField: "data",
-        // label: {
-        //   visible: true,
-        //   connector: {
-        //     visible: true,
-        //     width: 0.5
-        //   },
-        //   format: "fixedPoint",
-        //   customizeText: function (point) {
-        //     return point.argumentText + ': <spend style="color: black; font-weight: bold"> ' + point.valueText + '</spend>';
-        //   }
-        // },
         smallValuesGrouping: {
           mode: "smallValueThreshold",
           threshold: 0.4
         }
-      }],
-      legend: {
-        horizontalAlignment: "center",
-        verticalAlignment: "bottom"
-      }
+      }]
     };
 
 

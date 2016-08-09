@@ -2,7 +2,8 @@ from rest_framework.decorators import api_view, parser_classes
 from rest_framework.response import Response
 from django.http import JsonResponse
 from utils import parse_get_params, make_sum
-from models import SiteDomainPerformanceReport, Campaign, GeoAnaliticsReport, NetworkAnalyticsReport_ByPlacement, Placement
+from models import SiteDomainPerformanceReport, Campaign, GeoAnaliticsReport, NetworkAnalyticsReport_ByPlacement, \
+    Placement, NetworkCarrierReport_Simple,NetworkDeviceReport_Simple
 from django.db.models import Sum, Min, Max, Avg, Value, When, Case, F, Q, Func, FloatField
 from django.db.models.functions import Coalesce
 from django.core.cache import cache
@@ -204,7 +205,7 @@ def get_campaign_placement(campaign_id, from_date, to_date):
         hour__lte=to_date,
     ).values('placement_id').annotate(
         placement = F('placement__name'),
-        NetworkPublisher = F('placement__publisher__name'),
+        NetworkPublisher = F('publisher_name'),
         placementState = F('placement__state'),
         cost=Sum('cost'),
         conv=Sum('total_convs'),
@@ -222,9 +223,6 @@ def get_campaign_placement(campaign_id, from_date, to_date):
             x['placement'] = 'Hidden ({})'.format(x['placement_id'])
         else:
             x['placement'] = '{} ({})'.format(x['placement'],x['placement_id'])
-        if x['NetworkPublisher'] is None:
-            #x['NetworkPublisher'] = 'Hidden publisher({})'.format(x['placement__publisher_id']) # this field not exist
-            x['NetworkPublisher'] = 'Hidden publisher'
         x['state']={
             "whiteList": "true",
             "blackList": "false",
@@ -281,11 +279,11 @@ Field "placement" must contain name and id of placement. Id in parenthesis
     return Response(result)
 
 def sum_for_data_and_percent(arr, group_others=False):
+    arr.sort(key=lambda x: x['data'])
     s = sum(x['data'] for x in arr)
     for x in arr:
-        x['data']=100.0*x['data']/s
+        x['data'] = 100.0 * x['data'] / s
     if group_others:
-        arr.sort(key = lambda x: x['data'])
         #ind = bisect.bisect((x['data'] for x in arr) , 0.4)
         l = list(itertools.takewhile(lambda x: x['data']<0.5, arr))
         ind = len(l)
@@ -295,35 +293,60 @@ def sum_for_data_and_percent(arr, group_others=False):
     else:
         return arr
 
+
+section_to_db = {
+    'Placement': (NetworkAnalyticsReport_ByPlacement, "placement"),
+    'creative_id':(NetworkAnalyticsReport_ByPlacement, "creative"),
+    'creative_size':(NetworkAnalyticsReport_ByPlacement, "size"),
+    #'viewability'
+    #'OS':(SiteDomainPerformanceReport,"operating_system"),
+    'OS':(NetworkDeviceReport_Simple,"operating_system"),
+    'carrier': (NetworkCarrierReport_Simple, "carrier"),
+    'network(seller)': (NetworkAnalyticsReport_ByPlacement, "seller_member"),
+    'connection_type': (NetworkDeviceReport_Simple, "connection_type"),
+    'device': (NetworkDeviceReport_Simple, "device_model"),
+}
+
+
 def get_campaign_detals(campaign_id,from_date, to_date, section):
-    section_to_field={
-        'Placement':"placement"
-    }
     key = '_'.join(('rtb_campaign_detals', str(campaign_id), from_date.strftime('%Y-%m-%d'),
                     to_date.strftime('%Y-%m-%d'),section))
     res = cache.get(key)
     if res: return res
-    field_name = section_to_field.get(section,'placement')
-    q = NetworkAnalyticsReport_ByPlacement.objects.filter(
-        campaign_id=campaign_id,
-        hour__gte=from_date,
-        hour__lte=to_date,
-    ).values(field_name).annotate(
-        conv=Sum('total_convs'),
-        imp=Sum('imps'),
-        clicks=Sum('clicks'),
-    )#.annotate(
+    table_name, field_name = section_to_db.get(section, 'placement')
+    group_adv_fields ={
+        'conv': Sum('total_convs'),
+        'imp': Sum('imps'),
+        'clicks': Sum('clicks'),
+    }
+    if section=='OS':
+        group_adv_fields['conv']=Sum('post_click_convs')+Sum('post_view_convs')
+    group_fields=[field_name]
+    name_for_field = field_name+'_name'
+    try:
+        table_name._meta.get_field(name_for_field)
+        group_fields.append(name_for_field)
+        _name=name_for_field
+    except:
+        _name=field_name
+    filter_params={'campaign_id':campaign_id}
+    try:
+        table_name._meta.get_field('hour')
+        filter_params['hour__gte']=from_date
+        filter_params['hour__lte'] = to_date
+    except:
+        filter_params['day__gte'] = from_date
+        filter_params['day__lte'] = to_date
+    q = table_name.objects.filter(**filter_params).values(*group_fields).annotate(**group_adv_fields)
+    #.annotate(
 #        ctr=Case(When(~Q(imp=0), then=F('clicks') / F('imp')), output_field=FloatField()),
 #    )
     results= list(q)
-    if field_name == 'placement':
-        placement_ids = set (x['placement'] for x in results)
-        placements = Placement.objects.filter(pk__in=placement_ids).exclude(name='Hidden Placement')
-        placement_names = {p.pk:p.name for p in placements}
-        for x in results:
-            x['placement']=placement_names.get(x['placement'], 'Hidden placement ({})'.format(x['placement']))
-    views = sum_for_data_and_percent([{'section':x[field_name],'data':x['imp']} for x in results])
-    conversions = sum_for_data_and_percent([{'section':x[field_name],'data':x['imp']} for x in results if x['conv']])
+    for x in results:
+        if x[_name] is None or (hasattr(x[_name],'startswith') and x[_name].startswith('Hidden')):
+            x[_name]='Hidden({})'.format(x[field_name])
+    views = sum_for_data_and_percent([{'section':x[_name],'data':x['imp']} for x in results])
+    conversions = sum_for_data_and_percent([{'section':x[_name],'data':x['imp']} for x in results if x['conv']])
     res = {'all':views,'conversions':conversions}
     cache.set(key, res)
     return res
@@ -333,7 +356,7 @@ def campaignDetails(request, id):
     """
 Get single campaign details for given period 
 
-## Url format: /api/v1/campaigns/:id/details?from_date={from_date}&to_date={to_date}&category={category}
+## Url format: /api/v1/campaigns/:id/details?from_date={from_date}&to_date={to_date}&section={section}
 
 + Parameters
 
@@ -344,26 +367,26 @@ Get single campaign details for given period
     + to_date (date) - Date to select statistics to
         + Format: Unixtime
         + Example: 1466667274
-    + category (string) - category for selecting imps
+    + section (string) - category for selecting imps
         + Format: string
         + Example: placement
 For "all":
     field "section" - selected category (if category="placement"  then field "section" hold placement id),
     field "data" - impressions for this category values.
 For "conversions":
-    field "section" - selected category where conversionR<>0 (if category="placement"  then field "section" hold placement id),
+    field "section" - selected category where conversion<>0 (if category="placement"  then field "section" hold placement id),
     field "data" - impressions for this category values.
     """
     params = parse_get_params(request.GET)
     res = get_campaign_detals(id, params['from_date'], params['to_date'], params['section'])
     return Response(res)
 
-def get_cpa_buckets(campaign_id,from_date, to_date):
+def get_cpa_buckets(campaign_id,from_date, to_date, field_name = 'placement'):
     key = '_'.join(('rtb_cpa_buckets', str(campaign_id), from_date.strftime('%Y-%m-%d'),
-                    to_date.strftime('%Y-%m-%d'),))
+                    to_date.strftime('%Y-%m-%d'),field_name))
     res = cache.get(key)
     if res: return res
-    field_name = 'placement'
+
     #field_name = 'placement__site'
     # field_name='placement'
     q = NetworkAnalyticsReport_ByPlacement.objects.filter(
@@ -409,6 +432,6 @@ Get single campaign details for given period
         + Example: 1466667274
     """
     params = parse_get_params(request.GET)
-    res = get_cpa_buckets(id, params['from_date'], params['to_date'])
+    res = get_cpa_buckets(id, params['from_date'], params['to_date'], params['section'])
     # convs
     return Response(res)

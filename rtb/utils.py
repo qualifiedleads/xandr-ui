@@ -24,11 +24,11 @@ def get_all_classes_in_models(module):
 def get_column_list_for_report(ReportClass):
     if hasattr(ReportClass, 'api_columns'):
         return ReportClass.api_columns
-    all_fields = [field.name + '_id' if isinstance(field, django_types.ForeignObject) else field.name
-                  for field in ReportClass._meta.fields]
+    all_fields = [field.attname for field in ReportClass._meta.fields]
     name_fields = [field.name + '_name' for field in ReportClass._meta.fields if isinstance(field, django_types.ForeignObject)]
     meta_fields = [column['column'] for column in meta[ReportClass.api_report_name]['columns']]
-
+    if hasattr(ReportClass, 'add_api_columns'):
+        all_fields.extend(ReportClass.add_api_columns)
     return list((set(all_fields)|set(name_fields)) & set(meta_fields))
 
 
@@ -90,5 +90,5 @@ def parse_get_params(params, field_list=['campaign', 'spend', 'conv', 'imp', 'cl
         res['filter'] = ' '.join(params.getlist('filter'))
     except:
         res['filter'] = ''
-    res['section']=params.get('section','')
+    res['section']=params.get('section','placement')
     return res

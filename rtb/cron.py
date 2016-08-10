@@ -232,7 +232,18 @@ def test_foreign_keys(objects_to_save, rows):
                 obj.save()
 
 
+def my_custom_sql(self):
+    cursor = connection.cursor()
+
+    cursor.execute("UPDATE bar SET foo = 1 WHERE baz = %s", [self.baz])
+
+def analize_csv_direct(filename, modelClass, metadata={}):
+    pass
+
 def analize_csv(filename, modelClass, metadata={}):
+    if hasattr(modelClass, 'direct_csv') and modelClass.direct_csv:
+        analize_csv_direct(filename, modelClass, metadata)
+        return
     with open(filename, 'r') as csvFile:
         # dialect='excel-tab' or excel ?
         reader = csv.DictReader(csvFile, delimiter=',')
@@ -598,10 +609,13 @@ def dayly_task(day=None, load_objects_from_services=True, output=None):
         file_output = open(log_file_name, 'w')
         output = file_output
     sys.stdout, sys.stderr = output, output
-    print ('NexusApp API pooling...')
     # report.get_specifed_report('network_analytics')
     try:
         token = get_auth_token()
+
+        load_report(token, day, NetworkAnalyticsReport_ByPlacement)
+        return
+
         if load_objects_from_services:
             load_depending_data(token)
         load_report(token, day, NetworkCarrierReport_Simple)

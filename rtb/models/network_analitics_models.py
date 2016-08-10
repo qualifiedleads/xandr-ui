@@ -86,6 +86,7 @@ class NetworkAnalyticsReport_ByPlacement(models.Model):
     total_convs = models.IntegerField(null=True, blank=True)
 
     api_report_name = "network_analytics"
+    direct_csv = True
 
     @classmethod
     def post_load(self, day):

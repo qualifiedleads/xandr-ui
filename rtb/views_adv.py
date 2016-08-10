@@ -299,8 +299,8 @@ section_to_db = {
     'creative_id':(NetworkAnalyticsReport_ByPlacement, "creative"),
     'creative_size':(NetworkAnalyticsReport_ByPlacement, "size"),
     #'viewability'
-    'OS':(SiteDomainPerformanceReport,"operating_system"),
-    #'OS':(NetworkDeviceReport_Simple,"operating_system"),
+    #'OS':(SiteDomainPerformanceReport,"operating_system"),
+    'OS':(NetworkDeviceReport_Simple,"operating_system"),
     'carrier': (NetworkCarrierReport_Simple, "carrier"),
     'network(seller)': (NetworkAnalyticsReport_ByPlacement, "seller_member"),
     'connection_type': (NetworkDeviceReport_Simple, "connection_type"),
@@ -319,8 +319,8 @@ def get_campaign_detals(campaign_id,from_date, to_date, section):
         'imp': Sum('imps'),
         'clicks': Sum('clicks'),
     }
-    if section=='OS':
-        group_adv_fields['conv']=Sum('post_click_convs')+Sum('post_view_convs')
+    # if section=='OS':
+    #     group_adv_fields['conv']=Sum('post_click_convs')+Sum('post_view_convs')
     group_fields=[field_name]
     name_for_field = field_name+'_name'
     try:

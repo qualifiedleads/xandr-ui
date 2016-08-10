@@ -5,8 +5,6 @@ import time
 import decimal
 import gc
 import json
-from trace import Trace
-
 import os
 import sys
 import traceback
@@ -16,9 +14,6 @@ from django.db.models import Avg, Count, Sum, Max
 import django.db.models as django_types
 from django.db import transaction, IntegrityError, reset_queries, connection
 import re
-
-from postgres import fields
-
 from report import nexus_get_objects, replace_tzinfo, update_object_from_dict, date_type, get_auth_token, \
     get_specified_report, nexus_get_objects_by_id
 from django.conf import settings

@@ -150,7 +150,6 @@ class NetworkCarrierReport_Simple(models.Model, PostLoadMix, TransformMix):
     add_api_columns = ('media_type',)
     direct_csv = True
 
-
     class Meta:
         db_table = "network_carrier_report_simple"
         app_label = 'rtb'

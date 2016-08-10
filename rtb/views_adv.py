@@ -319,8 +319,8 @@ def get_campaign_detals(campaign_id,from_date, to_date, section):
         'imp': Sum('imps'),
         'clicks': Sum('clicks'),
     }
-    if section=='OS':
-        group_adv_fields['conv']=Sum('post_click_convs')+Sum('post_view_convs')
+    # if section=='OS':
+    #     group_adv_fields['conv']=Sum('post_click_convs')+Sum('post_view_convs')
     group_fields=[field_name]
     name_for_field = field_name+'_name'
     try:

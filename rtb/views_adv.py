@@ -299,8 +299,8 @@ section_to_db = {
     'creative_id':(NetworkAnalyticsReport_ByPlacement, "creative"),
     'creative_size':(NetworkAnalyticsReport_ByPlacement, "size"),
     #'viewability'
-    #'OS':(SiteDomainPerformanceReport,"operating_system"),
-    'OS':(NetworkDeviceReport_Simple,"operating_system"),
+    'OS':(SiteDomainPerformanceReport,"operating_system"),
+    #'OS':(NetworkDeviceReport_Simple,"operating_system"),
     'carrier': (NetworkCarrierReport_Simple, "carrier"),
     'network(seller)': (NetworkAnalyticsReport_ByPlacement, "seller_member"),
     'connection_type': (NetworkDeviceReport_Simple, "connection_type"),

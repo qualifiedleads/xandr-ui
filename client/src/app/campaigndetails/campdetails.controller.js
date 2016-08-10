@@ -17,7 +17,6 @@
     vm.campId = Campaign.id;
 
 
-
     vm.detailsStoreAll = new $window.DevExpress.data.CustomStore({
       totalCount: function () {
         return 0;
@@ -115,82 +114,6 @@
     });
 
 
-    /** DATE PIKER - START **/
-    if ($localStorage.dataStart == null && $localStorage.dataEnd == null ){
-      $localStorage.dataStart = $window.moment({ hour: '00' }).subtract(1, 'day').unix() ;
-      $localStorage.dataEnd = $window.moment({ hour: '00' }).subtract(1, 'day').endOf('day').unix();
-    } else {
-      vm.dataStart = $localStorage.dataStart;
-      vm.dataEnd = $localStorage.dataEnd;
-    }
-    if ($localStorage.SelectedTime == null) {
-      $localStorage.SelectedTime = 0;
-    }
-
-    var products = [
-      {
-        ID: 0,
-        Name: LC('MAIN.DATE_PICKER.YESTERDAY'),
-        dataStart: $window.moment({ hour: '00' }).subtract(1, 'day').unix() ,
-        dataEnd: $window.moment({ hour: '00' }).subtract(1, 'day').endOf('day').unix()
-      }, {
-        ID: 1,
-        Name: LC('MAIN.DATE_PICKER.LAST_3_DAYS'),
-        dataStart:  $window.moment({ hour: '00' }).subtract(3, 'day').unix(),
-        dataEnd: $window.moment({ hour: '00' }).unix()
-      }, {
-        ID: 2,
-        Name: LC('MAIN.DATE_PICKER.LAST_7_DAYS'),
-        dataStart:  $window.moment({ hour: '00' }).subtract(7, 'day').unix(),
-        dataEnd: $window.moment({ hour: '00' }).unix()
-      }, {
-        ID: 3,
-        Name: LC('MAIN.DATE_PICKER.LAST_14_DAYS'),
-        dataStart:  $window.moment({ hour: '00' }).subtract(14, 'day').unix(),
-        dataEnd: $window.moment({ hour: '00' }).unix()
-      }, {
-        ID: 4,
-        Name: LC('MAIN.DATE_PICKER.LAST_21_DAYS'),
-        dataStart:  $window.moment({ hour: '00' }).subtract(21, 'day').unix(),
-        dataEnd: $window.moment({ hour: '00' }).unix()
-      }, {
-        ID: 5,
-        Name: LC('MAIN.DATE_PICKER.CURRENT_MONTH'),
-        dataStart: $window.moment().startOf('month').unix(),
-        dataEnd: $window.moment().unix()
-      }, {
-        ID: 6,
-        Name: LC('MAIN.DATE_PICKER.LAST_MONTH'),
-        dataStart: $window.moment().subtract(1, 'month').startOf('month').unix(),
-        dataEnd: $window.moment().subtract(1, 'month').endOf('month').unix()
-      }, {
-        ID: 7,
-        Name: LC('MAIN.DATE_PICKER.LAST_90_DAYS'),
-        dataStart: $window.moment({ hour: '00' }).subtract(90, 'day').unix(),
-        dataEnd: $window.moment().unix()
-      }, {
-        ID: 8,
-        Name: LC('MAIN.DATE_PICKER.ALL_TIME'),
-        dataStart: 0,
-        dataEnd: $window.moment().unix()
-      }];
-    vm.datePiker = {
-      items: products,
-      displayExpr: 'Name',
-      valueExpr: 'ID',
-      value: products[$localStorage.SelectedTime].ID,
-      onValueChanged: function (e) {
-        //$log.info(products[e.value]);
-        $localStorage.SelectedTime = e.value;
-        $localStorage.dataStart = products[e.value].dataStart;
-        $localStorage.dataEnd = products[e.value].dataEnd;
-
-        //$('#gridContainer1').dxDataGrid('instance').refresh();
-        //$('#gridContainer2').dxDataGrid('instance').refresh();
-        $state.reload();
-      }
-    };
-    /** DATE PIKER - END **/
 
 
     /** PIE CHART CONTAINER - START **/
@@ -342,7 +265,10 @@
         }
       },
       bindingOptions: {
-        dataSource: 'campdetails.detailsStoreAll'
+        dataSource: 'campdetails.detailsStoreAll',
+      },
+      legend: {
+        visible: false
       },
       tooltip: {
         enabled: true,
@@ -361,9 +287,9 @@
         argumentField: 'section',
         valueField: 'data',
         smallValuesGrouping: {
-          mode: "smallValueThreshold",
-          threshold: 0.4
-        }
+          mode: "topN",
+          topCount: 25
+        },
       }]
     };
 
@@ -380,6 +306,9 @@
       bindingOptions: {
         dataSource: 'campdetails.detailsStoreConversion'
       },
+      legend: {
+        visible: false
+      },
       tooltip: {
         enabled: true,
         customizeTooltip: function (arg) {
@@ -392,8 +321,8 @@
         argumentField: "section",
         valueField: "data",
         smallValuesGrouping: {
-          mode: "smallValueThreshold",
-          threshold: 0.4
+          mode: "topN",
+          topCount: 25
         }
       }]
     };

@@ -148,6 +148,8 @@ class NetworkCarrierReport_Simple(models.Model, PostLoadMix, TransformMix):
 
     api_report_name='network_carrier_analytics'
     add_api_columns = ('media_type',)
+    direct_csv = True
+
 
     class Meta:
         db_table = "network_carrier_report_simple"
@@ -192,6 +194,7 @@ class NetworkDeviceReport_Simple(models.Model, PostLoadMix, TransformMix):
 
     api_report_name = 'network_device_analytics'
     # add_api_columns = ('media_type',)
+    direct_csv = True
 
     class Meta:
         db_table = "network_device_report_simple"

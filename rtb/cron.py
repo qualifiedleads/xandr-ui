@@ -16,6 +16,9 @@ from django.db.models import Avg, Count, Sum, Max
 import django.db.models as django_types
 from django.db import transaction, IntegrityError, reset_queries, connection
 import re
+
+from postgres import fields
+
 from report import nexus_get_objects, replace_tzinfo, update_object_from_dict, date_type, get_auth_token, \
     get_specified_report, nexus_get_objects_by_id
 from django.conf import settings
@@ -232,17 +235,35 @@ def test_foreign_keys(objects_to_save, rows):
                 obj.save()
 
 
-def my_custom_sql(self):
+
+def has_copy_from_support():
     cursor = connection.cursor()
+    return hasattr(cursor, 'copy_from')
 
-    cursor.execute("UPDATE bar SET foo = 1 WHERE baz = %s", [self.baz])
+_has_copy_from_support = has_copy_from_support()
 
-def analize_csv_direct(filename, modelClass, metadata={}):
-    pass
+def analize_csv_direct(filename, modelClass):
+    fields = get_all_class_fields(modelClass)
+    #res = modelClass.objects.raw('select * from network_analytics_report_by_placement;')
+    with open(filename, 'r') as csvFile:
+        fields_csv = csvFile.readline().rstrip().split(',')
+        t_set = set(fields)
+        t_set.discard('id')
+        c_set = set(fields_csv)
+        if not set(c_set).issubset(t_set):
+            raise Exception('analize_csv_direct not possibly: fields not match')
+        with connection.cursor() as cursor:
+            try:
+                #cursor.copy_from(csvFile, modelClass._meta.db_table,',',columns = fields_csv)
+                cursor.copy_expert('COPY "{}"({}) FROM STDOUT WITH CSV'\
+                    .format(modelClass._meta.db_table, ','.join(fields_csv)),
+                    csvFile)
+            except Exception as e:
+                print e
 
 def analize_csv(filename, modelClass, metadata={}):
-    if hasattr(modelClass, 'direct_csv') and modelClass.direct_csv:
-        analize_csv_direct(filename, modelClass, metadata)
+    if _has_copy_from_support and hasattr(modelClass, 'direct_csv') and modelClass.direct_csv:
+        analize_csv_direct(filename, modelClass)
         return
     with open(filename, 'r') as csvFile:
         # dialect='excel-tab' or excel ?
@@ -612,10 +633,6 @@ def dayly_task(day=None, load_objects_from_services=True, output=None):
     # report.get_specifed_report('network_analytics')
     try:
         token = get_auth_token()
-
-        load_report(token, day, NetworkAnalyticsReport_ByPlacement)
-        return
-
         if load_objects_from_services:
             load_depending_data(token)
         load_report(token, day, NetworkCarrierReport_Simple)

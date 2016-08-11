@@ -50,7 +50,8 @@ def make_sum(dict1, dict2):
 
 one_day = datetime.timedelta(days=1)
 
-def parse_get_params(params, field_list=['campaign', 'spend', 'conv', 'imp', 'clicks', 'cpc', 'cpm', 'cvr', 'ctr']):
+def parse_get_params(params,
+                     field_list=['campaign', 'spend', 'conv', 'imp', 'clicks', 'cpc', 'cpm', 'cvr', 'ctr','view_measured_imps', 'view_rate', 'view_measurement_rate']):
     res = {}
     field_list_re = '|'.join(field_list)
     try:

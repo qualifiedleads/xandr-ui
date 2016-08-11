@@ -96,7 +96,7 @@ def get_campaigns_data(advertiser_id, from_date, to_date):
     cache.set(key,campaigns)
     return campaigns
 
-@check_user_advertiser_permissions
+@check_user_advertiser_permissions()
 @api_view()
 @parser_classes([FormParser, MultiPartParser])
 def campaigns(request):
@@ -189,7 +189,7 @@ def get_days_data(advertiser_id, from_date, to_date):
     cache.set(key,res)
     return res
 
-@check_user_advertiser_permissions
+@check_user_advertiser_permissions()
 def totals(request):
     """
 ## Totals [/api/v1/totals?from={from_date}&to={to_date}]
@@ -211,7 +211,7 @@ def totals(request):
     return JsonResponse({"totals": data['totals']})
 
 
-@check_user_advertiser_permissions
+@check_user_advertiser_permissions()
 def statistics(request):
     """
 ## Statistics [/api/v1/statistics?from={from_date}&to={to_date}&by={by}]
@@ -244,7 +244,7 @@ def statistics(request):
                 camp.pop(f,None)
     return JsonResponse({'statistics':data})
 
-@check_user_advertiser_permissions
+@check_user_advertiser_permissions()
 def map_clicks(request):
     """
 ## Map of clicks [/api/v1/map/clicks?from={from_date}&to={to_date}]

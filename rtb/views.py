@@ -7,9 +7,10 @@ from models import SiteDomainPerformanceReport, Campaign, GeoAnaliticsReport
 from django.core.cache import cache
 from pytz import utc
 import operator
-from rest_framework.decorators import api_view, parser_classes
+from rest_framework.decorators import api_view, parser_classes, authentication_classes
 from rest_framework.response import Response
 from rest_framework.parsers import FormParser, MultiPartParser
+from rest_framework.authentication import TokenAuthentication
 import ast
 from utils import parse_get_params, make_sum, check_user_advertiser_permissions
 from django.contrib.auth.decorators import login_required, user_passes_test
@@ -96,8 +97,8 @@ def get_campaigns_data(advertiser_id, from_date, to_date):
     cache.set(key,campaigns)
     return campaigns
 
-@check_user_advertiser_permissions()
 @api_view()
+@check_user_advertiser_permissions()
 @parser_classes([FormParser, MultiPartParser])
 def campaigns(request):
     """
@@ -189,6 +190,7 @@ def get_days_data(advertiser_id, from_date, to_date):
     cache.set(key,res)
     return res
 
+@api_view()
 @check_user_advertiser_permissions()
 def totals(request):
     """
@@ -211,6 +213,7 @@ def totals(request):
     return JsonResponse({"totals": data['totals']})
 
 
+@api_view()
 @check_user_advertiser_permissions()
 def statistics(request):
     """
@@ -244,6 +247,7 @@ def statistics(request):
                 camp.pop(f,None)
     return JsonResponse({'statistics':data})
 
+@api_view()
 @check_user_advertiser_permissions()
 def map_clicks(request):
     """

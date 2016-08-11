@@ -95,7 +95,8 @@ def parse_get_params(params, field_list=['campaign', 'spend', 'conv', 'imp', 'cl
         res['filter'] = ''
     res['section']=params.get('section','placement')
     return res
-
+import rest_framework.authtoken as at
+at.default_app_config
 def check_user_advertiser_permissions(**field_names):
     def actual_decorator(func):
         @wraps(func)
@@ -112,10 +113,11 @@ def check_user_advertiser_permissions(**field_names):
                                   (field_names.get('campaign_id_name') and kwargs[field_names['campaign_id_name']])
                     camp = Campaign.objects.get(pk=campaign_id)
                     advertiser_id = camp.advertiser_id
-                membership_info = MembershipUserToAdvertiser.objects.count(frameworkuser_id=user.pk, advertiser_id=advertiser_id)
-                assert membership_info
+                membership_info = MembershipUserToAdvertiser.objects.filter(frameworkuser_id=user.pk, advertiser_id=advertiser_id).count()
+                assert user.is_superuser or user.is_staff or membership_info
                 return func(request, *args, **kwargs)
-            except:
+            except Exception as e:
+                print e
                 return HttpResponseForbidden()
         return new_func
     return actual_decorator

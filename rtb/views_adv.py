@@ -14,8 +14,8 @@ import filter_func
 import bisect
 from django.contrib.auth.decorators import login_required, user_passes_test
 
-@check_user_advertiser_permissions(campaign_id_num=0)
 @api_view()
+@check_user_advertiser_permissions(campaign_id_num=0)
 def singleCampaign(request, id):
     """
 Get campaign name by id
@@ -85,8 +85,8 @@ def get_campaign_data(advertiser_id, campaign_id, from_date, to_date):
     return res
 
 
-@check_user_advertiser_permissions(campaign_id_num=0)
 @api_view()
+@check_user_advertiser_permissions(campaign_id_num=0)
 def graphInfo(request, id):
     """
 Get single campaign statistics data for given period by selected categories: impression, cpa, cpc, clicks, mediaspent, conversions, ctr
@@ -165,8 +165,8 @@ def get_campaign_cpa(advertiser_id, campaign_id, from_date, to_date):
     return res
 
 
-@check_user_advertiser_permissions(campaign_id_num=0)
 @api_view()
+@check_user_advertiser_permissions(campaign_id_num=0)
 def cpaReport(request, id):
     """
 Get single campaign cpa report for given period to create boxplots
@@ -236,8 +236,8 @@ def get_campaign_placement(campaign_id, from_date, to_date):
     cache.set(key, res)
     return res
 
-@check_user_advertiser_permissions(campaign_id_num=0)
 @api_view()
+@check_user_advertiser_permissions(campaign_id_num=0)
 def campaignDomains(request, id):
     """
 Get single campaign details by domains
@@ -355,8 +355,8 @@ def get_campaign_detals(campaign_id,from_date, to_date, section):
     cache.set(key, res)
     return res
 
-@check_user_advertiser_permissions(campaign_id_num=0)
 @api_view()
+@check_user_advertiser_permissions(campaign_id_num=0)
 def campaignDetails(request, id):
     """
 Get single campaign details for given period 
@@ -419,8 +419,8 @@ def get_cpa_buckets(campaign_id,from_date, to_date, field_name = 'placement'):
     cache.set(key, res)
     return res
 
-@check_user_advertiser_permissions(campaign_id_num=0)
 @api_view()
+@check_user_advertiser_permissions(campaign_id_num=0)
 def bucketsCPA(request,id):
     """
 Get single campaign details for given period

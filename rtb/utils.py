@@ -106,12 +106,12 @@ def check_user_advertiser_permissions(**field_names):
                 user = request.user
                 assert user.is_authenticated()
                 advertiser_id = request.GET.get('advertiser_id') or \
-                                (field_names.get('advertiser_id_num') and args[field_names['advertiser_id_num']]) or \
-                                (field_names.get('advertiser_id_name') and kwargs[field_names['advertiser_id_name']])
+                                ('advertiser_id_num' in field_names and args[field_names['advertiser_id_num']]) or \
+                                ('advertiser_id_name' in field_names and kwargs[field_names['advertiser_id_name']])
                 if not advertiser_id:
                     campaign_id = request.GET.get('campaign_id') or \
-                                  (field_names.get('campaign_id_num') and args[field_names['campaign_id_num']]) or \
-                                  (field_names.get('campaign_id_name') and kwargs[field_names['campaign_id_name']])
+                                  ('campaign_id_num' in field_names and args[field_names['campaign_id_num']]) or \
+                                  ('campaign_id_name' in field_names and kwargs[field_names['campaign_id_name']])
                     camp = Campaign.objects.get(pk=campaign_id)
                     advertiser_id = camp.advertiser_id
                 membership_info = MembershipUserToAdvertiser.objects.filter(frameworkuser_id=user.pk, advertiser_id=advertiser_id).count()

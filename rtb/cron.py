@@ -449,8 +449,6 @@ def load_depending_data(token):
             print 'There is %d yield management profiles ' % len(yield_management_profiles)
 
             payment_rules_ids = set(x.base_payment_rule_id for x in publishers)
-            for pub in publishers:
-                print 'Publisher ', pub.name
             payment_rules = nexus_get_objects(token,
                                               {'id__in': payment_rules_ids},
                                               PaymentRule,

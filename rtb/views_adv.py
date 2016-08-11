@@ -12,7 +12,7 @@ import datetime
 from pytz import utc
 import filter_func
 import bisect
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 
 @login_required 
 @api_view()

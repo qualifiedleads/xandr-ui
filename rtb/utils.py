@@ -4,6 +4,9 @@ import datetime
 from pytz import utc
 import re
 import os, time
+from functools import wraps
+from django.http import HttpResponseForbidden
+from .models import FrameworkUser,MembershipUserToAdvertiser, Advertiser, Campaign
 
 def clean_old_files(path):
     now = time.time()
@@ -92,3 +95,21 @@ def parse_get_params(params, field_list=['campaign', 'spend', 'conv', 'imp', 'cl
         res['filter'] = ''
     res['section']=params.get('section','placement')
     return res
+
+def check_user_advertiser_permissions(func):
+    @wraps(func)
+    def new_func(request, *args, **kwargs):
+        try:
+            user = request.user
+            assert user.is_authenticated()
+            advertiser_id = request.GET.get('advertiser_id')
+            if not advertiser_id:
+                campaign_id = request.GET.get('campaign_id')
+                camp = Campaign.objects.get(pk=campaign_id)
+                advertiser_id = camp.advertiser_id
+            membership_info = MembershipUserToAdvertiser.objects.count(frameworkuser_id=user.pk, advertiser_id=advertiser_id)
+            assert membership_info
+            return func(request, *args, **kwargs)
+        except:
+            return HttpResponseForbidden()
+    return new_func

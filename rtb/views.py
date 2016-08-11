@@ -12,7 +12,7 @@ from rest_framework.response import Response
 from rest_framework.parsers import FormParser, MultiPartParser
 import ast
 from utils import parse_get_params, make_sum
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 
 def to_unix_timestamp(d):
     return str(int(time.mktime(d.timetuple())))

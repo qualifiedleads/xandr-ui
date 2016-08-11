@@ -12,8 +12,9 @@ import datetime
 from pytz import utc
 import filter_func
 import bisect
+from django.contrib.auth.decorators import login_required
 
-
+@login_required 
 @api_view()
 def singleCampaign(request, id):
     """
@@ -84,6 +85,7 @@ def get_campaign_data(advertiser_id, campaign_id, from_date, to_date):
     return res
 
 
+@login_required 
 @api_view()
 def graphInfo(request, id):
     """
@@ -163,6 +165,7 @@ def get_campaign_cpa(advertiser_id, campaign_id, from_date, to_date):
     return res
 
 
+@login_required 
 @api_view()
 def cpaReport(request, id):
     """
@@ -233,6 +236,7 @@ def get_campaign_placement(campaign_id, from_date, to_date):
     cache.set(key, res)
     return res
 
+@login_required 
 @api_view()
 def campaignDomains(request, id):
     """
@@ -351,6 +355,7 @@ def get_campaign_detals(campaign_id,from_date, to_date, section):
     cache.set(key, res)
     return res
 
+@login_required 
 @api_view()
 def campaignDetails(request, id):
     """
@@ -414,6 +419,7 @@ def get_cpa_buckets(campaign_id,from_date, to_date, field_name = 'placement'):
     cache.set(key, res)
     return res
 
+@login_required 
 @api_view()
 def bucketsCPA(request,id):
     """

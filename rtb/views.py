@@ -12,6 +12,7 @@ from rest_framework.response import Response
 from rest_framework.parsers import FormParser, MultiPartParser
 import ast
 from utils import parse_get_params, make_sum
+from django.contrib.auth.decorators import login_required
 
 def to_unix_timestamp(d):
     return str(int(time.mktime(d.timetuple())))
@@ -95,6 +96,7 @@ def get_campaigns_data(advertiser_id, from_date, to_date):
     cache.set(key,campaigns)
     return campaigns
 
+@login_required
 @api_view()
 @parser_classes([FormParser, MultiPartParser])
 def campaigns(request):
@@ -187,6 +189,8 @@ def get_days_data(advertiser_id, from_date, to_date):
     cache.set(key,res)
     return res
 
+@login_required
+@api_view
 def totals(request):
     """
 ## Totals [/api/v1/totals?from={from_date}&to={to_date}]
@@ -208,6 +212,8 @@ def totals(request):
     return JsonResponse({"totals": data['totals']})
 
 
+@login_required
+@api_view
 def statistics(request):
     """
 ## Statistics [/api/v1/statistics?from={from_date}&to={to_date}&by={by}]
@@ -240,6 +246,8 @@ def statistics(request):
                 camp.pop(f,None)
     return JsonResponse({'statistics':data})
 
+@login_required
+@api_view
 def map_clicks(request):
     """
 ## Map of clicks [/api/v1/map/clicks?from={from_date}&to={to_date}]

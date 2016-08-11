@@ -190,7 +190,6 @@ def get_days_data(advertiser_id, from_date, to_date):
     return res
 
 @check_user_advertiser_permissions
-@api_view
 def totals(request):
     """
 ## Totals [/api/v1/totals?from={from_date}&to={to_date}]
@@ -213,7 +212,6 @@ def totals(request):
 
 
 @check_user_advertiser_permissions
-@api_view
 def statistics(request):
     """
 ## Statistics [/api/v1/statistics?from={from_date}&to={to_date}&by={by}]
@@ -247,7 +245,6 @@ def statistics(request):
     return JsonResponse({'statistics':data})
 
 @check_user_advertiser_permissions
-@api_view
 def map_clicks(request):
     """
 ## Map of clicks [/api/v1/map/clicks?from={from_date}&to={to_date}]

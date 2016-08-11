@@ -6,7 +6,7 @@ import re
 import os, time
 from functools import wraps
 from django.http import HttpResponseForbidden
-from .models import FrameworkUser,MembershipUserToAdvertiser, Advertiser, Campaign
+from models import FrameworkUser,MembershipUserToAdvertiser, Advertiser, Campaign
 
 def clean_old_files(path):
     now = time.time()

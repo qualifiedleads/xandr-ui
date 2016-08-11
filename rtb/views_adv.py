@@ -1,7 +1,7 @@
 from rest_framework.decorators import api_view, parser_classes
 from rest_framework.response import Response
 from django.http import JsonResponse
-from utils import parse_get_params, make_sum
+from utils import parse_get_params, make_sum, check_user_advertiser_permissions
 from models import SiteDomainPerformanceReport, Campaign, GeoAnaliticsReport, NetworkAnalyticsReport_ByPlacement, \
     Placement, NetworkCarrierReport_Simple,NetworkDeviceReport_Simple
 from django.db.models import Sum, Min, Max, Avg, Value, When, Case, F, Q, Func, FloatField
@@ -14,7 +14,7 @@ import filter_func
 import bisect
 from django.contrib.auth.decorators import login_required, user_passes_test
 
-@login_required 
+@check_user_advertiser_permissions(campaign_id_num=0)
 @api_view()
 def singleCampaign(request, id):
     """
@@ -85,7 +85,7 @@ def get_campaign_data(advertiser_id, campaign_id, from_date, to_date):
     return res
 
 
-@login_required 
+@check_user_advertiser_permissions(campaign_id_num=0)
 @api_view()
 def graphInfo(request, id):
     """
@@ -165,7 +165,7 @@ def get_campaign_cpa(advertiser_id, campaign_id, from_date, to_date):
     return res
 
 
-@login_required 
+@check_user_advertiser_permissions(campaign_id_num=0)
 @api_view()
 def cpaReport(request, id):
     """
@@ -236,7 +236,7 @@ def get_campaign_placement(campaign_id, from_date, to_date):
     cache.set(key, res)
     return res
 
-@login_required 
+@check_user_advertiser_permissions(campaign_id_num=0)
 @api_view()
 def campaignDomains(request, id):
     """
@@ -355,7 +355,7 @@ def get_campaign_detals(campaign_id,from_date, to_date, section):
     cache.set(key, res)
     return res
 
-@login_required 
+@check_user_advertiser_permissions(campaign_id_num=0)
 @api_view()
 def campaignDetails(request, id):
     """
@@ -419,7 +419,7 @@ def get_cpa_buckets(campaign_id,from_date, to_date, field_name = 'placement'):
     cache.set(key, res)
     return res
 
-@login_required 
+@check_user_advertiser_permissions(campaign_id_num=0)
 @api_view()
 def bucketsCPA(request,id):
     """

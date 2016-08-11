@@ -11,7 +11,7 @@ from rest_framework.decorators import api_view, parser_classes
 from rest_framework.response import Response
 from rest_framework.parsers import FormParser, MultiPartParser
 import ast
-from utils import parse_get_params, make_sum
+from utils import parse_get_params, make_sum, check_user_advertiser_permissions
 from django.contrib.auth.decorators import login_required, user_passes_test
 
 def to_unix_timestamp(d):
@@ -96,7 +96,7 @@ def get_campaigns_data(advertiser_id, from_date, to_date):
     cache.set(key,campaigns)
     return campaigns
 
-@login_required
+@check_user_advertiser_permissions
 @api_view()
 @parser_classes([FormParser, MultiPartParser])
 def campaigns(request):
@@ -189,7 +189,7 @@ def get_days_data(advertiser_id, from_date, to_date):
     cache.set(key,res)
     return res
 
-@login_required
+@check_user_advertiser_permissions
 @api_view
 def totals(request):
     """
@@ -212,7 +212,7 @@ def totals(request):
     return JsonResponse({"totals": data['totals']})
 
 
-@login_required
+@check_user_advertiser_permissions
 @api_view
 def statistics(request):
     """
@@ -246,7 +246,7 @@ def statistics(request):
                 camp.pop(f,None)
     return JsonResponse({'statistics':data})
 
-@login_required
+@check_user_advertiser_permissions
 @api_view
 def map_clicks(request):
     """

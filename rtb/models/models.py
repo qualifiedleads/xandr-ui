@@ -5,6 +5,7 @@ from django.utils.timezone import now as now_tz
 #from django.contrib.postgres.fields import ArrayField
 #from django.contrib.postgres.fields import JSONField
 from django.contrib.auth.models import User as DjangoUser
+from ..appnexus_permissions import load_appnexus_permissions
 
 STATE_CHOICES = (
     ('active', 'Active'),
@@ -113,11 +114,15 @@ class FrameworkUser(DjangoUser):
                                            ("adminRead","Staff user"),
                                            ("userFull","User with write rights"),
                                            ("userRead","Ordinary user")))
-    use_appnexus_rights = models.BooleanField(default=True)
+    use_appnexus_rights = models.BooleanField(default=True) #, help_text='Using Appnexus user rights')
 
     def save(self,  *args, **kwargs):
         self.is_superuser = self.is_superuser or self.permission=='adminFull'
         self.is_staff = self.is_staff or self.permission=='adminRead'
+        if self.apnexus_user_id:
+            old_id = FrameworkUser.objects.get(pk=self.pk).apnexus_user_id
+            if self.apnexus_user_id!=old_id:
+                load_appnexus_permissions(self.apnexus_user_id)
         super(self, FrameworkUser).save(*args, **kwargs)
 
     @property

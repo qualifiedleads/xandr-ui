@@ -96,8 +96,7 @@ def parse_get_params(params,
         res['filter'] = ''
     res['section']=params.get('section','placement')
     return res
-import rest_framework.authtoken as at
-at.default_app_config
+
 def check_user_advertiser_permissions(**field_names):
     def actual_decorator(func):
         @wraps(func)

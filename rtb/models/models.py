@@ -110,15 +110,15 @@ class FrameworkUser(DjangoUser):
     advertisers = models.ManyToManyField("Advertiser", through= "MembershipUserToAdvertiser")
     # advertisers = models.ManyToManyField("Advertiser")
     permission = models.CharField(null=True, blank=True, max_length=10,
-                                  choices=(("adminFull","Super user"),
-                                           ("adminRead","Staff user"),
-                                           ("userFull","User with write rights"),
-                                           ("userRead","Ordinary user")))
+                                  choices=(("adminfull","Super user"),
+                                           ("adminread","Staff user"),
+                                           ("userfull","User with write rights"),
+                                           ("userread","Ordinary user")))
     use_appnexus_rights = models.BooleanField(default=True) #, help_text='Using Appnexus user rights')
 
     def save(self,  *args, **kwargs):
-        self.is_superuser = self.is_superuser or self.permission=='adminFull'
-        self.is_staff = self.is_staff or self.permission=='adminRead'
+        self.is_superuser = self.is_superuser or self.permission=='adminfull'
+        self.is_staff = self.is_staff or self.permission=='adminread'
         if self.apnexus_user_id:
             old_id = FrameworkUser.objects.get(pk=self.pk).apnexus_user_id
             if self.apnexus_user_id!=old_id:

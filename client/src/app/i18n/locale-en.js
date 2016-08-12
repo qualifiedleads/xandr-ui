@@ -101,6 +101,10 @@
           "CPM":"CPM",
           "CVR":"CVR",
           "CTR":"CTR",
+          "IMPS_VIEWED":"Visible imp",
+          "VIEW_MEASURED_IMPS":"Measured imp",
+          "VIEW_MEASUREMENT_RATE":"View measurement rate",
+          "VIEW_RATE":"View rate",
           "STATS":"Stats"
         }
       },

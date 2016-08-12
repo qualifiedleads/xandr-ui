@@ -257,6 +257,22 @@
           dataField: 'ctr'
         },
         {
+          caption: LC('MAIN.CAMPAIGN.COLUMNS.IMPS_VIEWED'),
+          dataField: 'imps_viewed'
+        },
+        {
+          caption: LC('MAIN.CAMPAIGN.COLUMNS.VIEW_MEASURED_IMPS'),
+          dataField: 'view_measured_imps'
+        },
+        {
+          caption: LC('MAIN.CAMPAIGN.COLUMNS.VIEW_MEASUREMENT_RATE'),
+          dataField: 'view_measurement_rate'
+        },
+        {
+          caption: LC('MAIN.CAMPAIGN.COLUMNS.VIEW_RATE'),
+          dataField: 'view_rate'
+        },
+        {
           width: 200,
           dataField: LC('MAIN.CAMPAIGN.COLUMNS.STATS'),
           cellTemplate: function (container, options) {

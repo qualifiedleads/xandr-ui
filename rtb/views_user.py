@@ -50,15 +50,19 @@ def login_api(request):
     + password(String) - password for that user
 
     """
+    print request
     find_user_name(request)
     user = authenticate(**request.data)
+    print '-----------    --------'
+    print user
+    print dir(user)
     if user:
         if user.is_active:
             login(request, user)
             return Response({
                 "id": user.pk,
                 # "permission": "adminfull", #types of permission: "adminfull", "adminread", "userfull", "userread"
-                "permission": user.frameworkuser.permission,
+                "permission": user.permission,
                 "token": request.session.session_key
             })
         else:

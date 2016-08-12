@@ -794,6 +794,22 @@
           dataField: 'ctr'
         },
         {
+          caption: LC('MAIN.CAMPAIGN.COLUMNS.IMPS_VIEWED'),
+          dataField: 'imps_viewed'
+        },
+        {
+          caption: LC('MAIN.CAMPAIGN.COLUMNS.VIEW_MEASURED_IMPS'),
+          dataField: 'view_measured_imps'
+        },
+        {
+          caption: LC('MAIN.CAMPAIGN.COLUMNS.VIEW_MEASUREMENT_RATE'),
+          dataField: 'view_measurement_rate'
+        },
+        {
+          caption: LC('MAIN.CAMPAIGN.COLUMNS.VIEW_RATE'),
+          dataField: 'view_rate'
+        },
+        {
           caption: 'State',
           width: 300,
           columnIndex: 16,

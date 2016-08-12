@@ -346,9 +346,6 @@
 
           }
         }],
-      // selection: {
-      //   mode: 'multiple'
-      // },
       onSelectionChanged: function (data) {
         vm.selectedItems = data.selectedRowsData;
         vm.disabled = !vm.selectedItems.length;

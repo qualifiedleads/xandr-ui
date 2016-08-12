@@ -108,6 +108,7 @@ class FrameworkUser(DjangoUser):
     apnexus_user = models.ForeignKey("User", null=True, blank=True)
     advertisers = models.ManyToManyField("Advertiser", through= "MembershipUserToAdvertiser")
     # advertisers = models.ManyToManyField("Advertiser")
+    permission = models.TextField(null=True, blank=True)
 
     @property
     def name(self):
@@ -119,9 +120,9 @@ class FrameworkUser(DjangoUser):
     def apnexusname(self):
         return self.apnexus_user and self.apnexus_user.name
 
-    @property
-    def permission(self):
-        return get_permissions_for_user(self.pk)
+    #@property
+    #def permission(self):
+    #    return get_permissions_for_user(self.pk)
 
     def __unicode__(self):
         return self.name

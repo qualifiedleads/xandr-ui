@@ -4061,7 +4061,6 @@ class ClickTrackerPaymentRule(models.Model):
     class Meta:
         db_table = "click_tracker_payment_rule"
 
-
 class ClickTrackerFeed(models.Model):
     # https://wiki.appnexus.com/display/api/Clicktrackers+Feed
     fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)

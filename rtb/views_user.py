@@ -1,5 +1,5 @@
 from django.contrib.sites import requests
-from rest_framework.decorators import api_view, parser_classes, throttle_classes, permission_classes
+from rest_framework.decorators import api_view, parser_classes, throttle_classes, permission_classes, authentication_classes
 from rest_framework.response import Response
 from rest_framework.parsers import JSONParser
 from django.contrib.auth import authenticate, login, logout
@@ -7,7 +7,7 @@ from django.contrib.auth.models import User
 from django.views.decorators.csrf import csrf_exempt,ensure_csrf_cookie
 from rest_framework.authtoken import views as views_auth
 from rest_framework.authtoken.models import Token
-from models import get_permissions_for_user
+from models import FrameworkUser, get_permissions_for_user
 import json
 
 def find_user_name(request):
@@ -18,18 +18,25 @@ def find_user_name(request):
 
 
 
-@api_view(['POST'])
-@parser_classes((JSONParser,))
-@throttle_classes([])
-@permission_classes([])
+#@api_view(['POST'])
+#@authentication_classes([])
+#@parser_classes((JSONParser,))
+#@throttle_classes([])
+#@permission_classes([])
 def login_api_new(request):
     try:
+        assert request.method=='POST'
+        request.data=json.loads(request.body)
         user = User.objects.get(email=request.data['email'])
         request.data['username'] = user.username
         view = views_auth.ObtainAuthToken()
         res = view.post(request)
+        assert res.status_code==200
         token = res.data['token']
-        perm = get_permissions_for_user(user.pk)
+        try:
+            perm = user.frameworkuser.permission
+        except:
+            perm = None
         return Response({"id":user.pk, 'token': token, "permission":perm})
     except Exception as e:
         return Response({'error': e.message}, status=401)
@@ -53,16 +60,13 @@ def login_api(request):
     print request
     find_user_name(request)
     user = authenticate(**request.data)
-    print '-----------    --------'
-    print user
-    print dir(user)
     if user:
         if user.is_active:
             login(request, user)
             return Response({
                 "id": user.pk,
                 # "permission": "adminfull", #types of permission: "adminfull", "adminread", "userfull", "userread"
-                "permission": user.permission,
+                "permission": user.frameworkuser.permission,
                 "token": request.session.session_key
             })
         else:

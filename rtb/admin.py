@@ -14,7 +14,7 @@ import datetime
 # Define an inline user form descriptor
 class UsersInline(admin.StackedInline):
     model = FrameworkUser
-    fields = ('apnexus_user', 'link')
+    fields = ('apnexus_user', 'permission', 'use_appnexus_rights','link')
     readonly_fields = ('link',)
     # filter_horizontal = ('advertisers',)
     can_delete = False

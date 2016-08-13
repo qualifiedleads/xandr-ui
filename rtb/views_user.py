@@ -38,6 +38,7 @@ def login_api_new(request):
             perm = user.frameworkuser.permission
         except:
             perm = None
+        perm = perm or 'adminfull'
         return JsonResponse({"id":user.pk, 'token': token, "permission":perm})
     except Exception as e:
         return JsonResponse({'error': e.message}, status=401)

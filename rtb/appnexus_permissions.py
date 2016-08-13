@@ -15,7 +15,9 @@ def load_appnexus_permissions(user):
     if user is not FrameworkUser:
         print 'load_appnexus_permissions expects FrameworkUser as parameter'
         return False
+    user.appnexus_can_write = False;
     if not user.apnexus_user_id:
+        user.use_appnexus_rights = False
         return False
     old_id = FrameworkUser.objects.get(pk=user.pk).apnexus_user_id
     if user.apnexus_user_id == old_id:

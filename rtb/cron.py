@@ -447,45 +447,32 @@ def load_depending_data(token):
                                                           {},
                                                           YieldManagementProfile, False)
             print 'There is %d yield management profiles ' % len(yield_management_profiles)
-
-            payment_rules_ids = set(x.base_payment_rule_id for x in publishers)
-            payment_rules = nexus_get_objects(token,
-                                              {'id__in': payment_rules_ids},
-                                              PaymentRule,
-                                              True,
-                                              # {'publisher_id': pub.pk, 'id': pub.base_payment_rule_id}
-                                              {'id': ','.join(map(str, payment_rules_ids))}
-                                              )
-            if payment_rules!=payment_rules_ids:
-                print 'These base payment rules not loaded (id list)', ','.join(payment_rules-payment_rules_ids)
+            payment_rules_to_load=Publisher.objects.filter(base_payment_rule_id__gt=0)\
+                .values_list('base_payment_rule_id','id').distinct()
+            print payment_rules_to_load
+            for x in payment_rules_to_load:
+                payment_rule = nexus_get_objects(token,
+                                                  {'id': x[0]},
+                                                  PaymentRule,
+                                                  True,
+                                                  {'publisher_id': x[1], 'id': x[0]}
+                                                )
+                print payment_rule
 
         companies = nexus_get_objects(token,
                                       {},
                                       Company, False)
         print 'There is %d companies ' % len(companies)
-        try:
-            zero_company = Company.objects.get(pk=0)
-        except:
-            zero_company = Company(
-                id=0,
-                name='<Unknown company>',
-                fetch_date=get_current_time())
-            zero_company.save()
 
         categories = nexus_get_objects(token,
                                        {},
                                        Category, False)
         print 'There is %d categories ' % len(categories)
-        unk_cat = Category(pk=0, name="Unknown category")
-        try:
-            unk_cat.save()
-        except:
-            pass
 
         brands = nexus_get_objects(token,
                                    {},
-                                   Brand, False,
-                                   {'simple': "true"})
+                                   Brand, False)
+                                   #{'simple': "true"})
         print 'There is %d brands ' % len(brands)
 
         media_types = nexus_get_objects(token,

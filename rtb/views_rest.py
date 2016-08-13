@@ -5,7 +5,7 @@ from rest_framework import viewsets
 from rest_framework.permissions import IsAdminUser, BasePermission
 from rest_framework.exceptions import PermissionDenied
 
-from .models import NetworkAnalyticsRaw, FrameworkUser, Advertiser, User
+from .models import NetworkAnalyticsRaw, FrameworkUser, Advertiser, User, UserAdvertiserAccess
 from django.contrib.auth.hashers import PBKDF2PasswordHasher, make_password, is_password_usable
 
 
@@ -27,8 +27,13 @@ class AdvertiserViewSet(viewsets.ModelViewSet):
         belong to currently authenticated user.
         """
         user = self.request.user
-        #return Advertiser.objects.filter(purchaser=user)
-        return Advertiser.objects.all()
+        if user.is_staff or user.is_superuser:
+            return Advertiser.objects.all()
+        if not user.frameworkuser:
+            return Advertiser.objects.none()
+        q = Advertiser.objects.filter(useradvertiseraccess__user=user.frameworkuser.apnexus_user)
+        print q.query
+        return q
 
 
 class NetworkAnalyticsRawSerializer(serializers.ModelSerializer):
@@ -65,6 +70,10 @@ class UsersViewSet(viewsets.ModelViewSet):
     # PBKDF2PasswordHasher
     serializer_class = UsersSerializer
     permission_classes = (IsStaff,)
+
+    # def get_permissions(self):
+    #     return (IsStaff() if self.request.method == 'POST'
+    #             else IsAdminUser()),
 
     def transform_password(self, request):
         if 'password' in request.data:

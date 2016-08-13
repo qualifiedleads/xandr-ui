@@ -24,7 +24,8 @@ class UsersInline(admin.StackedInline):
 
     def link(self, obj):
         url = reverse('admin:rtb_frameworkuser_change', args=(obj.pk,))
-        return format_html("<a href='{}'>{}</a>", url, 'Change')
+        next_url = reverse('admin:auth_user_change', args=(obj.pk,))
+        return format_html("<a href='{}?next={}'>{}</a>", url, next_url, 'Change')
 
     # link.allow_tags = True
     link.short_description = 'Advertiser permissions'
@@ -81,6 +82,8 @@ class UserAdmin(BaseUserAdmin):
 
     def advertiser_permission_url(self, obj):
         url = reverse('admin:rtb_frameworkuser_change', args=(obj.pk,))
+        #next_url = reverse('admin:auth_user_change', args=(obj.pk,))
+        #url = '{}?next={}'.format(url,next_url)
         return format_html("<a href='{}'>{}</a>", url, 'Advertiser permissions')
 
     advertiser_permission_url.short_description = "Click to change advertiser permissions"

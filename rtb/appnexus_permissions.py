@@ -13,10 +13,7 @@ appnexus_url = settings.__dict__.get(
 user_types_can_write=frozenset(('member_advertiser','member',)) # 'bidder' ???
 
 def load_appnexus_permissions(user):
-    if not isinstance(user,(DjangoUser, FrameworkUser)):
-        print 'load_appnexus_permissions expects Django user as parameter'
-        return False
-    if user is DjangoUser:
+    if user is not FrameworkUser:
         user = user.frameworkuser
         if not user:
             return False
@@ -24,6 +21,8 @@ def load_appnexus_permissions(user):
         user.use_appnexus_rights = False
         user.appnexus_can_write = False;
         return False
+    # if not user.use_appnexus_rights:
+    #     return False
     try:
         old_id = FrameworkUser.objects.get(pk=user.pk).apnexus_user_id
         if user.apnexus_user_id == old_id:
@@ -31,7 +30,6 @@ def load_appnexus_permissions(user):
     except:
         pass
     user.appnexus_can_write = user.apnexus_user.user_type in user_types_can_write
-
     try:
         url = appnexus_url + User.api_endpoint
         token = get_auth_token()

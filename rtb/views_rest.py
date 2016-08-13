@@ -31,8 +31,10 @@ class AdvertiserViewSet(viewsets.ModelViewSet):
             return Advertiser.objects.all()
         if not user.frameworkuser:
             return Advertiser.objects.none()
-        q = Advertiser.objects.filter(useradvertiseraccess__user=user.frameworkuser.apnexus_user)
-        print q.query
+        if user.frameworkuser.use_appnexus_rights:
+            q = Advertiser.objects.filter(useradvertiseraccess__user=user.frameworkuser.apnexus_user)
+        else:
+            q = Advertiser.objects.filter(membershipusertoadvertiser__frameworkuser=user.frameworkuser)
         return q
 
 

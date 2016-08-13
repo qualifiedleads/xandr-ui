@@ -84,6 +84,10 @@ class NetworkAnalyticsReport_ByPlacement(models.Model):
     clicks = models.IntegerField(null=True, blank=True)
     cost = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
     total_convs = models.IntegerField(null=True, blank=True)
+    imps_viewed = models.IntegerField(null=True, blank=True)
+    view_measured_imps = models.IntegerField(null=True, blank=True)
+    view_rate = models.FloatField(null=True, blank=True)
+    view_measurement_rate = models.FloatField(null=True, blank=True)
 
     api_report_name = "network_analytics"
     direct_csv = True

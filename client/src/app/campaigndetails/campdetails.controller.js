@@ -268,7 +268,7 @@
         },
         customizeTooltip: function (arg) {
           return {
-            text: arg.argument + " - " + arg.value
+            text: arg.argument + " - " + arg.value + '%'
           };
         }
       },
@@ -302,7 +302,7 @@
         enabled: true,
         customizeTooltip: function (arg) {
           return {
-            text: arg.argument + " - " + arg.value
+            text: arg.argument + " - " + arg.value + '%'
           };
         }
       },

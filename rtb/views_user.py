@@ -9,6 +9,7 @@ from rest_framework.authtoken import views as views_auth
 from rest_framework.authtoken.models import Token
 from models import FrameworkUser, get_permissions_for_user
 import json
+from django.http import JsonResponse
 
 def find_user_name(request):
     if 'username' not in request.data:
@@ -37,9 +38,9 @@ def login_api_new(request):
             perm = user.frameworkuser.permission
         except:
             perm = None
-        return Response({"id":user.pk, 'token': token, "permission":perm})
+        return JsonResponse({"id":user.pk, 'token': token, "permission":perm})
     except Exception as e:
-        return Response({'error': e.message}, status=401)
+        return JsonResponse({'error': e.message}, status=401)
 
 
 login_api_new.csrf_exempt = True
@@ -57,7 +58,6 @@ def login_api(request):
     + password(String) - password for that user
 
     """
-    print request
     find_user_name(request)
     user = authenticate(**request.data)
     if user:

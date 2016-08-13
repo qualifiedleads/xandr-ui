@@ -13,7 +13,7 @@ appnexus_url = settings.__dict__.get(
 user_types_can_write=frozenset(('member_advertiser','member',)) # 'bidder' ???
 
 def load_appnexus_permissions(user):
-    if user is not FrameworkUser:
+    if not isinstance(user, FrameworkUser):
         user = user.frameworkuser
         if not user:
             return False

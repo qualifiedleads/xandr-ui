@@ -16,7 +16,7 @@ class AdvertiserSerializer(serializers.ModelSerializer):
 
 #generics.ListAPIView
 class AdvertiserViewSet(viewsets.ModelViewSet):
-    #queryset = Advertiser.objects.all()
+    queryset = Advertiser.objects.all()
 
     serializer_class = AdvertiserSerializer
 

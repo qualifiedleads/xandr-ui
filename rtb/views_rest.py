@@ -2,7 +2,7 @@ from django.contrib.admin.templatetags.admin_list import result_headers
 from rest_framework import filters
 from rest_framework import serializers
 from rest_framework import viewsets
-from rest_framework.permissions import IsAdminUser
+from rest_framework.permissions import IsAdminUser, BasePermission
 from rest_framework.exceptions import PermissionDenied
 
 from .models import NetworkAnalyticsRaw, FrameworkUser, Advertiser, User
@@ -23,8 +23,8 @@ class AdvertiserViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         """
-        This view should return a list of all the purchases
-        for the currently authenticated user.
+        This view should return a list of all the advertisers
+        belong to currently authenticated user.
         """
         user = self.request.user
         #return Advertiser.objects.filter(purchaser=user)
@@ -56,11 +56,15 @@ class NetworkAnalyticsRawViewSet(viewsets.ModelViewSet):
     filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter, filters.SearchFilter,)
 
 
+class IsStaff(BasePermission):
+    def has_permission(self, request, view):
+        return request.user and (request.user.is_staff or request.user.is_superuser)
+
 class UsersViewSet(viewsets.ModelViewSet):
     queryset = FrameworkUser.objects.all()
     # PBKDF2PasswordHasher
     serializer_class = UsersSerializer
-    permission_classes = (IsAdminUser,)
+    permission_classes = (IsStaff,)
 
     def transform_password(self, request):
         if 'password' in request.data:

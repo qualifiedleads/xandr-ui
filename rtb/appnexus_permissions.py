@@ -24,10 +24,12 @@ def load_appnexus_permissions(user):
         user.use_appnexus_rights = False
         user.appnexus_can_write = False;
         return False
-    old_id = FrameworkUser.objects.get(pk=user.pk).apnexus_user_id
-    if user.apnexus_user_id == old_id:
-        return False
-
+    try:
+        old_id = FrameworkUser.objects.get(pk=user.pk).apnexus_user_id
+        if user.apnexus_user_id == old_id:
+            return False
+    except:
+        pass
     user.appnexus_can_write = user.apnexus_user.user_type in user_types_can_write
 
     try:
@@ -38,9 +40,9 @@ def load_appnexus_permissions(user):
                 "Authorization": token})
         response = json.loads(r.content)['response']
         user_data = response['user']
-        rights=user_data["advertiser_access"] or [user_data['advertiser_id']]
-        objs=map(lambda x:UserAdvertiserAccess(user_id=user.apnexus_user_id,advertiser_id=x),
-                 filter(None, rights))
+        rights=[x['id'] for x in (user_data.get("advertiser_access") or [])] \
+               or [user_data['advertiser_id']]
+        objs=[UserAdvertiserAccess(user_id=user.apnexus_user_id,advertiser_id=x) for x in rights if x]
         UserAdvertiserAccess.objects.filter(user_id=user.apnexus_user_id).delete()
         UserAdvertiserAccess.objects.bulk_create(objs)
 

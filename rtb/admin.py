@@ -76,8 +76,8 @@ class UserAdmin(BaseUserAdmin):
     #     return super(UserAdmin, self).save_formset(request, form, formset, change)
 
     def save_model(self, request, obj, form, change):
+        FrameworkUser.objects.get_or_create(pk=obj.pk)
         super(UserAdmin,self).save_model(request, obj, form, change)
-        self.check_existing_framework_user(obj.pk)
 
     def advertiser_permission_url(self, obj):
         url = reverse('admin:rtb_frameworkuser_change', args=(obj.pk,))

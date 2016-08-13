@@ -469,12 +469,6 @@ def load_depending_data(token):
                                        Category, False)
         print 'There is %d categories ' % len(categories)
 
-        brands = nexus_get_objects(token,
-                                   {},
-                                   Brand, False)
-                                   #{'simple': "true"})
-        print 'There is %d brands ' % len(brands)
-
         media_types = nexus_get_objects(token,
                                         {},
                                         MediaType, False)
@@ -508,11 +502,26 @@ def load_depending_data(token):
                                       Language, False)
         print 'There is %d languages ' % len(languages)
 
-        creatives = nexus_get_objects(token,
-                                      {},
-                                      Creative, False)
-        print 'There is %d creatives ' % len(creatives)
+        with transaction.atomic():
+            creatives = nexus_get_objects(token,
+                                          {},
+                                          Creative, False)
+            print 'There is %d creatives ' % len(creatives)
+            brand_ids=Creative.objects.filter(brand__name=None).values_list('brand', flat=True).distinct()
+            brands = nexus_get_objects(token,
+                                       {},
+                                       Brand, False,
+                                       #{'simple': "true"},
+                                       {'id':','.join(map(str,brand_ids)), 'simple':'true'})
+            print 'There is %d brands ' % len(brands)
+            profiles_ids = map(str,Creative.objects.filter(profile__name=None) \
+                               .values_list('profile', flat=True).distinct())
+            profiles = nexus_get_objects(token,
+                                         {},
+                                         Profile, True,
+                                         {'id':','.join(profiles_ids)})
 
+        print 'Transaction with creatives completed succefully'
         # Get all payment rules:
         for pub in []:  # publishers: There is too many publishers, disable loading depended objects
             payment_rules = nexus_get_objects(token,

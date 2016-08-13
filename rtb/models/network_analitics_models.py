@@ -88,6 +88,8 @@ class NetworkAnalyticsReport_ByPlacement(models.Model):
     view_measured_imps = models.IntegerField(null=True, blank=True)
     view_rate = models.FloatField(null=True, blank=True)
     view_measurement_rate = models.FloatField(null=True, blank=True)
+    site = models.ForeignKey("Site", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    site_name = models.TextField(null=True, blank=True)
 
     api_report_name = "network_analytics"
     direct_csv = True

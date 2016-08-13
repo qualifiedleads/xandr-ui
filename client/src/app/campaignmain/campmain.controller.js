@@ -757,45 +757,56 @@
       columns: [
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.PLACEMENT'),
-          dataField: 'placement'
+          dataField: 'placement',
+          alignment: 'center'
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.NETWORK'),
-          dataField: 'NetworkPublisher'
+          dataField: 'NetworkPublisher',
+          alignment: 'center'
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.CONV'),
-          dataField: 'conv'
+          dataField: 'conv',
+          alignment: 'center'
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.IMP'),
-          dataField: 'imp'
+          dataField: 'imp',
+          alignment: 'center'
         },{
           caption: LC('CAMP.CAMPAIGN.COLUMNS.CPA'),
-          dataField: 'cpa'
+          dataField: 'cpa',
+          alignment: 'center'
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.COST'),
-          dataField: 'cost'
+          dataField: 'cost',
+          alignment: 'center'
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.CLICKS'),
-          dataField: 'clicks'
+          dataField: 'clicks',
+          alignment: 'center'
         }, {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.CPC'),
-          dataField: 'cpc'
+          dataField: 'cpc',
+          alignment: 'center'
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.CPM'),
-          dataField: 'cpm'
+          dataField: 'cpm',
+          alignment: 'center'
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.CVR'),
-          dataField: 'cvr'
+          dataField: 'cvr',
+          alignment: 'center'
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.CTR'),
-          dataField: 'ctr'
+          dataField: 'ctr',
+          alignment: 'center'
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.IMPS_VIEWED'),

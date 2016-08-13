@@ -72,11 +72,11 @@
           dataField: 'email',
           alignment: 'center'
         },
-        {
+/*        {
           caption: LC('ADMIN.LIST-USER.USER-NAME'),
           dataField: 'username',
           alignment: 'center'
-        },
+        },*/
         {
           caption: LC('ADMIN.LIST-USER.FIRST-NAME'),
           dataField: 'first_name',
@@ -139,7 +139,7 @@
       if ( user.permission == 'adminfull' || user.permission == 'adminread' ){
         user.apnexus_user = null;
       }
-
+      user.username = user.email;
       return vm.Admin.addUser(user)
       .then(function () {
         vm.user = {};

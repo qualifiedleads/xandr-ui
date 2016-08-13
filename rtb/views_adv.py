@@ -229,6 +229,7 @@ def get_campaign_placement(campaign_id, from_date, to_date):
         cpm=Case(When(~Q(imp=0), then=F('cost') / F('imp') * 1000), output_field=FloatField()),
         cvr=Case(When(~Q(imp=0), then=F('conv') / F('imp')), output_field=FloatField()),
         ctr=Case(When(~Q(imp=0), then=F('clicks') / F('imp')), output_field=FloatField()),
+        cpa=Case(When(~Q(conv=0), then=F('cost') / F('conv')), output_field=FloatField()),
     )
     res = list(q)
     for x in res:
@@ -284,7 +285,7 @@ Field "placement" must contain name and id of placement. Id in parenthesis
         res = filter(filter_function, res)
     reverse_order = params['order'] == 'desc'
     allowed_key_names = set(
-        ["placement", "NetworkPublisher", "placementState", "cost", "conv", "imp", "clicks", "cpc", "cpm", "cvr", "ctr",
+        ["placement", "NetworkPublisher", "placementState", "cost", "conv", "imp", "clicks", "cpc", "cpm", "cvr", "ctr", "cpa",
          'imps_viewed', 'view_measured_imps', 'view_rate', 'view_measurement_rate', ])
     key_name = params['sort']
     if key_name not in allowed_key_names:

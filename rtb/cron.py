@@ -242,6 +242,8 @@ def analize_csv_direct(filename, modelClass):
     #res = modelClass.objects.raw('select * from network_analytics_report_by_placement;')
     with open(filename, 'r') as csvFile:
         fields_csv = csvFile.readline().rstrip().split(',')
+        if hasattr(modelClass,'rename_csv_fields'):
+            fields_csv = [modelClass.rename_csv_fields.get(x,x) for x in fields_csv]
         t_set = set(fields)
         t_set.discard('id')
         c_set = set(fields_csv)

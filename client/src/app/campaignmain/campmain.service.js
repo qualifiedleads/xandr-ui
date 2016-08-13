@@ -107,6 +107,7 @@
           res.data.data[index].cpc = +parseFloat(res.data.data[index].cpc).toFixed(4) || null;
           res.data.data[index].cpm = +parseFloat(res.data.data[index].cpm).toFixed(4);
           res.data.data[index].imp = +parseFloat(res.data.data[index].imp).toFixed(4);
+          res.data.data[index].cpa = +parseFloat(res.data.data[index].cpa).toFixed(4);
           res.data.data[index].clicks = +parseFloat(res.data.data[index].clicks).toFixed(4);
           res.data.data[index].conv = +parseFloat(res.data.data[index].conv).toFixed(4);
           res.data.data[index].cost = +parseFloat(res.data.data[index].cost).toFixed(2);

@@ -751,6 +751,7 @@
       allowColumnReordering: true,
       allowColumnResizing: true,
       columnAutoWidth: true,
+      wordWrapEnabled: true,
       howBorders: true,
       showRowLines: true,
       columns: [
@@ -769,6 +770,9 @@
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.IMP'),
           dataField: 'imp'
+        },{
+          caption: LC('CAMP.CAMPAIGN.COLUMNS.CPA'),
+          dataField: 'cpa'
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.COST'),
@@ -792,6 +796,30 @@
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.CTR'),
           dataField: 'ctr'
+        },
+        {
+          caption: LC('CAMP.CAMPAIGN.COLUMNS.IMPS_VIEWED'),
+          dataField: 'imps_viewed',
+          alignment: 'center',
+          width: 80
+        },
+        {
+          caption: LC('CAMP.CAMPAIGN.COLUMNS.VIEW_MEASURED_IMPS'),
+          dataField: 'view_measured_imps',
+          alignment: 'center',
+          width: 100
+        },
+        {
+          caption: LC('CAMP.CAMPAIGN.COLUMNS.VIEW_MEASUREMENT_RATE'),
+          dataField: 'view_measurement_rate',
+          alignment: 'center',
+          width: 120
+        },
+        {
+          caption: LC('CAMP.CAMPAIGN.COLUMNS.VIEW_RATE'),
+          dataField: 'view_rate',
+          alignment: 'center',
+          width: 80
         },
         {
           caption: 'State',

@@ -10,11 +10,13 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from rest_framework.authtoken.models import Token
 import datetime
+# signals
+import appnexus_permissions
 
 # Define an inline user form descriptor
 class UsersInline(admin.StackedInline):
     model = FrameworkUser
-    fields = ('apnexus_user', 'link')
+    fields = ('apnexus_user', 'permission', 'use_appnexus_rights','link')
     readonly_fields = ('link',)
     # filter_horizontal = ('advertisers',)
     can_delete = False
@@ -22,7 +24,8 @@ class UsersInline(admin.StackedInline):
 
     def link(self, obj):
         url = reverse('admin:rtb_frameworkuser_change', args=(obj.pk,))
-        return format_html("<a href='{}'>{}</a>", url, 'Change')
+        next_url = reverse('admin:auth_user_change', args=(obj.pk,))
+        return format_html("<a href='{}?next={}'>{}</a>", url, next_url, 'Change')
 
     # link.allow_tags = True
     link.short_description = 'Advertiser permissions'
@@ -74,11 +77,13 @@ class UserAdmin(BaseUserAdmin):
     #     return super(UserAdmin, self).save_formset(request, form, formset, change)
 
     def save_model(self, request, obj, form, change):
+        FrameworkUser.objects.get_or_create(pk=obj.pk)
         super(UserAdmin,self).save_model(request, obj, form, change)
-        self.check_existing_framework_user(obj.pk)
 
     def advertiser_permission_url(self, obj):
         url = reverse('admin:rtb_frameworkuser_change', args=(obj.pk,))
+        #next_url = reverse('admin:auth_user_change', args=(obj.pk,))
+        #url = '{}?next={}'.format(url,next_url)
         return format_html("<a href='{}'>{}</a>", url, 'Advertiser permissions')
 
     advertiser_permission_url.short_description = "Click to change advertiser permissions"
@@ -89,7 +94,9 @@ class UserAdmin(BaseUserAdmin):
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
 def create_auth_token(sender, instance=None, created=False, **kwargs):
     if created:
-        Token.objects.create(user=instance)
+        print 'Create new token for user',instance
+        Token.objects.get_or_create(user=instance)
+        print 'Token succefully created!'
 
 # Re-register UserAdmin
 admin.site.unregister(User)

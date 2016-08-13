@@ -5,8 +5,6 @@ import time
 import decimal
 import gc
 import json
-from trace import Trace
-
 import os
 import sys
 import traceback
@@ -232,7 +230,36 @@ def test_foreign_keys(objects_to_save, rows):
                 obj.save()
 
 
+
+def has_copy_from_support():
+    cursor = connection.cursor()
+    return hasattr(cursor, 'copy_from')
+
+_has_copy_from_support = has_copy_from_support()
+
+def analize_csv_direct(filename, modelClass):
+    fields = get_all_class_fields(modelClass)
+    #res = modelClass.objects.raw('select * from network_analytics_report_by_placement;')
+    with open(filename, 'r') as csvFile:
+        fields_csv = csvFile.readline().rstrip().split(',')
+        t_set = set(fields)
+        t_set.discard('id')
+        c_set = set(fields_csv)
+        if not set(c_set).issubset(t_set) and not hasattr(modelClass,'add_api_columns'):
+            raise Exception('analize_csv_direct not possibly: fields not match')
+        with connection.cursor() as cursor:
+            try:
+                #cursor.copy_from(csvFile, modelClass._meta.db_table,',',columns = fields_csv)
+                cursor.copy_expert('COPY "{}"({}) FROM STDOUT WITH CSV'\
+                    .format(modelClass._meta.db_table, ','.join(fields_csv)),
+                    csvFile)
+            except Exception as e:
+                print e
+
 def analize_csv(filename, modelClass, metadata={}):
+    if _has_copy_from_support and hasattr(modelClass, 'direct_csv') and modelClass.direct_csv:
+        analize_csv_direct(filename, modelClass)
+        return
     with open(filename, 'r') as csvFile:
         # dialect='excel-tab' or excel ?
         reader = csv.DictReader(csvFile, delimiter=',')
@@ -420,46 +447,32 @@ def load_depending_data(token):
                                                           {},
                                                           YieldManagementProfile, False)
             print 'There is %d yield management profiles ' % len(yield_management_profiles)
-
-            payment_rules_ids = set(x.base_payment_rule_id for x in publishers)
-            for pub in publishers:
-                print 'Publisher ', pub.name
-            payment_rules = nexus_get_objects(token,
-                                              {'id__in': payment_rules_ids},
-                                              PaymentRule,
-                                              True,
-                                              # {'publisher_id': pub.pk, 'id': pub.base_payment_rule_id}
-                                              {'id': ','.join(map(str, payment_rules_ids))}
-                                              )
-            print 'There is %d base payment rules ' % len(payment_rules)
+            payment_rules_to_load=Publisher.objects.filter(base_payment_rule_id__gt=0)\
+                .values_list('base_payment_rule_id','id').distinct()
+            print payment_rules_to_load
+            for x in payment_rules_to_load:
+                payment_rule = nexus_get_objects(token,
+                                                  {'id': x[0]},
+                                                  PaymentRule,
+                                                  True,
+                                                  {'publisher_id': x[1], 'id': x[0]}
+                                                )
+                print payment_rule
 
         companies = nexus_get_objects(token,
                                       {},
                                       Company, False)
         print 'There is %d companies ' % len(companies)
-        try:
-            zero_company = Company.objects.get(pk=0)
-        except:
-            zero_company = Company(
-                id=0,
-                name='<Unknown company>',
-                fetch_date=get_current_time())
-            zero_company.save()
 
         categories = nexus_get_objects(token,
                                        {},
                                        Category, False)
         print 'There is %d categories ' % len(categories)
-        unk_cat = Category(pk=0, name="Unknown category")
-        try:
-            unk_cat.save()
-        except:
-            pass
 
         brands = nexus_get_objects(token,
                                    {},
-                                   Brand, False,
-                                   {'simple': "true"})
+                                   Brand, False)
+                                   #{'simple': "true"})
         print 'There is %d brands ' % len(brands)
 
         media_types = nexus_get_objects(token,
@@ -598,7 +611,6 @@ def dayly_task(day=None, load_objects_from_services=True, output=None):
         file_output = open(log_file_name, 'w')
         output = file_output
     sys.stdout, sys.stderr = output, output
-    print ('NexusApp API pooling...')
     # report.get_specifed_report('network_analytics')
     try:
         token = get_auth_token()

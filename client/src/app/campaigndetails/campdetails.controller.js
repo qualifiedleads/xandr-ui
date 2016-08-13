@@ -130,10 +130,6 @@
         btn:'creative_size',
         header:'creative_size'
       },
-      viewability: {
-        btn:'viewability',
-        header:'viewability'
-      },
       os: {
         btn:'OS',
         header:'Operating System used'
@@ -248,12 +244,6 @@
       return vm.backetsRanges;
     };
 
-    // vm.cpaArrayFirst =  CampDetails.cpaBuckets(vm.backetsRanges.first.min, vm.backetsRanges.first.max);
-    // vm.cpaArraySecond =  CampDetails.cpaBuckets(vm.backetsRanges.second.min, vm.backetsRanges.second.max);
-    // vm.cpaArrayThird =  CampDetails.cpaBuckets(vm.backetsRanges.third.min, vm.backetsRanges.third.max);
-    // vm.cpaArrayFourth =  CampDetails.cpaBuckets(vm.backetsRanges.fourth.min, vm.backetsRanges.fourth.max);
-
-
     vm.pieChartAll = {
       title: {
         text: "All",
@@ -277,7 +267,6 @@
           percentPrecision: 2
         },
         customizeTooltip: function (arg) {
-          console.log(arguments);
           return {
             text: arg.argument + " - " + arg.value
           };
@@ -354,10 +343,6 @@
       caption: 'sellername',
       dataField: 'sellername'
     }];
-    vm.columnsViewability =  [{
-      caption: 'sellername',
-      dataField: 'sellername'
-    }];
     vm.columnsOs =  [{
       caption: 'sellername',
       dataField: 'sellername'
@@ -385,8 +370,6 @@
       vm.columnsSelected = vm.columnsCreativeId;
     }else if ($localStorage.selectedSection == "creative_size") {
       vm.columnsSelected = vm.columnsCreativeSize;
-    }else if ($localStorage.selectedSection == "viewability") {
-      vm.columnsSelected = vm.columnsViewability;
     }else if ($localStorage.selectedSection == "OS") {
       vm.columnsSelected = vm.columnsOs;
     }else if ($localStorage.selectedSection == "carrier") {

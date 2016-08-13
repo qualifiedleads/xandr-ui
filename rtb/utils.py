@@ -4,6 +4,9 @@ import datetime
 from pytz import utc
 import re
 import os, time
+from functools import wraps
+from django.http import HttpResponseForbidden
+from models import FrameworkUser,MembershipUserToAdvertiser, Advertiser, Campaign, UserAdvertiserAccess
 
 def clean_old_files(path):
     now = time.time()
@@ -47,7 +50,8 @@ def make_sum(dict1, dict2):
 
 one_day = datetime.timedelta(days=1)
 
-def parse_get_params(params, field_list=['campaign', 'spend', 'conv', 'imp', 'clicks', 'cpc', 'cpm', 'cvr', 'ctr']):
+def parse_get_params(params,
+                     field_list=['campaign', 'spend', 'conv', 'imp', 'clicks', 'cpc', 'cpm', 'cvr', 'ctr','view_measured_imps', 'view_rate', 'view_measurement_rate']):
     res = {}
     field_list_re = '|'.join(field_list)
     try:
@@ -92,3 +96,40 @@ def parse_get_params(params, field_list=['campaign', 'spend', 'conv', 'imp', 'cl
         res['filter'] = ''
     res['section']=params.get('section','placement')
     return res
+
+def check_user_advertiser_permissions(**field_names):
+    def actual_decorator(func):
+        @wraps(func)
+        def new_func(request, *args, **kwargs):
+            try:
+                user = request.user
+                assert user.is_authenticated()
+                advertiser_id = request.GET.get('advertiser_id') or \
+                                ('advertiser_id_num' in field_names and args[field_names['advertiser_id_num']]) or \
+                                ('advertiser_id_name' in field_names and kwargs[field_names['advertiser_id_name']])
+                if not advertiser_id:
+                    campaign_id = request.GET.get('campaign_id') or \
+                                  ('campaign_id_num' in field_names and args[field_names['campaign_id_num']]) or \
+                                  ('campaign_id_name' in field_names and kwargs[field_names['campaign_id_name']])
+                    camp = Campaign.objects.get(pk=campaign_id)
+                    advertiser_id = camp.advertiser_id
+                check_write = field_names.get('check_write')
+                assert not(user.is_staff and check_write)
+                if not user.is_superuser:
+                    if user.frameworkuser \
+                            and user.frameworkuser.apnexus_user_id \
+                            and user.frameworkuser.use_appnexus_rights:
+                        assert not check_write or user.frameworkuser.appnexus_can_write
+                        filter_param = {'user_id':user.frameworkuser.apnexus_user_id,'advertiser_id':advertiser_id}
+                        membership_info = UserAdvertiserAccess.objects.filter(**filter_param)
+                    else:
+                        filter_param={'frameworkuser_id':user.pk, 'advertiser_id':advertiser_id}
+                        if check_write:
+                            filter_param['can_write']=True;
+                        membership_info = MembershipUserToAdvertiser.objects.filter(filter_param)
+                    assert membership_info.exists()
+                return func(request, *args, **kwargs)
+            except:
+                return HttpResponseForbidden()
+        return new_func
+    return actual_decorator

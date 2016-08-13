@@ -21,7 +21,6 @@
     }
 
     function usersList() {
-
       return $http({
         method: 'GET',
         headers: { 'Authorization': 'Token ' + $cookies.get('token') },
@@ -29,7 +28,6 @@
       })
       .then(function (res) {
         return res.data;
-
       });
     }
 
@@ -42,12 +40,10 @@
       })
       .then(function (res) {
         return res.data;
-
       });
     }
 
     function usersRemove(id) {
-
       return $http({
         method: 'DELETE',
         url: '/api/v1/user/' + id,

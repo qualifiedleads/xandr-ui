@@ -96,11 +96,16 @@
           "SPENT":"Потрачено",
           "CONV":"Конв",
           "IMP":"Показы",
+          "CPA":"CPA",
           "CLICKS":"Клики",
           "CPC":"CPC",
           "CPM":"CPM",
           "CVR":"CVR",
           "CTR":"CTR",
+          "IMPS_VIEWED":"Visible imp",
+          "VIEW_MEASURED_IMPS":"Measured imp",
+          "VIEW_MEASUREMENT_RATE":"View measurement rate",
+          "VIEW_RATE":"View rate",
           "STATS":"Стат"
         }
       },
@@ -135,11 +140,16 @@
           "CONV":"Конв",
           "COST":"Стоимость",
           "IMP":"Показы",
+          "CPA":"CPA",
           "CLICKS":"Клики",
           "CPC":"CPC",
           "CPM":"CPM",
           "CVR":"CVR",
           "CTR":"CTR",
+          "IMPS_VIEWED":"Visible imp",
+          "VIEW_MEASURED_IMPS":"Measured imp",
+          "VIEW_MEASUREMENT_RATE":"View measurement rate",
+          "VIEW_RATE":"View rate",
           "STATS":"Стат"
         }
       }

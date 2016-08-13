@@ -59,14 +59,12 @@
 
     function submitForm(user) {
       if (user || user.email && user.password) {
-        $cookies.remove('csrftoken');
-        $cookies.remove('sessionid');
         $cookies.remove('permission');
+        $cookies.remove('token');
         return vm.Auth.authorization(user).then(function (res) {
           if (res.status == 200) {
             $localStorage.$reset();
             $cookies.put('token', res.data.token);
-            res.data.permission = 'adminfull';
             $cookies.put('permission', res.data.permission);
             if ((res.data.token) && ((res.data.permission == 'adminfull') || (res.data.permission == 'adminread'))) {
               $window.$('.reg-form-wrapper')[0].classList.add('hide');

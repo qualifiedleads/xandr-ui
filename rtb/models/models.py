@@ -118,7 +118,7 @@ class FrameworkUser(DjangoUser):
     def save(self,  *args, **kwargs):
         self.is_superuser = self.is_superuser or self.permission=='adminfull'
         self.is_staff = self.is_staff or self.permission=='adminread'
-        super(self, FrameworkUser).save(*args, **kwargs)
+        super(FrameworkUser, self).save(*args, **kwargs)
 
     @property
     def name(self):

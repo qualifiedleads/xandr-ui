@@ -242,12 +242,10 @@ def analize_csv_direct(filename, modelClass):
     #res = modelClass.objects.raw('select * from network_analytics_report_by_placement;')
     with open(filename, 'r') as csvFile:
         fields_csv = csvFile.readline().rstrip().split(',')
-        if hasattr(modelClass,'rename_csv_fields'):
-            fields_csv = [modelClass.rename_csv_fields.get(x,x) for x in fields_csv]
         t_set = set(fields)
         t_set.discard('id')
         c_set = set(fields_csv)
-        if not set(c_set).issubset(t_set):
+        if not set(c_set).issubset(t_set) and not hasattr(modelClass,'add_api_columns'):
             raise Exception('analize_csv_direct not possibly: fields not match')
         with connection.cursor() as cursor:
             try:
@@ -458,7 +456,8 @@ def load_depending_data(token):
                                               # {'publisher_id': pub.pk, 'id': pub.base_payment_rule_id}
                                               {'id': ','.join(map(str, payment_rules_ids))}
                                               )
-            print 'There is %d base payment rules ' % len(payment_rules)
+            if payment_rules!=payment_rules_ids:
+                print 'These base payment rules not loaded (id list)', ','.join(payment_rules-payment_rules_ids)
 
         companies = nexus_get_objects(token,
                                       {},

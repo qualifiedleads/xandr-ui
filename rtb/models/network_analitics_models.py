@@ -152,7 +152,6 @@ class NetworkCarrierReport_Simple(models.Model, PostLoadMix, TransformMix):
 
     api_report_name='network_carrier_analytics'
     add_api_columns = ('media_type',)
-    rename_csv_fields ={'media_type':'media_type_name'}
     direct_csv = True
 
     class Meta:

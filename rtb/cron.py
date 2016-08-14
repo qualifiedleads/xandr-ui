@@ -507,14 +507,14 @@ def load_depending_data(token):
                                           {},
                                           Creative, False)
             print 'There is %d creatives ' % len(creatives)
-            brand_ids=Creative.objects.filter(brand__name=None).values_list('brand', flat=True).distinct()
+            brand_ids=Creative.objects.filter(brand__name=None, brand_id__gt=0).values_list('brand', flat=True).distinct()
+            print 'Brand ids:', brand_ids
             brands = nexus_get_objects(token,
                                        {},
-                                       Brand, False,
-                                       #{'simple': "true"},
+                                       Brand, True,
                                        {'id':','.join(map(str,brand_ids)), 'simple':'true'})
             print 'There is %d brands ' % len(brands)
-            profiles_ids = map(str,Creative.objects.filter(profile__name=None) \
+            profiles_ids = map(str,Creative.objects.filter(profile__code=None, profile_id__gt=0) \
                                .values_list('profile', flat=True).distinct())
             profiles = nexus_get_objects(token,
                                          {},

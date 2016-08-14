@@ -2,7 +2,8 @@ import itertools, time, datetime, re, decimal, filter_func
 from urllib import addbase
 
 from django.http import JsonResponse
-from django.db.models import Avg, Count, Sum
+from django.db.models import Sum, Min, Max, Avg, Value, When, Case, F, Q, Func, FloatField
+from django.db.models.functions import Coalesce
 from models import SiteDomainPerformanceReport, Campaign, GeoAnaliticsReport
 from django.core.cache import cache
 from pytz import utc
@@ -118,7 +119,7 @@ def get_campaigns_data(advertiser_id, from_date, to_date):
 
 
 @api_view()
-@check_user_advertiser_permissions()
+# @check_user_advertiser_permissions()
 @parser_classes([FormParser, MultiPartParser])
 def campaigns(request):
     """

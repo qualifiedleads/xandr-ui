@@ -2,7 +2,7 @@ from django.contrib.admin.templatetags.admin_list import result_headers
 from rest_framework import filters
 from rest_framework import serializers
 from rest_framework import viewsets
-from rest_framework.permissions import IsAdminUser, BasePermission
+from rest_framework.permissions import IsAdminUser, BasePermission, SAFE_METHODS
 from rest_framework.exceptions import PermissionDenied
 
 from .models import NetworkAnalyticsRaw, FrameworkUser, Advertiser, User, UserAdvertiserAccess
@@ -63,15 +63,19 @@ class NetworkAnalyticsRawViewSet(viewsets.ModelViewSet):
     filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter, filters.SearchFilter,)
 
 
-class IsStaff(BasePermission):
+class AdminTaskPermission(BasePermission):
     def has_permission(self, request, view):
-        return request.user and (request.user.is_staff or request.user.is_superuser)
+        if not(request.user and request.user.is_authenticated() \
+               and (request.user.is_staff or request.user.is_superuser)):
+            return False
+        return request.method in SAFE_METHODS or request.user.is_superuser
+
 
 class UsersViewSet(viewsets.ModelViewSet):
     queryset = FrameworkUser.objects.all()
     # PBKDF2PasswordHasher
     serializer_class = UsersSerializer
-    permission_classes = (IsStaff,)
+    permission_classes = (AdminTaskPermission,)
 
     # def get_permissions(self):
     #     return (IsStaff() if self.request.method == 'POST'
@@ -84,20 +88,14 @@ class UsersViewSet(viewsets.ModelViewSet):
                 request.data['password'] = make_password(password)
 
     def create(self, request, *args, **kwargs):
-        if not request.user.is_superuser:
-            raise PermissionDenied('For create new users, current user must be a superuser');
         self.transform_password(request)
         return super(UsersViewSet, self).create(request, *args, **kwargs)
 
     def update(self, request, *args, **kwargs):
-        if not request.user.is_superuser:
-            raise PermissionDenied('For update users data, current user must be a superuser');
         self.transform_password(request)
         return super(UsersViewSet, self).update(request, *args, **kwargs)
 
     def partial_update(self, request, *args, **kwargs):
-        if not request.user.is_superuser:
-            raise PermissionDenied('For update users data, current user must be a superuser');
         self.transform_password(request)
         return super(UsersViewSet, self).partial_update(request, *args, **kwargs)
 

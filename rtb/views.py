@@ -62,8 +62,8 @@ def calc_another_fields(obj):
         res['cpm'] = float(obj["spend"]) / obj['imp'] * 1000 if obj['imp'] else 0
         res['cvr'] = float(res["conv"]) / obj['imp'] if obj['imp'] else 0
         res['ctr'] = float(obj["clicks"]) / obj['imp'] if obj['imp'] else 0
-        res['view_rate'] = float(obj['imps_viewed']) / obj['view_measured_imps'] if obj['view_measured_imps'] else 0
-        res['view_measurement_rate'] = float(obj['view_measured_imps']) / obj['imp'] if obj['imp'] else 0
+        res['view_rate'] = 100.0 * float(obj['imps_viewed']) / obj['view_measured_imps'] if obj['view_measured_imps'] else 0
+        res['view_measurement_rate'] = 100.0 * float(obj['view_measured_imps']) / obj['imp'] if obj['imp'] else 0
     except:
         pass
     res.pop('conv_click', None)

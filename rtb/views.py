@@ -119,7 +119,7 @@ def get_campaigns_data(advertiser_id, from_date, to_date):
 
 
 @api_view()
-# @check_user_advertiser_permissions()
+@check_user_advertiser_permissions()
 @parser_classes([FormParser, MultiPartParser])
 def campaigns(request):
     """

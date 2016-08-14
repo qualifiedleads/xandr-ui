@@ -253,7 +253,7 @@ def get_campaign_placement(campaign_id, from_date, to_date):
 
 
 @api_view()
-#@check_user_advertiser_permissions(campaign_id_num=0)
+@check_user_advertiser_permissions(campaign_id_num=0)
 def campaignDomains(request, id):
     """
 Get single campaign details by domains

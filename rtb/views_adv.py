@@ -227,11 +227,11 @@ def get_campaign_placement(campaign_id, from_date, to_date):
         imps_viewed=Sum('imps_viewed'),
         view_measured_imps=Sum('view_measured_imps'),
     ).annotate(
-        cpc=Case(When(~Q(clicks=0), then=F('cost') / F('clicks')), output_field=FloatField()),
-        cpm=Case(When(~Q(imp=0), then=F('cost') / F('imp') * 1000), output_field=FloatField()),
-        cvr=Case(When(~Q(imp=0), then=F('conv') / F('imp')), output_field=FloatField()),
-        ctr=Case(When(~Q(imp=0), then=F('clicks') / F('imp')), output_field=FloatField()),
-        cpa=Case(When(~Q(conv=0), then=F('cost') / F('conv')), output_field=FloatField()),
+        cpc=Case(When(~Q(clicks=0), then=1.0 * F('cost') / F('clicks')), output_field=FloatField()),
+        cpm=Case(When(~Q(imp=0), then=1.0 * F('cost') / F('imp') * 1000), output_field=FloatField()),
+        cvr=Case(When(~Q(imp=0), then=1.0 * F('conv') / F('imp')), output_field=FloatField()),
+        ctr=Case(When(~Q(imp=0), then=1.0 * F('clicks') / F('imp')), output_field=FloatField()),
+        cpa=Case(When(~Q(conv=0), then=1.0 * F('cost') / F('conv')), output_field=FloatField()),
         view_rate=Case(When(~Q(view_measured_imps=0), then=100.0 * F('imps_viewed') / F('view_measured_imps')), output_field=FloatField()),
         view_measurement_rate=Case(When(~Q(imp=0), then=100.0 * F('view_measured_imps') / F('imp')), output_field=FloatField()),
     )

@@ -232,8 +232,8 @@ def get_campaign_placement(campaign_id, from_date, to_date):
         cvr=Case(When(~Q(imp=0), then=F('conv') / F('imp')), output_field=FloatField()),
         ctr=Case(When(~Q(imp=0), then=F('clicks') / F('imp')), output_field=FloatField()),
         cpa=Case(When(~Q(conv=0), then=F('cost') / F('conv')), output_field=FloatField()),
-        view_rate=Case(When(~Q(view_measured_imps=0), then=100.0 * float(F('imps_viewed')) / F('view_measured_imps')), output_field=FloatField()),
-        view_measurement_rate=Case(When(~Q(imp=0), then=100.0 * float(F('view_measured_imps')) / F('imp')), output_field=FloatField()),
+        view_rate=Case(When(~Q(view_measured_imps=0), then=100.0 * F('imps_viewed') / F('view_measured_imps')), output_field=FloatField()),
+        view_measurement_rate=Case(When(~Q(imp=0), then=100.0 * F('view_measured_imps') / F('imp')), output_field=FloatField()),
     )
     res = list(q)
     for x in res:

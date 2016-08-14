@@ -234,7 +234,8 @@ def nexus_get_objects(
         params,
         object_class,
         force_update=False,
-        get_params=None):
+        get_params=None,
+        new_objects=None):
     if not token:
         token = get_auth_token()
     if not get_params:
@@ -325,6 +326,8 @@ def nexus_get_objects(
             if not object_db:
                 object_db = object_class()
                 objects_in_db.append(object_db)
+                if new_objects and hasattr(new_objects,'append'):
+                    new_objects.append(object_db)
             update_object_from_dict(object_db, i)
             if hasattr(object_db, "fetch_date"):
                 object_db.fetch_date = current_date

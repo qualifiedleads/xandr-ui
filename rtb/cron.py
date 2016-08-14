@@ -503,23 +503,29 @@ def load_depending_data(token):
         print 'There is %d languages ' % len(languages)
 
         with transaction.atomic():
-            creatives = nexus_get_objects(token,
-                                          {},
-                                          Creative, False)
-            print 'There is %d creatives ' % len(creatives)
-            brand_ids=Creative.objects.filter(brand__name=None, brand_id__gt=0).values_list('brand', flat=True).distinct()
-            print 'Brand ids:', brand_ids
+            nexus_get_objects(token,
+                              {},
+                              Creative, False)
+            brand_ids = set(Creative.objects.filter(brand_id__isnull=False) \
+                               .values_list('brand', flat=True).distinct())
+            exiting_brands = set(Brand.objects.values_list('id', flat=True))
+
+            print 'Creatives loaded'
+            ids_list = map(str,brand_ids-exiting_brands)
+            print 'Brand ids:', ids_list
             brands = nexus_get_objects(token,
                                        {},
                                        Brand, True,
-                                       {'id':','.join(map(str,brand_ids)), 'simple':'true'})
+                                       {'id':','.join(ids_list), 'simple':'true'})
             print 'There is %d brands ' % len(brands)
-            profiles_ids = map(str,Creative.objects.filter(profile__code=None, profile_id__gt=0) \
+            profiles_ids = set(Creative.objects.filter(profile_id__isnull=False) \
                                .values_list('profile', flat=True).distinct())
+            exiting_profiles = set(Profile.objects.values_list('id', flat=True))
             profiles = nexus_get_objects(token,
                                          {},
                                          Profile, True,
-                                         {'id':','.join(profiles_ids)})
+                                         {'id':','.join(map(str,profiles_ids-exiting_profiles))})
+            print 'There is %d new profiles'%len(profiles)
 
         print 'Transaction with creatives completed succefully'
         # Get all payment rules:

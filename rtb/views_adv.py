@@ -59,8 +59,8 @@ def calc_another_fields(obj):
         res['cpc'] = float(obj['mediaspent']) / obj['clicks'] if obj['clicks'] else 0
         res['cpa'] = float(obj["mediaspent"]) / res['conversions'] if res['conversions'] else 0
         res['ctr'] = float(obj["clicks"]) / obj['impression'] if obj['impression'] else 0
-        res['view_rate'] = float(obj['imps_viewed']) / obj['view_measured_imps'] if obj['view_measured_imps'] else 0
-        res['view_measurement_rate'] = float(obj['view_measured_imps']) / obj['imp'] if obj['imp'] else 0
+        res['view_rate'] = 100.0 * float(obj['imps_viewed']) / float(obj['view_measured_imps']) if obj['view_measured_imps'] else 0
+        res['view_measurement_rate'] = 100.0 * float(obj['view_measured_imps']) / float(obj['imp']) if obj['imp'] else 0
 
     except:
         pass
@@ -232,8 +232,8 @@ def get_campaign_placement(campaign_id, from_date, to_date):
         cvr=Case(When(~Q(imp=0), then=F('conv') / F('imp')), output_field=FloatField()),
         ctr=Case(When(~Q(imp=0), then=F('clicks') / F('imp')), output_field=FloatField()),
         cpa=Case(When(~Q(conv=0), then=F('cost') / F('conv')), output_field=FloatField()),
-        view_rate=Case(When(~Q(view_measured_imps=0), then=F('imps_viewed') / F('view_measured_imps')), output_field=FloatField()),
-        view_measurement_rate=Case(When(~Q(imp=0), then=F('view_measured_imps') / F('imp')), output_field=FloatField()),
+        view_rate=Case(When(~Q(view_measured_imps=0), then=100.0 * float(F('imps_viewed')) / F('view_measured_imps')), output_field=FloatField()),
+        view_measurement_rate=Case(When(~Q(imp=0), then=100.0 * float(F('view_measured_imps')) / F('imp')), output_field=FloatField()),
     )
     res = list(q)
     for x in res:

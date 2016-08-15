@@ -42,12 +42,12 @@
 
 
 
-    function bucketsCpa(id, from, to) {
+    function bucketsCpa(id, from, to, section) {
       return $http({
         method: 'GET',
         url: '/api/v1/campaigns/' + encodeURI(id) + '/cpabuckets',
         headers: { 'Authorization': 'Token ' + $cookies.get('token') },
-        params: {id:id, from_date: from, to_date: to}
+        params: {id:id, from_date: from, to_date: to, category: section}
       })
         .then(function (res) {
           return res.data;

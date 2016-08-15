@@ -84,8 +84,15 @@ class NetworkAnalyticsReport_ByPlacement(models.Model):
     clicks = models.IntegerField(null=True, blank=True)
     cost = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
     total_convs = models.IntegerField(null=True, blank=True)
+    imps_viewed = models.IntegerField(null=True, blank=True)
+    view_measured_imps = models.IntegerField(null=True, blank=True)
+    view_rate = models.FloatField(null=True, blank=True)
+    view_measurement_rate = models.FloatField(null=True, blank=True)
+    site = models.ForeignKey("Site", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    site_name = models.TextField(null=True, blank=True)
 
     api_report_name = "network_analytics"
+    direct_csv = True
 
     @classmethod
     def post_load(self, day):
@@ -147,6 +154,7 @@ class NetworkCarrierReport_Simple(models.Model, PostLoadMix, TransformMix):
 
     api_report_name='network_carrier_analytics'
     add_api_columns = ('media_type',)
+    direct_csv = True
 
     class Meta:
         db_table = "network_carrier_report_simple"
@@ -191,6 +199,7 @@ class NetworkDeviceReport_Simple(models.Model, PostLoadMix, TransformMix):
 
     api_report_name = 'network_device_analytics'
     # add_api_columns = ('media_type',)
+    direct_csv = True
 
     class Meta:
         db_table = "network_device_report_simple"

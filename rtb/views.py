@@ -2,16 +2,20 @@ import itertools, time, datetime, re, decimal, filter_func
 from urllib import addbase
 
 from django.http import JsonResponse
-from django.db.models import Avg, Count, Sum
+from django.db.models import Sum, Min, Max, Avg, Value, When, Case, F, Q, Func, FloatField
+from django.db.models.functions import Coalesce
 from models import SiteDomainPerformanceReport, Campaign, GeoAnaliticsReport
 from django.core.cache import cache
 from pytz import utc
 import operator
-from rest_framework.decorators import api_view, parser_classes
+from rest_framework.decorators import api_view, parser_classes, authentication_classes
 from rest_framework.response import Response
 from rest_framework.parsers import FormParser, MultiPartParser
+from rest_framework.authentication import TokenAuthentication
 import ast
-from utils import parse_get_params, make_sum
+from utils import parse_get_params, make_sum, check_user_advertiser_permissions
+from django.contrib.auth.decorators import login_required, user_passes_test
+
 
 def to_unix_timestamp(d):
     return str(int(time.mktime(d.timetuple())))
@@ -24,15 +28,22 @@ zero_sum = {
     'cvr': 0,
     'ctr': 0,
     'spend': 0,
-    #'media_cost': 0,
-    'conv_click':0,
-    #'post_click_convs': 0,
-    'conv_view':0,
-    #'post_view_convs': 0,
+    # 'media_cost': 0,
+    'conv_click': 0,
+    # 'post_click_convs': 0,
+    'conv_view': 0,
+    # 'post_view_convs': 0,
     'imp': 0,
-    #'imps': 0,
+    # 'imps': 0,
     'clicks': 0,
+    'imps_viewed': 0,
+    'view_measured_imps': 0,
+    'view_rate': 0,
+    'view_measurement_rate': 0,
+
 }
+
+
 def calc_another_fields(obj):
     res = {
         'conv': None,
@@ -40,6 +51,10 @@ def calc_another_fields(obj):
         'cpm': None,
         'cvr': None,
         'ctr': None,
+        # 'imps_viewed': None,
+        # 'view_measured_imps': None,
+        'view_rate': None,
+        'view_measurement_rate': None,
     }
     res.update(obj)
     try:
@@ -48,19 +63,23 @@ def calc_another_fields(obj):
         res['cpm'] = float(obj["spend"]) / obj['imp'] * 1000 if obj['imp'] else 0
         res['cvr'] = float(res["conv"]) / obj['imp'] if obj['imp'] else 0
         res['ctr'] = float(obj["clicks"]) / obj['imp'] if obj['imp'] else 0
-    except: pass
+        res['view_rate'] = 100.0 * float(obj['imps_viewed']) / obj['view_measured_imps'] if obj['view_measured_imps'] else 0
+        res['view_measurement_rate'] = 100.0 * float(obj['view_measured_imps']) / obj['imp'] if obj['imp'] else 0
+    except:
+        pass
     res.pop('conv_click', None)
     res.pop('conv_view', None)
     res.pop('campaign', None)
 
     return res
 
+
 def get_campaigns_data(advertiser_id, from_date, to_date):
-    key = '_'.join(('rtb_campaigns',str(advertiser_id), from_date.strftime('%Y-%m-%d'),to_date.strftime('%Y-%m-%d'),))
+    key = '_'.join(('rtb_campaigns', str(advertiser_id), from_date.strftime('%Y-%m-%d'), to_date.strftime('%Y-%m-%d'),))
     res = cache.get(key)
-    if res:return res
-    #no cache hit
-    #calc campaigns data
+    if res: return res
+    # no cache hit
+    # calc campaigns data
     q = SiteDomainPerformanceReport.objects.filter(
         advertiser_id=advertiser_id,
         day__gte=from_date,
@@ -79,12 +98,15 @@ def get_campaigns_data(advertiser_id, from_date, to_date):
         # cpm=Sum('media_cost')/Sum('imps')*1000, #Cost per view
         # cvr=(Sum('post_click_convs') + Sum('post_view_convs'))/Sum('imps'),
         # ctr=Sum('clicks') / Sum('imps'),
+        imps_viewed=Sum('imps_viewed'),
+        view_measured_imps=Sum('view_measured_imps'),
+
     ).order_by('campaign', 'day')
     campaigns = []
     campaign_names = dict(Campaign.objects.all().values_list('id', 'name'))
     for camp, camp_data in itertools.groupby(q, lambda x: x['campaign']):
         current_campaign = {}
-        current_campaign['id']=camp
+        current_campaign['id'] = camp
         current_campaign['chart'] = map(calc_another_fields, camp_data)
         summary = reduce(make_sum, current_campaign['chart'], zero_sum)
         summary = calc_another_fields(summary)
@@ -92,10 +114,12 @@ def get_campaigns_data(advertiser_id, from_date, to_date):
         current_campaign['campaign'] = campaign_names[camp]
         current_campaign.pop('day', None)
         campaigns.append(current_campaign)
-    cache.set(key,campaigns)
+    cache.set(key, campaigns)
     return campaigns
 
+
 @api_view()
+@check_user_advertiser_permissions()
 @parser_classes([FormParser, MultiPartParser])
 def campaigns(request):
     """
@@ -123,30 +147,33 @@ Get campaigns data for given period
     + stat_by (string, optional) - statistic fields to select
         + Format: comma separated
         + Example: impressions,cpa,cpc
+        + Full field list:campaign, spend, conv, imp, clicks, cpc, cpm, cvr, ctr,view_measured_imps, view_rate, view_measurement_rate
+
     + filter (string, optional) - filter data by several fields
         + Format: special filter language
         + Example: TODO
 
     """
     params = parse_get_params(request.GET)
-    result = get_campaigns_data(params['advertiser_id'],params['from_date'],params['to_date'])
-    #apply filter
+    result = get_campaigns_data(params['advertiser_id'], params['from_date'], params['to_date'])
+    # apply filter
     if params['filter']:
         filter_function = filter_func.get_filter_function(params['filter'])
-        result = filter(filter_function,result)
+        result = filter(filter_function, result)
 
     totalCount = len(result)
 
     reverse_order = params['order'] == 'desc'
-    if params['sort']!='campaign':
+    if params['sort'] != 'campaign':
         result.sort(key=lambda camp: camp[params['sort']], reverse=reverse_order)
-    result=result[params['skip']:params['skip']+params['take']]
+    result = result[params['skip']:params['skip'] + params['take']]
     if result:
         if params['stat_by']:
             enabled_fields = set(params['stat_by'])
             # if 'day' not in enabled_fields:
             # enabled_fields.add('day')
-            all_fields = set(('conv', 'ctr', 'cpc', 'cvr', 'clicks', 'imp', 'spend', 'cpm'))  # ,'day')
+            all_fields = set(('conv', 'ctr', 'cpc', 'cvr', 'clicks', 'imp', 'spend', 'cpm', 'imps_viewed',
+                              'view_measured_imps', 'view_rate', 'view_measurement_rate',))  # ,'day')
             remove_fields = all_fields - enabled_fields
             for camp in result:
                 for point in camp['chart']:
@@ -161,12 +188,12 @@ Get campaigns data for given period
 
 
 def get_days_data(advertiser_id, from_date, to_date):
-    key = '_'.join(('rtb_days',str(advertiser_id), from_date.strftime('%Y-%m-%d'),to_date.strftime('%Y-%m-%d'),))
+    key = '_'.join(('rtb_days', str(advertiser_id), from_date.strftime('%Y-%m-%d'), to_date.strftime('%Y-%m-%d'),))
     res = cache.get(key)
-    if res:return res
+    if res: return res
     res = {}
-    #no cache hit
-    #calc day data
+    # no cache hit
+    # calc day data
     q = SiteDomainPerformanceReport.objects.filter(
         advertiser_id=advertiser_id,
         day__gte=from_date,
@@ -177,6 +204,8 @@ def get_days_data(advertiser_id, from_date, to_date):
         conv_view=Sum('post_view_convs'),
         imp=Sum('imps'),
         clicks=Sum('clicks'),
+        imps_viewed=Sum('imps_viewed'),
+        view_measured_imps=Sum('view_measured_imps'),
     ).order_by('day')
     days = map(calc_another_fields, q)
     summary = reduce(make_sum, days, zero_sum)
@@ -184,9 +213,12 @@ def get_days_data(advertiser_id, from_date, to_date):
     summary.pop('day', None)
     res['days'] = days
     res['totals'] = summary
-    cache.set(key,res)
+    cache.set(key, res)
     return res
 
+
+@api_view()
+@check_user_advertiser_permissions()
 def totals(request):
     """
 ## Totals [/api/v1/totals?from={from_date}&to={to_date}]
@@ -203,11 +235,13 @@ def totals(request):
         + Example: 1466667274
 
     """
-    params=parse_get_params(request.GET)
-    data = get_days_data(params['advertiser_id'],params['from_date'],params['to_date'])
+    params = parse_get_params(request.GET)
+    data = get_days_data(params['advertiser_id'], params['from_date'], params['to_date'])
     return JsonResponse({"totals": data['totals']})
 
 
+@api_view()
+@check_user_advertiser_permissions()
 def statistics(request):
     """
 ## Statistics [/api/v1/statistics?from={from_date}&to={to_date}&by={by}]
@@ -227,19 +261,22 @@ def statistics(request):
         + Example: impressions,cpa,cpc
     """
     print 'Begin statistics'
-    params=parse_get_params(request.GET)
-    data = get_days_data(params['advertiser_id'],params['from_date'],params['to_date'])['days']
+    params = parse_get_params(request.GET)
+    data = get_days_data(params['advertiser_id'], params['from_date'], params['to_date'])['days']
     print len(data)
     print params['stat_by']
     if params['stat_by'] and data:
-        entries_to_remove = set(data[0])-set(params['stat_by'])
+        entries_to_remove = set(data[0]) - set(params['stat_by'])
         entries_to_remove.remove('day')
         print 'Fields to remove', entries_to_remove
         for camp in data:
             for f in entries_to_remove:
-                camp.pop(f,None)
-    return JsonResponse({'statistics':data})
+                camp.pop(f, None)
+    return JsonResponse({'statistics': data})
 
+
+@api_view()
+@check_user_advertiser_permissions()
 def map_clicks(request):
     """
 ## Map of clicks [/api/v1/map/clicks?from={from_date}&to={to_date}]
@@ -256,7 +293,7 @@ def map_clicks(request):
         + Example: 1466667274
 
     """
-    params=parse_get_params(request.GET)
+    params = parse_get_params(request.GET)
     q = GeoAnaliticsReport.objects.filter(
         advertiser_id=params['advertiser_id'],
         day__gte=params['from_date'],

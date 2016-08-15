@@ -751,47 +751,86 @@
       allowColumnReordering: true,
       allowColumnResizing: true,
       columnAutoWidth: true,
+      wordWrapEnabled: true,
       howBorders: true,
       showRowLines: true,
       columns: [
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.PLACEMENT'),
-          dataField: 'placement'
+          dataField: 'placement',
+          alignment: 'center'
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.NETWORK'),
-          dataField: 'NetworkPublisher'
+          dataField: 'NetworkPublisher',
+          alignment: 'center'
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.CONV'),
-          dataField: 'conv'
+          dataField: 'conv',
+          alignment: 'center'
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.IMP'),
-          dataField: 'imp'
+          dataField: 'imp',
+          alignment: 'center'
+        },{
+          caption: LC('CAMP.CAMPAIGN.COLUMNS.CPA'),
+          dataField: 'cpa',
+          alignment: 'center'
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.COST'),
-          dataField: 'cost'
+          dataField: 'cost',
+          alignment: 'center'
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.CLICKS'),
-          dataField: 'clicks'
+          dataField: 'clicks',
+          alignment: 'center'
         }, {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.CPC'),
-          dataField: 'cpc'
+          dataField: 'cpc',
+          alignment: 'center'
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.CPM'),
-          dataField: 'cpm'
+          dataField: 'cpm',
+          alignment: 'center'
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.CVR'),
-          dataField: 'cvr'
+          dataField: 'cvr',
+          alignment: 'center'
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.CTR'),
-          dataField: 'ctr'
+          dataField: 'ctr',
+          alignment: 'center'
+        },
+        {
+          caption: LC('CAMP.CAMPAIGN.COLUMNS.IMPS_VIEWED'),
+          dataField: 'imps_viewed',
+          alignment: 'center',
+          width: 80
+        },
+        {
+          caption: LC('CAMP.CAMPAIGN.COLUMNS.VIEW_MEASURED_IMPS'),
+          dataField: 'view_measured_imps',
+          alignment: 'center',
+          width: 100
+        },
+        {
+          caption: LC('CAMP.CAMPAIGN.COLUMNS.VIEW_MEASUREMENT_RATE'),
+          dataField: 'view_measurement_rate',
+          alignment: 'center',
+          width: 120
+        },
+        {
+          caption: LC('CAMP.CAMPAIGN.COLUMNS.VIEW_RATE'),
+          dataField: 'view_rate',
+          alignment: 'center',
+          width: 80
         },
         {
           caption: 'State',

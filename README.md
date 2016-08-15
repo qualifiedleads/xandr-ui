@@ -7,7 +7,7 @@ pip install -r requirements.txt
 python manage.py runserver
 
 2. Migrating tables
-python manage.py makemigrations rtb
+
 python manage.py migrate
 
 3. Shedule jobs
@@ -28,4 +28,9 @@ python manage.py loadreportdata 2016-05-31
 
 6. Create service table for cache:
 python manage.py createcachetable rtb_cache_table
+
+7. For create superuser, run
+python manage.py createsuperuser
+
+
 ````

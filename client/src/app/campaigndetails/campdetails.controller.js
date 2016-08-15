@@ -6,7 +6,7 @@
     .controller('CampaignDetailsController', CampaignDetailsController);
 
   /** @ngInject */
-  function CampaignDetailsController($window, $state, $localStorage, $translate, CampDetails, Campaign) {
+  function CampaignDetailsController($window, $state, $localStorage, $translate, CampDetails, ChartDetails, Campaign) {
     var vm = this;
     vm.Camp = CampDetails;
     vm.multipleTotalCount = 0;
@@ -15,17 +15,14 @@
     var LC = $translate.instant;
     vm.campName = Campaign.campaign;
     vm.campId = Campaign.id;
-
+    vm.cpaResult = [];
 
     vm.detailsStoreAll = new $window.DevExpress.data.CustomStore({
       totalCount: function () {
         return 0;
       },
       load: function () {
-        return vm.Camp.detailsStoreAll(vm.campId, vm.dataStart, vm.dataEnd, $localStorage.selectedSection)
-          .then(function (result) {
-            return result.all;
-          });
+        return ChartDetails.all;
       }
     });
 
@@ -34,10 +31,7 @@
         return 0;
       },
       load: function () {
-        return vm.Camp.detailsStoreAll(vm.campId, vm.dataStart, vm.dataEnd, $localStorage.selectedSection)
-          .then(function (result) {
-            return result.conversions;
-          });
+        return ChartDetails.conversions;
       }
     });
 
@@ -46,12 +40,13 @@
         return 0;
       },
       load: function () {
-        return vm.Camp.bucketsCpa(vm.campId, vm.dataStart, vm.dataEnd)
+        return vm.Camp.bucketsCpa(vm.campId, $localStorage.dataStart, $localStorage.dataEnd, $localStorage.selectedSection)
           .then(function (result) {
+            vm.cpaResult = result;
             var arrFirst = [];
-            for(var i=0; i<result.length; i++) {
-              if(+result[i].cpa>=vm.backetsRanges.first.min && +result[i].cpa<vm.backetsRanges.first.max) {
-                arrFirst.push(result[i]);
+            for(var i=0; i<vm.cpaResult.length; i++) {
+              if(+vm.cpaResult[i].cpa>=vm.backetsRanges.first.min && +vm.cpaResult[i].cpa<vm.backetsRanges.first.max) {
+                arrFirst.push(vm.cpaResult[i]);
               }
             }
             return arrFirst;
@@ -64,16 +59,14 @@
         return 0;
       },
       load: function () {
-        return vm.Camp.bucketsCpa(vm.campId, vm.dataStart, vm.dataEnd)
-          .then(function (result) {
             var arrFirst = [];
-            for(var i=0; i<result.length; i++) {
-              if(+result[i].cpa>=vm.backetsRanges.second.min && +result[i].cpa<vm.backetsRanges.second.max) {
-                arrFirst.push(result[i]);
+            for(var i=0; i<vm.cpaResult.length; i++) {
+              if(+vm.cpaResult[i].cpa>=vm.backetsRanges.second.min && + vm.cpaResult[i].cpa<vm.backetsRanges.second.max) {
+                arrFirst.push(vm.cpaResult[i]);
               }
             }
             return arrFirst;
-          });
+
       }
     });
 
@@ -82,16 +75,15 @@
         return 0;
       },
       load: function () {
-        return vm.Camp.bucketsCpa(vm.campId, vm.dataStart, vm.dataEnd)
-          .then(function (result) {
+
             var arrFirst = [];
-            for(var i=0; i<result.length; i++) {
-              if(+result[i].cpa>=vm.backetsRanges.third.min && +result[i].cpa<vm.backetsRanges.third.max) {
-                arrFirst.push(result[i]);
+            for(var i=0; i<vm.cpaResult.length; i++) {
+              if(+vm.cpaResult[i].cpa>=vm.backetsRanges.third.min && +vm.cpaResult[i].cpa<vm.backetsRanges.third.max) {
+                arrFirst.push(vm.cpaResult[i]);
               }
             }
             return arrFirst;
-          });
+
       }
     });
 
@@ -100,16 +92,15 @@
         return 0;
       },
       load: function () {
-        return vm.Camp.bucketsCpa(vm.campId, vm.dataStart, vm.dataEnd)
-          .then(function (result) {
+
             var arrFirst = [];
-            for(var i=0; i<result.length; i++) {
-              if(+result[i].cpa>=vm.backetsRanges.fourth.min && +result[i].cpa<vm.backetsRanges.fourth.max) {
-                arrFirst.push(result[i]);
+            for(var i=0; i<vm.cpaResult.length; i++) {
+              if(+vm.cpaResult[i].cpa>=vm.backetsRanges.fourth.min && +vm.cpaResult[i].cpa<vm.backetsRanges.fourth.max) {
+                arrFirst.push(vm.cpaResult[i]);
               }
             }
             return arrFirst;
-          });
+
       }
     });
 
@@ -129,10 +120,6 @@
       creativeSize: {
         btn:'creative_size',
         header:'creative_size'
-      },
-      viewability: {
-        btn:'viewability',
-        header:'viewability'
       },
       os: {
         btn:'OS',
@@ -178,7 +165,7 @@
     vm.selectInfoBtn = function ($event, value) {
       vm.pieChartHeader = value;
       $localStorage.pieChartHeader = vm.pieChartHeader;
-
+      //vm.selectedSection = $localStorage.selectedSection;
       Array.prototype.forEach.call(vm.btnsNodesArray, function(node) {
         if(node.classList.contains('nav-btn-active')){
           node.classList.remove('nav-btn-active');
@@ -186,6 +173,12 @@
       });
       $localStorage.pieChartHeader = vm.pieChartHeader;
       $event.currentTarget.classList.add('nav-btn-active');
+
+      for(var key in vm.ctrlBbtns) {
+        if (vm.ctrlBbtns[key].header == vm.pieChartHeader) {
+          $localStorage.selectedSection = vm.ctrlBbtns[key].btn;
+        }
+      }
 
       $state.reload();
     };
@@ -248,12 +241,6 @@
       return vm.backetsRanges;
     };
 
-    // vm.cpaArrayFirst =  CampDetails.cpaBuckets(vm.backetsRanges.first.min, vm.backetsRanges.first.max);
-    // vm.cpaArraySecond =  CampDetails.cpaBuckets(vm.backetsRanges.second.min, vm.backetsRanges.second.max);
-    // vm.cpaArrayThird =  CampDetails.cpaBuckets(vm.backetsRanges.third.min, vm.backetsRanges.third.max);
-    // vm.cpaArrayFourth =  CampDetails.cpaBuckets(vm.backetsRanges.fourth.min, vm.backetsRanges.fourth.max);
-
-
     vm.pieChartAll = {
       title: {
         text: "All",
@@ -277,9 +264,8 @@
           percentPrecision: 2
         },
         customizeTooltip: function (arg) {
-          console.log(arguments);
           return {
-            text: arg.argument + " - " + arg.value
+            text: arg.argument + " - " + arg.value + '%'
           };
         }
       },
@@ -313,7 +299,7 @@
         enabled: true,
         customizeTooltip: function (arg) {
           return {
-            text: arg.argument + " - " + arg.value
+            text: arg.argument + " - " + arg.value + '%'
           };
         }
       },
@@ -347,36 +333,53 @@
     ];
 
     vm.columnsCreativeId =  [{
-      caption: 'sellername',
-      dataField: 'sellername'
+      caption: 'creative id',
+      dataField: 'creative'
+    },{
+      caption: 'creative name',
+      dataField: 'creative_name'
     }];
+
     vm.columnsCreativeSize =  [{
-      caption: 'sellername',
-      dataField: 'sellername'
+      caption: 'size',
+      dataField: 'size'
     }];
-    vm.columnsViewability =  [{
-      caption: 'sellername',
-      dataField: 'sellername'
-    }];
+
     vm.columnsOs =  [{
-      caption: 'sellername',
-      dataField: 'sellername'
+      caption: 'operating system id',
+      dataField: 'operating_system'
+    },{
+      caption: 'operating system',
+      dataField: 'operating_system_name'
     }];
+
     vm.columnsCarrier =  [{
-      caption: 'sellername',
-      dataField: 'sellername'
+      caption: 'carrier id',
+      dataField: 'carrier'
+    },{
+      caption: 'carrier name',
+      dataField: 'carrier_name'
     }];
+
+
     vm.columnsNetworkSeller =  [{
-      caption: 'sellername',
-      dataField: 'sellername'
+      caption: 'seller member',
+      dataField: 'seller_member'
+    },{
+      caption: 'seller member name',
+      dataField: 'seller_member_name'
     }];
+
     vm.columnsConnectionType =  [{
-      caption: 'sellername',
-      dataField: 'sellername'
+      caption: 'connection type',
+      dataField: 'connection_type'
     }];
     vm.columnsDevice =  [{
-      caption: 'sellername',
-      dataField: 'sellername'
+      caption: 'device model',
+      dataField: 'device_model'
+    },{
+      caption: 'device model name',
+      dataField: 'device_model_name'
     }];
 
     if ($localStorage.selectedSection == "Placement") {
@@ -385,8 +388,6 @@
       vm.columnsSelected = vm.columnsCreativeId;
     }else if ($localStorage.selectedSection == "creative_size") {
       vm.columnsSelected = vm.columnsCreativeSize;
-    }else if ($localStorage.selectedSection == "viewability") {
-      vm.columnsSelected = vm.columnsViewability;
     }else if ($localStorage.selectedSection == "OS") {
       vm.columnsSelected = vm.columnsOs;
     }else if ($localStorage.selectedSection == "carrier") {

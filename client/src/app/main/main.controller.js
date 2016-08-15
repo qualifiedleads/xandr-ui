@@ -202,6 +202,7 @@
       allowColumnReordering: true,
       allowColumnResizing: true,
       columnAutoWidth: true,
+      wordWrapEnabled: true,
       columnChooser: {
         enabled: true
       },
@@ -225,36 +226,69 @@
             container.addClass('a-campaign');
             $window.angular.element('<a href="#/home/campaign/' + options.data.id + '">' + options.data.campaign + '</a>')
             .appendTo(container);
-          }
+          },
+          alignment: 'center'
         },
         {
           caption: LC('MAIN.CAMPAIGN.COLUMNS.SPENT'),
-          dataField: 'spend'
+          dataField: 'spend',
+          alignment: 'center'
         },
         {
           caption: LC('MAIN.CAMPAIGN.COLUMNS.CONV'),
-          dataField: 'conv'
+          dataField: 'conv',
+          alignment: 'center'
         }, {
           caption: LC('MAIN.CAMPAIGN.COLUMNS.IMP'),
-          dataField: 'imp'
+          dataField: 'imp',
+          alignment: 'center'
         }, {
           caption: LC('MAIN.CAMPAIGN.COLUMNS.CLICKS'),
-          dataField: 'clicks'
+          dataField: 'clicks',
+          alignment: 'center'
         }, {
           caption: LC('MAIN.CAMPAIGN.COLUMNS.CPC'),
-          dataField: 'cpc'
+          dataField: 'cpc',
+          alignment: 'center'
         },
         {
           caption: LC('MAIN.CAMPAIGN.COLUMNS.CPM'),
-          dataField: 'cpm'
+          dataField: 'cpm',
+          alignment: 'center'
         },
         {
           caption: LC('MAIN.CAMPAIGN.COLUMNS.CVR'),
-          dataField: 'cvr'
+          dataField: 'cvr',
+          alignment: 'center'
         },
         {
           caption: LC('MAIN.CAMPAIGN.COLUMNS.CTR'),
-          dataField: 'ctr'
+          dataField: 'ctr',
+          alignment: 'center'
+        },
+        {
+          caption: LC('MAIN.CAMPAIGN.COLUMNS.IMPS_VIEWED'),
+          dataField: 'imps_viewed',
+          alignment: 'center',
+          width: 90
+        },
+        {
+          caption: LC('MAIN.CAMPAIGN.COLUMNS.VIEW_MEASURED_IMPS'),
+          dataField: 'view_measured_imps',
+          alignment: 'center',
+          width: 100
+        },
+        {
+          caption: LC('MAIN.CAMPAIGN.COLUMNS.VIEW_MEASUREMENT_RATE'),
+          dataField: 'view_measurement_rate',
+          alignment: 'center',
+          width: 120
+        },
+        {
+          caption: LC('MAIN.CAMPAIGN.COLUMNS.VIEW_RATE'),
+          dataField: 'view_rate',
+          alignment: 'center',
+          width: 80
         },
         {
           width: 200,
@@ -346,9 +380,6 @@
 
           }
         }],
-      // selection: {
-      //   mode: 'multiple'
-      // },
       onSelectionChanged: function (data) {
         vm.selectedItems = data.selectedRowsData;
         vm.disabled = !vm.selectedItems.length;

@@ -1,0 +1,5 @@
+        imps_viewed view_measured_imps view_rate view_measurement_rate
+
+        imps_viewed=Sum('imps_viewed'),
+        view_measured_imps=Sum('view_measured_imps'),
+

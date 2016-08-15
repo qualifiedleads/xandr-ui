@@ -18,7 +18,6 @@ USER_TYPES_CHOICES = (
     ('publisher', 'publisher'),
     ('advertiser', 'advertiser'),
     ('member_advertiser', 'member_advertiser'),
-    ('member_advertiser', 'member_advertiser'),
     ('member_publisher', 'member_publisher')
 )
 
@@ -108,6 +107,18 @@ class FrameworkUser(DjangoUser):
     apnexus_user = models.ForeignKey("User", null=True, blank=True)
     advertisers = models.ManyToManyField("Advertiser", through= "MembershipUserToAdvertiser")
     # advertisers = models.ManyToManyField("Advertiser")
+    permission = models.CharField(null=True, blank=True, max_length=10,
+                                  choices=(("adminfull","Super user"),
+                                           ("adminread","Staff user"),
+                                           ("userfull","User with write rights"),
+                                           ("userread","Ordinary user")))
+    use_appnexus_rights = models.BooleanField(default=True) #, help_text='Using Appnexus user rights')
+    appnexus_can_write = models.NullBooleanField()
+
+    def save(self,  *args, **kwargs):
+        self.is_superuser = self.is_superuser or self.permission=='adminfull'
+        self.is_staff = self.is_staff or self.permission=='adminread'
+        super(FrameworkUser, self).save(*args, **kwargs)
 
     @property
     def name(self):
@@ -119,9 +130,9 @@ class FrameworkUser(DjangoUser):
     def apnexusname(self):
         return self.apnexus_user and self.apnexus_user.name
 
-    @property
-    def permission(self):
-        return get_permissions_for_user(self.pk)
+    #@property
+    #def permission(self):
+    #    return get_permissions_for_user(self.pk)
 
     def __unicode__(self):
         return self.name
@@ -4044,7 +4055,6 @@ class ClickTrackerPaymentRule(models.Model):
 
     class Meta:
         db_table = "click_tracker_payment_rule"
-
 
 class ClickTrackerFeed(models.Model):
     # https://wiki.appnexus.com/display/api/Clicktrackers+Feed

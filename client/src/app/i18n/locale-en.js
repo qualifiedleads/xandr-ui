@@ -92,15 +92,20 @@
         'COLUMNS':{
           "CAMPAIGN":"Campaign",
           "PLACEMENT": "Placement",
-          "NETWORK":"Network+Publisher",
+          "NETWORK":"Network + Publisher",
           "SPENT":"Spent",
           "CONV":"Conv",
           "IMP":"Imp",
+          "CPA":"CPA",
           "CLICKS":"Clicks",
           "CPC":"CPC",
           "CPM":"CPM",
           "CVR":"CVR",
           "CTR":"CTR",
+          "IMPS_VIEWED":"Visible imp",
+          "VIEW_MEASURED_IMPS":"Measured imp",
+          "VIEW_MEASUREMENT_RATE":"View measurement rate",
+          "VIEW_RATE":"View rate",
           "STATS":"Stats"
         }
       },
@@ -130,16 +135,21 @@
         'COLUMNS':{
           "CAMPAIGN":"Campaign",
           "PLACEMENT": "Placement",
-          "NETWORK":"Network+Publisher",
+          "NETWORK":"Network + Publisher",
           "SPENT":"Spent",
           "CONV":"Conv",
           "COST":"Cost",
           "IMP":"Imp",
+          "CPA":"CPA",
           "CLICKS":"Clicks",
           "CPC":"CPC",
           "CPM":"CPM",
           "CVR":"CVR",
           "CTR":"CTR",
+          "IMPS_VIEWED":"Visible imp",
+          "VIEW_MEASURED_IMPS":"Measured imp",
+          "VIEW_MEASUREMENT_RATE":"View measurement rate",
+          "VIEW_RATE":"View rate",
           "STATS":"Stats"
         }
       }

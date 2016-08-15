@@ -336,12 +336,33 @@ def get_campaign_detals(campaign_id, from_date, to_date, section):
                     to_date.strftime('%Y-%m-%d'), section))
     res = cache.get(key)
     if res: return res
-    table_name, field_name = section_to_db.get(section, 'placement')
+    field_name, _name,  q = get_section_query(campaign_id, from_date, to_date, section)
+    # .annotate(
+    #        ctr=Case(When(~Q(imp=0), then=F('clicks') / F('imp')), output_field=FloatField()),
+    #    )
+    results = list(q)
+    # for x in results:
+    #     if x[_name] is None or (hasattr(x[_name], 'startswith') and x[_name].startswith('Hidden')):
+    #         x[_name] = 'Hidden({})'.format(x[field_name])
+    views = sum_for_data_and_percent([{'section': x[_name], 'data': x['imp']} for x in results])
+    conversions = sum_for_data_and_percent([{'section': x[_name], 'data': x['imp']} for x in results if x['conv']])
+    res = {'all': views, 'conversions': conversions}
+    cache.set(key, res)
+    return res
+
+
+def get_section_query(campaign_id, from_date, to_date, section):
+    table_name, field_name = section_to_db.get(section)
     group_adv_fields = {
         'conv': Sum('total_convs'),
         'imp': Sum('imps'),
         'clicks': Sum('clicks'),
     }
+    try:
+        table_name._meta.get_field('cost')
+        group_adv_fields['sum_cost']=Sum('cost')
+    except:
+        pass
     # if section=='OS':
     #     group_adv_fields['conv']=Sum('post_click_convs')+Sum('post_view_convs')
     group_fields = [field_name]
@@ -361,18 +382,7 @@ def get_campaign_detals(campaign_id, from_date, to_date, section):
         filter_params['day__gte'] = from_date
         filter_params['day__lte'] = to_date
     q = table_name.objects.filter(**filter_params).values(*group_fields).annotate(**group_adv_fields)
-    # .annotate(
-    #        ctr=Case(When(~Q(imp=0), then=F('clicks') / F('imp')), output_field=FloatField()),
-    #    )
-    results = list(q)
-    for x in results:
-        if x[_name] is None or (hasattr(x[_name], 'startswith') and x[_name].startswith('Hidden')):
-            x[_name] = 'Hidden({})'.format(x[field_name])
-    views = sum_for_data_and_percent([{'section': x[_name], 'data': x['imp']} for x in results])
-    conversions = sum_for_data_and_percent([{'section': x[_name], 'data': x['imp']} for x in results if x['conv']])
-    res = {'all': views, 'conversions': conversions}
-    cache.set(key, res)
-    return res
+    return  field_name, _name, q
 
 
 @api_view()
@@ -407,31 +417,43 @@ For "conversions":
     return Response(res)
 
 
-def get_cpa_buckets(campaign_id, from_date, to_date, field_name='placement'):
+def get_cpa_buckets(campaign_id, from_date, to_date, section='placement'):
     key = '_'.join(('rtb_cpa_buckets', str(campaign_id), from_date.strftime('%Y-%m-%d'),
-                    to_date.strftime('%Y-%m-%d'), field_name))
+                    to_date.strftime('%Y-%m-%d'), section))
     res = cache.get(key)
     if res: return res
 
-    # field_name = 'placement__site'
-    # field_name='placement'
-    q = NetworkAnalyticsReport_ByPlacement.objects.filter(
-        # advertiser_id=advertiser_id,
-        campaign_id=campaign_id,
-        hour__gte=from_date,
-        hour__lte=to_date,
-    ).values(field_name).annotate(
-        conv=Sum('total_convs'),
-        sum_cost=Sum('cost'),
-        placementid=F('placement_id'),
-        placementname=F('placement__name'),
-        sellerid=F('seller_member_id'),
-        sellername=F('seller_member__name'),
-    ).annotate(
-        cpa=Case(When(~Q(conv=0), then=F('sum_cost') / F('conv')), output_field=FloatField()),
-    ).filter(
-        conv__gt=0
-    )
+    field_name, _name,  q = get_section_query(campaign_id, from_date, to_date, section)
+    table = q.model
+    if table==NetworkAnalyticsReport_ByPlacement:
+        q = q.annotate(
+            placementid=F('placement_id'),
+            placementname=F('placement__name'),
+            sellerid=F('seller_member_id'),
+            sellername=F('seller_member__name'),
+            cpa=Case(When(~Q(conv=0), then=F('sum_cost') / F('conv')), output_field=FloatField()),
+        )
+    q = q.filter(conv__gt=0)
+
+    #
+    # q = NetworkAnalyticsReport_ByPlacement.objects.filter(
+    #     # advertiser_id=advertiser_id,
+    #     campaign_id=campaign_id,
+    #     hour__gte=from_date,
+    #     hour__lte=to_date,
+    # ).values(field_name).annotate(
+    #     conv=Sum('total_convs'),
+    #     sum_cost=Sum('cost'),
+    #     placementid=F('placement_id'),
+    #     placementname=F('placement__name'),
+    #     sellerid=F('seller_member_id'),
+    #     sellername=F('seller_member__name'),
+    # ).annotate(
+    #     cpa=Case(When(~Q(conv=0), then=F('sum_cost') / F('conv')), output_field=FloatField()),
+    # ).filter(
+    #     conv__gt=0
+    # )
+
     print q.query
     res = list(q)
     for x in res:
@@ -447,7 +469,7 @@ def bucketsCPA(request, id):
     """
 Get single campaign details for given period
 
-## Url format: /api/v1/campaigns/:id/cpabuckets?from_date={from_date}&to_date={to_date}&targetcpa={targetcpa}
+## Url format: /api/v1/campaigns/:id/cpabuckets?from_date={from_date}&to_date={to_date}&category={category}
 
 + Parameters
 
@@ -460,6 +482,6 @@ Get single campaign details for given period
         + Example: 1466667274
     """
     params = parse_get_params(request.GET)
-    res = get_cpa_buckets(id, params['from_date'], params['to_date'], params['section'])
+    res = get_cpa_buckets(id, params['from_date'], params['to_date'], params['category'])
     # convs
     return Response(res)

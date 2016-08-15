@@ -94,7 +94,8 @@ def parse_get_params(params,
         res['filter'] = ' '.join(params.getlist('filter'))
     except:
         res['filter'] = ''
-    res['section']=params.get('section','placement')
+    res['section']=params.get('section','Placement')
+    res['category']=params.get('category','Placement')
     return res
 
 def check_user_advertiser_permissions(**field_names):

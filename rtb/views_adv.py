@@ -431,8 +431,11 @@ def get_cpa_buckets(campaign_id, from_date, to_date, section='placement'):
             placementname=F('placement__name'),
             sellerid=F('seller_member_id'),
             sellername=F('seller_member__name'),
-            cpa=Case(When(~Q(conv=0), then=F('sum_cost') / F('conv')), output_field=FloatField()),
+            # cpa=Case(When(~Q(conv=0), then=F('sum_cost') / F('conv')), output_field=FloatField()),
         )
+    q =q.annotate(
+    cpa=Case(When(~Q(conv=0), then=F('sum_cost') / F('conv')), output_field=FloatField()),
+    )
     q = q.filter(conv__gt=0)
 
     #

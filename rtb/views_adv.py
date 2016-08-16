@@ -5,7 +5,7 @@ from utils import parse_get_params, make_sum, check_user_advertiser_permissions
 from models import SiteDomainPerformanceReport, Campaign, GeoAnaliticsReport, NetworkAnalyticsReport_ByPlacement, \
     Placement, NetworkCarrierReport_Simple, NetworkDeviceReport_Simple
 from django.db.models import Sum, Min, Max, Avg, Value, When, Case, F, Q, Func, FloatField
-from django.db.models.functions import Coalesce
+from django.db.models.functions import Coalesce, Concat
 from django.core.cache import cache
 import itertools
 import datetime
@@ -218,7 +218,7 @@ def get_campaign_placement(campaign_id, from_date, to_date):
         hour__lte=to_date,
     ).values('placement').annotate(
         placement_name=F('placement__name'),
-        NetworkPublisher=F('publisher_name')+'/'+F('seller_member_name'),
+        NetworkPublisher=Concat(F('publisher_name'),Value('/'), F('seller_member_name')),
         placementState=F('placement__state'),
         cost=Sum('cost'),
         conv=Sum('total_convs'),

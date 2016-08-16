@@ -216,9 +216,9 @@ def get_campaign_placement(campaign_id, from_date, to_date):
         campaign_id=campaign_id,
         hour__gte=from_date,
         hour__lte=to_date,
-    ).values('placement_id').annotate(
-        placement=F('placement__name'),
-        NetworkPublisher=F('publisher_name'),
+    ).values('placement').annotate(
+        placement_name=F('placement__name'),
+        NetworkPublisher=F('publisher_name')+'/'+F('seller_member_name'),
         placementState=F('placement__state'),
         cost=Sum('cost'),
         conv=Sum('total_convs'),
@@ -237,16 +237,11 @@ def get_campaign_placement(campaign_id, from_date, to_date):
     )
     res = list(q)
     for x in res:
-        if x['placement'] is None:
-            x['placement'] = 'Hidden ({})'.format(x['placement_id'])
-        else:
-            x['placement'] = '{} ({})'.format(x['placement'], x['placement_id'])
         x['state'] = {
             "whiteList": "true",
             "blackList": "false",
             "suspended": x['placementState'] == 'inactive'
         }
-        x.pop('placement_id', None)
         x.pop('placementState', None)
     cache.set(key, res)
     return res

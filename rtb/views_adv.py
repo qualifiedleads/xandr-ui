@@ -340,9 +340,9 @@ def get_campaign_detals(campaign_id, from_date, to_date, section):
     #        ctr=Case(When(~Q(imp=0), then=F('clicks') / F('imp')), output_field=FloatField()),
     #    )
     results = list(q)
-    # for x in results:
-    #     if x[_name] is None or (hasattr(x[_name], 'startswith') and x[_name].startswith('Hidden')):
-    #         x[_name] = 'Hidden({})'.format(x[field_name])
+    if section=='Placement':
+        for x in results:
+            x[_name] = '{}/{}'.format(x[_name], x[field_name])
     views = sum_for_data_and_percent([{'section': x[_name], 'data': x['imp']} for x in results])
     conversions = sum_for_data_and_percent([{'section': x[_name], 'data': x['imp']} for x in results if x['conv']])
     res = {'all': views, 'conversions': conversions}

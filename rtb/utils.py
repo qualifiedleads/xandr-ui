@@ -129,8 +129,8 @@ def check_user_advertiser_permissions(**field_names):
                             filter_param['can_write']=True;
                         membership_info = MembershipUserToAdvertiser.objects.filter(filter_param)
                     assert membership_info.exists()
-                return func(request, *args, **kwargs)
             except:
                 return HttpResponseForbidden()
+            return func(request, *args, **kwargs)
         return new_func
     return actual_decorator

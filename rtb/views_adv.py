@@ -280,6 +280,7 @@ Get single campaign details by domains
 
 Field "placement" must contain name and id of placement. Id in parenthesis
     """
+
     params = parse_get_params(request.GET)
     if params['from_date'] > params['to_date']:
         params['from_date'], params['to_date'] = params['to_date'], params['from_date']
@@ -292,6 +293,9 @@ Field "placement" must contain name and id of placement. Id in parenthesis
         ["placement", "NetworkPublisher", "placementState", "cost", "conv", "imp", "clicks", "cpc", "cpm", "cvr", "ctr", "cpa",
          'imps_viewed', 'view_measured_imps', 'view_rate', 'view_measurement_rate', ])
     key_name = params['sort']
+    if 'sort' not in request.GET:
+        key_name = 'imp'
+        reverse_order = True
     if key_name not in allowed_key_names:
         key_name = 'placement'
     res.sort(key=lambda x: x[key_name], reverse=reverse_order)

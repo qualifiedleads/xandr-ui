@@ -742,6 +742,9 @@
       bindingOptions: {
         dataSource: 'campmain.gridStore'
       },
+      paging: {
+        pageSize: 10
+      },
       pager: {
         showPageSizeSelector: true,
         allowedPageSizes: [10, 30, 50],

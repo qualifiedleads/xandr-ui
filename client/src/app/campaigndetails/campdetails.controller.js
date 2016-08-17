@@ -201,7 +201,7 @@
       },
       fourth: {
         min: Number(vm.targetCpa * 3).toFixed(2),
-        max: Number(vm.targetCpa * 1000000).toFixed(2)
+        max: Number(vm.targetCpa * 100000).toFixed(2)
       }
     };
 
@@ -223,7 +223,7 @@
         },
         fourth: {
           min: (targetCpaInt * 3).toFixed(2),
-          max: (targetCpaInt * 1000000).toFixed(2)
+          max: (targetCpaInt * 100000).toFixed(2)
         }
       };
 

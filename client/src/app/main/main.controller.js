@@ -209,6 +209,9 @@
       columnFixing: {
         enabled: true
       },
+      paging: {
+        pageSize: 10
+      },
       pager: {
         showPageSizeSelector: true,
         allowedPageSizes: [10, 30, 50],
@@ -230,7 +233,7 @@
           alignment: 'center'
         },
         {
-          caption: LC('MAIN.CAMPAIGN.COLUMNS.SPENT'),
+          caption: LC('MAIN.CAMPAIGN.COLUMNS.SPENT')+ ' ,$',
           dataField: 'spend',
           alignment: 'center'
         },
@@ -248,22 +251,22 @@
           dataField: 'clicks',
           alignment: 'center'
         }, {
-          caption: LC('MAIN.CAMPAIGN.COLUMNS.CPC'),
+          caption: LC('MAIN.CAMPAIGN.COLUMNS.CPC')+ ' ,$',
           dataField: 'cpc',
           alignment: 'center'
         },
         {
-          caption: LC('MAIN.CAMPAIGN.COLUMNS.CPM'),
+          caption: LC('MAIN.CAMPAIGN.COLUMNS.CPM')+ ' ,$',
           dataField: 'cpm',
           alignment: 'center'
         },
         {
-          caption: LC('MAIN.CAMPAIGN.COLUMNS.CVR'),
+          caption: LC('MAIN.CAMPAIGN.COLUMNS.CVR')+ ' ,%',
           dataField: 'cvr',
           alignment: 'center'
         },
         {
-          caption: LC('MAIN.CAMPAIGN.COLUMNS.CTR'),
+          caption: LC('MAIN.CAMPAIGN.COLUMNS.CTR')+ ' ,%',
           dataField: 'ctr',
           alignment: 'center'
         },

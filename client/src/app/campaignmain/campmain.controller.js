@@ -594,7 +594,7 @@
           if (arg.seriesName === "Series 2") {
             return {
               text: "Average: $" + arg.originalValue
-            }; 
+            };
           }
           if (arg.seriesName === "Series 1") {
             return {
@@ -773,14 +773,15 @@
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.IMP'),
           dataField: 'imp',
+          sortOrder: 'desc',
           alignment: 'center'
         },{
-          caption: LC('CAMP.CAMPAIGN.COLUMNS.CPA'),
+          caption: LC('CAMP.CAMPAIGN.COLUMNS.CPA')+ ' ,$',
           dataField: 'cpa',
           alignment: 'center'
         },
         {
-          caption: LC('CAMP.CAMPAIGN.COLUMNS.COST'),
+          caption: LC('CAMP.CAMPAIGN.COLUMNS.COST')+ ' ,$',
           dataField: 'cost',
           alignment: 'center'
         },
@@ -789,22 +790,22 @@
           dataField: 'clicks',
           alignment: 'center'
         }, {
-          caption: LC('CAMP.CAMPAIGN.COLUMNS.CPC'),
+          caption: LC('CAMP.CAMPAIGN.COLUMNS.CPC')+ ' ,$',
           dataField: 'cpc',
           alignment: 'center'
         },
         {
-          caption: LC('CAMP.CAMPAIGN.COLUMNS.CPM'),
+          caption: LC('CAMP.CAMPAIGN.COLUMNS.CPM')+ ' ,$',
           dataField: 'cpm',
           alignment: 'center'
         },
         {
-          caption: LC('CAMP.CAMPAIGN.COLUMNS.CVR'),
+          caption: LC('CAMP.CAMPAIGN.COLUMNS.CVR')+ ' ,%',
           dataField: 'cvr',
           alignment: 'center'
         },
         {
-          caption: LC('CAMP.CAMPAIGN.COLUMNS.CTR'),
+          caption: LC('CAMP.CAMPAIGN.COLUMNS.CTR')+ ' ,%',
           dataField: 'ctr',
           alignment: 'center'
         },
@@ -812,24 +813,28 @@
           caption: LC('CAMP.CAMPAIGN.COLUMNS.IMPS_VIEWED'),
           dataField: 'imps_viewed',
           alignment: 'center',
+          visible: false,
           width: 80
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.VIEW_MEASURED_IMPS'),
           dataField: 'view_measured_imps',
           alignment: 'center',
+          visible: false,
           width: 100
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.VIEW_MEASUREMENT_RATE'),
           dataField: 'view_measurement_rate',
           alignment: 'center',
+          visible: false,
           width: 120
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.VIEW_RATE'),
           dataField: 'view_rate',
           alignment: 'center',
+          visible: false,
           width: 80
         },
         {
@@ -913,10 +918,16 @@
           }
         }
       ],
-      selection: {
-        mode: 'multiple',
-        showCheckBoxesMode: 'always'
+      columnChooser: {
+        enabled: true,
+        height: 180,
+        width: 400,
+        emptyPanelText: 'A place to hide the columns'
       },
+      // selection: {
+      //   mode: 'multiple',
+      //   showCheckBoxesMode: 'always'
+      // },
       onSelectionChanged: function (data) {
         vm.selectedItems = data.selectedRowsData;
         vm.disabled = !vm.selectedItems.length;

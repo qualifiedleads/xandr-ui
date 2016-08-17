@@ -15,7 +15,7 @@
         <div class="pie-chart-header"><h4>{{campdetails.pieChartHeader}}</h4></div>
         <div class="target-cpa-container">
           <div class="input-target-cpa-text">target CPA</div>
-          <input class="input-target-cpa" type="text" ng-blur="campdetails.targetCpaChange($event)" ng-keyup="$event.keyCode == 13 && campdetails.targetCpaChange($event)" ng-model="campdetails.targetCpa" maxlength="5">
+          <input class="input-target-cpa" type="text" ng-blur="campdetails.targetCpaChange($event)" ng-keyup="$event.keyCode == 13 && campdetails.targetCpaChange($event)" ng-model="campdetails.targetCpa" maxlength="4">
         </div>
       </div>
       <div class="pie-charts">
@@ -23,44 +23,26 @@
         <div class="chart-container" dx-pie-chart="campdetails.pieChartConversions"></div>
       </div>
       <div class="row">
-        <div class="col-lg-6">
+        <div class="col-lg-6 cpa-buckets-container">
           <span class="first">${{campdetails.backetsRanges.first.min}}-${{campdetails.backetsRanges.first.max}}</span>
           <div id="backets-1" dx-data-grid="campdetails.cpaBucketFirst"></div>
         </div>
-        <div class="col-lg-6">
+        <div class="col-lg-6 cpa-buckets-container">
           <span class="first">${{campdetails.backetsRanges.second.min}}-${{campdetails.backetsRanges.second.max}}</span>
           <div id="backets-2"  dx-data-grid="campdetails.cpaBucketSecond"></div>
         </div>
       </div>
       <div class="row">
-        <div class="col-lg-6">
+        <div class="col-lg-6 cpa-buckets-container">
           <span class="first">${{campdetails.backetsRanges.third.min}}-${{campdetails.backetsRanges.third.max}}</span>
           <div id="backets-3"  dx-data-grid="campdetails.cpaBucketThird"></div>
         </div>
-        <div class="col-lg-6">
+        <div class="col-lg-6 cpa-buckets-container">
           <span class="first">${{campdetails.backetsRanges.fourth.min}}+</span>
           <div id="backets-4"  dx-data-grid="campdetails.cpaBucketFourth"></div>
         </div>
       </div>
-      <!--<div class="buckets">-->
-      <!--<div><h3 class="header-buckets">CPA buckets</h3></div>-->
-      <!--<div class="bucket-item">-->
-      <!--<div><span class="first">${{campdetails.backetsRanges.first.min}}-${{campdetails.backetsRanges.first.max}}</span></div>-->
-      <!--<div class="bucket-item-list"><div ng-repeat="item in campdetails.cpaArrayFirst">{{item}}</div></div>-->
-      <!--</div>-->
-      <!--<div class="bucket-item">-->
-      <!--<div><span class="second">${{campdetails.backetsRanges.second.min}}-${{campdetails.backetsRanges.second.max}}</span></div>-->
-      <!--<div class="bucket-item-list"><div ng-repeat="item in campdetails.cpaArraySecond">{{item}}</div></div>-->
-      <!--</div>-->
-      <!--<div class="bucket-item">-->
-      <!--<div><span class="third">${{campdetails.backetsRanges.third.min}}-${{campdetails.backetsRanges.third.max}}</span></div>-->
-      <!--<div class="bucket-item-list"><div ng-repeat="item in campdetails.cpaArrayThird">{{item}}</div></div>-->
-      <!--</div>-->
-      <!--<div class="bucket-item">-->
-      <!--<div><span class="fourth">${{campdetails.backetsRanges.fourth.min}}+</span></div>-->
-      <!--<div class="bucket-item-list"><div ng-repeat="item in campdetails.cpaArrayFourth">{{item}}</div></div>-->
-      <!--</div>-->
-      <!--</div>-->
+
     </div>
   </div>
 

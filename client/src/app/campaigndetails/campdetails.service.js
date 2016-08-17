@@ -49,9 +49,13 @@
         headers: { 'Authorization': 'Token ' + $cookies.get('token') },
         params: {id:id, from_date: from, to_date: to, category: section}
       })
-        .then(function (res) {
-          return res.data;
-        });
+          .then(function (res) {
+            for(var index in res.data) {
+              res.data[index].cpa = +parseFloat(res.data[index].cpa).toFixed(3);
+                        }
+            return res.data;
+          });
+
     }
 
     _this.nameCampaigns = nameCampaigns;

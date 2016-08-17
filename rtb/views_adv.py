@@ -5,7 +5,7 @@ from utils import parse_get_params, make_sum, check_user_advertiser_permissions
 from models import SiteDomainPerformanceReport, Campaign, GeoAnaliticsReport, NetworkAnalyticsReport_ByPlacement, \
     Placement, NetworkCarrierReport_Simple, NetworkDeviceReport_Simple
 from django.db.models import Sum, Min, Max, Avg, Value, When, Case, F, Q, Func, FloatField
-from django.db.models.functions import Coalesce
+from django.db.models.functions import Coalesce, Concat
 from django.core.cache import cache
 import itertools
 import datetime
@@ -216,9 +216,9 @@ def get_campaign_placement(campaign_id, from_date, to_date):
         campaign_id=campaign_id,
         hour__gte=from_date,
         hour__lte=to_date,
-    ).values('placement_id').annotate(
-        placement=F('placement__name'),
-        NetworkPublisher=F('publisher_name'),
+    ).values('placement').annotate(
+        placement_name=F('placement_name'), #placement__name
+        NetworkPublisher=Concat(F('publisher_name'),Value("'/'"), F('seller_member_name')),
         placementState=F('placement__state'),
         cost=Sum('cost'),
         conv=Sum('total_convs'),
@@ -237,16 +237,11 @@ def get_campaign_placement(campaign_id, from_date, to_date):
     )
     res = list(q)
     for x in res:
-        if x['placement'] is None:
-            x['placement'] = 'Hidden ({})'.format(x['placement_id'])
-        else:
-            x['placement'] = '{} ({})'.format(x['placement'], x['placement_id'])
         x['state'] = {
             "whiteList": "true",
             "blackList": "false",
             "suspended": x['placementState'] == 'inactive'
         }
-        x.pop('placement_id', None)
         x.pop('placementState', None)
     cache.set(key, res)
     return res
@@ -280,6 +275,7 @@ Get single campaign details by domains
 
 Field "placement" must contain name and id of placement. Id in parenthesis
     """
+
     params = parse_get_params(request.GET)
     if params['from_date'] > params['to_date']:
         params['from_date'], params['to_date'] = params['to_date'], params['from_date']
@@ -292,6 +288,9 @@ Field "placement" must contain name and id of placement. Id in parenthesis
         ["placement", "NetworkPublisher", "placementState", "cost", "conv", "imp", "clicks", "cpc", "cpm", "cvr", "ctr", "cpa",
          'imps_viewed', 'view_measured_imps', 'view_rate', 'view_measurement_rate', ])
     key_name = params['sort']
+    if 'sort' not in request.GET:
+        key_name = 'imp'
+        reverse_order = True
     if key_name not in allowed_key_names:
         key_name = 'placement'
     res.sort(key=lambda x: x[key_name], reverse=reverse_order)
@@ -341,9 +340,9 @@ def get_campaign_detals(campaign_id, from_date, to_date, section):
     #        ctr=Case(When(~Q(imp=0), then=F('clicks') / F('imp')), output_field=FloatField()),
     #    )
     results = list(q)
-    # for x in results:
-    #     if x[_name] is None or (hasattr(x[_name], 'startswith') and x[_name].startswith('Hidden')):
-    #         x[_name] = 'Hidden({})'.format(x[field_name])
+    if section=='Placement':
+        for x in results:
+            x[_name] = '{}/{}'.format(x[_name], x[field_name])
     views = sum_for_data_and_percent([{'section': x[_name], 'data': x['imp']} for x in results])
     conversions = sum_for_data_and_percent([{'section': x[_name], 'data': x['imp']} for x in results if x['conv']])
     res = {'all': views, 'conversions': conversions}
@@ -417,7 +416,7 @@ For "conversions":
     return Response(res)
 
 
-def get_cpa_buckets(campaign_id, from_date, to_date, section='placement'):
+def get_cpa_buckets(campaign_id, from_date, to_date, section='Placement'):
     key = '_'.join(('rtb_cpa_buckets', str(campaign_id), from_date.strftime('%Y-%m-%d'),
                     to_date.strftime('%Y-%m-%d'), section))
     res = cache.get(key)
@@ -425,16 +424,16 @@ def get_cpa_buckets(campaign_id, from_date, to_date, section='placement'):
 
     field_name, _name,  q = get_section_query(campaign_id, from_date, to_date, section)
     table = q.model
-    if table==NetworkAnalyticsReport_ByPlacement:
+    #if table==NetworkAnalyticsReport_ByPlacement:
+    if section=='Placement':
         q = q.annotate(
             placementid=F('placement_id'),
             placementname=F('placement__name'),
             sellerid=F('seller_member_id'),
             sellername=F('seller_member__name'),
-            # cpa=Case(When(~Q(conv=0), then=F('sum_cost') / F('conv')), output_field=FloatField()),
         )
-    q =q.annotate(
-    cpa=Case(When(~Q(conv=0), then=F('sum_cost') / F('conv')), output_field=FloatField()),
+    q = q.annotate(
+        cpa=Case(When(~Q(conv=0), then=F('sum_cost') / F('conv')), output_field=FloatField()),
     )
     q = q.filter(conv__gt=0)
 

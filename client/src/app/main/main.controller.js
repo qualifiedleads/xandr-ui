@@ -241,6 +241,7 @@
         }, {
           caption: LC('MAIN.CAMPAIGN.COLUMNS.IMP'),
           dataField: 'imp',
+          sortOrder: 'desc',
           alignment: 'center'
         }, {
           caption: LC('MAIN.CAMPAIGN.COLUMNS.CLICKS'),

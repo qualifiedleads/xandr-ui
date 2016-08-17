@@ -102,11 +102,11 @@
           "CPM":"CPM",
           "CVR":"CVR",
           "CTR":"CTR",
-          "IMPS_VIEWED":"Visible imp",
-          "VIEW_MEASURED_IMPS":"Measured imp",
-          "VIEW_MEASUREMENT_RATE":"View measurement rate",
-          "VIEW_RATE":"View rate",
-          "STATS":"Стат"
+          "IMPS_VIEWED": "Просмотренные показы",
+          "VIEW_MEASURED_IMPS": "Measured imp",
+          "VIEW_MEASUREMENT_RATE": "View measurement rate",
+          "VIEW_RATE": "Рейтинг видимости",
+          "STATS": "Стат"
         }
       },
       'CHECKBOX':{

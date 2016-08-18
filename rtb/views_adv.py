@@ -67,8 +67,8 @@ def calc_another_fields(obj):
     return res
 
 
-def get_campaign_data(advertiser_id, campaign_id, from_date, to_date):
-    key = '_'.join(('rtb_campaign', str(advertiser_id), str(campaign_id), from_date.strftime('%Y-%m-%d'),
+def get_campaign_data( campaign_id, from_date, to_date):
+    key = '_'.join(('rtb_campaign', str(campaign_id), from_date.strftime('%Y-%m-%d'),
                     to_date.strftime('%Y-%m-%d'),))
     res = cache.get(key)
     if res:
@@ -77,7 +77,6 @@ def get_campaign_data(advertiser_id, campaign_id, from_date, to_date):
     print 'From ', from_date, 'to', to_date
     # no cache hit
     q = SiteDomainPerformanceReport.objects.filter(
-        advertiser_id=advertiser_id,
         campaign_id=campaign_id,
         day__gte=from_date,
         day__lte=to_date,
@@ -121,10 +120,10 @@ Get single campaign statistics data for given period by selected categories: imp
     c = Campaign.objects.get(pk=int(id))
     if not c:
         return Response({'error': "Unknown object id %d" % id})
-    advertiser_id = c.advertiser_id
+    #advertiser_id = c.advertiser_id
     params = parse_get_params(request.GET, ["impression", "cpa", "cpc", "clicks", "mediaspent", "conversions", "ctr",
                                             'imps_viewed', 'view_measured_imps', 'view_rate', 'view_measurement_rate',])
-    res = get_campaign_data(advertiser_id, id, params['from_date'], params['to_date'])
+    res = get_campaign_data(id, params['from_date'], params['to_date'])
     return Response(res)
 
 

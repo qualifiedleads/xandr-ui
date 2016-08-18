@@ -71,7 +71,10 @@ def get_campaign_data(advertiser_id, campaign_id, from_date, to_date):
     key = '_'.join(('rtb_campaign', str(advertiser_id), str(campaign_id), from_date.strftime('%Y-%m-%d'),
                     to_date.strftime('%Y-%m-%d'),))
     res = cache.get(key)
-    if res: return res
+    if res:
+        print 'Read graphInfo from cache'
+        return res
+    print 'From ', from_date, 'to', to_date
     # no cache hit
     q = SiteDomainPerformanceReport.objects.filter(
         advertiser_id=advertiser_id,
@@ -456,7 +459,7 @@ def get_cpa_buckets(campaign_id, from_date, to_date, section='Placement'):
     #     conv__gt=0
     # )
 
-    print q.query
+    # print q.query
     res = list(q)
     for x in res:
         x.pop('conv', None)

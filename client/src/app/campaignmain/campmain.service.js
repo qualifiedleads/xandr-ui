@@ -113,8 +113,8 @@
           res.data.data[index].cost = +parseFloat(res.data.data[index].cost).toFixed(2);
           res.data.data[index].imps_viewed = +parseFloat(res.data.data[index].imps_viewed).toFixed(4);
           res.data.data[index].view_measured_imps = +parseFloat(res.data.data[index].view_measured_imps).toFixed(4);
-          res.data.data[index].view_measurement_rate = +parseFloat(res.data.data[index].view_measurement_rate).toFixed(4);
-          res.data.data[index].view_rate = +parseFloat(res.data.data[index].view_rate).toFixed(4);
+          res.data.data[index].view_measurement_rate = +parseFloat(res.data.data[index].view_measurement_rate).toFixed(1);
+          res.data.data[index].view_rate = +parseFloat(res.data.data[index].view_rate).toFixed(1);
         }
         return res.data;
       })

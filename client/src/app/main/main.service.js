@@ -81,8 +81,8 @@
 						res.data.campaigns[index].spend = +parseFloat(res.data.campaigns[index].spend).toFixed(4);
 						res.data.campaigns[index].imps_viewed = +parseFloat(res.data.campaigns[index].imps_viewed).toFixed(4);
 						res.data.campaigns[index].view_measured_imps = +parseFloat(res.data.campaigns[index].view_measured_imps).toFixed(4);
-						res.data.campaigns[index].view_measurement_rate = +parseFloat(res.data.campaigns[index].view_measurement_rate).toFixed(4);
-						res.data.campaigns[index].view_rate = +parseFloat(res.data.campaigns[index].view_rate).toFixed(4);
+						res.data.campaigns[index].view_measurement_rate = +parseFloat(res.data.campaigns[index].view_measurement_rate).toFixed(1);
+						res.data.campaigns[index].view_rate = +parseFloat(res.data.campaigns[index].view_rate).toFixed(1);
 					}
 					return res.data;
 				});

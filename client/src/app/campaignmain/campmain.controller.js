@@ -827,14 +827,14 @@
           width: 100
         },
         {
-          caption: LC('CAMP.CAMPAIGN.COLUMNS.VIEW_MEASUREMENT_RATE'),
+          caption: LC('CAMP.CAMPAIGN.COLUMNS.VIEW_MEASUREMENT_RATE')+ ' ,%',
           dataField: 'view_measurement_rate',
           alignment: 'center',
           visible: false,
           width: 120
         },
         {
-          caption: LC('CAMP.CAMPAIGN.COLUMNS.VIEW_RATE'),
+          caption: LC('CAMP.CAMPAIGN.COLUMNS.VIEW_RATE')+ ' ,%',
           dataField: 'view_rate',
           alignment: 'center',
           visible: false,

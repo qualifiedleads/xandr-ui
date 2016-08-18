@@ -283,13 +283,13 @@
           width: 100
         },
         {
-          caption: LC('MAIN.CAMPAIGN.COLUMNS.VIEW_MEASUREMENT_RATE'),
+          caption: LC('MAIN.CAMPAIGN.COLUMNS.VIEW_MEASUREMENT_RATE')+ ' ,%',
           dataField: 'view_measurement_rate',
           alignment: 'center',
           width: 120
         },
         {
-          caption: LC('MAIN.CAMPAIGN.COLUMNS.VIEW_RATE'),
+          caption: LC('MAIN.CAMPAIGN.COLUMNS.VIEW_RATE')+ ' ,%',
           dataField: 'view_rate',
           alignment: 'center',
           width: 80

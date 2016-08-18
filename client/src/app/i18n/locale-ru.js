@@ -102,10 +102,10 @@
           "CPM":"CPM",
           "CVR":"CVR",
           "CTR":"CTR",
-          "IMPS_VIEWED": "Просмотренные показы",
-          "VIEW_MEASURED_IMPS": "Measured imp",
-          "VIEW_MEASUREMENT_RATE": "View measurement rate",
-          "VIEW_RATE": "Рейтинг видимости",
+          "IMPS_VIEWED":"Видимые показы",
+          "VIEW_MEASURED_IMPS":"Измерено видимость показов",
+          "VIEW_MEASUREMENT_RATE":"Измереная видимост",
+          "VIEW_RATE":"Видимость",
           "STATS": "Стат"
         }
       },
@@ -146,10 +146,10 @@
           "CPM":"CPM",
           "CVR":"CVR",
           "CTR":"CTR",
-          "IMPS_VIEWED":"Visible imp",
-          "VIEW_MEASURED_IMPS":"Measured imp",
-          "VIEW_MEASUREMENT_RATE":"View measurement rate",
-          "VIEW_RATE":"View rate",
+          "IMPS_VIEWED":"Видимые показы",
+          "VIEW_MEASURED_IMPS":"Измерено видимость показов",
+          "VIEW_MEASUREMENT_RATE":"Измереная видимост",
+          "VIEW_RATE":"Видимость",
           "STATS":"Стат"
         }
       }

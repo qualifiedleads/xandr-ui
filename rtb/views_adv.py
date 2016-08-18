@@ -220,7 +220,7 @@ def get_campaign_placement(campaign_id, from_date, to_date):
         hour__lte=to_date,
     ).values('placement').annotate(
         placement_name=F('placement_name'), #placement__name
-        NetworkPublisher=Concat(F('publisher_name'),Value("'/'"), F('seller_member_name')),
+        NetworkPublisher=Concat(F('publisher_name'),Value("/"), F('seller_member_name')),
         placementState=F('placement__state'),
         cost=Sum('cost'),
         conv=Sum('total_convs'),

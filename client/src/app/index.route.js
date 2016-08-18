@@ -76,6 +76,22 @@
               .catch(function (err) {
                 return err;
               });
+            },
+            CpaBucketsAll:  function(CampDetails,$stateParams, $state,$localStorage){
+              if (!$stateParams.id) {
+                $state.go('home.main');
+              }
+              return CampDetails.bucketsCpa(
+                $stateParams.id,
+                $localStorage.dataStart,
+                $localStorage.dataEnd,
+                $localStorage.selectedSection
+              ).then(function (result) {
+                return result;
+              })
+                .catch(function (err) {
+                  return err;
+                });
             }
           }
         }

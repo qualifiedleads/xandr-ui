@@ -6,7 +6,7 @@
     .controller('CampaignDetailsController', CampaignDetailsController);
 
   /** @ngInject */
-  function CampaignDetailsController($window, $state, $localStorage, $translate, CampDetails, ChartDetails, Campaign) {
+  function CampaignDetailsController($window, $state, $localStorage, $translate, CampDetails, ChartDetails, CpaBucketsAll, Campaign) {
     var vm = this;
     vm.Camp = CampDetails;
     vm.multipleTotalCount = 0;
@@ -16,6 +16,7 @@
     vm.campName = Campaign.campaign;
     vm.campId = Campaign.id;
     vm.cpaResult = [];
+    vm.selectedSection = $localStorage.selectedSection;
 
     vm.detailsStoreAll = new $window.DevExpress.data.CustomStore({
       totalCount: function () {
@@ -40,9 +41,7 @@
         return 0;
       },
       load: function () {
-        return vm.Camp.bucketsCpa(vm.campId, $localStorage.dataStart, $localStorage.dataEnd, $localStorage.selectedSection)
-          .then(function (result) {
-            vm.cpaResult = result;
+            vm.cpaResult = CpaBucketsAll;
             var arrFirst = [];
             for(var i=0; i<vm.cpaResult.length; i++) {
               if(+vm.cpaResult[i].cpa>=vm.backetsRanges.first.min && +vm.cpaResult[i].cpa<vm.backetsRanges.first.max) {
@@ -50,9 +49,8 @@
               }
             }
             return arrFirst;
-          });
-      }
-    });
+          }});
+
 
     vm.cpaBucketRequestSecond = new $window.DevExpress.data.CustomStore({
       totalCount: function () {
@@ -184,26 +182,26 @@
     };
 
     if(!vm.targetCpa) {
-      vm.targetCpa = $localStorage.targetCpa || 3;
+      vm.targetCpa = $localStorage.targetCpa || 1;
       $localStorage.targetCpa = vm.targetCpa;
     }
 
     vm.backetsRanges = {
       first:{
         min: 0,
-        max: Number(vm.targetCpa).toFixed(1)
+        max: Number(vm.targetCpa).toFixed(2)
       },
       second:{
-        min:Number(vm.targetCpa).toFixed(1),
-        max:Number(vm.targetCpa*2).toFixed(1)
+        min:Number(vm.targetCpa).toFixed(2),
+        max:Number(vm.targetCpa*2).toFixed(2)
       },
       third: {
-        min: Number(vm.targetCpa * 2).toFixed(1),
-        max: Number(vm.targetCpa * 3).toFixed(1)
+        min: Number(vm.targetCpa * 2).toFixed(2),
+        max: Number(vm.targetCpa * 3).toFixed(2)
       },
       fourth: {
-        min: Number(vm.targetCpa * 3).toFixed(1),
-        max: Number(vm.targetCpa * 1000).toFixed(1)
+        min: Number(vm.targetCpa * 3).toFixed(2),
+        max: Number(vm.targetCpa * 100000).toFixed(2)
       }
     };
 
@@ -213,25 +211,21 @@
       vm.backetsRanges = {
         first: {
           min: 0,
-          max: (targetCpaInt).toFixed(1)
+          max: (targetCpaInt).toFixed(2)
         },
         second: {
-          min: (targetCpaInt).toFixed(1),
-          max: (targetCpaInt * 2).toFixed(1)
+          min: (targetCpaInt).toFixed(2),
+          max: (targetCpaInt * 2).toFixed(2)
         },
         third: {
-          min: (targetCpaInt * 2).toFixed(1),
-          max: (targetCpaInt * 3).toFixed(1)
+          min: (targetCpaInt * 2).toFixed(2),
+          max: (targetCpaInt * 3).toFixed(2)
         },
         fourth: {
-          min: (targetCpaInt * 3).toFixed(1),
-          max: (targetCpaInt * 1000).toFixed(1)
+          min: (targetCpaInt * 3).toFixed(2),
+          max: (targetCpaInt * 100000).toFixed(2)
         }
       };
-      // vm.cpaArrayFirst =  CampDetails.cpaBuckets(vm.backetsRanges.first.min, vm.backetsRanges.first.max);
-      // vm.cpaArraySecond =  CampDetails.cpaBuckets(vm.backetsRanges.second.min, vm.backetsRanges.second.max);
-      // vm.cpaArrayThird =  CampDetails.cpaBuckets(vm.backetsRanges.third.min, vm.backetsRanges.third.max);
-      // vm.cpaArrayFourth =  CampDetails.cpaBuckets(vm.backetsRanges.fourth.min, vm.backetsRanges.fourth.max);
 
       $window.$('#backets-1').dxDataGrid('instance').refresh();
       $window.$('#backets-2').dxDataGrid('instance').refresh();
@@ -252,7 +246,7 @@
         }
       },
       bindingOptions: {
-        dataSource: 'campdetails.detailsStoreAll',
+        dataSource: 'campdetails.detailsStoreAll'
       },
       legend: {
         visible: false
@@ -275,7 +269,7 @@
         smallValuesGrouping: {
           mode: "topN",
           topCount: 25
-        },
+        }
       }]
     };
 
@@ -329,6 +323,11 @@
       }, {
         caption:  'placementname',
         dataField: 'placementname'
+      },
+      {
+        caption:  'cpa, $',
+        dataField: 'cpa',
+        sortOrder: 'desc'
       }
     ];
 
@@ -338,12 +337,22 @@
     },{
       caption: 'creative name',
       dataField: 'creative_name'
-    }];
+    },
+      {
+        caption:  'cpa, $',
+        dataField: 'cpa',
+        sortOrder: 'desc'
+      }];
 
     vm.columnsCreativeSize =  [{
       caption: 'size',
       dataField: 'size'
-    }];
+    },
+      {
+        caption:  'cpa, $',
+        dataField: 'cpa',
+        sortOrder: 'desc'
+      }];
 
     vm.columnsOs =  [{
       caption: 'operating system id',
@@ -351,7 +360,12 @@
     },{
       caption: 'operating system',
       dataField: 'operating_system_name'
-    }];
+    },
+      {
+        caption:  'cpa, $',
+        dataField: 'cpa',
+        sortOrder: 'desc'
+      }];
 
     vm.columnsCarrier =  [{
       caption: 'carrier id',
@@ -359,7 +373,12 @@
     },{
       caption: 'carrier name',
       dataField: 'carrier_name'
-    }];
+    },
+      {
+        caption:  'cpa, $',
+        dataField: 'cpa',
+        sortOrder: 'desc'
+      }];
 
 
     vm.columnsNetworkSeller =  [{
@@ -368,19 +387,34 @@
     },{
       caption: 'seller member name',
       dataField: 'seller_member_name'
-    }];
+    },
+      {
+        caption:  'cpa, $',
+        dataField: 'cpa',
+        sortOrder: 'desc'
+      }];
 
     vm.columnsConnectionType =  [{
       caption: 'connection type',
       dataField: 'connection_type'
-    }];
+    },
+      {
+        caption:  'cpa, $',
+        dataField: 'cpa',
+        sortOrder: 'desc'
+      }];
     vm.columnsDevice =  [{
       caption: 'device model',
       dataField: 'device_model'
     },{
       caption: 'device model name',
       dataField: 'device_model_name'
-    }];
+    },
+      {
+        caption:  'cpa, $',
+        dataField: 'cpa',
+        sortOrder: 'desc'
+      }];
 
     if ($localStorage.selectedSection == "Placement") {
       vm.columnsSelected = vm.columnsPlacement;
@@ -422,7 +456,11 @@
         visible: true,
         showNavigationButtons: true
       },
-      columns: vm.columnsSelected
+      columns: vm.columnsSelected,
+      export: {
+        enabled: true,
+        fileName: "cpa_first"
+      }
     };
 
     vm.cpaBucketSecond = {
@@ -447,7 +485,11 @@
         visible: true,
         showNavigationButtons: true
       },
-      columns: vm.columnsSelected
+      columns: vm.columnsSelected,
+      export: {
+        enabled: true,
+        fileName: "cpa_second"
+      }
     };
 
 
@@ -473,7 +515,11 @@
         visible: true,
         showNavigationButtons: true
       },
-      columns: vm.columnsSelected
+      columns: vm.columnsSelected,
+      export: {
+        enabled: true,
+        fileName: "cpa_third"
+      }
     };
 
 
@@ -499,7 +545,11 @@
         visible: true,
         showNavigationButtons: true
       },
-      columns: vm.columnsSelected
+      columns: vm.columnsSelected,
+      export: {
+        enabled: true,
+        fileName: "cpa_fourth"
+      }
     };
 
 

@@ -1187,6 +1187,7 @@ class Creative(models.Model):
     state = models.TextField(
         choices=STATE_CHOICES,
         null=True, blank=True)
+    status = models.TextField(null=True, blank=True) #TODO JSON
     click_track_result = models.TextField(
         choices=CLICK_TEST_RESULT_COICES,
         null=True, blank=True)
@@ -1215,14 +1216,7 @@ class Creative(models.Model):
         choices=SSL_STATUS_CHOICES,
         null=True, blank=True)
     allow_ssl_audit = models.NullBooleanField(null=True, blank=True)
-    google_audit_status = models.TextField(
-        choices=GOOGLE_AUDIT_STATUS_CHOICES,
-        null=True, blank=True)
-    google_audit_feedback = models.TextField(null=True, blank=True)
-    msft_audit_status = models.TextField(
-        choices=MSFT_AUDIT_STATUS_CHOICES,
-        null=True, blank=True)
-    msft_audit_feedback = models.TextField(null=True, blank=True)
+    adx_audit = models.TextField(null=True, blank=True) #TODO JSON
     facebook_audit_status = models.TextField(
         choices=FACEBOOK_AUDIT_STATUS_CHOICES,
         null=True, blank=True)
@@ -1434,7 +1428,6 @@ class CreativeTemplate(models.Model):
     is_archived = models.NullBooleanField(null=True, blank=True)
     content_js = models.TextField(null=True, blank=True)
     content_html = models.TextField(null=True, blank=True)
-    content_xml = models.TextField(null=True, blank=True)
     callback_content_html = models.TextField(null=True, blank=True)
     macros = models.TextField(null=True, blank=True) #array of object in origin. Later we can create separate model for it if needed
     last_modified = models.DateTimeField(default=now_tz)
@@ -1924,7 +1917,6 @@ class Profile(models.Model):
 
     daypart_timezone = models.TextField(null=True, blank=True)
     daypart_targets = models.TextField(null=True, blank=True) #array of objects in origin TODO it is needed to be concidered if we need a sepparait model here
-    segment_targets = models.TextField(null=True, blank=True) #array of objects in origin TODO it is needed to be concidered if we need a sepparait model here
     segment_group_targets = models.TextField(null=True, blank=True) #array of objects in origin TODO it is needed to be concidered if we need a sepparait model here
     segment_boolean_operator = models.TextField(
         choices=TARGETS_OPERATOR_CHOICE,
@@ -2961,7 +2953,6 @@ DEFAULT_TRUST_CHOICES = (
 class MemberInventoryTrust(models.Model):
     member = models.ForeignKey("Member", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     members = models.TextField(null=True, blank=True) #TODO JSON
-    default_is_banned = models.NullBooleanField(null=True, blank=True)
     default_trust = models.TextField(
         choices=DEFAULT_TRUST_CHOICES,
         null=True, blank=True)

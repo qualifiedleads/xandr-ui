@@ -3287,6 +3287,7 @@ class NetworkAnalyticsReport(models.Model):
         null=True, blank=True)
     deal = models.ForeignKey("Deal", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     media_type = models.ForeignKey("MediaType", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    media_subtype = models.ForeignKey("MediaSubType", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     salesperson_for_advertiser = models.TextField(null=True, blank=True)
     salesperson_for_publisher = models.TextField(null=True, blank=True)
     trafficker_for_line_item = models.TextField(null=True, blank=True)
@@ -3526,6 +3527,7 @@ class SiteDomainPerformanceReport(models.Model):
 
 
 class GeoAnaliticsReport(models.Model):
+    #https://wiki.appnexus.com/display/api/Geo+Analytics+Report
     # month = date  # Yes	The year and month in which the auction took place.
     fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
     day = models.DateField(null=True, blank=True, db_index=True)  # Yes	The year, month, and day in which the auction took place.
@@ -3539,8 +3541,6 @@ class GeoAnaliticsReport(models.Model):
     geo_region = models.ForeignKey("Region", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)  # Yes	The region ID of the user's location as defined by the Region Service. 4291 is shown in cases where we don't know the region or if the region doesn't map correctly to a location in our database.
     geo_country_name = models.TextField(null=True, blank=True)  # No	The name of the user's country, as defined by the Country Service.
     geo_region_name = models.TextField(null=True, blank=True)  # No	The name of the region of the user's location as defined by the Region Service.
-    geo_country = models.TextField(null=True, blank=True)  # No	The country name and code where the user is located, in the format "France (FR)". The string "250" can appear in cases where we don't know the country or if the country doesn't map correctly to a location in our database.
-    geo_region = models.TextField(null=True, blank=True)  # No	The region name and country code of the users location, in the format "Bremen (DE)". The string "4192" can appear in cases where we don't know the region/state or if the region/state doesn't map correctly to a location in our database.
     geo_dma = models.ForeignKey("DemographicArea", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING) # No	The name and ID of the demographic area where the user is located, in the format "New York NY (501)". The string "unknown values (-1)" can appear in cases where we don't know the demographic area or if the demographic area doesn't map correctly to a location in our database.
     pixel = models.ForeignKey("ConversionPixel", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)  # Yes The unique identification number of the conversion pixel.
     # pixel = models.ForeignKey("ConversionPixel",null=True, blank=True)
@@ -3752,7 +3752,7 @@ class NetworkCarrierReport(models.Model):
     fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
     # month = time
     day = models.DateTimeField(null=True, blank=True, db_index=True)
-    carrier_id = int
+    carrier =  models.ForeignKey("Carrier", related_name='+', null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     device_type = models.TextField(
         choices=DEVICE_TYPE_INREPORT_CHOICES,
         null=True, blank=True)
@@ -4075,4 +4075,308 @@ class ClickTrackerFeed(models.Model):
 
     class Meta:
         db_table = "click_tracker_feed"
+
+
+class CreativeHTML(models.Model):
+    #https://wiki.appnexus.com/display/api/Creative+HTML+Service
+    id = models.IntegerField(primary_key=True)  # No AutoIncrement
+    fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
+    code = models.TextField(null=True, blank=True, db_index=True)
+    code2 = models.TextField(null=True, blank=True, db_index=True)
+    name = models.TextField(null=True, blank=True, db_index=True)
+    type = models.TextField(
+        choices=CREATIVE_TYPE_CHOICES,
+        null=True, blank=True)
+    advertiser = models.ForeignKey("Advertiser", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    publisher = models.ForeignKey("Publisher", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    brand = models.ForeignKey("Brand", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    #brand_id = models.IntegerField(null=True, blank=True)
+    state = models.TextField(
+        choices=STATE_CHOICES,
+        null=True, blank=True)
+    status = models.TextField(null=True, blank=True) #TODO JSON
+    click_track_result = models.TextField(
+        choices=CLICK_TEST_RESULT_COICES,
+        null=True, blank=True)
+    #campaigns = array - see model CampaignCreativeHTML
+    template = models.ForeignKey("CreativeTemplate", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    media_url = models.TextField(null=True, blank=True)
+    media_url_secure = models.TextField(null=True, blank=True)
+    click_url = models.TextField(null=True, blank=True)
+    file_name = models.TextField(null=True, blank=True)
+    audit_status = models.TextField(null=True, blank=True) #array of object in origin. Later we can create separate model for it if needed
+    audit_feedback = models.TextField(null=True, blank=True)
+    allow_audit = models.NullBooleanField(null=True, blank=True)
+    ssl_status = models.TextField(
+        choices=SSL_STATUS_CHOICES,
+        null=True, blank=True)
+    allow_ssl_audit = models.NullBooleanField(null=True, blank=True)
+    adx_audit = models.TextField(null=True, blank=True) #TODO JSON
+    facebook_audit_status = models.TextField(
+        choices=FACEBOOK_AUDIT_STATUS_CHOICES,
+        null=True, blank=True)
+    facebook_audit_feedback = models.TextField(null=True, blank=True)
+    is_self_audited = models.NullBooleanField(null=True, blank=True)
+    is_expired = models.NullBooleanField(null=True, blank=True)
+    is_prohibited = models.NullBooleanField(null=True, blank=True)
+    is_hosted = models.NullBooleanField(null=True, blank=True)
+    lifetime_budget = models.FloatField(null=True, blank=True)
+    lifetime_budget_imps = models.IntegerField(null=True, blank=True)
+    daily_budget = models.FloatField(null=True, blank=True)
+    daily_budget_imps = models.IntegerField(null=True, blank=True)
+    enable_pacing = models.NullBooleanField(null=True, blank=True)
+    allow_safety_pacing = models.NullBooleanField(null=True, blank=True)
+    profile = models.ForeignKey("Profile", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    folder = models.ForeignKey("CreativeFolder", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    #line_items = array - see model LineItemCreativesHTML
+    track_clicks = models.NullBooleanField(null=True, blank=True)
+    flash_backup_content = models.TextField(null=True, blank=True)
+    flash_backup_file_name = models.TextField(null=True, blank=True)
+    flash_backup_url = models.TextField(null=True, blank=True)
+    is_control = models.NullBooleanField(null=True, blank=True)
+    #segments = array - see model CreativeHTMLSegment below
+    created_on = models.DateTimeField(default=now_tz)
+    last_modified = models.DateTimeField(default=now_tz)
+    #categories = array - see model CreativeHTMLCategory below
+    #adservers = array - see model CreativeHTMLAdserver below
+    #technical_attributes - see model CreativeHTMLTechnicalAttribute
+    language = models.ForeignKey("Language", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    pop_values = models.TextField(null=True, blank=True) #TODO JSON
+    sla = models.IntegerField(null=True, blank=True)
+    sla_eta = models.DateTimeField(null=True, blank=True)
+    currency = models.TextField(null=True, blank=True)
+    first_run = models.DateTimeField(default=now_tz)
+    last_run = models.DateTimeField(null=True, blank=True)
+    #competitive_brands = array - see model CreativeHTMLCompetitiveBrand below
+    #competitive_categories = array - see model CreativeHTMLCompetitiveCategory below
+    member = models.ForeignKey("Member", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    custom_macros = models.TextField(null=True, blank=True) #TODO JSON array of objects in origin
+
+    api_endpoint = 'creative-html'
+    class Meta:
+        db_table = "creative_html"
+
+
+class LineItemCreativesHTML(models.Model):
+    line_item = models.ForeignKey("LineItem", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    creative_html = models.ForeignKey("CreativeHTML", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    code = models.TextField(null=True, blank=True, db_index=True)
+
+    class Meta:
+        db_table = "line_item_creatives_html"
+
+
+class CampaignCreativeHTML(models.Model):
+    campaign = models.ForeignKey("Campaign", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    creative_html = models.ForeignKey("CreativeHTML", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+
+    class Meta:
+        db_table = "campaign_creative_html"
+
+
+class CreativeHTMLTechnicalAttribute(models.Model):
+    technical_attribute = models.ForeignKey("TechnicalAttribute", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    creative_html = models.ForeignKey("CreativeHTML", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+
+    class Meta:
+        db_table = "creative_html_technical_attribute"
+
+
+class CreativeHTMLCompetitiveBrand(models.Model):
+    creative_html = models.ForeignKey("CreativeHTML", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    brand = models.ForeignKey("Brand", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    class Meta:
+        db_table = "creative_html_competitive_brand"
+
+
+class CreativeHTMLCompetitiveCategory(models.Model):
+    creative_html = models.ForeignKey("CreativeHTML", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    category = models.ForeignKey("Category", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+
+    class Meta:
+        db_table = "creative_html_competitive_category"
+
+
+class CreativeHTMLAdserver(models.Model):
+    id = models.IntegerField(primary_key=True)  # No AutoIncrement
+    creative_html = models.ForeignKey("CreativeHTML", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    ad_server = models.ForeignKey("AdServer", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    use_type = models.TextField(null=True, blank=True)
+    name = models.TextField(null=True, blank=True)
+
+    class Meta:
+        db_table = "creative_html_adserver"
+
+
+class CreativeHTMLCategory(models.Model):
+    creative_html = models.ForeignKey("CreativeHTML", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    category = models.ForeignKey("Category", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+
+    class Meta:
+        db_table = "creative_html_category"
+
+
+class CreativeHTMLSegment(models.Model):
+    creative_html = models.ForeignKey("CreativeHTML", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    segment = models.ForeignKey("Segment", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    action = models.TextField(
+        choices=CREATIVE_SEGMENT_ACTION_CHOICES,
+        null=True, blank=True)
+
+    class Meta:
+        db_table = "creative_html_segment"
+
+
+class CreativeVAST(models.Model):
+    #https://wiki.appnexus.com/display/api/Creative+VAST+Service
+    id = models.IntegerField(primary_key=True)  # No AutoIncrement
+    fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
+    code = models.TextField(null=True, blank=True, db_index=True)
+    code2 = models.TextField(null=True, blank=True, db_index=True)
+    name = models.TextField(null=True, blank=True, db_index=True)
+    type = models.TextField(
+        choices=CREATIVE_TYPE_CHOICES,
+        null=True, blank=True)
+    advertiser = models.ForeignKey("Advertiser", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    publisher = models.ForeignKey("Publisher", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    brand = models.ForeignKey("Brand", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    #brand_id = models.IntegerField(null=True, blank=True)
+    state = models.TextField(
+        choices=STATE_CHOICES,
+        null=True, blank=True)
+    status = models.TextField(null=True, blank=True) #TODO JSON
+    click_track_result = models.TextField(
+        choices=CLICK_TEST_RESULT_COICES,
+        null=True, blank=True)
+    #campaigns = array - see model CampaignCreativeVAST
+    template = models.ForeignKey("CreativeTemplate", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    media_url = models.TextField(null=True, blank=True)
+    media_url_secure = models.TextField(null=True, blank=True)
+    click_url = models.TextField(null=True, blank=True)
+    file_name = models.TextField(null=True, blank=True)
+    audit_status = models.TextField(null=True, blank=True) #array of object in origin. Later we can create separate model for it if needed
+    audit_feedback = models.TextField(null=True, blank=True)
+    allow_audit = models.NullBooleanField(null=True, blank=True)
+    ssl_status = models.TextField(
+        choices=SSL_STATUS_CHOICES,
+        null=True, blank=True)
+    allow_ssl_audit = models.NullBooleanField(null=True, blank=True)
+    adx_audit = models.TextField(null=True, blank=True) #TODO JSON
+    facebook_audit_status = models.TextField(
+        choices=FACEBOOK_AUDIT_STATUS_CHOICES,
+        null=True, blank=True)
+    facebook_audit_feedback = models.TextField(null=True, blank=True)
+    is_self_audited = models.NullBooleanField(null=True, blank=True)
+    is_expired = models.NullBooleanField(null=True, blank=True)
+    is_prohibited = models.NullBooleanField(null=True, blank=True)
+    is_hosted = models.NullBooleanField(null=True, blank=True)
+    lifetime_budget = models.FloatField(null=True, blank=True)
+    lifetime_budget_imps = models.IntegerField(null=True, blank=True)
+    daily_budget = models.FloatField(null=True, blank=True)
+    daily_budget_imps = models.IntegerField(null=True, blank=True)
+    enable_pacing = models.NullBooleanField(null=True, blank=True)
+    allow_safety_pacing = models.NullBooleanField(null=True, blank=True)
+    profile = models.ForeignKey("Profile", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    folder = models.ForeignKey("CreativeFolder", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    #line_items = array - see model LineItemCreativesVAST
+    track_clicks = models.NullBooleanField(null=True, blank=True)
+    flash_backup_content = models.TextField(null=True, blank=True)
+    flash_backup_file_name = models.TextField(null=True, blank=True)
+    flash_backup_url = models.TextField(null=True, blank=True)
+    is_control = models.NullBooleanField(null=True, blank=True)
+    #segments = array - see model CreativeVASTSegment below
+    created_on = models.DateTimeField(default=now_tz)
+    last_modified = models.DateTimeField(default=now_tz)
+    #categories = array - see model CreativeVASTCategory below
+    #adservers = array - see model CreativeVASTAdserver below
+    #technical_attributes - see model CreativeVASTTechnicalAttribute
+    language = models.ForeignKey("Language", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    pop_values = models.TextField(null=True, blank=True) #TODO JSON
+    sla = models.IntegerField(null=True, blank=True)
+    sla_eta = models.DateTimeField(null=True, blank=True)
+    currency = models.TextField(null=True, blank=True)
+    first_run = models.DateTimeField(default=now_tz)
+    last_run = models.DateTimeField(null=True, blank=True)
+    video_attribute = models.TextField(null=True, blank=True) #TODO JSON
+    #competitive_brands = array - see model CreativeVASTCompetitiveBrand below
+    #competitive_categories = array - see model CreativeVASTCompetitiveCategory below
+    member = models.ForeignKey("Member", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    media_assets = models.TextField(null=True, blank=True) #TODO JSON
+
+    api_endpoint = 'creative-vast'
+    class Meta:
+        db_table = "creative_vast"
+
+
+class LineItemCreativesVAST(models.Model):
+    line_item = models.ForeignKey("LineItem", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    creative_vast = models.ForeignKey("CreativeVAST", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    code = models.TextField(null=True, blank=True, db_index=True)
+
+    class Meta:
+        db_table = "line_item_creatives_vast"
+
+
+class CampaignCreativeVAST(models.Model):
+    campaign = models.ForeignKey("Campaign", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    creative_vast = models.ForeignKey("CreativeVAST", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+
+    class Meta:
+        db_table = "campaign_creative_vast"
+
+
+class CreativeVASTTechnicalAttribute(models.Model):
+    technical_attribute = models.ForeignKey("TechnicalAttribute", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    creative_vast = models.ForeignKey("CreativeVAST", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+
+    class Meta:
+        db_table = "creative_vast_technical_attribute"
+
+
+class CreativeVASTCompetitiveBrand(models.Model):
+    creative_vast = models.ForeignKey("CreativeVAST", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    brand = models.ForeignKey("Brand", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    class Meta:
+        db_table = "creative_vast_competitive_brand"
+
+
+class CreativeVASTCompetitiveCategory(models.Model):
+    creative_vast = models.ForeignKey("CreativeVAST", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    category = models.ForeignKey("Category", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+
+    class Meta:
+        db_table = "creative_vast_competitive_category"
+
+
+class CreativeVASTAdserver(models.Model):
+    id = models.IntegerField(primary_key=True)  # No AutoIncrement
+    creative_vast = models.ForeignKey("CreativeVAST", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    ad_server = models.ForeignKey("AdServer", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    use_type = models.TextField(null=True, blank=True)
+    name = models.TextField(null=True, blank=True)
+
+    class Meta:
+        db_table = "creative_vast_adserver"
+
+
+class CreativeVASTCategory(models.Model):
+    creative_vast = models.ForeignKey("CreativeVAST", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    category = models.ForeignKey("Category", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+
+    class Meta:
+        db_table = "creative_vast_category"
+
+
+class CreativeVASTSegment(models.Model):
+    creative_vast = models.ForeignKey("CreativeVAST", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    segment = models.ForeignKey("Segment", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    action = models.TextField(
+        choices=CREATIVE_SEGMENT_ACTION_CHOICES,
+        null=True, blank=True)
+
+    class Meta:
+        db_table = "creative_vast_segment"
+
+
+
 

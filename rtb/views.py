@@ -15,6 +15,7 @@ from rest_framework.authentication import TokenAuthentication
 import ast
 from utils import parse_get_params, make_sum, check_user_advertiser_permissions
 from django.contrib.auth.decorators import login_required, user_passes_test
+import countries
 
 
 def to_unix_timestamp(d):
@@ -302,4 +303,5 @@ def map_clicks(request):
         Sum('clicks'),
     )
     d = dict(q)
-    return JsonResponse(d)
+    result_dict = {countries.CountryDict.get(k, k): d[k] for k in d}
+    return JsonResponse(result_dict)

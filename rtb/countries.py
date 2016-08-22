@@ -1,0 +1,27 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+CountryDict = {
+"Russian Federation" : "Russia" ,
+"Czech Republic"     : "Czech Rep.",
+"Moldova, Republic of" : "Moldova",
+"Bosnia and Herzegovina" : "Bosnia and Herz.",
+"Syrian Arab Republic"  : "Syria",
+"Iran, Islamic Republic of" : "Iran",
+"Korea, Democratic People's Republic of" : "Dem. Rep. Korea",
+"Korea, Republic of"  :  "Korea",
+"Lao People's Democratic Republic" : "Lao PDR",
+"Brunei Darussalam"    :  "Brunei",
+"Solomon Islands"      :  "Solomon Is.",
+"Libyan Arab Jamahiriya" : "Libya",
+"Somalia" : "Somaliland",
+"Sudan" : "S. Sudan",
+"Central African Republic" : "Central African Rep.",
+"Congo, The Democratic Republic of the" : "Dem. Rep. Congo",
+"Tanzania, United Republic of" : "Tanzania",
+"Equatorial Guinea" : "Eq. Guinea",
+"Cote d'Ivoire" : "Côte d'Ivoire",
+"Dominican Republic" : "Dominican Rep.",
+"Falkland Islands (Malvinas)" : "Falkland Is.",
+"Cyprus" : "N. Cyprus",
+"Palestinian Territory" : "Palestine",
+}

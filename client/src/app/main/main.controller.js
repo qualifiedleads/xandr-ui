@@ -149,6 +149,9 @@
         return vm.multipleTotalCount;
       },
       load: function (loadOptions) {
+        if (loadOptions.searchOperation && loadOptions.dataField){
+          loadOptions.take = 999999;
+        }
         return vm.Main.statsCampaigns(vm.advertiser.id, vm.dataStart, vm.dataEnd, loadOptions.skip,
           loadOptions.take, loadOptions.sort, loadOptions.order,
           vm.by, loadOptions.filter)
@@ -235,30 +238,36 @@
         {
           caption: LC('MAIN.CAMPAIGN.COLUMNS.SPENT')+ ' ,$',
           dataField: 'spend',
-          alignment: 'center'
+          alignment: 'center',
+          format: 'fixedPoint'
         },
         {
           caption: LC('MAIN.CAMPAIGN.COLUMNS.CONV'),
           dataField: 'conv',
-          alignment: 'center'
+          alignment: 'center',
+          format: 'fixedPoint'
         }, {
           caption: LC('MAIN.CAMPAIGN.COLUMNS.IMP'),
           dataField: 'imp',
           sortOrder: 'desc',
-          alignment: 'center'
+          alignment: 'center',
+          format: 'fixedPoint'
         }, {
           caption: LC('MAIN.CAMPAIGN.COLUMNS.CLICKS'),
           dataField: 'clicks',
-          alignment: 'center'
+          alignment: 'center',
+          format: 'fixedPoint'
         }, {
           caption: LC('MAIN.CAMPAIGN.COLUMNS.CPC')+ ' ,$',
           dataField: 'cpc',
-          alignment: 'center'
+          alignment: 'center',
+          format: 'fixedPoint'
         },
         {
           caption: LC('MAIN.CAMPAIGN.COLUMNS.CPM')+ ' ,$',
           dataField: 'cpm',
-          alignment: 'center'
+          alignment: 'center',
+          format: 'fixedPoint'
         },
         {
           caption: LC('MAIN.CAMPAIGN.COLUMNS.CVR')+ ' ,%',
@@ -274,13 +283,15 @@
           caption: LC('MAIN.CAMPAIGN.COLUMNS.IMPS_VIEWED'),
           dataField: 'imps_viewed',
           alignment: 'center',
-          width: 90
+          width: 90,
+          format: 'fixedPoint'
         },
         {
           caption: LC('MAIN.CAMPAIGN.COLUMNS.VIEW_MEASURED_IMPS'),
           dataField: 'view_measured_imps',
           alignment: 'center',
-          width: 100
+          width: 100,
+          format: 'fixedPoint'
         },
         {
           caption: LC('MAIN.CAMPAIGN.COLUMNS.VIEW_MEASUREMENT_RATE')+ ' ,%',
@@ -363,9 +374,20 @@
                 tooltip: {
                   enabled: true,
                   customizeTooltip: function (arg) {
-                    return {
-                      text: arg.valueText
-                    };
+                    if (arg.seriesName == 'media' || arg.seriesName == 'CPC') {
+                      return {
+                        text: '$'+arg.valueText+ ' ' + arg.seriesName
+                      };
+                    }
+                    if (arg.seriesName == 'CTR' || arg.seriesName == 'CVR') {
+                      return {
+                        text: arg.valueText+'%'+ ' ' + arg.seriesName
+                      };
+                    } else {
+                      return {
+                        text: arg.valueText + ' ' + arg.seriesName
+                      };
+                    }
                   }
                 }
               };
@@ -774,7 +796,7 @@
         name: 'areas',
         dataSource: $window.DevExpress.viz.map.sources.world,
         palette: 'blue',
-        colorGroups: [0, 100, 1000, 10000],
+        colorGroups: [0, 100, 1000, 10000,100000, 10000000],
         colorGroupingField: 'clicks',
         label: {
           enabled: true,

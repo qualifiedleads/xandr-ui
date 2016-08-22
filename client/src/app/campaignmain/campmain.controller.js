@@ -112,6 +112,9 @@
         return vm.Camp.totalCount;
       },
       load: function (loadOptions) {
+        if (loadOptions.searchOperation && loadOptions.dataField){
+          loadOptions.take = 999999;
+        }
         return vm.Camp.campaignDomains(vm.campId, vm.dataStart, vm.dataEnd, loadOptions.skip,
           loadOptions.take, loadOptions.sort, loadOptions.order, loadOptions.filter)
       }
@@ -590,7 +593,6 @@
       tooltip: {
         enabled: true,
         customizeTooltip: function (arg) {
-          console.log(arg);
           if (arg.seriesName === "Series 2") {
             return {
               text: "Average: $" + arg.originalValue
@@ -771,36 +773,43 @@
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.CONV'),
           dataField: 'conv',
-          alignment: 'center'
+          alignment: 'center',
+          format: 'fixedPoint'
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.IMP'),
           dataField: 'imp',
           sortOrder: 'desc',
-          alignment: 'center'
+          alignment: 'center',
+          format: 'fixedPoint'
         },{
           caption: LC('CAMP.CAMPAIGN.COLUMNS.CPA')+ ' ,$',
           dataField: 'cpa',
-          alignment: 'center'
+          alignment: 'center',
+          format: 'fixedPoint'
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.COST')+ ' ,$',
           dataField: 'cost',
-          alignment: 'center'
+          alignment: 'center',
+          format: 'fixedPoint'
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.CLICKS'),
           dataField: 'clicks',
-          alignment: 'center'
+          alignment: 'center',
+          format: 'fixedPoint'
         }, {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.CPC')+ ' ,$',
           dataField: 'cpc',
-          alignment: 'center'
+          alignment: 'center',
+          format: 'fixedPoint'
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.CPM')+ ' ,$',
           dataField: 'cpm',
-          alignment: 'center'
+          alignment: 'center',
+          format: 'fixedPoint'
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.CVR')+ ' ,%',
@@ -817,14 +826,16 @@
           dataField: 'imps_viewed',
           alignment: 'center',
           visible: false,
-          width: 80
+          width: 80,
+          format: 'fixedPoint'
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.VIEW_MEASURED_IMPS'),
           dataField: 'view_measured_imps',
           alignment: 'center',
           visible: false,
-          width: 100
+          width: 100,
+          format: 'fixedPoint'
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.VIEW_MEASUREMENT_RATE')+ ' ,%',

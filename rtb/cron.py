@@ -620,7 +620,10 @@ def dayly_task(day=None, load_objects_from_services=True, output=None):
     file_output = None
     try:
         if not output:
-            catalog_name = os.path.join(os.path.dirname(__file__), 'logs')
+            if hasattr(settings,'LOG_DIR') and settings.LOG_DIR:
+                catalog_name = settings.LOG_DIR
+            else:
+                catalog_name =  os.path.join(os.path.dirname(__file__), 'logs')
             clean_old_files(catalog_name)
             log_file_name = 'Dayly_Task_%s.log' % get_current_time().strftime('%Y-%m-%dT%H-%M-%S')
             log_file_name = os.path.join(catalog_name, log_file_name)

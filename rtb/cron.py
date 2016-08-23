@@ -614,30 +614,53 @@ def load_depending_data(token):
 #     def __exit__(self, exc_type, exc_val, exc_tb):
 #         pass
 
-# Task, executed twice in hour. Get new data from NexusApp
+# Task, executed once in day. Get new data from NexusApp
 def dayly_task(day=None, load_objects_from_services=True, output=None):
     old_stdout, old_error = sys.stdout, sys.stderr
     file_output = None
-    if not output:
-        catalog_name = os.path.join(os.path.dirname(__file__), 'logs')
-        clean_old_files(catalog_name)
-        log_file_name = 'Dayly_Task_%s.log' % get_current_time().strftime('%Y-%m-%dT%H-%M-%S')
-        log_file_name = os.path.join(catalog_name, log_file_name)
-        file_output = open(log_file_name, 'w')
-        output = file_output
-    sys.stdout, sys.stderr = output, output
+    try:
+        if not output:
+            catalog_name = os.path.join(os.path.dirname(__file__), 'logs')
+            clean_old_files(catalog_name)
+            log_file_name = 'Dayly_Task_%s.log' % get_current_time().strftime('%Y-%m-%dT%H-%M-%S')
+            log_file_name = os.path.join(catalog_name, log_file_name)
+            file_output = open(log_file_name, 'w')
+            file_output.write('Begin write log file {}'.format(get_current_time()))
+            output = file_output
+    except:
+        pass
+    if output:
+        sys.stdout, sys.stderr = output, output
+
+    # print 'Executing dayly_task at', get_current_time()
     # report.get_specifed_report('network_analytics')
+
+    one_day = datetime.timedelta(days=1)
+
+    yesterday = get_current_time().date()-one_day
+    if day:
+        last_day=day
+    else:
+        day = SiteDomainPerformanceReport.aggregate(m=Max('day'))['m']
+        print 'Last loaded day', day
+        if day:
+            day+=one_day
+        else:
+            # empty database
+            day = yesterday - 30 * one_day
+        last_day=yesterday
     try:
         token = get_auth_token()
         if load_objects_from_services:
             load_depending_data(token)
-        load_report(token, day, NetworkCarrierReport_Simple)
-        load_report(token, day, NetworkDeviceReport_Simple)
-        #load_report(token, day, NetworkAnalyticsReport)
-        load_report(token, day, NetworkAnalyticsReport_ByPlacement)
-        load_report(token, day, GeoAnaliticsReport)
-        load_reports_for_all_advertisers(
-            token, day, SiteDomainPerformanceReport)
+        while day<=last_day:
+            load_report(token, day, NetworkCarrierReport_Simple)
+            load_report(token, day, NetworkDeviceReport_Simple)
+            #load_report(token, day, NetworkAnalyticsReport)
+            load_report(token, day, NetworkAnalyticsReport_ByPlacement)
+            load_report(token, day, GeoAnaliticsReport)
+            load_reports_for_all_advertisers(token, day, SiteDomainPerformanceReport)
+            day+=one_day
     except Exception as e:
         print 'Error by fetching data: %s' % e
         print traceback.print_exc(file=output)

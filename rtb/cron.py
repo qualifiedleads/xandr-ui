@@ -627,7 +627,7 @@ def dayly_task(day=None, load_objects_from_services=True, output=None):
             clean_old_files(catalog_name)
             log_file_name = 'Dayly_Task_%s.log' % get_current_time().strftime('%Y-%m-%dT%H-%M-%S')
             log_file_name = os.path.join(catalog_name, log_file_name)
-            file_output = open(log_file_name, 'w')
+            file_output = open(log_file_name, 'w', 1) # line buffered file
             file_output.write('Begin write log file {}\n'.format(get_current_time()))
             output = file_output
     except:

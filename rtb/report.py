@@ -14,7 +14,7 @@ from pytz import utc
 import itertools
 
 # log_path=os.path.join(os.path.dirname(os.path.dirname(__file__)),'logs')
-log_path = 'rtb/logs'
+log_path = settings.LOG_DIR if hasattr(settings,'LOG_DIR') else os.path.expanduser('~') or '/tmp'
 
 appnexus_url = settings.__dict__.get(
     'APPNEXUS_URL', 'https://api.appnexus.com/')
@@ -174,12 +174,6 @@ def get_report_metadata(token, report_type=''):
         url += '=' + report_type
     r = requests.get(url, headers={"Authorization": token})
     return r.content
-
-
-try:
-    os.makedirs(log_path)
-except:
-    pass
 
 
 def date_type(t):

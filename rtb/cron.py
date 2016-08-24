@@ -639,7 +639,7 @@ def dayly_task(day=None, load_objects_from_services=True, output=None):
 
     one_day = datetime.timedelta(days=1)
 
-    yesterday = get_current_time().date()-one_day
+    yesterday = get_current_time().replace(hour=0, minute=0,second=0,microsecond=0)-one_day
     if day:
         last_day=day
     else:

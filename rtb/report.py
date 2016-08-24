@@ -14,7 +14,10 @@ from pytz import utc
 import itertools
 
 # log_path=os.path.join(os.path.dirname(os.path.dirname(__file__)),'logs')
-log_path = settings.LOG_DIR if hasattr(settings,'LOG_DIR') else os.path.expanduser('~') or '/tmp'
+log_path = settings.LOG_DIR if hasattr(settings,'LOG_DIR') else os.path.expanduser('~')
+
+if not os.path.isdir(log_path):
+    log_path = '/tmp'
 
 appnexus_url = settings.__dict__.get(
     'APPNEXUS_URL', 'https://api.appnexus.com/')

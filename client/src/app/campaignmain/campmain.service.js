@@ -88,7 +88,7 @@
         order = 'DESC';
       }
       if (take == null) {
-        take = 20;
+        take = 10;
       }
       if (skip == null) {
         skip = 0;
@@ -104,10 +104,10 @@
         for (var index in res.data.data) {
           res.data.data[index].cvr = +parseFloat(res.data.data[index].cvr).toFixed(4);
           res.data.data[index].ctr = +parseFloat(res.data.data[index].ctr).toFixed(4);
-          res.data.data[index].cpc = +parseFloat(res.data.data[index].cpc).toFixed(4) || null;
+          res.data.data[index].cpc = +parseFloat(res.data.data[index].cpc).toFixed(4);
           res.data.data[index].cpm = +parseFloat(res.data.data[index].cpm).toFixed(4);
           res.data.data[index].imp = +parseFloat(res.data.data[index].imp).toFixed(4);
-          res.data.data[index].cpa = +parseFloat(res.data.data[index].cpa).toFixed(4) || null;
+          res.data.data[index].cpa = +parseFloat(res.data.data[index].cpa).toFixed(4) ;
           res.data.data[index].clicks = +parseFloat(res.data.data[index].clicks).toFixed(4);
           res.data.data[index].conv = +parseFloat(res.data.data[index].conv).toFixed(4);
           res.data.data[index].cost = +parseFloat(res.data.data[index].cost).toFixed(2);
@@ -116,6 +116,9 @@
           res.data.data[index].view_measurement_rate = +parseFloat(res.data.data[index].view_measurement_rate).toFixed(1);
           res.data.data[index].view_rate = +parseFloat(res.data.data[index].view_rate).toFixed(1);
         }
+
+
+
         return res.data;
       })
       .then(function (result) {

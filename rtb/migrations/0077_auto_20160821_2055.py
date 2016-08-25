@@ -6,6 +6,10 @@ from django.db import migrations, models
 import django.db.models.deletion
 
 
+def NullingCountryField(apps, schema_editor):
+    MyModel = apps.get_model('rtb', 'geoanaliticsreport')
+    MyModel.objects.all().update(geo_country=None, geo_region=None)
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -13,6 +17,8 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.RunPython(NullingCountryField, hints={'model_name': "geoanaliticsreport"},
+                             reverse_code=migrations.RunPython.noop),
         migrations.AddField(
             model_name='networkcarrierreport',
             name='carrier',

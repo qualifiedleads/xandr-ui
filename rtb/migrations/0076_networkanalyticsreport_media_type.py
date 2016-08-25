@@ -16,6 +16,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='networkanalyticsreport',
             name='media_type',
-            field=models.ForeignKey(blank=True, db_constraint=False, null=True, on_delete=django.db.models.deletion.DO_NOTHING, to='rtb.MediaType'),
+            field=models.ForeignKey(db_index=False, blank=True, db_constraint=False, null=True, on_delete=django.db.models.deletion.DO_NOTHING, to='rtb.MediaType'),
         ),
+        migrations.RunSQL('CREATE INDEX "network_analytics_report__media_type_id" ON "network_analytics_report" ("media_type_id");'),
     ]

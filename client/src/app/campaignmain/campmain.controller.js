@@ -116,7 +116,7 @@
           loadOptions.take = 999999;
         }
         return vm.Camp.campaignDomains(vm.campId, vm.dataStart, vm.dataEnd, loadOptions.skip,
-          loadOptions.take, loadOptions.sort, loadOptions.order, loadOptions.filter)
+            loadOptions.take, loadOptions.sort, loadOptions.order, loadOptions.filter)
       }
     });
 
@@ -586,8 +586,8 @@
         },
         // label: {
         //   //visible: true,
-		 //      format: "shortDate"
-	     //  },
+        //      format: "shortDate"
+        //  },
         discreteAxisDivisionMode: 'crossLabels'
       },
       tooltip: {
@@ -747,6 +747,7 @@
       paging: {
         pageSize: 10
       },
+      remoteOperations: true,
       pager: {
         showPageSizeSelector: true,
         allowedPageSizes: [10, 30, 50],
@@ -932,6 +933,88 @@
           }
         }
       ],
+      summary: {
+        totalItems: [
+          /*{
+            column: "placement",
+            summaryType: "count"
+          },
+          {
+            column: "conv",
+            summaryType: "sum",
+            customizeText: function (data) {
+              data.valueText = 'Conv: '+data.value;
+              return data.valueText;
+            }
+          },
+          {
+            column: "imp",
+            summaryType: "sum",
+            customizeText: function (data) {
+              data.valueText = 'Imp: '+data.value;
+              return data.valueText;
+            }
+          },
+          {
+            column: "cpa",
+            summaryType: "sum",
+            valueFormat: "currency",
+            customizeText: function (data) {
+              data.valueText = 'CPA: $'+data.value;
+              return data.valueText;
+            }
+          },
+          {
+            column: "cost",
+            summaryType: "sum",
+            valueFormat: "currency",
+            customizeText: function (data) {
+              data.valueText = 'Cost: $'+data.value;
+              return data.valueText;
+            }
+          },
+          {
+            column: "clicks",
+            summaryType: "sum",
+            customizeText: function (data) {
+              data.valueText = 'Clicks: '+data.value;
+              return data.valueText;
+            }
+          },
+          {
+            column: "cpc",
+            summaryType: "sum",
+            customizeText: function (data) {
+              data.valueText = 'CPC: $'+data.value;
+              return data.valueText;
+            }
+          },
+          {
+            column: "cpm",
+            summaryType: "sum",
+            customizeText: function (data) {
+              data.valueText = 'CPM: $'+data.value;
+              return data.valueText;
+            }
+          },
+          {
+            column: "cvr",
+            summaryType: "sum",
+            customizeText: function (data) {
+              data.valueText = 'CVR: '+data.value;
+              return data.valueText;
+            }
+          },
+          {
+            column: "ctr",
+            summaryType: "sum",
+            customizeText: function (data) {
+              data.valueText = 'CTR: '+data.value;
+              return data.valueText;
+            }
+          }*/
+        ]
+      },
       columnChooser: {
         enabled: true,
         height: 180,

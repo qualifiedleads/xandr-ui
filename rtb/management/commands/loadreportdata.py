@@ -42,12 +42,10 @@ Call with one parameter -load data for specifed day. Date must provided as <Year
         current_day = get_current_time().date()
         one_day = datetime.timedelta(days=1)
         current_day-=one_day*31
-        with open('rtb/logs/loadreportdata.log', 'w') as f:
-            t = tee (self.stdout, f)
-            for i in xrange(0,30):
-                t.write(p_line)
-                t.write('Save data for %s \n'%current_day.strftime('%Y-%m-%d'))
-                t.write(p_line)
-                dayly_task(current_day, is_first, t)
-                is_first = False
-                current_day += one_day
+        for i in xrange(0,30):
+            self.stdout.write(p_line)
+            self.stdout.write('Save data for %s \n'%current_day.strftime('%Y-%m-%d'))
+            self.stdout.write(p_line)
+            dayly_task(current_day, is_first, self.stdout)
+            is_first = False
+            current_day += one_day

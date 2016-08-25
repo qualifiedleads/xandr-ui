@@ -162,3 +162,24 @@ INVALIDATE_TIME = datetime.timedelta(hours=23,minutes=30)
 MAX_REPORT_WAIT = datetime.timedelta(hours=1)
 USE_TRANSACTIONS = False
 APPNEXUS_URL = 'https://api.appnexus.com/'
+
+# path to dir when log files must saved
+LOG_DIR=os.path.join(BASE_DIR, 'rtb', 'logs')
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'file': {
+            'level': 'NOTSET',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(LOG_DIR, 'cron.log')
+            },
+        },
+    'loggers': {
+        'django_crontab': {
+            'handlers': ['file'],
+            'level': 'NOTSET',
+            'propagate': True,
+        },
+    },
+}

@@ -60,9 +60,9 @@ class User(models.Model):
         null=True, blank=True)
     read_only = models.NullBooleanField(null=True, blank=True)
     api_login = models.NullBooleanField(null=True, blank=True)
-    entity = models.ForeignKey("Member", null=True, blank=True)
-    publisher = models.ForeignKey("Publisher", null=True, blank=True)
-    advertiser = models.ForeignKey("Advertiser", null=True, blank=True)
+    entity = models.ForeignKey("Member", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    publisher = models.ForeignKey("Publisher", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    advertiser = models.ForeignKey("Advertiser", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     #advertiser_access = array - see model UserAdvertiserAccess below
     #publisher_access = array - see model UserPubliserAccess below
     reporting_decimal_type = models.TextField(
@@ -192,8 +192,8 @@ class Brand(models.Model):
     name = models.TextField(null=True, blank=True, db_index=True)
     urls = models.TextField(null=True, blank=True)#ArrayField(models.TextField(null=True, blank=True), null=True, blank=True)
     is_premium = models.NullBooleanField(null=True, blank=True)
-    category = models.ForeignKey("Category", null=True, blank=True)
-    company = models.ForeignKey("Company", null=True, blank=True)
+    category = models.ForeignKey("Category", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    company = models.ForeignKey("Company", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     num_creatives = models.IntegerField(null=True, blank=True)
     last_modified = models.DateTimeField(default=now_tz)
 
@@ -231,7 +231,7 @@ class Region(models.Model):
     fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
     name = models.TextField(null=True, blank=True, db_index=True)
     code = models.TextField(null=True, blank=True) #enum in origin
-    country = models.ForeignKey("Country", null=True, blank=True)
+    country = models.ForeignKey("Country", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
 
     api_endpoint = 'region'
     class Meta:
@@ -240,9 +240,9 @@ class Region(models.Model):
 
 class BrandInCountry(models.Model):  # TODO:ManyToManyField
     #See the model Category.countries_and_brands
-    brand = models.ForeignKey("Brand", null=True, blank=True)
+    brand = models.ForeignKey("Brand", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     #brand_id = models.IntegerField(null=True, blank=True)
-    category = models.ForeignKey("Category", null=True, blank=True)
+    category = models.ForeignKey("Category", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
 
     class Meta:
         db_table = "brand_in_country"
@@ -277,7 +277,7 @@ class Advertiser(models.Model):
     #competitive_categories	#see model AdvertiserCategories below
     enable_pacing = models.NullBooleanField(null=True, blank=True)
     allow_safety_pacing = models.NullBooleanField(null=True, blank=True)
-    profile = models.ForeignKey("Profile", null=True, blank=True, related_name='profile_id')
+    profile = models.ForeignKey("Profile", null=True, blank=True, related_name='profile_id', db_constraint=False, on_delete = models.DO_NOTHING)
     control_pct = models.FloatField(null=True, blank=True)
     timezone = models.TextField(null=True, blank=True) #originally it is enum
     last_modified = models.DateTimeField(default=now_tz) 
@@ -313,8 +313,8 @@ class Advertiser(models.Model):
 
 
 class AdvertiserBrand(models.Model):
-    advertiser = models.ForeignKey("Advertiser", null=True, blank=True)
-    brand = models.ForeignKey("Brand", null=True, blank=True)
+    advertiser = models.ForeignKey("Advertiser", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    brand = models.ForeignKey("Brand", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     #brand_id = models.IntegerField(null=True, blank=True)
 
     class Meta:
@@ -322,8 +322,8 @@ class AdvertiserBrand(models.Model):
 
 
 class AdvertiserCategory(models.Model):
-    advertiser = models.ForeignKey("Advertiser", null=True, blank=True)
-    category = models.ForeignKey("Category", null=True, blank=True)
+    advertiser = models.ForeignKey("Advertiser", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    category = models.ForeignKey("Category", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
 
     class Meta:
         db_table = "advertiser_category"
@@ -341,7 +341,7 @@ LABELED_OBJECT_TYPE = (
 class Label(models.Model):
     # 1 (Salesperson), 3 (Account Manager), 12 (Advertiser Type), 2 (Salesperson), 4 (Account Manager)
     name = models.TextField(null=True, blank=True, db_index=True)
-    member = models.ForeignKey("Member", null=True, blank=True)
+    member = models.ForeignKey("Member", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     is_user_associated = models.NullBooleanField(null=True, blank=True)
     is_reporting_enabled = models.NullBooleanField(null=True, blank=True)
     object_type = models.TextField(
@@ -357,12 +357,12 @@ class Label(models.Model):
 
 
 class LabeledObject(models.Model):
-    label = models.ForeignKey("Label", null=True, blank=True)
-    advertiser = models.ForeignKey("Advertiser", null=True, blank=True)
-    insertion_order = models.ForeignKey("InsertionOrder", null=True, blank=True)
-    line_item = models.ForeignKey("LineItem", null=True, blank=True)
-    campaign = models.ForeignKey("Campaign", null=True, blank=True)
-    publisher = models.ForeignKey("Publisher", null=True, blank=True)
+    label = models.ForeignKey("Label", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    advertiser = models.ForeignKey("Advertiser", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    insertion_order = models.ForeignKey("InsertionOrder", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    line_item = models.ForeignKey("LineItem", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    campaign = models.ForeignKey("Campaign", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    publisher = models.ForeignKey("Publisher", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     value = models.TextField(null=True, blank=True)
 
     class Meta:
@@ -370,8 +370,8 @@ class LabeledObject(models.Model):
 
 
 class AdvertiserLabel(models.Model):
-    label = models.ForeignKey("Label", null=True, blank=True) #id in origin
-    advertiser = models.ForeignKey("Advertiser", null=True, blank=True)
+    label = models.ForeignKey("Label", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING) #id in origin
+    advertiser = models.ForeignKey("Advertiser", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     #name = models.TextField(null=True, blank=True, db_index=True) #enum on origin  1 (Salesperson), 3 (Account Manager), 12 (Advertiser Type)
     value = models.TextField(null=True, blank=True)
 
@@ -380,8 +380,8 @@ class AdvertiserLabel(models.Model):
 
 
 class AdvertiserThirdpartyPixel(models.Model):
-    advertiser = models.ForeignKey("Advertiser", null=True, blank=True)
-    thirdparty_pixel = models.ForeignKey("ThirdPartyPixel", null=True, blank=True)
+    advertiser = models.ForeignKey("Advertiser", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    thirdparty_pixel = models.ForeignKey("ThirdPartyPixel", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
 
     class Meta:
         db_table = "advertiser_thirdparty_pixel"
@@ -422,7 +422,7 @@ class MediaSubType(models.Model):
     id = models.IntegerField(primary_key=True)  # No AutoIncrement
     fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
     name = models.TextField(null=True, blank=True, db_index=True)
-    media_type = models.ForeignKey("MediaType", null=True, blank=True)
+    media_type = models.ForeignKey("MediaType", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     #permitted_sizes - see model MediaSubTypePermittedSizes below
     #native_assets - see model MediaSubTypeNativeAssets below
     last_modified = models.DateTimeField(default=now_tz)
@@ -433,7 +433,7 @@ class MediaSubType(models.Model):
 
 
 class MediaSubTypePermittedSizes(models.Model):
-    media_sub_type = models.ForeignKey("MediaSubType", null=True, blank=True)
+    media_sub_type = models.ForeignKey("MediaSubType", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     platform_width = models.IntegerField(null=True, blank=True)
     platform_height = models.IntegerField(null=True, blank=True)
     validate_image_size = models.NullBooleanField(null=True, blank=True)
@@ -470,7 +470,7 @@ MEDIA_REQUIRENMENT = (
 
 
 class MediaSubTypeNativeAssets(models.Model):
-    media_sub_type = models.ForeignKey("MediaSubType", null=True, blank=True)
+    media_sub_type = models.ForeignKey("MediaSubType", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     native_asset_name = models.TextField(
         choices=NATIVE_ASSETS_NAME,
         null=True, blank=True)
@@ -534,7 +534,7 @@ class AdProfile(models.Model):
     state = models.TextField(
         choices=STATE_CHOICES,
         null=True, blank=True)
-    member = models.ForeignKey("Member", null=True, blank=True)
+    member = models.ForeignKey("Member", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     description = models.TextField(null=True, blank=True)
     default_member_status = models.TextField(
         choices=DEFAILT_MEMBER_STATUS_CHOICES,
@@ -577,7 +577,7 @@ class AdProfile(models.Model):
     check_attributes_direct = models.NullBooleanField(null=True, blank=True)
     excluded_landing_page_urls = models.TextField(null=True, blank=True) # it is array in origine but it is marked as Not available.
     notes = models.TextField(null=True, blank=True)
-    publisher = models.ForeignKey("Publisher", null=True, blank=True)
+    publisher = models.ForeignKey("Publisher", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     last_modified = models.DateTimeField(default=now_tz)
 
     api_endpoint = 'ad-profile'
@@ -586,8 +586,8 @@ class AdProfile(models.Model):
 
 
 class AdProfileFrequencyCaps(models.Model):
-    ad_profile = models.ForeignKey("AdProfile", null=True, blank=True)
-    member = models.ForeignKey("Member", null=True, blank=True)
+    ad_profile = models.ForeignKey("AdProfile", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    member = models.ForeignKey("Member", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     max_session_imps = models.IntegerField(null=True, blank=True)
     max_day_imps = models.IntegerField(null=True, blank=True)
     min_minutes_per_imp = models.IntegerField(null=True, blank=True)
@@ -600,8 +600,8 @@ class AdProfileFrequencyCaps(models.Model):
 
 
 class AdProfileMember(models.Model):
-    ad_profile = models.ForeignKey("AdProfile", null=True, blank=True)
-    member = models.ForeignKey("Member", null=True, blank=True)
+    ad_profile = models.ForeignKey("AdProfile", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    member = models.ForeignKey("Member", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     status = models.TextField(
         choices=DEFAILT_MEMBER_STATUS_CHOICES,
         null=True, blank=True)
@@ -615,8 +615,8 @@ class AdProfileMember(models.Model):
 
 
 class AdProfileBrand(models.Model):
-    ad_profile = models.ForeignKey("AdProfile", null=True, blank=True)
-    brand = models.ForeignKey("Brand", null=True, blank=True)
+    ad_profile = models.ForeignKey("AdProfile", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    brand = models.ForeignKey("Brand", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     #brand_id = models.IntegerField(null=True, blank=True)
     status = models.TextField(
         choices=DEFAILT_BRAND_STATUS_CHOICES,
@@ -627,8 +627,8 @@ class AdProfileBrand(models.Model):
 
 
 class AdProfileCreative(models.Model):
-    ad_profile = models.ForeignKey("AdProfile", null=True, blank=True)
-    creative = models.ForeignKey("Creative", null=True, blank=True)
+    ad_profile = models.ForeignKey("AdProfile", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    creative = models.ForeignKey("Creative", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     approved = models.NullBooleanField(null=True, blank=True)
 
     class Meta:
@@ -636,8 +636,8 @@ class AdProfileCreative(models.Model):
 
 
 class AdProfileLanguage(models.Model):
-    ad_profile = models.ForeignKey("AdProfile", null=True, blank=True)
-    language = models.ForeignKey("Language", null=True, blank=True)
+    ad_profile = models.ForeignKey("AdProfile", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    language = models.ForeignKey("Language", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     status = models.TextField(
         choices=DEFAILT_LANGUAGE_STATUS_CHOICES,
         null=True, blank=True)
@@ -660,7 +660,7 @@ class AdServer(models.Model):
 
 
 class AdServerHostname(models.Model):
-    ad_server = models.ForeignKey("AdServer", null=True, blank=True)
+    ad_server = models.ForeignKey("AdServer", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     hostname = models.TextField(null=True, blank=True, db_index=True)
 
     class Meta:
@@ -668,8 +668,8 @@ class AdServerHostname(models.Model):
 
 
 class AdProfileAdServer(models.Model):
-    ad_profile = models.ForeignKey("AdProfile", null=True, blank=True)
-    ad_server = models.ForeignKey("AdServer", null=True, blank=True)
+    ad_profile = models.ForeignKey("AdProfile", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    ad_server = models.ForeignKey("AdServer", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     status = models.TextField(
         choices=DEFAILT_AD_SERVER_STATUS_CHOICES,
         null=True, blank=True)
@@ -679,8 +679,8 @@ class AdProfileAdServer(models.Model):
 
 
 class AdProfileCategory(models.Model):
-    ad_profile = models.ForeignKey("AdProfile", null=True, blank=True)
-    category = models.ForeignKey("Category", null=True, blank=True)
+    ad_profile = models.ForeignKey("AdProfile", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    category = models.ForeignKey("Category", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     status = models.TextField(
         choices=DEFAILT_CATEGORY_STATUS_CHOICES,
         null=True, blank=True)
@@ -700,8 +700,8 @@ class TechnicalAttribute(models.Model):
 
 
 class AdProfileTechnicalAttribute(models.Model):
-    ad_profile = models.ForeignKey("AdProfile", null=True, blank=True)
-    technical_attribute = models.ForeignKey("TechnicalAttribute", null=True, blank=True)
+    ad_profile = models.ForeignKey("AdProfile", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    technical_attribute = models.ForeignKey("TechnicalAttribute", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     status = models.TextField(
         choices=DEFAILT_CATEGORY_STATUS_CHOICES,
         null=True, blank=True)
@@ -711,16 +711,16 @@ class AdProfileTechnicalAttribute(models.Model):
 
 
 class AdProfileFrequencyCapsTechnicalAttribute(models.Model):
-    frequency_caps = models.ForeignKey("AdProfileFrequencyCaps", null=True, blank=True)
-    technical_attribute = models.ForeignKey("TechnicalAttribute", null=True, blank=True)
+    frequency_caps = models.ForeignKey("AdProfileFrequencyCaps", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    technical_attribute = models.ForeignKey("TechnicalAttribute", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
 
     class Meta:
         db_table = "ad_profile_frequency_caps_technical_attribute"
 
 
 class AdProfileFrequencyCapsCategory(models.Model):
-    frequency_caps = models.ForeignKey("AdProfileFrequencyCaps", null=True, blank=True)
-    category = models.ForeignKey("Category", null=True, blank=True)
+    frequency_caps = models.ForeignKey("AdProfileFrequencyCaps", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    category = models.ForeignKey("Category", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
 
     class Meta:
         db_table = "ad_profile_frequency_caps_category"
@@ -754,8 +754,8 @@ class OptimizationZone(models.Model):
 class ManualOfferRanking(models.Model):
     #https://wiki.appnexus.com/display/api/Manual+Offer+Ranking+Service
     id = models.IntegerField(primary_key=True)
-    managed_optimization_zone = models.ForeignKey("OptimizationZone", null=True, blank=True)
-    line_item = models.ForeignKey("LineItem", null=True, blank=True)
+    managed_optimization_zone = models.ForeignKey("OptimizationZone", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    line_item = models.ForeignKey("LineItem", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     country_code = models.TextField(null=True, blank=True, db_index=True)
     creative_height = models.IntegerField(null=True, blank=True)
     creative_width = models.IntegerField(null=True, blank=True)
@@ -769,7 +769,7 @@ class MobileAppInstance(models.Model):
     id = models.IntegerField(primary_key=True)
     fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
     #instance - bundle - see model MobileAppInstanceBundle below
-    mobile_app_store = models.ForeignKey("MobileAppStore", null=True, blank=True)
+    mobile_app_store = models.ForeignKey("MobileAppStore", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     store_name = models.TextField(null=True, blank=True)
     store_url = models.TextField(null=True, blank=True)
     mobile_app_store = models.TextField(null=True, blank=True)
@@ -783,7 +783,7 @@ class MobileAppInstance(models.Model):
 
 class MobileAppInstanceBundle(models.Model):
     bundle_id = models.IntegerField(primary_key=True)
-    os_family = models.ForeignKey("OSFamily", null=True, blank=True)
+    os_family = models.ForeignKey("OSFamily", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     last_modified = models.DateTimeField(default=now_tz) 
     created_on = models.DateTimeField(null=True, blank=True)
 
@@ -796,7 +796,7 @@ class MobileAppStore(models.Model):
     id = models.IntegerField(primary_key=True)
     name = models.TextField(null=True, blank=True, db_index=True)
     url = models.TextField(null=True, blank=True)
-    os_family = models.ForeignKey("OSFamily", null=True, blank=True)
+    os_family = models.ForeignKey("OSFamily", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     last_modified = models.DateTimeField(default=now_tz) 
 
     class Meta:
@@ -830,8 +830,8 @@ class Site(models.Model):
         choices=STATE_CHOICES,
         null=True, blank=True)
     url = models.TextField(null=True, blank=True)
-    publisherd = models.ForeignKey("Publisher", null=True, blank=True)
-    primary_content_category = models.ForeignKey("ContentCategory", null=True, blank=True)
+    publisherd = models.ForeignKey("Publisher", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    primary_content_category = models.ForeignKey("ContentCategory", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     last_modified = models.DateTimeField(default=now_tz) 
     #placements = array - see model Placement below
     #content_categories = array - see model SiteContentCategory below
@@ -839,9 +839,9 @@ class Site(models.Model):
         choices=INTENDED_AUDIENCE,
         null=True, blank=True)
     managed_optimization_zone = models.ForeignKey("OptimizationZone", null=True, blank=True,
-                                                  related_name='managed_optimization_zone_id')
+                                                  related_name='managed_optimization_zone_id', db_constraint=False, on_delete = models.DO_NOTHING)
     rtb_optimization_zone = models.ForeignKey("OptimizationZone", null=True, blank=True,
-                                              related_name='rtb_optimization_zone_id')
+                                              related_name='rtb_optimization_zone_id', db_constraint=False, on_delete = models.DO_NOTHING)
     #inventory_attributes = array - see model SiteInventoryAttributes below
     audited = models.NullBooleanField(null=True, blank=True)
     publisher_join = models.TextField(null=True, blank=True) # it is an array in origin but there is no description
@@ -852,7 +852,7 @@ class Site(models.Model):
     creative_formats = models.TextField(null=True, blank=True) # array in origine - we need use Postgresql Array of string
     allowed_click_actions = models.TextField(null=True, blank=True) #array in origine - we need use Postgresql Array of string
     marketplace_map = models.TextField(null=True, blank=True) # it is an array in origin but there is no description
-    mobile_app_instance = models.ForeignKey("MobileAppInstance", null=True, blank=True)
+    mobile_app_instance = models.ForeignKey("MobileAppInstance", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
 
     api_endpoint = 'site'
     class Meta:
@@ -861,7 +861,7 @@ class Site(models.Model):
 
 class SiteInventoryAttributes(models.Model):
     site = models.ForeignKey("Site", null=True, blank=True)
-    inventory_attribute = models.ForeignKey("InventoryAttribute", null=True, blank=True)
+    inventory_attribute = models.ForeignKey("InventoryAttribute", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
 
     class Meta:
         db_table = "site_inventory_attributes"
@@ -869,7 +869,7 @@ class SiteInventoryAttributes(models.Model):
 
 class SiteContentCategory(models.Model):
     site = models.ForeignKey("Site", null=True, blank=True)
-    content_category = models.ForeignKey("ContentCategory", null=True, blank=True)
+    content_category = models.ForeignKey("ContentCategory", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
 
     class Meta:
         db_table = "site_content_category"
@@ -884,7 +884,7 @@ class YieldManagementProfile(models.Model):
     description = models.TextField(null=True, blank=True)
     base_ym_bias_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
     base_ym_floor_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
-    publisher = models.ForeignKey("Publisher", null=True, blank=True)
+    publisher = models.ForeignKey("Publisher", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     #modifiers = array - see model YieldManagementProfileModifiers below
     biases = models.TextField(null=True, blank=True) #TODO JSON - may be in future we need modell here
     floors = models.TextField(null=True, blank=True) #TODO JSON - may be in future we need modell here
@@ -904,8 +904,8 @@ YIELD_MANAGEMENT_PROFILE_MODIFIERS_CHOICES = (
 
 
 class YieldManagementProfileModifiers(models.Model):
-    yield_management_profile = models.ForeignKey("YieldManagementProfile", null=True, blank=True)
-    technical_attribute = models.ForeignKey("TechnicalAttribute", null=True, blank=True)
+    yield_management_profile = models.ForeignKey("YieldManagementProfile", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    technical_attribute = models.ForeignKey("TechnicalAttribute", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     type = models.TextField(
         choices=YIELD_MANAGEMENT_PROFILE_MODIFIERS_CHOICES,
         null=True, blank=True)
@@ -973,8 +973,8 @@ class Publisher(models.Model):
     learn_bypass_cpm = models.IntegerField(null=True, blank=True)
     ad_quality_advanced_mode_enabled = models.NullBooleanField(null=True, blank=True)
     allow_report_on_default_imps = models.NullBooleanField(null=True, blank=True)
-    default_site = models.ForeignKey("Site", null=True, blank=True)
-    default_ad_profile = models.ForeignKey("AdProfile", null=True, blank=True, related_name='publisher_ad_profile_id')
+    default_site = models.ForeignKey("Site", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    default_ad_profile = models.ForeignKey("AdProfile", null=True, blank=True, related_name='publisher_ad_profile_id', db_constraint=False, on_delete = models.DO_NOTHING)
     billing_dba = models.TextField(null=True, blank=True)
     billing_address1 = models.TextField(null=True, blank=True)
     billing_address2 = models.TextField(null=True, blank=True)
@@ -985,7 +985,7 @@ class Publisher(models.Model):
     accept_supply_partner_usersync = models.NullBooleanField(null=True, blank=True)
     accept_demand_partner_usersync = models.NullBooleanField(null=True, blank=True)
     accept_data_provider_usersync = models.NullBooleanField(null=True, blank=True)
-    ym_profile = models.ForeignKey("YieldManagementProfile", null=True, blank=True, related_name='ym_profile_id')
+    ym_profile = models.ForeignKey("YieldManagementProfile", null=True, blank=True, related_name='ym_profile_id', db_constraint=False, on_delete = models.DO_NOTHING)
     allow_cpm_managed = models.NullBooleanField(null=True, blank=True)
     allow_cpm_external = models.NullBooleanField(null=True, blank=True)
     allow_cpa_managed = models.NullBooleanField(null=True, blank=True)
@@ -997,7 +997,7 @@ class Publisher(models.Model):
     external_cpc_bias_pct = models.IntegerField(null=True, blank=True)
     external_cpa_bias_pct = models.IntegerField(null=True, blank=True)
     is_oo = models.NullBooleanField(null=True, blank=True)
-    base_payment_rule = models.ForeignKey("PaymentRule", null=True, blank=True)
+    base_payment_rule = models.ForeignKey("PaymentRule", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     base_ad_quality_rule_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
     currency = models.TextField(null=True, blank=True)
     visibility_profile_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
@@ -1030,7 +1030,7 @@ class Publisher(models.Model):
 
 
 class PublisherContact(models.Model):
-    publisher = models.ForeignKey("Publisher", null=True, blank=True)
+    publisher = models.ForeignKey("Publisher", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     name = models.TextField(null=True, blank=True)
     phone = models.TextField(null=True, blank=True)
     email = models.TextField(null=True, blank=True)
@@ -1040,8 +1040,8 @@ class PublisherContact(models.Model):
 
 
 class PublisherBrandExceptions(models.Model): # TODO: ManyToMany field
-    publisher = models.ForeignKey("Publisher", null=True, blank=True)
-    brand = models.ForeignKey("Brand", null=True, blank=True)
+    publisher = models.ForeignKey("Publisher", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    brand = models.ForeignKey("Brand", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     #brand_id = models.IntegerField(null=True, blank=True)
     class Meta:
         db_table = "publisher_brand_exceptions"
@@ -1049,7 +1049,7 @@ class PublisherBrandExceptions(models.Model): # TODO: ManyToMany field
 
 class PublisherExternalInventoryCode(models.Model):
     #https://wiki.appnexus.com/display/api/External+Inventory+Code+Service
-    publisher = models.ForeignKey("Publisher", null=True, blank=True)
+    publisher = models.ForeignKey("Publisher", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     name = models.TextField(null=True, blank=True, db_index=True)
     code = models.TextField(null=True, blank=True, db_index=True)
 
@@ -1058,8 +1058,8 @@ class PublisherExternalInventoryCode(models.Model):
 
 
 class PublisherLabel(models.Model):
-    label = models.ForeignKey("Label", null=True, blank=True) #id in origin
-    publisher = models.ForeignKey("Publisher", null=True, blank=True)
+    label = models.ForeignKey("Label", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING) #id in origin
+    publisher = models.ForeignKey("Publisher", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     #name = models.TextField(null=True, blank=True, db_index=True) #enum in origin 2 (Salesperson), 4 (Account Manager)
     value = models.TextField(null=True, blank=True)
 
@@ -1078,7 +1078,7 @@ class ContentCategory(models.Model):
     name = models.TextField(null=True, blank=True, db_index=True)
     description = models.TextField(null=True, blank=True)
     is_system = models.NullBooleanField(null=True, blank=True)
-    parent_category = models.ForeignKey("ContentCategory", null=True, blank=True)
+    parent_category = models.ForeignKey("ContentCategory", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     type = models.TextField(
         choices=CONTENT_CATEGORY_TYPE,
         null=True, blank=True)
@@ -1180,18 +1180,19 @@ class Creative(models.Model):
     type = models.TextField(
         choices=CREATIVE_TYPE_CHOICES,
         null=True, blank=True)
-    advertiser = models.ForeignKey("Advertiser", null=True, blank=True)
-    publisher = models.ForeignKey("Publisher", null=True, blank=True)
-    brand = models.ForeignKey("Brand", null=True, blank=True)
+    advertiser = models.ForeignKey("Advertiser", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    publisher = models.ForeignKey("Publisher", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    brand = models.ForeignKey("Brand", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     #brand_id = models.IntegerField(null=True, blank=True)
     state = models.TextField(
         choices=STATE_CHOICES,
         null=True, blank=True)
+    status = models.TextField(null=True, blank=True) #TODO JSON
     click_track_result = models.TextField(
         choices=CLICK_TEST_RESULT_COICES,
         null=True, blank=True)
     #campaigns = array - see model CampaignCreative
-    template = models.ForeignKey("CreativeTemplate", null=True, blank=True)
+    template = models.ForeignKey("CreativeTemplate", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     thirdparty_page = object
     custom_macros = models.TextField(
         choices=CLICK_TEST_RESULT_COICES,
@@ -1215,14 +1216,7 @@ class Creative(models.Model):
         choices=SSL_STATUS_CHOICES,
         null=True, blank=True)
     allow_ssl_audit = models.NullBooleanField(null=True, blank=True)
-    google_audit_status = models.TextField(
-        choices=GOOGLE_AUDIT_STATUS_CHOICES,
-        null=True, blank=True)
-    google_audit_feedback = models.TextField(null=True, blank=True)
-    msft_audit_status = models.TextField(
-        choices=MSFT_AUDIT_STATUS_CHOICES,
-        null=True, blank=True)
-    msft_audit_feedback = models.TextField(null=True, blank=True)
+    adx_audit = models.TextField(null=True, blank=True) #TODO JSON
     facebook_audit_status = models.TextField(
         choices=FACEBOOK_AUDIT_STATUS_CHOICES,
         null=True, blank=True)
@@ -1237,8 +1231,8 @@ class Creative(models.Model):
     daily_budget_imps = models.IntegerField(null=True, blank=True)
     enable_pacing = models.NullBooleanField(null=True, blank=True)
     allow_safety_pacing = models.NullBooleanField(null=True, blank=True)
-    profile = models.ForeignKey("Profile", null=True, blank=True)
-    folder = models.ForeignKey("CreativeFolder", null=True, blank=True)
+    profile = models.ForeignKey("Profile", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    folder = models.ForeignKey("CreativeFolder", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     #line_items = array - see model LineItemCreatives
     #pixels = array - see model CreativePixel below
     track_clicks = models.NullBooleanField(null=True, blank=True)
@@ -1267,7 +1261,7 @@ class Creative(models.Model):
     #categories = array - see model CreativeCategory below
     #adservers = array - see model CreativeAdserver below
     #technical_attributes - see model CreativeTechnicalAttribute
-    language = models.ForeignKey("Language", null=True, blank=True)
+    language = models.ForeignKey("Language", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     pop_values = models.TextField(null=True, blank=True) #TODO JSON
     sla = models.IntegerField(null=True, blank=True)
     sla_eta = models.DateTimeField(null=True, blank=True)
@@ -1285,7 +1279,7 @@ class Creative(models.Model):
     #native = models.TextField(null=True, blank=True) #TODO JSON
     #adx_audit = models.TextField(null=True, blank=True) #TODO JSON
     flash_backup_url_secure = models.TextField(null=True, blank=True)
-    member = models.ForeignKey("Member", null=True, blank=True)
+    member = models.ForeignKey("Member", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
 
     api_endpoint = 'creative'
     class Meta:
@@ -1293,8 +1287,8 @@ class Creative(models.Model):
 
 
 class CreativeTechnicalAttribute(models.Model):
-    technical_attribute = models.ForeignKey("TechnicalAttribute", null=True, blank=True)
-    creative = models.ForeignKey("Creative", null=True, blank=True)
+    technical_attribute = models.ForeignKey("TechnicalAttribute", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    creative = models.ForeignKey("Creative", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
 
     class Meta:
         db_table = "creative_technical_attribute"
@@ -1316,24 +1310,24 @@ CREATIVE_SEGMENT_ACTION_CHOICES = (
 
 
 class CreativeThirdpartyPixel(models.Model):
-    thirdparty_pixel = models.ForeignKey("ThirdPartyPixel", null=True, blank=True)
-    creative = models.ForeignKey("Creative", null=True, blank=True)
+    thirdparty_pixel = models.ForeignKey("ThirdPartyPixel", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    creative = models.ForeignKey("Creative", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
 
     class Meta:
         db_table = "creative_thirdparty_pixel"
 
 
 class CreativeCompetitiveBrand(models.Model):
-    creative = models.ForeignKey("Creative", null=True, blank=True)
-    brand = models.ForeignKey("Brand", null=True, blank=True)
+    creative = models.ForeignKey("Creative", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    brand = models.ForeignKey("Brand", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     #brand_id = models.IntegerField(null=True, blank=True)
     class Meta:
         db_table = "creative_competitive_brand"
 
 
 class CreativeCompetitiveCategory(models.Model):
-    creative = models.ForeignKey("Creative", null=True, blank=True)
-    category = models.ForeignKey("Category", null=True, blank=True)
+    creative = models.ForeignKey("Creative", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    category = models.ForeignKey("Category", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
 
     class Meta:
         db_table = "creative_competitive_category"
@@ -1341,8 +1335,8 @@ class CreativeCompetitiveCategory(models.Model):
 
 class CreativeAdserver(models.Model):
     id = models.IntegerField(primary_key=True)  # No AutoIncrement
-    creative = models.ForeignKey("Creative", null=True, blank=True)
-    ad_server = models.ForeignKey("AdServer", null=True, blank=True)
+    creative = models.ForeignKey("Creative", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    ad_server = models.ForeignKey("AdServer", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     use_type = models.TextField(null=True, blank=True)
     name = models.TextField(null=True, blank=True)
 
@@ -1351,16 +1345,16 @@ class CreativeAdserver(models.Model):
 
 
 class CreativeCategory(models.Model):
-    creative = models.ForeignKey("Creative", null=True, blank=True)
-    category = models.ForeignKey("Category", null=True, blank=True)
+    creative = models.ForeignKey("Creative", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    category = models.ForeignKey("Category", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
 
     class Meta:
         db_table = "creative_category"
 
 
 class CreativeSegment(models.Model):
-    creative = models.ForeignKey("Creative", null=True, blank=True)
-    segment = models.ForeignKey("Segment", null=True, blank=True)
+    creative = models.ForeignKey("Creative", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    segment = models.ForeignKey("Segment", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     action = models.TextField(
         choices=CREATIVE_SEGMENT_ACTION_CHOICES,
         null=True, blank=True)
@@ -1389,8 +1383,8 @@ class PixelTemplate(models.Model):
 
 class CreativePixel(models.Model):
     id = models.IntegerField(primary_key=True)  # No AutoIncrement
-    creative = models.ForeignKey("Creative", null=True, blank=True)
-    pixel_template = models.ForeignKey("PixelTemplate", null=True, blank=True)
+    creative = models.ForeignKey("Creative", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    pixel_template = models.ForeignKey("PixelTemplate", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     param_1 = models.TextField(null=True, blank=True)
     param_2 = models.TextField(null=True, blank=True)
     param_3 = models.TextField(null=True, blank=True)
@@ -1413,7 +1407,7 @@ class CreativeFolder(models.Model):
     id = models.IntegerField(primary_key=True)  # No AutoIncrement
     fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
     name = models.TextField(null=True, blank=True, db_index=True)
-    advertiser = models.ForeignKey("Advertiser", null=True, blank=True)
+    advertiser = models.ForeignKey("Advertiser", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     last_modified = models.DateTimeField(default=now_tz)
 
     api_endpoint = 'creative-folder'
@@ -1427,14 +1421,13 @@ class CreativeTemplate(models.Model):
     fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
     name = models.TextField(null=True, blank=True, db_index=True)
     description = models.TextField(null=True, blank=True)
-    member = models.ForeignKey("Member", null=True, blank=True)
-    media_subtype = models.ForeignKey("MediaSubType", null=True, blank=True)
-    format = models.ForeignKey("CreativeFormat", null=True, blank=True)
+    member = models.ForeignKey("Member", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    media_subtype = models.ForeignKey("MediaSubType", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    format = models.ForeignKey("CreativeFormat", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     is_default = models.NullBooleanField(null=True, blank=True)
     is_archived = models.NullBooleanField(null=True, blank=True)
     content_js = models.TextField(null=True, blank=True)
     content_html = models.TextField(null=True, blank=True)
-    content_xml = models.TextField(null=True, blank=True)
     callback_content_html = models.TextField(null=True, blank=True)
     macros = models.TextField(null=True, blank=True) #array of object in origin. Later we can create separate model for it if needed
     last_modified = models.DateTimeField(default=now_tz)
@@ -1518,14 +1511,14 @@ class Placement(models.Model):
     default_position = models.TextField(
         choices=PLACEMENT_POSITION,
         null=True, blank=True)
-    publisher = models.ForeignKey("Publisher", null=True, blank=True)
-    site = models.ForeignKey("Site", null=True, blank=True)
+    publisher = models.ForeignKey("Publisher", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    site = models.ForeignKey("Site", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     inventory_source_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
-    ad_profile = models.ForeignKey("AdProfile", null=True, blank=True)
+    ad_profile = models.ForeignKey("AdProfile", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     #supported_media_types = array - see model PlacementMediaType below
     #supported_media_subtypes = array - see model PlacementMediaSubType below
     #pop_values = array - see model PlacementPopValues
-    default_creative = models.ForeignKey("Creative", null=True, blank=True)
+    default_creative = models.ForeignKey("Creative", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     reserve_price = models.FloatField(null=True, blank=True)
     hide_referer = models.NullBooleanField(null=True, blank=True)
     default_referrer_url = models.TextField(null=True, blank=True)
@@ -1581,15 +1574,15 @@ class Placement(models.Model):
 
 
 class PlacementContentCategory(models.Model):
-    placement = models.ForeignKey("Placement", null=True, blank=True)
-    content_category = models.ForeignKey("ContentCategory", null=True, blank=True)
+    placement = models.ForeignKey("Placement", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    content_category = models.ForeignKey("ContentCategory", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
 
     class Meta:
         db_table = "placement_content_category"
 
 
 class PlacementPrivateSizes(models.Model):
-    placement = models.ForeignKey("Placement", null=True, blank=True)
+    placement = models.ForeignKey("Placement", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     width = models.IntegerField(null=True, blank=True)
     height = models.IntegerField(null=True, blank=True)
 
@@ -1598,24 +1591,24 @@ class PlacementPrivateSizes(models.Model):
 
 
 class FilteredAdvertisers(models.Model):
-    placement = models.ForeignKey("Placement", null=True, blank=True)
-    advertiser = models.ForeignKey("Advertiser", null=True, blank=True)
+    placement = models.ForeignKey("Placement", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    advertiser = models.ForeignKey("Advertiser", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
 
     class Meta:
         db_table = "filtered_advertisers"
 
 
 class FilteredLineItems(models.Model):
-    placement = models.ForeignKey("Placement", null=True, blank=True)
-    line_item = models.ForeignKey("LineItem", null=True, blank=True)
+    placement = models.ForeignKey("Placement", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    line_item = models.ForeignKey("LineItem", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
 
     class Meta:
         db_table = "filtered_line_items"
 
 
 class FilteredCampaigns(models.Model):
-    placement = models.ForeignKey("Placement", null=True, blank=True)
-    campaign = models.ForeignKey("Campaign", null=True, blank=True)
+    placement = models.ForeignKey("Placement", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    campaign = models.ForeignKey("Campaign", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
 
     class Meta:
         db_table = "filtered_campaigns"
@@ -1629,16 +1622,16 @@ class Segment(models.Model):
         null=True, blank=True)
     short_name = models.TextField(null=True, blank=True, db_index=True)
     description = models.TextField(null=True, blank=True)
-    member = models.ForeignKey("Member", null=True, blank=True)
+    member = models.ForeignKey("Member", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     price = models.FloatField(null=True, blank=True)
     expire_minutes = models.IntegerField(null=True, blank=True)
     enable_rm_piggyback = models.NullBooleanField(null=True, blank=True)
     max_usersync_pixels = models.IntegerField(null=True, blank=True)
     last_modified = models.DateTimeField(default=now_tz) 
     provider = models.TextField(null=True, blank=True)
-    advertiser = models.ForeignKey("Advertiser", null=True, blank=True)
+    advertiser = models.ForeignKey("Advertiser", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     #piggyback_pixels - see model PiggybackPixels below
-    parent_segment = models.ForeignKey("Segment", null=True, blank=True)
+    parent_segment = models.ForeignKey("Segment", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     querystring_mapping = models.TextField(null=True, blank=True) #TODO JSON
     querystring_mapping_key_value = models.TextField(null=True, blank=True) #TODO JSON
 
@@ -1653,7 +1646,7 @@ PYGGYBACK_PIXEL_TYPE = (
 
 
 class SegmentPiggybackPixels(models.Model):
-    segment = models.ForeignKey("Segment", null=True, blank=True)
+    segment = models.ForeignKey("Segment", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     url = models.TextField(null=True, blank=True)
     pixel_type = models.TextField(
         choices=PYGGYBACK_PIXEL_TYPE,
@@ -1664,15 +1657,15 @@ class SegmentPiggybackPixels(models.Model):
 
 
 class AllowedSegments(models.Model):
-    placement = models.ForeignKey("Placement", null=True, blank=True)
-    segment = models.ForeignKey("Segment", null=True, blank=True)
+    placement = models.ForeignKey("Placement", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    segment = models.ForeignKey("Segment", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
 
     class Meta:
         db_table = "allowed_segments"
 
 
 class PlacementEstimatedClearPrices(models.Model):
-    placement = models.ForeignKey("Placement", null=True, blank=True)
+    placement = models.ForeignKey("Placement", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     clear_price = models.IntegerField(null=True, blank=True)
     average_price = models.IntegerField(null=True, blank=True)
     width = models.FloatField(null=True, blank=True)
@@ -1692,16 +1685,16 @@ class InventoryAttribute(models.Model):
 
 
 class PlacementInventoryAttributes(models.Model):
-    placement = models.ForeignKey("Placement", null=True, blank=True)
-    inventory_attribute = models.ForeignKey("InventoryAttribute", null=True, blank=True)
+    placement = models.ForeignKey("Placement", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    inventory_attribute = models.ForeignKey("InventoryAttribute", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
 
     class Meta:
         db_table = "placement_inventory_attributes"
 
 
 class PlacementMediaType(models.Model):
-    placement = models.ForeignKey("Placement", null=True, blank=True)
-    media_type = models.ForeignKey("MediaType", null=True, blank=True)
+    placement = models.ForeignKey("Placement", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    media_type = models.ForeignKey("MediaType", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     last_modified = models.DateTimeField(default=now_tz) 
 
     class Meta:
@@ -1709,7 +1702,7 @@ class PlacementMediaType(models.Model):
 
 
 class PlacementPopValues(models.Model):
-    placement = models.ForeignKey("Placement", null=True, blank=True)
+    placement = models.ForeignKey("Placement", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     pop_freq_times = models.IntegerField(null=True, blank=True)
     pop_freq_duration = models.IntegerField(null=True, blank=True)
     pop_is_prepop = models.NullBooleanField(null=True, blank=True)
@@ -1721,8 +1714,8 @@ class PlacementPopValues(models.Model):
 
 
 class PlacementMediaSubType(models.Model):
-    placement = models.ForeignKey("Placement", null=True, blank=True)
-    media_sub_type = models.ForeignKey("MediaSubType", null=True, blank=True)
+    placement = models.ForeignKey("Placement", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    media_sub_type = models.ForeignKey("MediaSubType", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     is_private = models.NullBooleanField(null=True, blank=True)
     last_modified = models.DateTimeField(default=now_tz) 
 
@@ -1731,8 +1724,8 @@ class PlacementMediaSubType(models.Model):
 
 
 class PublisherPlacement(models.Model):
-    placement = models.ForeignKey("Placement", null=True, blank=True) #id in origin
-    publisher = models.ForeignKey("Publisher", null=True, blank=True)
+    placement = models.ForeignKey("Placement", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING) #id in origin
+    publisher = models.ForeignKey("Publisher", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     code = models.TextField(null=True, blank=True)
 
     class Meta:
@@ -1775,7 +1768,7 @@ class ConversionPixel(models.Model):
     #piggyback_pixels - see model ConversionPixelPiggybackPixels below
     created_on = models.DateTimeField(default=now_tz)
     last_modified = models.DateTimeField(default=now_tz) 
-    advertiser = models.ForeignKey("Advertiser", null=True, blank=True)
+    advertiser = models.ForeignKey("Advertiser", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
 
     api_endpoint = 'pixel'
     class Meta:
@@ -1783,8 +1776,8 @@ class ConversionPixel(models.Model):
 
 
 class CampaignConversionPixel(models.Model):
-    conversion_pixel = models.ForeignKey("ConversionPixel", null=True, blank=True)
-    campaign = models.ForeignKey("Campaign", null=True, blank=True)
+    conversion_pixel = models.ForeignKey("ConversionPixel", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    campaign = models.ForeignKey("Campaign", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     roi_click_goal = models.FloatField(null=True, blank=True)
     roi_view_goal = models.FloatField(null=True, blank=True)
     click_payout = models.FloatField(null=True, blank=True)
@@ -1795,7 +1788,7 @@ class CampaignConversionPixel(models.Model):
 
 
 class ConversionPixelPiggybackPixels(models.Model):
-    conversion_pixel = models.ForeignKey("ConversionPixel", null=True, blank=True)
+    conversion_pixel = models.ForeignKey("ConversionPixel", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     url = models.TextField(null=True, blank=True)
     pixel_type = models.TextField(
         choices=PYGGYBACK_PIXEL_TYPE,
@@ -1859,7 +1852,7 @@ class OperatingSystem(models.Model):
     platform_type = models.TextField(
         choices=PLATFORM_TYPE_CHOICE,
         null=True, blank=True)
-    os_family = models.ForeignKey("OSFamily", null=True, blank=True)
+    os_family = models.ForeignKey("OSFamily", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     last_modified = models.DateTimeField(default=now_tz) 
 
     class Meta:
@@ -1870,7 +1863,7 @@ class OperatingSystemExtended(models.Model):
     id = models.IntegerField(primary_key=True) #No AutoIncrement
     fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
     name = models.TextField(null=True, blank=True, db_index=True)
-    os_family = models.ForeignKey("OSFamily", null=True, blank=True)
+    os_family = models.ForeignKey("OSFamily", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     last_modified = models.DateTimeField(default=now_tz) 
     search_string = models.TextField(null=True, blank=True)
     
@@ -1910,7 +1903,7 @@ class Profile(models.Model):
     #https://wiki.appnexus.com/display/api/Profile+Service
     id = models.IntegerField(primary_key=True) #No AutoIncrement
     fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
-    advertiser = models.ForeignKey("Advertiser", null=True, blank=True, related_name='advertiser_id')
+    advertiser = models.ForeignKey("Advertiser", null=True, blank=True, related_name='advertiser_id', db_constraint=False, on_delete = models.DO_NOTHING)
     code = models.TextField(null=True, blank=True)
     description = models.TextField(null=True, blank=True, db_index=True)
     is_template = models.NullBooleanField(null=True, blank=True)
@@ -1924,7 +1917,6 @@ class Profile(models.Model):
 
     daypart_timezone = models.TextField(null=True, blank=True)
     daypart_targets = models.TextField(null=True, blank=True) #array of objects in origin TODO it is needed to be concidered if we need a sepparait model here
-    segment_targets = models.TextField(null=True, blank=True) #array of objects in origin TODO it is needed to be concidered if we need a sepparait model here
     segment_group_targets = models.TextField(null=True, blank=True) #array of objects in origin TODO it is needed to be concidered if we need a sepparait model here
     segment_boolean_operator = models.TextField(
         choices=TARGETS_OPERATOR_CHOICE,
@@ -2112,8 +2104,8 @@ class CustomModel(models.Model):
     id = models.IntegerField(primary_key=True) #No AutoIncrement
     fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
     name = models.TextField(null=True, blank=True, db_index=True)
-    member = models.ForeignKey("Member", null=True, blank=True)
-    advertiser = models.ForeignKey("Advertiser", null=True, blank=True)
+    member = models.ForeignKey("Member", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    advertiser = models.ForeignKey("Advertiser", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     custom_model_structure = models.TextField(
         choices=CUSTOM_MODEL_STRUCTURE_CHOICES,
         null=True, blank=True)
@@ -2140,9 +2132,9 @@ class Campaign(models.Model):
     code = models.TextField(null=True, blank=True, db_index=True)
     name = models.TextField(null=True, blank=True, db_index=True)
     short_name = models.TextField(null=True, blank=True, db_index=True)
-    advertiser = models.ForeignKey("Advertiser", null=True, blank=True)
-    profile = models.ForeignKey("Profile", null=True, blank=True)
-    line_item = models.ForeignKey("LineItem", null=True, blank=True)
+    advertiser = models.ForeignKey("Advertiser", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    profile = models.ForeignKey("Profile", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    line_item = models.ForeignKey("LineItem", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     start_date = models.DateTimeField(db_index=True, null=True, default=now_tz)
     end_date = models.DateTimeField(db_index=True, null=True, blank=True)
     #creatives - see model CampaignCreative below
@@ -2202,7 +2194,7 @@ class Campaign(models.Model):
     cpc_goal = models.FloatField(null=True, blank=True)
     max_learn_bid = models.FloatField(null=True, blank=True)
     #pixels = array  - see model CampaignConversionPixel
-    bid_model = models.ForeignKey("CustomModel", null=True, blank=True)
+    bid_model = models.ForeignKey("CustomModel", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     learn_threshold = models.IntegerField(null=True, blank=True)
     max_learn_bid = models.FloatField(null=True, blank=True)
     cadence_type = models.TextField(
@@ -2258,7 +2250,7 @@ class LineItem(models.Model):
     fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)    
     code = models.TextField(null=True, blank=True, db_index=True)
     name = models.TextField(null=True, blank=True, db_index=True)
-    advertiser = models.ForeignKey("Advertiser", null=True, blank=True)
+    advertiser = models.ForeignKey("Advertiser", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     state = models.TextField(
         choices=STATE_CHOICES,
         null=True, blank=True)
@@ -2277,8 +2269,8 @@ class LineItem(models.Model):
     click_url = models.TextField(null=True, blank=True)
     currency = models.TextField(null=True, blank=True)
     require_cookie_for_tracking = models.NullBooleanField(null=True, blank=True)
-    profile = models.ForeignKey("Profile", null=True, blank=True)
-    member = models.ForeignKey("Member", null=True, blank=True)
+    profile = models.ForeignKey("Profile", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    member = models.ForeignKey("Member", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     comments = models.TextField(null=True, blank=True)
     remaining_days = models.IntegerField(null=True, blank=True)
     total_days = models.IntegerField(null=True, blank=True)
@@ -2314,7 +2306,7 @@ class LineItem(models.Model):
     lifetime_pacing_span = models.IntegerField(null=True, blank=True)
     lifetime_pacing_pct = models.FloatField(null=True, blank=True)
     payout_margin = models.FloatField(null=True, blank=True)
-    insertion_order = models.ForeignKey("InsertionOrder", null=True, blank=True)
+    insertion_order = models.ForeignKey("InsertionOrder", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     #stats = object - late we'll decide if we need a model for stats
     #all_stats = array - may be we'll need this in separate model in the future
     first_run = models.DateTimeField(null=True, blank=True)
@@ -2339,8 +2331,8 @@ class LineItem(models.Model):
 
 
 class LineItemCreatives(models.Model):
-    line_item = models.ForeignKey("LineItem", null=True, blank=True)
-    creative = models.ForeignKey("Creative", null=True, blank=True)
+    line_item = models.ForeignKey("LineItem", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    creative = models.ForeignKey("Creative", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     code = models.TextField(null=True, blank=True, db_index=True)
 
     class Meta:
@@ -2378,7 +2370,7 @@ class PaymentRule(models.Model):
         null=True, blank=True)
     cost_cpm = models.FloatField(null=True, blank=True)
     revshare = models.FloatField(null=True, blank=True)
-    profile = models.ForeignKey("Profile", null=True, blank=True)
+    profile = models.ForeignKey("Profile", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     priority = models.IntegerField(null=True, blank=True)
     timezone = models.TextField(null=True, blank=True)
     last_modified = models.DateTimeField(default=now_tz) 
@@ -2400,24 +2392,24 @@ class PaymentRule(models.Model):
 
 
 class FilteredPaymentRuleAdvertisers(models.Model):
-    payment_rule = models.ForeignKey("PaymentRule", null=True, blank=True)
-    advertiser = models.ForeignKey("Advertiser", null=True, blank=True)
+    payment_rule = models.ForeignKey("PaymentRule", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    advertiser = models.ForeignKey("Advertiser", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
 
     class Meta:
         db_table = "filtered_payment_rule_advertisers"
 
 
 class FilteredPaymentRuleLineItems(models.Model):
-    payment_rule = models.ForeignKey("PaymentRule", null=True, blank=True)
-    line_item = models.ForeignKey("LineItem", null=True, blank=True)
+    payment_rule = models.ForeignKey("PaymentRule", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    line_item = models.ForeignKey("LineItem", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
 
     class Meta:
         db_table = "filtered_payment_rule_line_items"
 
 
 class FilteredPaymentRuleCampaigns(models.Model):
-    payment_rule = models.ForeignKey("PaymentRule", null=True, blank=True)
-    campaign = models.ForeignKey("Campaign", null=True, blank=True)
+    payment_rule = models.ForeignKey("PaymentRule", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    campaign = models.ForeignKey("Campaign", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
 
     class Meta:
         db_table = "filtered_payment_rule_campaigns"
@@ -2427,18 +2419,18 @@ class ClickTracker(models.Model):
     #https://wiki.appnexus.com/display/api/Click+Tracker+Service
     id = models.IntegerField(primary_key=True) # No AutoIncrement
     fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
-    member = models.ForeignKey("Member", null=True, blank=True)
-    advertiser = models.ForeignKey("Advertiser", null=True, blank=True)
+    member = models.ForeignKey("Member", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    advertiser = models.ForeignKey("Advertiser", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     name = models.TextField(null=True, blank=True, db_index=True)
     code = models.TextField(null=True, blank=True, db_index=True)
     state = models.TextField(
         choices=STATE_CHOICES,
         null=True, blank=True)
     click_url = models.TextField(null=True, blank=True, db_index=True)
-    publisher = models.ForeignKey("Publisher", null=True, blank=True)
+    publisher = models.ForeignKey("Publisher", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     #tag = array - see model ClickTrackerPlacement below
-    payment_rule = models.ForeignKey("PaymentRule", null=True, blank=True)
-    line_item = models.ForeignKey("LineItem", null=True, blank=True)
+    payment_rule = models.ForeignKey("PaymentRule", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    line_item = models.ForeignKey("LineItem", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     last_modified = models.DateTimeField(default=now_tz) 
 
     class Meta:
@@ -2448,8 +2440,8 @@ class ClickTracker(models.Model):
 class ClickTrackerPlacement(models.Model):
     id = models.IntegerField(primary_key=True) # No AutoIncrement
     fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
-    click_tracker = models.ForeignKey("ClickTracker", null=True, blank=True)
-    placement = models.ForeignKey("Placement", null=True, blank=True)
+    click_tracker = models.ForeignKey("ClickTracker", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    placement = models.ForeignKey("Placement", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
 
     class Meta:
         db_table = "click_tracker_placement"
@@ -2457,17 +2449,17 @@ class ClickTrackerPlacement(models.Model):
 
 class ImpressionTracker(models.Model):
     #https://wiki.appnexus.com/display/api/Impression+Tracker+Service
-    member = models.ForeignKey("Member", null=True, blank=True)
-    advertiser = models.ForeignKey("Advertiser", null=True, blank=True)
+    member = models.ForeignKey("Member", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    advertiser = models.ForeignKey("Advertiser", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     name = models.TextField(null=True, blank=True, db_index=True)
     code = models.TextField(null=True, blank=True, db_index=True)
     state = models.TextField(
         choices=STATE_CHOICES,
         null=True, blank=True)
-    publisher = models.ForeignKey("Publisher", null=True, blank=True)
+    publisher = models.ForeignKey("Publisher", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     #tag = array - see model ImpressionTrackerPlacement below
-    payment_rule = models.ForeignKey("PaymentRule", null=True, blank=True)
-    line_item = models.ForeignKey("LineItem", null=True, blank=True)
+    payment_rule = models.ForeignKey("PaymentRule", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    line_item = models.ForeignKey("LineItem", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     last_modified = models.DateTimeField(default=now_tz) 
 
     class Meta:
@@ -2475,8 +2467,8 @@ class ImpressionTracker(models.Model):
 
 
 class ImpressionTrackerPlacement(models.Model):
-    impression_tracker = models.ForeignKey("ImpressionTracker", null=True, blank=True)
-    placement = models.ForeignKey("Placement", null=True, blank=True)
+    impression_tracker = models.ForeignKey("ImpressionTracker", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    placement = models.ForeignKey("Placement", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
 
     class Meta:
         db_table = "impression_tracker_placement"
@@ -2501,8 +2493,8 @@ class GoalPixel(models.Model):
 
 
 class LineItemGoalPixel(models.Model):
-    pixel = models.ForeignKey("GoalPixel", null=True, blank=True)
-    line_item = models.ForeignKey("LineItem", null=True, blank=True)
+    pixel = models.ForeignKey("GoalPixel", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    line_item = models.ForeignKey("LineItem", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
 
     class Meta:
         db_table = "line_item_goal_pixel"
@@ -2517,7 +2509,7 @@ class InsertionOrder(models.Model):
     state = models.TextField(
         choices=STATE_CHOICES,
         null=True, blank=True)
-    advertiser = models.ForeignKey("Advertiser", null=True, blank=True)
+    advertiser = models.ForeignKey("Advertiser", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     start_date = models.DateTimeField(null=True, blank=True)
     end_date = models.DateTimeField(null=True, blank=True)
     last_modified = models.DateTimeField(default=now_tz) 
@@ -2557,7 +2549,7 @@ class Broker(models.Model):
     state = models.TextField(
         choices=STATE_CHOICES,
         null=True, blank=True)
-    member = models.ForeignKey("Member", null=True, blank=True)
+    member = models.ForeignKey("Member", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     last_modified = models.DateTimeField(default=now_tz) 
 
     class Meta:
@@ -2565,8 +2557,8 @@ class Broker(models.Model):
 
 
 class InsertionOrderBrokerFees(models.Model):
-    insertion_order = models.ForeignKey("InsertionOrder", null=True, blank=True)
-    broker = models.ForeignKey("Broker", null=True, blank=True)
+    insertion_order = models.ForeignKey("InsertionOrder", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    broker = models.ForeignKey("Broker", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     payment_type = models.TextField(
         choices=PAYMENT_TYPE_CHOICES,
         null=True, blank=True)
@@ -2578,40 +2570,40 @@ class InsertionOrderBrokerFees(models.Model):
 
 
 class InsertionOrderLabel(models.Model):
-    insertion_order = models.ForeignKey("InsertionOrder", null=True, blank=True)
-    line_item = models.ForeignKey("LineItem", null=True, blank=True)
+    insertion_order = models.ForeignKey("InsertionOrder", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    line_item = models.ForeignKey("LineItem", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
 
     class Meta:
         db_table = "insertion_order_label"
 
 
 class LineItemInsertionOrder(models.Model):
-    insertion_order = models.ForeignKey("InsertionOrder", null=True, blank=True)
-    line_item = models.ForeignKey("LineItem", null=True, blank=True)
+    insertion_order = models.ForeignKey("InsertionOrder", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    line_item = models.ForeignKey("LineItem", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
 
     class Meta:
         db_table = "line_item_insertion_order"
 
 
 class LineItemConversionPixel(models.Model):
-    pixel = models.ForeignKey("ConversionPixel", null=True, blank=True)
-    line_item = models.ForeignKey("LineItem", null=True, blank=True)
+    pixel = models.ForeignKey("ConversionPixel", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    line_item = models.ForeignKey("LineItem", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
 
     class Meta:
         db_table = "line_item_conversion_pixel"
 
 
 class LineItemLabel(models.Model):
-    label = models.ForeignKey("Label", null=True, blank=True) #id in origin
-    line_item = models.ForeignKey("LineItem", null=True, blank=True)
+    label = models.ForeignKey("Label", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING) #id in origin
+    line_item = models.ForeignKey("LineItem", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
 
     class Meta:
         db_table = "line_item_label"
 
 
 class LineItemBroker(models.Model):
-    broker = models.ForeignKey("Broker", null=True, blank=True)
-    line_item = models.ForeignKey("LineItem", null=True, blank=True)
+    broker = models.ForeignKey("Broker", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    line_item = models.ForeignKey("LineItem", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     payment_type = models.TextField(
         choices=PAYMENT_TYPE_CHOICES,
         null=True, blank=True)
@@ -2623,8 +2615,8 @@ class LineItemBroker(models.Model):
 
 
 class CampaignBrokerFees(models.Model):
-    campaign = models.ForeignKey("Campaign", null=True, blank=True)
-    broker = models.ForeignKey("Broker", null=True, blank=True)
+    campaign = models.ForeignKey("Campaign", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    broker = models.ForeignKey("Broker", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     payment_type = models.TextField(
         choices=PAYMENT_TYPE_CHOICES,
         null=True, blank=True)
@@ -2636,24 +2628,24 @@ class CampaignBrokerFees(models.Model):
 
 
 class CampaignLabel(models.Model):
-    label = models.ForeignKey("Label", null=True, blank=True) #id in origin
-    campaign = models.ForeignKey("Campaign", null=True, blank=True)
+    label = models.ForeignKey("Label", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING) #id in origin
+    campaign = models.ForeignKey("Campaign", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
 
     class Meta:
         db_table = "campaign_label"
 
 
 class CampaignCreative(models.Model):
-    campaign = models.ForeignKey("Campaign", null=True, blank=True)
-    creative = models.ForeignKey("Creative", null=True, blank=True)
+    campaign = models.ForeignKey("Campaign", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    creative = models.ForeignKey("Creative", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
 
     class Meta:
         db_table = "campaign_creative"
 
 
 class CampaignLineItems(models.Model):
-    campaign = models.ForeignKey("Campaign", null=True, blank=True)
-    line_item = models.ForeignKey("LineItem", null=True, blank=True)
+    campaign = models.ForeignKey("Campaign", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    line_item = models.ForeignKey("LineItem", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
 
     class Meta:
         db_table = "campaign_line_items"
@@ -2748,12 +2740,12 @@ class Member(models.Model):
         null=True, blank=True)
     buyer_clearing_fee_pct = models.FloatField(null=True, blank=True)
     app_contract_accepted = models.NullBooleanField(null=True, blank=True)
-    default_buyer_group = models.ForeignKey("BuyerGroup", null=True, blank=True)
+    default_buyer_group = models.ForeignKey("BuyerGroup", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     interface_domain = models.TextField(null=True, blank=True)
     interface_domain_beta = models.TextField(null=True, blank=True)
     creative_size_minimum_bytes = models.IntegerField(null=True, blank=True)
     creative_size_fee_per_gb = models.FloatField(null=True, blank=True)
-    default_ad_profile = models.ForeignKey("AdProfile", null=True, blank=True, related_name='member_ad_profile_id')
+    default_ad_profile = models.ForeignKey("AdProfile", null=True, blank=True, related_name='member_ad_profile_id', db_constraint=False, on_delete = models.DO_NOTHING)
     email_code = models.TextField(null=True, blank=True)
     serving_domain = object
     reselling_exposure = models.TextField(
@@ -2807,7 +2799,7 @@ class Member(models.Model):
     enable_click_and_imp_trackers = models.NullBooleanField(null=True, blank=True)
     max_hosted_video_size = models.IntegerField(null=True, blank=True)
     require_facebook_preaudit = models.NullBooleanField(null=True, blank=True)
-    developer = models.ForeignKey("Developer", null=True, blank=True)
+    developer = models.ForeignKey("Developer", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     pitbull_segment_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
     pitbull_segment_value = models.IntegerField(null=True, blank=True)
     #content_categories = array - see model MemberContentCategory below
@@ -2859,8 +2851,8 @@ class MemberProfile(models.Model):
 
 
 class MemberProfileCountry(models.Model):
-    member_profile = models.ForeignKey("MemberProfile", null=True, blank=True)
-    country = models.ForeignKey("Country", null=True, blank=True)
+    member_profile = models.ForeignKey("MemberProfile", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    country = models.ForeignKey("Country", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
 
     class Meta:
         db_table = "member_profilecountry"
@@ -2884,7 +2876,7 @@ class PlatformMember(models.Model):
     is_iash_compliant = models.NullBooleanField(null=True, blank=True)
     has_resold = models.NullBooleanField(null=True, blank=True)
     visibility_rules = models.TextField(null=True, blank=True) #TODO JSON
-    bidder = models.ForeignKey('User', null=True, blank=True, db_index=True)
+    bidder = models.ForeignKey('User', null=True, blank=True, db_index=True, db_constraint=False, on_delete = models.DO_NOTHING)
     seller_type = models.TextField(
         choices=SELLER_TYPE_CHOICES,
         null=True, blank=True)
@@ -2899,41 +2891,41 @@ class PlatformMember(models.Model):
 
 
 class MemberFloorOptimisation(models.Model):
-    member = models.ForeignKey("Member", null=True, blank=True)
+    member = models.ForeignKey("Member", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     active = models.NullBooleanField(null=True, blank=True)
-    bidder = models.ForeignKey('User', null=True, blank=True, db_index=True)
+    bidder = models.ForeignKey('User', null=True, blank=True, db_index=True, db_constraint=False, on_delete = models.DO_NOTHING)
 
     class Meta:
         db_table = "member_floor_optimization"
 
 
 class MemberThirdpartyPixel(models.Model):
-    member = models.ForeignKey("Member", null=True, blank=True)
-    thirdparty_pixel = models.ForeignKey("ThirdPartyPixel", null=True, blank=True)
+    member = models.ForeignKey("Member", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    thirdparty_pixel = models.ForeignKey("ThirdPartyPixel", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
 
     class Meta:
         db_table = "member_thirdparty_pixel"
 
 
 class MemberBrandException(models.Model):
-    member = models.ForeignKey("Member", null=True, blank=True)
-    brand = models.ForeignKey("Brand", null=True, blank=True)
+    member = models.ForeignKey("Member", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    brand = models.ForeignKey("Brand", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     #brand_id = models.IntegerField(null=True, blank=True)
     class Meta:
         db_table = "member_brand_exception"
 
 
 class MemberCountry(models.Model):
-    member = models.ForeignKey("Member", null=True, blank=True)
-    country = models.ForeignKey("Country", null=True, blank=True)
+    member = models.ForeignKey("Member", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    country = models.ForeignKey("Country", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
 
     class Meta:
         db_table = "member_country"
 
 
 class MemberContentCategory(models.Model):
-    member = models.ForeignKey("Member", null=True, blank=True)
-    content_category = models.ForeignKey("ContentCategory", null=True, blank=True)
+    member = models.ForeignKey("Member", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    content_category = models.ForeignKey("ContentCategory", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
 
     class Meta:
         db_table = "member_content_category"
@@ -2941,7 +2933,7 @@ class MemberContentCategory(models.Model):
 
 class SellerMemberGroup(models.Model):
     id = models.IntegerField(primary_key=True)  # No AutoIncrement
-    member = models.ForeignKey("Member", null=True, blank=True)
+    member = models.ForeignKey("Member", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     display_order = models.IntegerField(null=True, blank=True)
     name = models.TextField(null=True, blank=True, db_index=True)
     description = models.TextField(null=True, blank=True)
@@ -2959,9 +2951,8 @@ DEFAULT_TRUST_CHOICES = (
 
 
 class MemberInventoryTrust(models.Model):
-    member = models.ForeignKey("Member", null=True, blank=True)
+    member = models.ForeignKey("Member", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     members = models.TextField(null=True, blank=True) #TODO JSON
-    default_is_banned = models.NullBooleanField(null=True, blank=True)
     default_trust = models.TextField(
         choices=DEFAULT_TRUST_CHOICES,
         null=True, blank=True)
@@ -2979,7 +2970,7 @@ class Plugin(models.Model):
     public_key = models.TextField(null=True, blank=True)
     moreinfo_url = models.TextField(null=True, blank=True)
     log_level_data_fee = models.IntegerField(null=True, blank=True)
-    plugin_category = models.ForeignKey("Category", null=True, blank=True)
+    plugin_category = models.ForeignKey("Category", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     is_available = models.NullBooleanField(null=True, blank=True)
     summary = models.TextField(null=True, blank=True)
     contact_name = models.TextField(null=True, blank=True)
@@ -2994,7 +2985,7 @@ class Plugin(models.Model):
     addendum = models.TextField(null=True, blank=True)
     click_to_install = models.NullBooleanField(null=True, blank=True)
     video_url = models.TextField(null=True, blank=True)
-    developer = models.ForeignKey("Developer", null=True, blank=True)
+    developer = models.ForeignKey("Developer", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     #domains = array - see model PluginDomain below
     permissions = models.TextField(null=True, blank=True) #TODO JSON or Model - array in source
     #plugin_instances = array -  see model PluginInstance below
@@ -3013,7 +3004,7 @@ PLUGIN_STATE = (
 
 class PluginDomain(models.Model):
     #https://wiki.appnexus.com/display/api/Plugin+Instance+Service
-    plugin = models.ForeignKey("Plugin", null=True, blank=True)
+    plugin = models.ForeignKey("Plugin", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     name = models.TextField(null=True, blank=True, db_index=True)
 
     class Meta:
@@ -3031,7 +3022,7 @@ PLUGIN_INSTANCE_FLAVOUR_CHOICES = (
 
 class PluginInstance(models.Model):
     id = models.IntegerField(primary_key=True)  # No AutoIncrement
-    plugin = models.ForeignKey("Plugin", null=True, blank=True)
+    plugin = models.ForeignKey("Plugin", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     name = models.TextField(null=True, blank=True, db_index=True)
     flavor = models.TextField(
         choices=PLUGIN_INSTANCE_FLAVOUR_CHOICES,
@@ -3046,8 +3037,8 @@ class PluginInstance(models.Model):
 
 
 class MemberPlugin(models.Model):
-    member = models.ForeignKey("Member", null=True, blank=True)
-    plugin = models.ForeignKey("Plugin", null=True, blank=True)
+    member = models.ForeignKey("Member", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    plugin = models.ForeignKey("Plugin", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     state = models.TextField(
         choices=PLUGIN_STATE,
         null=True, blank=True)
@@ -3077,7 +3068,7 @@ class Deal(models.Model):
     active = models.NullBooleanField(null=True, blank=True)
     start_date = models.DateTimeField(null=True, blank=True)
     end_date = models.DateTimeField(null=True, blank=True)
-    profile = models.ForeignKey("Profile", null=True, blank=True)
+    profile = models.ForeignKey("Profile", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     package_id = models.IntegerField(null=True, blank=True, db_index=True) #TODO FK is needed in future
     floor_price = models.FloatField(null=True, blank=True)
     currency = models.TextField(null=True, blank=True)
@@ -3094,8 +3085,8 @@ class Deal(models.Model):
     language_restrict = models.NullBooleanField(null=True, blank=True)
     technical_attribute_restrict = models.NullBooleanField(null=True, blank=True)
     created_by = models.TextField(null=True, blank=True)
-    seller = models.ForeignKey("PlatformMember", related_name='seller_id', null=True, blank=True)
-    buyer = models.ForeignKey("PlatformMember", related_name='buyer_id', null=True, blank=True)
+    seller = models.ForeignKey("PlatformMember", related_name='seller_id', null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    buyer = models.ForeignKey("PlatformMember", related_name='buyer_id', null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     type = models.TextField(
         choices=DEAL_TYPE_CHOICES,
         null=True, blank=True)
@@ -3119,8 +3110,8 @@ class Deal(models.Model):
 
 
 class DealAllowedMediaSubType(models.Model):
-    deal = models.ForeignKey("Deal", null=True, blank=True)
-    media_sub_type = models.ForeignKey("MediaSubType", null=True, blank=True)
+    deal = models.ForeignKey("Deal", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    media_sub_type = models.ForeignKey("MediaSubType", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     last_modified = models.DateTimeField(default=now_tz) 
 
     class Meta:
@@ -3128,8 +3119,8 @@ class DealAllowedMediaSubType(models.Model):
 
 
 class DealAllowedMediaType(models.Model):
-    deal = models.ForeignKey("Deal", null=True, blank=True)
-    media_type = models.ForeignKey("MediaType", null=True, blank=True)
+    deal = models.ForeignKey("Deal", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    media_type = models.ForeignKey("MediaType", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     last_modified = models.DateTimeField(default=now_tz) 
 
     class Meta:
@@ -3143,8 +3134,8 @@ CREATIVE_STATUS_CHOICES = (
 
 
 class DealCreative(models.Model):
-    deal = models.ForeignKey("Deal", null=True, blank=True)
-    creative = models.ForeignKey("Creative", null=True, blank=True)
+    deal = models.ForeignKey("Deal", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    creative = models.ForeignKey("Creative", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     status = models.TextField(
         choices=CREATIVE_STATUS_CHOICES,
         null=True, blank=True)
@@ -3154,8 +3145,8 @@ class DealCreative(models.Model):
 
 
 class DealBrand(models.Model):
-    deal = models.ForeignKey("Deal", null=True, blank=True)
-    brand = models.ForeignKey("Brand", null=True, blank=True)
+    deal = models.ForeignKey("Deal", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    brand = models.ForeignKey("Brand", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     #brand_id = models.IntegerField(null=True, blank=True)
     override = models.NullBooleanField(null=True, blank=True)
 
@@ -3164,8 +3155,8 @@ class DealBrand(models.Model):
 
 
 class DealCategory(models.Model):
-    deal = models.ForeignKey("Deal", null=True, blank=True)
-    category = models.ForeignKey("Category", null=True, blank=True)
+    deal = models.ForeignKey("Deal", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    category = models.ForeignKey("Category", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     override = models.NullBooleanField(null=True, blank=True)
 
     class Meta:
@@ -3173,8 +3164,8 @@ class DealCategory(models.Model):
 
 
 class DealTechnicalAtribute(models.Model):
-    deal = models.ForeignKey("Deal", null=True, blank=True)
-    technical_attribute = models.ForeignKey("TechnicalAttribute", null=True, blank=True)
+    deal = models.ForeignKey("Deal", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    technical_attribute = models.ForeignKey("TechnicalAttribute", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     override = models.NullBooleanField(null=True, blank=True)
 
     class Meta:
@@ -3182,8 +3173,8 @@ class DealTechnicalAtribute(models.Model):
 
 
 class DealLanguage(models.Model):
-    deal = models.ForeignKey("Deal", null=True, blank=True)
-    language = models.ForeignKey("Language", null=True, blank=True)
+    deal = models.ForeignKey("Deal", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    language = models.ForeignKey("Language", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     override = models.NullBooleanField(null=True, blank=True)
 
     class Meta:
@@ -3236,10 +3227,10 @@ class AdQualityRule(models.Model):
     code = models.TextField(null=True, blank=True, db_index=True)
     name = models.TextField(null=True, blank=True, db_index=True)
     description = models.TextField(null=True, blank=True)
-    ad_profile = models.ForeignKey("AdProfile", null=True, blank=True)
-    publisher = models.ForeignKey("Publisher", null=True, blank=True)
-    member = models.ForeignKey("Member", null=True, blank=True)
-    profile = models.ForeignKey("Profile", null=True, blank=True)
+    ad_profile = models.ForeignKey("AdProfile", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    publisher = models.ForeignKey("Publisher", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    member = models.ForeignKey("Member", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    profile = models.ForeignKey("Profile", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     priority = models.IntegerField(null=True, blank=True)
     last_modified = models.DateTimeField(default=now_tz)
 
@@ -3253,27 +3244,27 @@ class NetworkAnalyticsReport(models.Model):
     hour = models.DateTimeField(null=True, blank=True, db_index=True)
     entity_member = models.IntegerField(null=True, blank=True,
                                         db_index=True)  #target model depends on imp_type buyer_member or seller_member
-    buyer_member = models.ForeignKey("PlatformMember", related_name='buyer_member_id', null=True, blank=True)
-    seller_member = models.ForeignKey("PlatformMember", related_name='seller_member_id', null=True, blank=True)
-    advertiser = models.ForeignKey("Advertiser", null=True, blank=True)
+    buyer_member = models.ForeignKey("PlatformMember", related_name='buyer_member_id', null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    seller_member = models.ForeignKey("PlatformMember", related_name='seller_member_id', null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    advertiser = models.ForeignKey("Advertiser", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     adjustment_id = models.IntegerField(null=True, blank=True,
                                         db_index=True)  # TODO FK is needed in future - there is no description in documentation
     adjustment_hour = models.DateTimeField(null=True, blank=True)
-    publisher = models.ForeignKey("Publisher", null=True, blank=True)
-    pub_rule = models.ForeignKey("AdQualityRule", null=True, blank=True)
-    site = models.ForeignKey("Site", null=True, blank=True)
-    pixel = models.ForeignKey("ConversionPixel", null=True, blank=True)
-    placement = models.ForeignKey("Placement", null=True, blank=True)
-    insertion_order = models.ForeignKey("InsertionOrder", null=True, blank=True)
-    line_item = models.ForeignKey("LineItem", null=True, blank=True)
-    campaign = models.ForeignKey("Campaign", null=True, blank=True)
-    creative = models.ForeignKey("Creative", null=True, blank=True)
+    publisher = models.ForeignKey("Publisher", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    pub_rule = models.ForeignKey("AdQualityRule", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    site = models.ForeignKey("Site", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    pixel = models.ForeignKey("ConversionPixel", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    placement = models.ForeignKey("Placement", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    insertion_order = models.ForeignKey("InsertionOrder", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    line_item = models.ForeignKey("LineItem", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    campaign = models.ForeignKey("Campaign", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    creative = models.ForeignKey("Creative", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     size = models.TextField(null=True, blank=True)
-    brand = models.ForeignKey("Brand", null=True, blank=True)
+    brand = models.ForeignKey("Brand", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     #brand_id = models.IntegerField(null=True, blank=True)
     billing_period_start_date = models.DateTimeField(null=True, blank=True, db_index=True)
     billing_period_end_date = models.DateTimeField(null=True, blank=True, db_index=True)
-    geo_country = models.ForeignKey("Country", null=True, blank=True)
+    geo_country = models.ForeignKey("Country", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     inventory_class = models.TextField(null=True, blank=True)
     bid_type = models.TextField(
         choices=BID_TYPE_CHOICES,
@@ -3294,8 +3285,9 @@ class NetworkAnalyticsReport(models.Model):
     payment_type = models.TextField(
         choices=DEAL_PAYMENT_TYPE_CHOICES,
         null=True, blank=True)
-    deal = models.ForeignKey("Deal", null=True, blank=True)
-    media_type = models.ForeignKey("MediaType", null=True, blank=True)
+    deal = models.ForeignKey("Deal", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    media_type = models.ForeignKey("MediaType", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    media_subtype = models.ForeignKey("MediaSubType", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     salesperson_for_advertiser = models.TextField(null=True, blank=True)
     salesperson_for_publisher = models.TextField(null=True, blank=True)
     trafficker_for_line_item = models.TextField(null=True, blank=True)
@@ -3424,15 +3416,15 @@ class SiteDomainPerformanceReport(models.Model):
     fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
     day = models.DateTimeField(null=True, blank=True, db_index=True)
     site_domain = models.TextField(null=True, blank=True, db_index=True)
-    campaign = models.ForeignKey("Campaign", null=True, blank=True)
-    line_item = models.ForeignKey("LineItem", null=True, blank=True)
-    top_level_category = models.ForeignKey("ContentCategory", related_name='top_level_category_id', null=True, blank=True)
-    second_level_category = models.ForeignKey("ContentCategory", related_name='second_level_category_id', null=True, blank=True)
-    deal = models.ForeignKey("Deal", null=True, blank=True)
-    advertiser = models.ForeignKey("Advertiser", null=True, blank=True)
+    campaign = models.ForeignKey("Campaign", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    line_item = models.ForeignKey("LineItem", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    top_level_category = models.ForeignKey("ContentCategory", related_name='top_level_category_id', null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    second_level_category = models.ForeignKey("ContentCategory", related_name='second_level_category_id', null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    deal = models.ForeignKey("Deal", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    advertiser = models.ForeignKey("Advertiser", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     #campaign_group = campaign_group is a synonymous with line_item .
-    buyer_member = models.ForeignKey("Member", null=True, blank=True)
-    operating_system = models.ForeignKey("OperatingSystemExtended", null=True, blank=True)
+    buyer_member = models.ForeignKey("Member", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    operating_system = models.ForeignKey("OperatingSystemExtended", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     supply_type = models.TextField(
         choices=SUPPLY_TYPE,
         null=True, blank=True)
@@ -3450,7 +3442,7 @@ class SiteDomainPerformanceReport(models.Model):
         null=True, blank=True)
     #is_remarketing = models.IntegerField(null=True, blank=True)
     is_remarketing = models.NullBooleanField()
-    conversion_pixel = models.ForeignKey("ConversionPixel", null=True, blank=True)
+    conversion_pixel = models.ForeignKey("ConversionPixel", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     booked_revenue = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
     clicks = models.IntegerField(null=True, blank=True)
     click_thru_pct = models.FloatField(null=True, blank=True)
@@ -3535,23 +3527,22 @@ class SiteDomainPerformanceReport(models.Model):
 
 
 class GeoAnaliticsReport(models.Model):
+    #https://wiki.appnexus.com/display/api/Geo+Analytics+Report
     # month = date  # Yes	The year and month in which the auction took place.
     fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
     day = models.DateField(null=True, blank=True, db_index=True)  # Yes	The year, month, and day in which the auction took place.
-    member = models.ForeignKey("Member", null=True, blank=True) # Yes	The ID of the member.
+    member = models.ForeignKey("Member", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING) # Yes	The ID of the member.
     advertiser_currency = models.TextField(null=True, blank=True)  # Yes	The type of currency used by the advertiser.
-    insertion_order = models.ForeignKey("InsertionOrder", null=True, blank=True)  # Yes	The insertion order ID.
-    campaign = models.ForeignKey("Campaign", null=True, blank=True)  # Yes	The campaign ID.
-    advertiser = models.ForeignKey("Advertiser", null=True, blank=True)  # Yes	The advertiser ID. If the value is 0, either the impression was purchased by an external buyer, or a default or PSA was shown. For more information on defaults and PSAs, see Network Reporting.
-    line_item = models.ForeignKey("LineItem", null=True, blank=True)  # Yes	The line item ID.
-    geo_country = models.ForeignKey("Country", null=True, blank=True)  # Yes	The country ID of the user's location as defined by the Country Service. 250 is shown in cases where we don't know the country or if the country doesn't map correctly to a location in our database.
-    geo_region = models.ForeignKey("Region", null=True, blank=True)  # Yes	The region ID of the user's location as defined by the Region Service. 4291 is shown in cases where we don't know the region or if the region doesn't map correctly to a location in our database.
+    insertion_order = models.ForeignKey("InsertionOrder", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)  # Yes	The insertion order ID.
+    campaign = models.ForeignKey("Campaign", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)  # Yes	The campaign ID.
+    advertiser = models.ForeignKey("Advertiser", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)  # Yes	The advertiser ID. If the value is 0, either the impression was purchased by an external buyer, or a default or PSA was shown. For more information on defaults and PSAs, see Network Reporting.
+    line_item = models.ForeignKey("LineItem", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)  # Yes	The line item ID.
+    geo_country = models.ForeignKey("Country", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)  # Yes	The country ID of the user's location as defined by the Country Service. 250 is shown in cases where we don't know the country or if the country doesn't map correctly to a location in our database.
+    geo_region = models.ForeignKey("Region", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)  # Yes	The region ID of the user's location as defined by the Region Service. 4291 is shown in cases where we don't know the region or if the region doesn't map correctly to a location in our database.
     geo_country_name = models.TextField(null=True, blank=True)  # No	The name of the user's country, as defined by the Country Service.
     geo_region_name = models.TextField(null=True, blank=True)  # No	The name of the region of the user's location as defined by the Region Service.
-    geo_country = models.TextField(null=True, blank=True)  # No	The country name and code where the user is located, in the format "France (FR)". The string "250" can appear in cases where we don't know the country or if the country doesn't map correctly to a location in our database.
-    geo_region = models.TextField(null=True, blank=True)  # No	The region name and country code of the users location, in the format "Bremen (DE)". The string "4192" can appear in cases where we don't know the region/state or if the region/state doesn't map correctly to a location in our database.
-    geo_dma = models.ForeignKey("DemographicArea", null=True, blank=True) # No	The name and ID of the demographic area where the user is located, in the format "New York NY (501)". The string "unknown values (-1)" can appear in cases where we don't know the demographic area or if the demographic area doesn't map correctly to a location in our database.
-    pixel = models.ForeignKey("ConversionPixel", null=True, blank=True)  # Yes The unique identification number of the conversion pixel.
+    geo_dma = models.ForeignKey("DemographicArea", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING) # No	The name and ID of the demographic area where the user is located, in the format "New York NY (501)". The string "unknown values (-1)" can appear in cases where we don't know the demographic area or if the demographic area doesn't map correctly to a location in our database.
+    pixel = models.ForeignKey("ConversionPixel", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)  # Yes The unique identification number of the conversion pixel.
     # pixel = models.ForeignKey("ConversionPixel",null=True, blank=True)
     imps = models.IntegerField(null=True, blank=True)  # imps	The total number of impressions (served and resold).
     clicks = models.IntegerField(null=True, blank=True)  # clicks	The total number of clicks across all impressions.
@@ -3592,7 +3583,7 @@ class DeviceMakeCodes(models.Model):
     id = models.IntegerField(primary_key=True)  # No AutoIncrement
     code = models.TextField(null=True, blank=True, db_index=True)
     notes = models.TextField(null=True, blank=True)
-    device_make = models.ForeignKey("DeviceMake", null=True, blank=True)
+    device_make = models.ForeignKey("DeviceMake", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
 
     class Meta:
         db_table = "device_make_codes"
@@ -3609,7 +3600,7 @@ class DeviceModel(models.Model):
     # https://wiki.appnexus.com/display/api/Device+Model+Service
     id = models.IntegerField(primary_key=True)  # No AutoIncrement
     name = models.TextField(null=True, blank=True, db_index=True)
-    device_make = models.ForeignKey("DeviceMake", null=True, blank=True)
+    device_make = models.ForeignKey("DeviceMake", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     device_type = models.TextField(
         choices=DEVICE_TYPE_CHOICES,
         null=True, blank=True)
@@ -3636,7 +3627,7 @@ class DeviceModelCodes(models.Model):
     id = models.IntegerField(primary_key=True)  # No AutoIncrement
     code = models.TextField(null=True, blank=True, db_index=True)
     notes = models.TextField(null=True, blank=True)
-    device_model = models.ForeignKey("DeviceModel", null=True, blank=True)
+    device_model = models.ForeignKey("DeviceModel", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
 
     class Meta:
         db_table = "device_model_codes"
@@ -3681,42 +3672,42 @@ class NetworkDeviceReport(models.Model):
     fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
     # month = time
     day = models.DateTimeField(null=True, blank=True, db_index=True)
-    device_make = models.ForeignKey("DeviceMake", null=True, blank=True)
-    device_model = models.ForeignKey("DeviceModel", null=True, blank=True)
+    device_make = models.ForeignKey("DeviceMake", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    device_model = models.ForeignKey("DeviceModel", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     device_type = models.TextField(
         choices=DEVICE_TYPE_INREPORT_CHOICES,
         null=True, blank=True)
     connection_type = models.TextField(
         choices=CONNECTION_TYPE_CHOICES,
         null=True, blank=True)
-    operating_system = models.ForeignKey("OperatingSystem", null=True, blank=True)
-    browser = models.ForeignKey("Browser", null=True, blank=True)
+    operating_system = models.ForeignKey("OperatingSystem", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    browser = models.ForeignKey("Browser", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     entity_member = models.IntegerField(null=True, blank=True,
                                         db_index=True)  # target model depends on imp_type buyer_member or seller_member
-    buyer_member = models.ForeignKey("PlatformMember", related_name='+', null=True, blank=True)
-    seller_member = models.ForeignKey("PlatformMember", related_name='+', null=True, blank=True)
+    buyer_member = models.ForeignKey("PlatformMember", related_name='+', null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    seller_member = models.ForeignKey("PlatformMember", related_name='+', null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     buyer_type = models.TextField(
         choices=BUYER_TYPE_NetworkDeviceReport_CHOICES,
         null=True, blank=True)
     seller_type = models.TextField(
         choices=SELLER_TYPE_NetworkDeviceReport_CHOICES,
         null=True, blank=True)
-    advertiser = models.ForeignKey("Advertiser", null=True, blank=True)
-    insertion_order = models.ForeignKey("InsertionOrder", null=True, blank=True)
-    line_item = models.ForeignKey("LineItem", null=True, blank=True)
-    campaign = models.ForeignKey("Campaign", null=True, blank=True)
-    pixel = models.ForeignKey("ConversionPixel", null=True, blank=True)
-    media_type = models.ForeignKey("MediaType", null=True, blank=True)
+    advertiser = models.ForeignKey("Advertiser", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    insertion_order = models.ForeignKey("InsertionOrder", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    line_item = models.ForeignKey("LineItem", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    campaign = models.ForeignKey("Campaign", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    pixel = models.ForeignKey("ConversionPixel", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    media_type = models.ForeignKey("MediaType", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     size = models.TextField(null=True, blank=True)
-    geo_country = models.ForeignKey("Country", null=True, blank=True)
+    geo_country = models.ForeignKey("Country", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     payment_type = models.TextField(
         choices=DEAL_PAYMENT_TYPE_CHOICES,
         null=True, blank=True)
     revenue_type_id = models.IntegerField(
         choices=REVENUE_TYPE_CHOICES,
         null=True, blank=True)
-    publisher = models.ForeignKey("Publisher", null=True, blank=True)
-    pub_rule = models.ForeignKey("AdQualityRule", null=True, blank=True)
+    publisher = models.ForeignKey("Publisher", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    pub_rule = models.ForeignKey("AdQualityRule", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     bid_type = models.TextField(
         choices=BID_TYPE_CHOICES,
         null=True, blank=True)
@@ -3761,7 +3752,7 @@ class NetworkCarrierReport(models.Model):
     fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
     # month = time
     day = models.DateTimeField(null=True, blank=True, db_index=True)
-    carrier_id = int
+    carrier =  models.ForeignKey("Carrier", related_name='+', null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     device_type = models.TextField(
         choices=DEVICE_TYPE_INREPORT_CHOICES,
         null=True, blank=True)
@@ -3770,30 +3761,30 @@ class NetworkCarrierReport(models.Model):
         null=True, blank=True)
     entity_member = models.IntegerField(null=True, blank=True,
                                         db_index=True)  # target model depends on imp_type buyer_member or seller_member
-    buyer_member = models.ForeignKey("PlatformMember", related_name='+', null=True, blank=True)
-    seller_member = models.ForeignKey("PlatformMember", related_name='+', null=True, blank=True)
+    buyer_member = models.ForeignKey("PlatformMember", related_name='+', null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    seller_member = models.ForeignKey("PlatformMember", related_name='+', null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     buyer_type = models.TextField(
         choices=BUYER_TYPE_NetworkDeviceReport_CHOICES,
         null=True, blank=True)
     seller_type = models.TextField(
         choices=SELLER_TYPE_NetworkDeviceReport_CHOICES,
         null=True, blank=True)
-    advertiser = models.ForeignKey("Advertiser", null=True, blank=True)
-    insertion_order = models.ForeignKey("InsertionOrder", null=True, blank=True)
-    line_item = models.ForeignKey("LineItem", null=True, blank=True)
-    campaign = models.ForeignKey("Campaign", null=True, blank=True)
-    pixel = models.ForeignKey("ConversionPixel", null=True, blank=True)
-    media_type = models.ForeignKey("MediaType", null=True, blank=True)
+    advertiser = models.ForeignKey("Advertiser", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    insertion_order = models.ForeignKey("InsertionOrder", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    line_item = models.ForeignKey("LineItem", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    campaign = models.ForeignKey("Campaign", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    pixel = models.ForeignKey("ConversionPixel", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    media_type = models.ForeignKey("MediaType", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     size = models.TextField(null=True, blank=True)
-    geo_country = models.ForeignKey("Country", null=True, blank=True)
+    geo_country = models.ForeignKey("Country", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     payment_type = models.TextField(
         choices=DEAL_PAYMENT_TYPE_CHOICES,
         null=True, blank=True)
     revenue_type_id = models.IntegerField(
         choices=REVENUE_TYPE_CHOICES,
         null=True, blank=True)
-    publisher = models.ForeignKey("Publisher", null=True, blank=True)
-    pub_rule = models.ForeignKey("AdQualityRule", null=True, blank=True)
+    publisher = models.ForeignKey("Publisher", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    pub_rule = models.ForeignKey("AdQualityRule", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     bid_type = models.TextField(
         choices=BID_TYPE_CHOICES,
         null=True, blank=True)
@@ -3853,25 +3844,25 @@ class NetworkAdvertiserAnalyticsReport(models.Model):
     hour = models.DateTimeField(null=True, blank=True, db_index=True)
     #day = date
     #month = date
-    buyer_member = models.ForeignKey("PlatformMember", related_name='+', null=True, blank=True)
-    seller_member = models.ForeignKey("PlatformMember", related_name='+', null=True, blank=True)
-    advertiser = models.ForeignKey("Advertiser", null=True, blank=True)
-    campaign = models.ForeignKey("Campaign", null=True, blank=True)
-    creative = models.ForeignKey("Creative", null=True, blank=True)
-    site = models.ForeignKey("Site", null=True, blank=True)
-    placement = models.ForeignKey("Placement", null=True, blank=True)
-    deal = models.ForeignKey("Deal", null=True, blank=True)
+    buyer_member = models.ForeignKey("PlatformMember", related_name='+', null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    seller_member = models.ForeignKey("PlatformMember", related_name='+', null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    advertiser = models.ForeignKey("Advertiser", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    campaign = models.ForeignKey("Campaign", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    creative = models.ForeignKey("Creative", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    site = models.ForeignKey("Site", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    placement = models.ForeignKey("Placement", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    deal = models.ForeignKey("Deal", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     size = models.TextField(null=True, blank=True)
-    geo_country = models.ForeignKey("Country", null=True, blank=True)
-    insertion_order = models.ForeignKey("InsertionOrder", null=True, blank=True)
+    geo_country = models.ForeignKey("Country", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    insertion_order = models.ForeignKey("InsertionOrder", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     billing_period_start_date = models.DateTimeField(null=True, blank=True, db_index=True)
     billing_period_end_date = models.DateTimeField(null=True, blank=True, db_index=True)
     payment_type = models.TextField(
         choices=DEAL_PAYMENT_TYPE_CHOICES,
         null=True, blank=True)
-    line_item = models.ForeignKey("LineItem", null=True, blank=True)
-    pixel = models.ForeignKey("ConversionPixel", null=True, blank=True)
-    publisher = models.ForeignKey("Publisher", null=True, blank=True)
+    line_item = models.ForeignKey("LineItem", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    pixel = models.ForeignKey("ConversionPixel", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    publisher = models.ForeignKey("Publisher", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     imp_type_id = models.IntegerField(
         choices=IMPRESSION_TYPE_CHOICES,
         null=True, blank=True)
@@ -3881,7 +3872,7 @@ class NetworkAdvertiserAnalyticsReport(models.Model):
     seller_type = models.TextField(
         choices=SELLER_TYPE_CHOICES,
         null=True, blank=True)
-    media_type = models.ForeignKey("MediaType", null=True, blank=True)
+    media_type = models.ForeignKey("MediaType", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     venue_id = models.IntegerField(null=True, blank=True)
     venue = models.TextField(null=True, blank=True)
     predict_type_rev = models.IntegerField(
@@ -3964,33 +3955,33 @@ class NetworkAnalyticsFeed(models.Model):
     hour = models.DateTimeField(null=True, blank=True, db_index=True)
     day = models.DateTimeField(null=True, blank=True, db_index=True)
     month = models.DateTimeField(null=True, blank=True, db_index=True)
-    advertiser = models.ForeignKey("Advertiser", null=True, blank=True)
+    advertiser = models.ForeignKey("Advertiser", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     bid_type = models.TextField(
         choices=BID_TYPE_CHOICES,
         null=True, blank=True)
-    buyer_member = models.ForeignKey("PlatformMember", related_name='+', null=True, blank=True)
-    campaign = models.ForeignKey("Campaign", null=True, blank=True)
-    creative = models.ForeignKey("Creative", null=True, blank=True)
-    deal = models.ForeignKey("Deal", null=True, blank=True)
-    entity_member =  models.ForeignKey("Member", related_name='+', null=True, blank=True)
-    external_inv = models.ForeignKey("PublisherExternalInventoryCode", null=True, blank=True)
-    geo_country = models.ForeignKey("Country", null=True, blank=True)
+    buyer_member = models.ForeignKey("PlatformMember", related_name='+', null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    campaign = models.ForeignKey("Campaign", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    creative = models.ForeignKey("Creative", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    deal = models.ForeignKey("Deal", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    entity_member =  models.ForeignKey("Member", related_name='+', null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    external_inv = models.ForeignKey("PublisherExternalInventoryCode", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    geo_country = models.ForeignKey("Country", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     height = models.IntegerField(null=True, blank=True)
     imp_type_id = models.IntegerField(
         choices=IMPRESSION_TYPE_CHOICES,
         null=True, blank=True)
-    insertion_order = models.ForeignKey("InsertionOrder", null=True, blank=True)
+    insertion_order = models.ForeignKey("InsertionOrder", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     insertion_order_code = models.IntegerField(null=True, blank=True)
-    line_item = models.ForeignKey("LineItem", null=True, blank=True)
+    line_item = models.ForeignKey("LineItem", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     line_item_code = models.IntegerField(null=True, blank=True)
-    media_type = models.ForeignKey("MediaType", null=True, blank=True)
-    media_subtype = models.ForeignKey("MediaSubType", null=True, blank=True)
-    pixel = models.ForeignKey("ConversionPixel", null=True, blank=True)
-    placement = models.ForeignKey("Placement", null=True, blank=True)
-    publisher = models.ForeignKey("Publisher", null=True, blank=True)
-    pub_rule = models.ForeignKey("AdQualityRule", null=True, blank=True)
-    seller_member = models.ForeignKey("PlatformMember", related_name='+', null=True, blank=True)
-    site = models.ForeignKey("Site", null=True, blank=True)
+    media_type = models.ForeignKey("MediaType", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    media_subtype = models.ForeignKey("MediaSubType", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    pixel = models.ForeignKey("ConversionPixel", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    placement = models.ForeignKey("Placement", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    publisher = models.ForeignKey("Publisher", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    pub_rule = models.ForeignKey("AdQualityRule", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    seller_member = models.ForeignKey("PlatformMember", related_name='+', null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    site = models.ForeignKey("Site", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     size = models.TextField(null=True, blank=True)
     width = models.IntegerField(null=True, blank=True)
     payment_type = models.TextField(
@@ -4034,24 +4025,24 @@ class NetworkAnalyticsFeed(models.Model):
 
 
 class ClickTrackerPublisher(models.Model):
-    click_tracker = models.ForeignKey("ClickTracker", null=True, blank=True)
-    publisher = models.ForeignKey("Publisher", null=True, blank=True)
+    click_tracker = models.ForeignKey("ClickTracker", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    publisher = models.ForeignKey("Publisher", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
 
     class Meta:
         db_table = "click_tracker_publisher"
 
 
 class ClickTrackerLineItem(models.Model):
-    click_tracker = models.ForeignKey("ClickTracker", null=True, blank=True)
-    line_item = models.ForeignKey("LineItem", null=True, blank=True)
+    click_tracker = models.ForeignKey("ClickTracker", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    line_item = models.ForeignKey("LineItem", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
 
     class Meta:
         db_table = "click_tracker_line_item"
 
 
 class ClickTrackerPaymentRule(models.Model):
-    click_tracker = models.ForeignKey("ClickTracker", null=True, blank=True)
-    payment_rule= models.ForeignKey("PaymentRule", null=True, blank=True)
+    click_tracker = models.ForeignKey("ClickTracker", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    payment_rule= models.ForeignKey("PaymentRule", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
 
     class Meta:
         db_table = "click_tracker_payment_rule"
@@ -4063,19 +4054,19 @@ class ClickTrackerFeed(models.Model):
     day = models.DateTimeField(null=True, blank=True, db_index=True)
     month = models.DateTimeField(null=True, blank=True, db_index=True)
     datetime = models.DateTimeField(null=True, blank=True, db_index=True)
-    advertiser = models.ForeignKey("Advertiser", null=True, blank=True)
+    advertiser = models.ForeignKey("Advertiser", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     auction_id = models.BigIntegerField(null=True, blank=True)
-    line_item = models.ForeignKey("LineItem", null=True, blank=True)
-    insertion_order = models.ForeignKey("InsertionOrder", null=True, blank=True)
-    member = models.ForeignKey("Member", null=True, blank=True)
+    line_item = models.ForeignKey("LineItem", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    insertion_order = models.ForeignKey("InsertionOrder", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    member = models.ForeignKey("Member", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     pricing_type = models.TextField(
         choices=PRICING_TYPE_CHOICES,
         null=True, blank=True)
-    publisher = models.ForeignKey("Publisher", null=True, blank=True)
+    publisher = models.ForeignKey("Publisher", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     site_domain = models.TextField(null=True, blank=True, db_index=True)
-    tag = models.ForeignKey("Placement", null=True, blank=True)
-    tracker = models.ForeignKey("ClickTracker", null=True, blank=True)
-    user = models.ForeignKey("User", null=True, blank=True)
+    tag = models.ForeignKey("Placement", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    tracker = models.ForeignKey("ClickTracker", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    user = models.ForeignKey("User", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     commission_cpm = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
     commission_revshare = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
     media_buy_cost = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
@@ -4084,4 +4075,308 @@ class ClickTrackerFeed(models.Model):
 
     class Meta:
         db_table = "click_tracker_feed"
+
+
+class CreativeHTML(models.Model):
+    #https://wiki.appnexus.com/display/api/Creative+HTML+Service
+    id = models.IntegerField(primary_key=True)  # No AutoIncrement
+    fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
+    code = models.TextField(null=True, blank=True, db_index=True)
+    code2 = models.TextField(null=True, blank=True, db_index=True)
+    name = models.TextField(null=True, blank=True, db_index=True)
+    type = models.TextField(
+        choices=CREATIVE_TYPE_CHOICES,
+        null=True, blank=True)
+    advertiser = models.ForeignKey("Advertiser", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    publisher = models.ForeignKey("Publisher", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    brand = models.ForeignKey("Brand", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    #brand_id = models.IntegerField(null=True, blank=True)
+    state = models.TextField(
+        choices=STATE_CHOICES,
+        null=True, blank=True)
+    status = models.TextField(null=True, blank=True) #TODO JSON
+    click_track_result = models.TextField(
+        choices=CLICK_TEST_RESULT_COICES,
+        null=True, blank=True)
+    #campaigns = array - see model CampaignCreativeHTML
+    template = models.ForeignKey("CreativeTemplate", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    media_url = models.TextField(null=True, blank=True)
+    media_url_secure = models.TextField(null=True, blank=True)
+    click_url = models.TextField(null=True, blank=True)
+    file_name = models.TextField(null=True, blank=True)
+    audit_status = models.TextField(null=True, blank=True) #array of object in origin. Later we can create separate model for it if needed
+    audit_feedback = models.TextField(null=True, blank=True)
+    allow_audit = models.NullBooleanField(null=True, blank=True)
+    ssl_status = models.TextField(
+        choices=SSL_STATUS_CHOICES,
+        null=True, blank=True)
+    allow_ssl_audit = models.NullBooleanField(null=True, blank=True)
+    adx_audit = models.TextField(null=True, blank=True) #TODO JSON
+    facebook_audit_status = models.TextField(
+        choices=FACEBOOK_AUDIT_STATUS_CHOICES,
+        null=True, blank=True)
+    facebook_audit_feedback = models.TextField(null=True, blank=True)
+    is_self_audited = models.NullBooleanField(null=True, blank=True)
+    is_expired = models.NullBooleanField(null=True, blank=True)
+    is_prohibited = models.NullBooleanField(null=True, blank=True)
+    is_hosted = models.NullBooleanField(null=True, blank=True)
+    lifetime_budget = models.FloatField(null=True, blank=True)
+    lifetime_budget_imps = models.IntegerField(null=True, blank=True)
+    daily_budget = models.FloatField(null=True, blank=True)
+    daily_budget_imps = models.IntegerField(null=True, blank=True)
+    enable_pacing = models.NullBooleanField(null=True, blank=True)
+    allow_safety_pacing = models.NullBooleanField(null=True, blank=True)
+    profile = models.ForeignKey("Profile", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    folder = models.ForeignKey("CreativeFolder", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    #line_items = array - see model LineItemCreativesHTML
+    track_clicks = models.NullBooleanField(null=True, blank=True)
+    flash_backup_content = models.TextField(null=True, blank=True)
+    flash_backup_file_name = models.TextField(null=True, blank=True)
+    flash_backup_url = models.TextField(null=True, blank=True)
+    is_control = models.NullBooleanField(null=True, blank=True)
+    #segments = array - see model CreativeHTMLSegment below
+    created_on = models.DateTimeField(default=now_tz)
+    last_modified = models.DateTimeField(default=now_tz)
+    #categories = array - see model CreativeHTMLCategory below
+    #adservers = array - see model CreativeHTMLAdserver below
+    #technical_attributes - see model CreativeHTMLTechnicalAttribute
+    language = models.ForeignKey("Language", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    pop_values = models.TextField(null=True, blank=True) #TODO JSON
+    sla = models.IntegerField(null=True, blank=True)
+    sla_eta = models.DateTimeField(null=True, blank=True)
+    currency = models.TextField(null=True, blank=True)
+    first_run = models.DateTimeField(default=now_tz)
+    last_run = models.DateTimeField(null=True, blank=True)
+    #competitive_brands = array - see model CreativeHTMLCompetitiveBrand below
+    #competitive_categories = array - see model CreativeHTMLCompetitiveCategory below
+    member = models.ForeignKey("Member", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    custom_macros = models.TextField(null=True, blank=True) #TODO JSON array of objects in origin
+
+    api_endpoint = 'creative-html'
+    class Meta:
+        db_table = "creative_html"
+
+
+class LineItemCreativesHTML(models.Model):
+    line_item = models.ForeignKey("LineItem", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    creative_html = models.ForeignKey("CreativeHTML", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    code = models.TextField(null=True, blank=True, db_index=True)
+
+    class Meta:
+        db_table = "line_item_creatives_html"
+
+
+class CampaignCreativeHTML(models.Model):
+    campaign = models.ForeignKey("Campaign", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    creative_html = models.ForeignKey("CreativeHTML", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+
+    class Meta:
+        db_table = "campaign_creative_html"
+
+
+class CreativeHTMLTechnicalAttribute(models.Model):
+    technical_attribute = models.ForeignKey("TechnicalAttribute", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    creative_html = models.ForeignKey("CreativeHTML", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+
+    class Meta:
+        db_table = "creative_html_technical_attribute"
+
+
+class CreativeHTMLCompetitiveBrand(models.Model):
+    creative_html = models.ForeignKey("CreativeHTML", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    brand = models.ForeignKey("Brand", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    class Meta:
+        db_table = "creative_html_competitive_brand"
+
+
+class CreativeHTMLCompetitiveCategory(models.Model):
+    creative_html = models.ForeignKey("CreativeHTML", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    category = models.ForeignKey("Category", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+
+    class Meta:
+        db_table = "creative_html_competitive_category"
+
+
+class CreativeHTMLAdserver(models.Model):
+    id = models.IntegerField(primary_key=True)  # No AutoIncrement
+    creative_html = models.ForeignKey("CreativeHTML", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    ad_server = models.ForeignKey("AdServer", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    use_type = models.TextField(null=True, blank=True)
+    name = models.TextField(null=True, blank=True)
+
+    class Meta:
+        db_table = "creative_html_adserver"
+
+
+class CreativeHTMLCategory(models.Model):
+    creative_html = models.ForeignKey("CreativeHTML", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    category = models.ForeignKey("Category", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+
+    class Meta:
+        db_table = "creative_html_category"
+
+
+class CreativeHTMLSegment(models.Model):
+    creative_html = models.ForeignKey("CreativeHTML", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    segment = models.ForeignKey("Segment", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    action = models.TextField(
+        choices=CREATIVE_SEGMENT_ACTION_CHOICES,
+        null=True, blank=True)
+
+    class Meta:
+        db_table = "creative_html_segment"
+
+
+class CreativeVAST(models.Model):
+    #https://wiki.appnexus.com/display/api/Creative+VAST+Service
+    id = models.IntegerField(primary_key=True)  # No AutoIncrement
+    fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
+    code = models.TextField(null=True, blank=True, db_index=True)
+    code2 = models.TextField(null=True, blank=True, db_index=True)
+    name = models.TextField(null=True, blank=True, db_index=True)
+    type = models.TextField(
+        choices=CREATIVE_TYPE_CHOICES,
+        null=True, blank=True)
+    advertiser = models.ForeignKey("Advertiser", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    publisher = models.ForeignKey("Publisher", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    brand = models.ForeignKey("Brand", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    #brand_id = models.IntegerField(null=True, blank=True)
+    state = models.TextField(
+        choices=STATE_CHOICES,
+        null=True, blank=True)
+    status = models.TextField(null=True, blank=True) #TODO JSON
+    click_track_result = models.TextField(
+        choices=CLICK_TEST_RESULT_COICES,
+        null=True, blank=True)
+    #campaigns = array - see model CampaignCreativeVAST
+    template = models.ForeignKey("CreativeTemplate", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    media_url = models.TextField(null=True, blank=True)
+    media_url_secure = models.TextField(null=True, blank=True)
+    click_url = models.TextField(null=True, blank=True)
+    file_name = models.TextField(null=True, blank=True)
+    audit_status = models.TextField(null=True, blank=True) #array of object in origin. Later we can create separate model for it if needed
+    audit_feedback = models.TextField(null=True, blank=True)
+    allow_audit = models.NullBooleanField(null=True, blank=True)
+    ssl_status = models.TextField(
+        choices=SSL_STATUS_CHOICES,
+        null=True, blank=True)
+    allow_ssl_audit = models.NullBooleanField(null=True, blank=True)
+    adx_audit = models.TextField(null=True, blank=True) #TODO JSON
+    facebook_audit_status = models.TextField(
+        choices=FACEBOOK_AUDIT_STATUS_CHOICES,
+        null=True, blank=True)
+    facebook_audit_feedback = models.TextField(null=True, blank=True)
+    is_self_audited = models.NullBooleanField(null=True, blank=True)
+    is_expired = models.NullBooleanField(null=True, blank=True)
+    is_prohibited = models.NullBooleanField(null=True, blank=True)
+    is_hosted = models.NullBooleanField(null=True, blank=True)
+    lifetime_budget = models.FloatField(null=True, blank=True)
+    lifetime_budget_imps = models.IntegerField(null=True, blank=True)
+    daily_budget = models.FloatField(null=True, blank=True)
+    daily_budget_imps = models.IntegerField(null=True, blank=True)
+    enable_pacing = models.NullBooleanField(null=True, blank=True)
+    allow_safety_pacing = models.NullBooleanField(null=True, blank=True)
+    profile = models.ForeignKey("Profile", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    folder = models.ForeignKey("CreativeFolder", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    #line_items = array - see model LineItemCreativesVAST
+    track_clicks = models.NullBooleanField(null=True, blank=True)
+    flash_backup_content = models.TextField(null=True, blank=True)
+    flash_backup_file_name = models.TextField(null=True, blank=True)
+    flash_backup_url = models.TextField(null=True, blank=True)
+    is_control = models.NullBooleanField(null=True, blank=True)
+    #segments = array - see model CreativeVASTSegment below
+    created_on = models.DateTimeField(default=now_tz)
+    last_modified = models.DateTimeField(default=now_tz)
+    #categories = array - see model CreativeVASTCategory below
+    #adservers = array - see model CreativeVASTAdserver below
+    #technical_attributes - see model CreativeVASTTechnicalAttribute
+    language = models.ForeignKey("Language", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    pop_values = models.TextField(null=True, blank=True) #TODO JSON
+    sla = models.IntegerField(null=True, blank=True)
+    sla_eta = models.DateTimeField(null=True, blank=True)
+    currency = models.TextField(null=True, blank=True)
+    first_run = models.DateTimeField(default=now_tz)
+    last_run = models.DateTimeField(null=True, blank=True)
+    video_attribute = models.TextField(null=True, blank=True) #TODO JSON
+    #competitive_brands = array - see model CreativeVASTCompetitiveBrand below
+    #competitive_categories = array - see model CreativeVASTCompetitiveCategory below
+    member = models.ForeignKey("Member", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    media_assets = models.TextField(null=True, blank=True) #TODO JSON
+
+    api_endpoint = 'creative-vast'
+    class Meta:
+        db_table = "creative_vast"
+
+
+class LineItemCreativesVAST(models.Model):
+    line_item = models.ForeignKey("LineItem", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    creative_vast = models.ForeignKey("CreativeVAST", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    code = models.TextField(null=True, blank=True, db_index=True)
+
+    class Meta:
+        db_table = "line_item_creatives_vast"
+
+
+class CampaignCreativeVAST(models.Model):
+    campaign = models.ForeignKey("Campaign", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    creative_vast = models.ForeignKey("CreativeVAST", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+
+    class Meta:
+        db_table = "campaign_creative_vast"
+
+
+class CreativeVASTTechnicalAttribute(models.Model):
+    technical_attribute = models.ForeignKey("TechnicalAttribute", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    creative_vast = models.ForeignKey("CreativeVAST", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+
+    class Meta:
+        db_table = "creative_vast_technical_attribute"
+
+
+class CreativeVASTCompetitiveBrand(models.Model):
+    creative_vast = models.ForeignKey("CreativeVAST", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    brand = models.ForeignKey("Brand", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    class Meta:
+        db_table = "creative_vast_competitive_brand"
+
+
+class CreativeVASTCompetitiveCategory(models.Model):
+    creative_vast = models.ForeignKey("CreativeVAST", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    category = models.ForeignKey("Category", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+
+    class Meta:
+        db_table = "creative_vast_competitive_category"
+
+
+class CreativeVASTAdserver(models.Model):
+    id = models.IntegerField(primary_key=True)  # No AutoIncrement
+    creative_vast = models.ForeignKey("CreativeVAST", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    ad_server = models.ForeignKey("AdServer", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    use_type = models.TextField(null=True, blank=True)
+    name = models.TextField(null=True, blank=True)
+
+    class Meta:
+        db_table = "creative_vast_adserver"
+
+
+class CreativeVASTCategory(models.Model):
+    creative_vast = models.ForeignKey("CreativeVAST", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    category = models.ForeignKey("Category", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+
+    class Meta:
+        db_table = "creative_vast_category"
+
+
+class CreativeVASTSegment(models.Model):
+    creative_vast = models.ForeignKey("CreativeVAST", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    segment = models.ForeignKey("Segment", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    action = models.TextField(
+        choices=CREATIVE_SEGMENT_ACTION_CHOICES,
+        null=True, blank=True)
+
+    class Meta:
+        db_table = "creative_vast_segment"
+
+
+
 

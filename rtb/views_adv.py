@@ -5,7 +5,7 @@ from utils import parse_get_params, make_sum, check_user_advertiser_permissions
 from models import SiteDomainPerformanceReport, Campaign, GeoAnaliticsReport, NetworkAnalyticsReport_ByPlacement, \
     Placement, NetworkCarrierReport_Simple, NetworkDeviceReport_Simple
 from django.db.models import Sum, Min, Max, Avg, Value, When, Case, F, Q, Func, FloatField
-from django.db.models.functions import Coalesce, Concat
+from django.db.models.functions import Coalesce, Concat, ExtractWeekDay
 from django.core.cache import cache
 import itertools
 import datetime
@@ -13,7 +13,7 @@ from pytz import utc
 import filter_func
 import bisect
 from django.contrib.auth.decorators import login_required, user_passes_test
-
+import json
 
 @api_view()
 @check_user_advertiser_permissions(campaign_id_num=0)
@@ -142,37 +142,53 @@ def get_campaign_cpa(advertiser_id, campaign_id, from_date, to_date):
         campaign_id=campaign_id,
         hour__gte=from_date,
         hour__lte=to_date,
-    ).values('hour').annotate(
+    #).values('hour__week_day'
+    ).annotate(
+        week_day=ExtractWeekDay('hour'),
+    ).values(
+        'week_day'
+    ).annotate(
         sum_cost=Sum('cost'),
         convs=Sum('total_convs'),
         # date=Func(Value("'day'"), 'hour', function="date_trunc")
-    ).annotate(
-        cpa=Case(When(~Q(convs=0), then=F('sum_cost') / F('convs')), output_field=FloatField()),
-    )  # .order_by("hour")
+        min_cpa = Min(Case(When(~Q(total_convs=0), then=F('cost') / F('total_convs')), output_field=FloatField())),
+        max_cpa = Max(Case(When(~Q(total_convs=0), then=F('cost') / F('total_convs')), output_field=FloatField())),
+        # max_cpa = Max('rec_cpa')
+    # ).annotate(
+    #     cpa=Case(When(~Q(convs=0), then=F('sum_cost') / F('convs')), output_field=FloatField()),
+    ).order_by('week_day')
+    # .order_by("hour")
     # values("date").annotate(
     #     low=Min("cpa"),
     #     high=Max("cpa"),
     #     avg=Avg("cpa")
     # )
     # first, last = None, None
-    res = []
-    key_func = lambda x: x["cpa"]
-    for key, g in itertools.groupby(q, lambda x: x["hour"].date()):
-        group = list(g)
-        try:
-            avg = sum(itertools.imap(lambda x: x["sum_cost"], group)) / sum(itertools.imap(lambda x: x["convs"], group))
-        except:
-            avg = None
-        min_val = min(group, key=key_func)
-        max_val = max(group, key=key_func)
-        res.append({
-            "date": key,
-            "low": min_val["cpa"],
-            "high": max_val["cpa"],
-            "open": group[0]["cpa"],
-            "close": group[-1]["cpa"],
-            "avg": avg,
-        })
+    res = [{
+            "date": x['week_day'],
+            "low": x['min_cpa'],
+            "high": x['max_cpa'],
+            "open": None,
+            "close": None,
+            "avg": float(x['sum_cost'])/x['convs'] if x['convs']!=0 else None,
+           } for x in q]
+    # key_func = lambda x: x["cpa"]
+    # for key, g in itertools.groupby(q, lambda x: x["week_day"]):
+    #     group = list(g)
+    #     try:
+    #         avg = sum(itertools.imap(lambda x: x["sum_cost"], group)) / sum(itertools.imap(lambda x: x["convs"], group))
+    #     except:
+    #         avg = None
+    #     min_val = min(group, key=key_func)
+    #     max_val = max(group, key=key_func)
+    #     res.append({
+    #         "date": key,
+    #         "low": min_val["cpa"],
+    #         "high": max_val["cpa"],
+    #         "open": group[0]["cpa"],
+    #         "close": group[-1]["cpa"],
+    #         "avg": avg,
+    #     })
     cache.set(key, res)
     return res
 
@@ -201,7 +217,17 @@ Get single campaign cpa report for given period to create boxplots
         return Response({'error': "Unknown object id %d" % id})
     advertiser_id = c.advertiser_id
     params = parse_get_params(request.GET)
-    res = get_campaign_cpa(advertiser_id, id, params['from_date'], params['to_date'])
+    from_date = params['from_date']
+    to_date = params['to_date']
+    # expand to week boundary
+    d = from_date.weekday()
+    if d>0:
+        from_date -= datetime.timedelta(days=d)
+    d = to_date.weekday()
+    if d<6:
+        to_date += datetime.timedelta(days=6-d)
+
+    res = get_campaign_cpa(advertiser_id, id, from_date, to_date)
     return Response(res)
 
 
@@ -255,7 +281,7 @@ def campaignDomains(request, id):
     """
 Get single campaign details by domains
 
-## Url format: /api/v1/campaigns/:id/domains?from_date={from_date}&to_date={to_date}&skip={skip}&take={take}&sort={sort}&order={order}&filter={filter}
+## Url format: /api/v1/campaigns/:id/domains?from_date={from_date}&to_date={to_date}&skip={skip}&take={take}&sort={sort}&order={order}&filter={filter}&totalSummary={totalSummary}
 
 + Parameters
     + id (Number) - id for getting information about company
@@ -274,6 +300,29 @@ Get single campaign details by domains
     + order (string, optional) - Order of sorting (ASC or DESC)
         + Default: desc
     + filter (string, optional) - devextreme JSON serialized filter
+	+ totalSummary (array, optional) - devextreme array for total summary
+
++ Examples of query values:
+	from_date:1469998800
+	order:desc
+	skip:0
+	sort:imp
+	take:10
+	to_date:1471180333
+	totalSummary:{"selector":"placement","summaryType":"count"}
+	totalSummary:{"selector":"conv","summaryType":"sum"}
+	totalSummary:{"selector":"imp","summaryType":"sum"}
+	totalSummary:{"selector":"cpa","summaryType":"sum"}
+	totalSummary:{"selector":"cost","summaryType":"sum"}
+	totalSummary:{"selector":"clicks","summaryType":"sum"}
+	totalSummary:{"selector":"cpc","summaryType":"sum"}
+	totalSummary:{"selector":"cpm","summaryType":"sum"}
+	totalSummary:{"selector":"cvr","summaryType":"sum"}
+	totalSummary:{"selector":"ctr","summaryType":"sum"}
+	totalSummary:{"selector":"view_rate","summaryType":"sum"}
+	totalSummary:{"selector":"imps_viewed","summaryType":"sum"}
+	totalSummary:{"selector":"view_measured_imps","summaryType":"sum"}
+	totalSummary:{"selector":"view_measurement_rate","summaryType":"sum"}
 
 Field "placement" must contain name and id of placement. Id in parenthesis
     """
@@ -297,8 +346,21 @@ Field "placement" must contain name and id of placement. Id in parenthesis
         key_name = 'placement'
     res.sort(key=lambda x: x[key_name], reverse=reverse_order)
     totalCount = len(res)
-    res = res[params['skip']:params['skip'] + params['take']]
-    result = {"data": res, "totalCount": totalCount}
+    result = {"data": res[params['skip']:params['skip'] + params['take']], "totalCount": totalCount}
+
+    # TODO Probary, these complexity not needed for this api
+    try:
+        if 'totalSummary' in request.GET:
+            result['totalSummary']=dict()
+            for current_summator in request.GET.getlist('totalSummary'):
+                ts = json.loads(current_summator)
+                field_name = ts['selector']
+                if ts['summaryType'] == 'count':
+                    result['totalSummary'][field_name] = len(res)
+                else:
+                    result['totalSummary'][field_name] = sum(x[field_name] or 0 for x in res)
+    except Exception as e:
+        result['totalSummary'] ="Can't calc summaries: {}".format(e.message)
     return Response(result)
 
 

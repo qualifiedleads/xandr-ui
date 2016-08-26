@@ -142,7 +142,7 @@ def get_campaign_cpa(advertiser_id, campaign_id, from_date, to_date):
         campaign_id=campaign_id,
         hour__gte=from_date,
         hour__lte=to_date,
-    ).values('hour').annotate(
+    ).values('hour__week_day').annotate(
         sum_cost=Sum('cost'),
         convs=Sum('total_convs'),
         # date=Func(Value("'day'"), 'hour', function="date_trunc")
@@ -201,7 +201,17 @@ Get single campaign cpa report for given period to create boxplots
         return Response({'error': "Unknown object id %d" % id})
     advertiser_id = c.advertiser_id
     params = parse_get_params(request.GET)
-    res = get_campaign_cpa(advertiser_id, id, params['from_date'], params['to_date'])
+    from_date = params['from_date']
+    to_date = params['to_date']
+    # expand to week boundary
+    d = from_date.weekday()
+    if d>0:
+        from_date -= datetime.timedelta(days=d)
+    d = to_date.weekday()
+    if d<6:
+        to_date += datetime.timedelta(days=6-d)
+
+    res = get_campaign_cpa(advertiser_id, id, from_date, to_date)
     return Response(res)
 
 
@@ -325,16 +335,16 @@ Field "placement" must contain name and id of placement. Id in parenthesis
     # TODO Probary, these complexity not needed for this api
     try:
         if 'totalSummary' in request.GET:
-            result['summaries']=dict()
-            for current_summator in request.GET['totalSummary']:
+            result['totalSummary']=dict()
+            for current_summator in request.GET.getlist('totalSummary'):
                 ts = json.loads(current_summator)
                 field_name = ts['selector']
                 if ts['summaryType'] == 'count':
-                    result['summaries'][field_name] = len(res)
+                    result['totalSummary'][field_name] = len(res)
                 else:
-                    result['summaries'][field_name] = sum(x[field_name] for x in res)
+                    result['totalSummary'][field_name] = sum(x[field_name] or 0 for x in res)
     except Exception as e:
-        result['summaries'] ="Can't calc summaries: {}".format(e.message)
+        result['totalSummary'] ="Can't calc summaries: {}".format(e.message)
     return Response(result)
 
 

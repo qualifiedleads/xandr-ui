@@ -65,7 +65,7 @@
           res.data[index].high = +parseFloat(res.data[index].high).toFixed(4);
           res.data[index].low = +parseFloat(res.data[index].low).toFixed(4);
           res.data[index].open = +parseFloat(res.data[index].open).toFixed(4);
-          res.data[index].day = $window.moment(res.data[index].date).toDate();
+          res.data[index].day = res.data[index].date;
         }
         return res.data;
       })
@@ -75,7 +75,7 @@
     }
 
 
-    function campaignDomains(id, from, to, skip, take, sort, order, filter) {
+    function campaignDomains(id, from, to, skip, take, sort, order, filter, totalSummary) {
       if (sort) {
         if (sort[0].desc === true) {
           order = 'desc'
@@ -98,7 +98,7 @@
         method: 'GET',
         url: '/api/v1/campaigns/' + encodeURI(id) + '/domains',
         headers: { 'Authorization': 'Token ' + $cookies.get('token') },
-        params: {from_date: from, to_date: to, skip: skip, take: take, sort: sort, order: order, filter: filter}
+        params: {from_date: from, to_date: to, skip: skip, take: take, sort: sort, order: order, filter: filter, totalSummary: totalSummary}
       })
       .then(function (res) {
         for (var index in res.data.data) {
@@ -117,12 +117,11 @@
           res.data.data[index].view_rate = +parseFloat(res.data.data[index].view_rate).toFixed(1);
         }
 
-
-
         return res.data;
       })
       .then(function (result) {
         _this.totalCount = result.totalCount || 0;
+        _this.totalSummary = result.totalSummary;
         return result.data;
       })
       .catch(function (err) {

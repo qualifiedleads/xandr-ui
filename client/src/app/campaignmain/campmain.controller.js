@@ -112,11 +112,11 @@
         return vm.Camp.totalCount;
       },
       load: function (loadOptions) {
-        if (loadOptions.searchOperation && loadOptions.dataField){
+        if (loadOptions.searchOperation && loadOptions.dataField) {
           loadOptions.take = 999999;
         }
         return vm.Camp.campaignDomains(vm.campId, vm.dataStart, vm.dataEnd, loadOptions.skip,
-            loadOptions.take, loadOptions.sort, loadOptions.order, loadOptions.filter)
+            loadOptions.take, loadOptions.sort, loadOptions.order, loadOptions.filter, loadOptions.totalSummary)
       }
     });
 
@@ -144,7 +144,7 @@
                     maxMajor = major[major.length - 1].value;
                   }
                   if (this.value == maxMajor) {
-                    switch ( item.name) {
+                    switch (item.name) {
                       case 'impression':
                         return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('CAMP.CHECKBOX.IMPRESSIONS') + '</span><br>' + this.value;
                       case 'cpa':
@@ -231,12 +231,12 @@
     };
 
     vm.rangeOptionsFirst = {
-      size:{
-        height:80
+      size: {
+        height: 80
       },
       scale: {
         minorTickInterval: "day",
-        tickInterval: { days: 1 },
+        tickInterval: {days: 1},
         minRange: "day",
         maxRange: "year",
         minorTick: {
@@ -584,10 +584,12 @@
         grid: {
           visible: true
         },
-        // label: {
-        //   //visible: true,
-        //      format: "shortDate"
-        //  },
+        label: {
+          visible: true,
+          customizeText: function (arg) {
+            return $window.moment().locale('en').isoWeekday(arg.value).format('ddd');
+          }
+        },
         discreteAxisDivisionMode: 'crossLabels'
       },
       tooltip: {
@@ -643,15 +645,15 @@
     };
 
     vm.rangeOptionsSecond = {
-      size:{
-        height:80
+      size: {
+        height: 80
       },
       bindingOptions: {
         dataSource: 'campmain.boxPlotStore'
       },
       scale: {
         minorTickInterval: "day",
-        tickInterval: { days: 1 },
+        tickInterval: {days: 1},
         minRange: "day",
         maxRange: "year",
         minorTick: {
@@ -660,7 +662,7 @@
       },
       dataSourceField: 'day',
       sliderMarker: {
-        format: "monthAndDay"
+        format: "week"
       },
       behavior: {
         callSelectedRangeChanged: "onMoving"
@@ -775,50 +777,51 @@
           caption: LC('CAMP.CAMPAIGN.COLUMNS.CONV'),
           dataField: 'conv',
           alignment: 'center',
-          format: 'fixedPoint'
+          dataType: 'number'
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.IMP'),
           dataField: 'imp',
+          dataType: 'number',
           sortOrder: 'desc',
-          alignment: 'center',
-          format: 'fixedPoint'
-        },{
-          caption: LC('CAMP.CAMPAIGN.COLUMNS.CPA')+ ' ,$',
-          dataField: 'cpa',
-          alignment: 'center',
-          format: 'fixedPoint'
+          alignment: 'center'
         },
         {
-          caption: LC('CAMP.CAMPAIGN.COLUMNS.COST')+ ' ,$',
+          caption: LC('CAMP.CAMPAIGN.COLUMNS.CPA') + ' ,$',
+          dataField: 'cpa',
+          dataType: 'number',
+          alignment: 'center'
+        },
+        {
+          caption: LC('CAMP.CAMPAIGN.COLUMNS.COST') + ' ,$',
           dataField: 'cost',
           alignment: 'center',
-          format: 'fixedPoint'
+          dataType: 'number'
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.CLICKS'),
           dataField: 'clicks',
-          alignment: 'center',
-          format: 'fixedPoint'
-        }, {
-          caption: LC('CAMP.CAMPAIGN.COLUMNS.CPC')+ ' ,$',
+          alignment: 'center'
+        },
+        {
+          caption: LC('CAMP.CAMPAIGN.COLUMNS.CPC') + ' ,$',
           dataField: 'cpc',
           alignment: 'center',
-          format: 'fixedPoint'
+          dataType: 'number'
         },
         {
-          caption: LC('CAMP.CAMPAIGN.COLUMNS.CPM')+ ' ,$',
+          caption: LC('CAMP.CAMPAIGN.COLUMNS.CPM') + ' ,$',
           dataField: 'cpm',
           alignment: 'center',
-          format: 'fixedPoint'
+          dataType: 'number'
         },
         {
-          caption: LC('CAMP.CAMPAIGN.COLUMNS.CVR')+ ' ,%',
+          caption: LC('CAMP.CAMPAIGN.COLUMNS.CVR') + ' ,%',
           dataField: 'cvr',
           alignment: 'center'
         },
         {
-          caption: LC('CAMP.CAMPAIGN.COLUMNS.CTR')+ ' ,%',
+          caption: LC('CAMP.CAMPAIGN.COLUMNS.CTR') + ' ,%',
           dataField: 'ctr',
           alignment: 'center'
         },
@@ -828,7 +831,7 @@
           alignment: 'center',
           visible: false,
           width: 80,
-          format: 'fixedPoint'
+          dataType: 'number'
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.VIEW_MEASURED_IMPS'),
@@ -836,17 +839,17 @@
           alignment: 'center',
           visible: false,
           width: 100,
-          format: 'fixedPoint'
+          dataType: 'number'
         },
         {
-          caption: LC('CAMP.CAMPAIGN.COLUMNS.VIEW_MEASUREMENT_RATE')+ ' ,%',
+          caption: LC('CAMP.CAMPAIGN.COLUMNS.VIEW_MEASUREMENT_RATE') + ' ,%',
           dataField: 'view_measurement_rate',
           alignment: 'center',
           visible: false,
           width: 120
         },
         {
-          caption: LC('CAMP.CAMPAIGN.COLUMNS.VIEW_RATE')+ ' ,%',
+          caption: LC('CAMP.CAMPAIGN.COLUMNS.VIEW_RATE') + ' ,%',
           dataField: 'view_rate',
           alignment: 'center',
           visible: false,
@@ -935,7 +938,7 @@
       ],
       summary: {
         totalItems: [
-          /*{
+          {
             column: "placement",
             summaryType: "count"
           },
@@ -943,7 +946,7 @@
             column: "conv",
             summaryType: "sum",
             customizeText: function (data) {
-              data.valueText = 'Conv: '+data.value;
+              data.valueText = 'Conv: ' + vm.Camp.totalSummary.conv;
               return data.valueText;
             }
           },
@@ -951,7 +954,7 @@
             column: "imp",
             summaryType: "sum",
             customizeText: function (data) {
-              data.valueText = 'Imp: '+data.value;
+              data.valueText = 'Imp: ' + vm.Camp.totalSummary.imp;
               return data.valueText;
             }
           },
@@ -960,7 +963,7 @@
             summaryType: "sum",
             valueFormat: "currency",
             customizeText: function (data) {
-              data.valueText = 'CPA: $'+data.value;
+              data.valueText = 'CPA: $' + vm.Camp.totalSummary.cpa.toFixed(4);
               return data.valueText;
             }
           },
@@ -969,7 +972,7 @@
             summaryType: "sum",
             valueFormat: "currency",
             customizeText: function (data) {
-              data.valueText = 'Cost: $'+data.value;
+              data.valueText = 'Cost: $' + vm.Camp.totalSummary.cost.toFixed(2);
               return data.valueText;
             }
           },
@@ -977,7 +980,7 @@
             column: "clicks",
             summaryType: "sum",
             customizeText: function (data) {
-              data.valueText = 'Clicks: '+data.value;
+              data.valueText = 'Clicks: ' + vm.Camp.totalSummary.clicks;
               return data.valueText;
             }
           },
@@ -985,7 +988,7 @@
             column: "cpc",
             summaryType: "sum",
             customizeText: function (data) {
-              data.valueText = 'CPC: $'+data.value;
+              data.valueText = 'CPC: $' + vm.Camp.totalSummary.cpc.toFixed(4);
               return data.valueText;
             }
           },
@@ -993,7 +996,7 @@
             column: "cpm",
             summaryType: "sum",
             customizeText: function (data) {
-              data.valueText = 'CPM: $'+data.value;
+              data.valueText = 'CPM: $' + vm.Camp.totalSummary.cpm.toFixed(4);
               return data.valueText;
             }
           },
@@ -1001,7 +1004,7 @@
             column: "cvr",
             summaryType: "sum",
             customizeText: function (data) {
-              data.valueText = 'CVR: '+data.value;
+              data.valueText = 'CVR: ' + vm.Camp.totalSummary.cvr.toFixed(4);
               return data.valueText;
             }
           },
@@ -1009,10 +1012,10 @@
             column: "ctr",
             summaryType: "sum",
             customizeText: function (data) {
-              data.valueText = 'CTR: '+data.value;
+              data.valueText = 'CTR: ' + vm.Camp.totalSummary.ctr.toFixed(4);
               return data.valueText;
             }
-          }*/
+          }
         ]
       },
       columnChooser: {

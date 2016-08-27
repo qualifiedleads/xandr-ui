@@ -602,8 +602,8 @@
           }
           if (arg.seriesName === "Series 1") {
             return {
-              text: "Open: $" + arg.openValue + "<br/>" +
-              "Close: $" + arg.closeValue + "<br/>" +
+              text: "Q1: $" + arg.openValue + "<br/>" +
+              "Q2: $" + arg.closeValue + "<br/>" +
               "High: $" + arg.highValue + "<br/>" +
               "Low: $" + arg.lowValue + "<br/>"
             };

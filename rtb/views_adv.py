@@ -273,29 +273,6 @@ Get single campaign details by domains
     + order (string, optional) - Order of sorting (ASC or DESC)
         + Default: desc
     + filter (string, optional) - devextreme JSON serialized filter
-	+ totalSummary (array, optional) - devextreme array for total summary
-
-+ Examples of query values:
-	from_date:1469998800
-	order:desc
-	skip:0
-	sort:imp
-	take:10
-	to_date:1471180333
-	totalSummary:{"selector":"placement","summaryType":"count"}
-	totalSummary:{"selector":"conv","summaryType":"sum"}
-	totalSummary:{"selector":"imp","summaryType":"sum"}
-	totalSummary:{"selector":"cpa","summaryType":"sum"}
-	totalSummary:{"selector":"cost","summaryType":"sum"}
-	totalSummary:{"selector":"clicks","summaryType":"sum"}
-	totalSummary:{"selector":"cpc","summaryType":"sum"}
-	totalSummary:{"selector":"cpm","summaryType":"sum"}
-	totalSummary:{"selector":"cvr","summaryType":"sum"}
-	totalSummary:{"selector":"ctr","summaryType":"sum"}
-	totalSummary:{"selector":"view_rate","summaryType":"sum"}
-	totalSummary:{"selector":"imps_viewed","summaryType":"sum"}
-	totalSummary:{"selector":"view_measured_imps","summaryType":"sum"}
-	totalSummary:{"selector":"view_measurement_rate","summaryType":"sum"}
 
 Field "placement" must contain name and id of placement. Id in parenthesis
     """
@@ -321,19 +298,18 @@ Field "placement" must contain name and id of placement. Id in parenthesis
     totalCount = len(res)
     result = {"data": res[params['skip']:params['skip'] + params['take']], "totalCount": totalCount}
 
-    # TODO Probary, these complexity not needed for this api
-    try:
-        if 'totalSummary' in request.GET:
-            result['totalSummary']=dict()
-            for current_summator in request.GET.getlist('totalSummary'):
-                ts = json.loads(current_summator)
-                field_name = ts['selector']
-                if ts['summaryType'] == 'count':
-                    result['totalSummary'][field_name] = len(res)
-                else:
-                    result['totalSummary'][field_name] = sum(x[field_name] or 0 for x in res)
-    except Exception as e:
-        result['totalSummary'] ="Can't calc summaries: {}".format(e.message)
+    sums = reduce(make_sum, res, {"cost":0, "conv":0, "imp":0, "clicks":0, "imps_viewed":0, "view_measured_imps":0,
+                                  "view_rate":0, "view_measurement_rate":0})
+    sums['cpc'] = float(sums['cost']) / sums['clicks'] if sums['clicks'] else 0
+    sums['cpa'] = float(sums["cost"]) / sums['conv'] if sums['conv'] else 0
+    sums['view_rate'] = 100.0 * float(sums['imps_viewed']) / float(sums['view_measured_imps']) if sums[
+        'view_measured_imps'] else 0
+    sums['view_measurement_rate'] = 100.0 * float(sums['view_measured_imps']) / float(sums['imp']) if sums['imp'] else 0
+    sums["cpm"] = 1000.0 * float(sums['cost'])/sums['imp'] if sums['imp'] else 0
+    sums["cvr"] = float(sums['conv'])/sums['imp'] if sums['imp'] else 0
+    sums['ctr'] = 100.0 * float(sums["clicks"]) / sums['imp'] if sums['imp'] else 0
+
+    result['totalSummary'] = sums
     return Response(result)
 
 

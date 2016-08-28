@@ -602,8 +602,8 @@
           }
           if (arg.seriesName === "Series 1") {
             return {
-              text: "Open: $" + arg.openValue + "<br/>" +
-              "Close: $" + arg.closeValue + "<br/>" +
+              text: "Q1: $" + arg.openValue + "<br/>" +
+              "Q3: $" + arg.closeValue + "<br/>" +
               "High: $" + arg.highValue + "<br/>" +
               "Low: $" + arg.lowValue + "<br/>"
             };
@@ -940,7 +940,11 @@
         totalItems: [
           {
             column: "placement",
-            summaryType: "count"
+            summaryType: "count",
+            customizeText: function (data) {
+              data.valueText = 'Count: ' + vm.Camp.totalCount;
+              return data.valueText;
+            }
           },
           {
             column: "conv",

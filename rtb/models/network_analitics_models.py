@@ -6,43 +6,8 @@ from .models import Placement, Campaign, Site, PlatformMember, Publisher, \
      DEAL_PAYMENT_TYPE_CHOICES, REVENUE_TYPE_CHOICES, BID_TYPE_CHOICES, IMPRESSION_TYPE_CHOICES, \
      DEVICE_TYPE_INREPORT_CHOICES, CONNECTION_TYPE_CHOICES, BUYER_TYPE_NetworkDeviceReport_CHOICES, \
      SELLER_TYPE_NetworkDeviceReport_CHOICES
+import common
 
-
-
-def load_foreign_objects(cls, field_name, ObjectClass, from_date, to_date):
-    try:
-        print 'Try to save {}, needed for field {} in class {}'.format(ObjectClass, field_name, cls.__name__)
-        filter_params = { field_name+'__name':None}
-        try:
-            cls._meta.get_field('hour')
-            filter_params['hour__gte']=from_date
-            filter_params['hour__lte']=to_date
-        except:
-            filter_params['day__gte']=from_date
-            filter_params['day__lte']=to_date
-
-        # .exclude(**{ field_name+'_id':None})\
-        ids_missing = cls.objects.filter(**filter_params)\
-            .values_list(field_name+'_id', flat=True).distinct()
-        ids_missing = set(ids_missing) - set([None, 0])
-        saved_ids = nexus_get_objects_by_id(None, ObjectClass, ids_missing)
-        if saved_ids != ids_missing:
-            print 'Some {}s not saved'.format(field_name)
-        return saved_ids
-    except Exception as e:
-        print 'Error by saving foreign objects for field {}. {}'.format(field_name, e.message)
-
-class PostLoadMix(object):
-    @classmethod
-    def post_load(self, day):
-        from_date = datetime.datetime(day.year, day.month, day.day, tzinfo=utc)
-        to_date = from_date
-        if hasattr(self,'hour'):
-            to_date += datetime.timedelta(hours=23)
-        foreign_keys = [field  for field in self._meta.fields
-                        if isinstance(field, models.ForeignObject)]
-        for f in foreign_keys:
-            load_foreign_objects(self, f.name, f.related_model, from_date, to_date)
 
 
 class TransformMix(object):
@@ -105,12 +70,12 @@ class NetworkAnalyticsReport_ByPlacement(models.Model):
     def post_load(self, day):
         from_date = datetime.datetime(day.year, day.month, day.day, tzinfo=utc)
         to_date = datetime.datetime(day.year, day.month, day.day, 23, tzinfo=utc)
-        load_foreign_objects(self, 'campaign', Campaign, from_date, to_date)
-        load_foreign_objects(self, 'seller_member', PlatformMember, from_date, to_date)
-        load_foreign_objects(self, 'publisher', Publisher, from_date, to_date)
+        common.load_foreign_objects(self, 'campaign', Campaign, from_date, to_date)
+        common.load_foreign_objects(self, 'seller_member', PlatformMember, from_date, to_date)
+        common.load_foreign_objects(self, 'publisher', Publisher, from_date, to_date)
 
         with transaction.atomic():
-            placements_mising=load_foreign_objects(self, 'placement', Placement, from_date, to_date)
+            placements_mising=common.load_foreign_objects(self, 'placement', Placement, from_date, to_date)
             sites_missing = Placement.objects.filter(
                 pk__in=placements_mising,
                 site__name=None
@@ -127,7 +92,7 @@ class NetworkAnalyticsReport_ByPlacement(models.Model):
         db_table = "network_analytics_report_by_placement"
         index_together = ["campaign", "hour"]
 
-class NetworkCarrierReport_Simple(models.Model, PostLoadMix, TransformMix):
+class NetworkCarrierReport_Simple(models.Model, common.PostLoadMix, TransformMix):
     # https://wiki.appnexus.com/display/api/Network+Carrier+Analytics
     fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
     # month = time
@@ -167,7 +132,7 @@ class NetworkCarrierReport_Simple(models.Model, PostLoadMix, TransformMix):
         db_table = "network_carrier_report_simple"
         app_label = 'rtb'
 
-class NetworkDeviceReport_Simple(models.Model, PostLoadMix, TransformMix):
+class NetworkDeviceReport_Simple(models.Model, common.PostLoadMix, TransformMix):
     # https://wiki.appnexus.com/display/api/Network+Device+Analytics
     fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
     # month = time

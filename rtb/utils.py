@@ -36,7 +36,7 @@ def get_column_list_for_report(ReportClass):
 
 
 def not_none(o):
-    return 0 if o is None else o
+    return o or 0
 
 def make_sum(dict1, dict2):
     res = {}

@@ -301,7 +301,7 @@ Field "placement" must contain name and id of placement. Id in parenthesis
     sums = reduce(make_sum, res, {"cost":0, "conv":0, "imp":0, "clicks":0, "imps_viewed":0, "view_measured_imps":0,
                                   "view_rate":0, "view_measurement_rate":0})
     sums['cpc'] = float(sums['cost']) / sums['clicks'] if sums['clicks'] else 0
-    sums['cpa'] = float(sums["cost"]) / res['conv'] if res['conv'] else 0
+    sums['cpa'] = float(sums["cost"]) / sums['conv'] if sums['conv'] else 0
     sums['view_rate'] = 100.0 * float(sums['imps_viewed']) / float(sums['view_measured_imps']) if sums[
         'view_measured_imps'] else 0
     sums['view_measurement_rate'] = 100.0 * float(sums['view_measured_imps']) / float(sums['imp']) if sums['imp'] else 0

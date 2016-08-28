@@ -6,9 +6,7 @@ from .models import Placement, Campaign, Site, PlatformMember, Publisher, \
      DEAL_PAYMENT_TYPE_CHOICES, REVENUE_TYPE_CHOICES, BID_TYPE_CHOICES, IMPRESSION_TYPE_CHOICES, \
      DEVICE_TYPE_INREPORT_CHOICES, CONNECTION_TYPE_CHOICES, BUYER_TYPE_NetworkDeviceReport_CHOICES, \
      SELLER_TYPE_NetworkDeviceReport_CHOICES
-import common
-
-
+from common import PostLoadMix, load_foreign_objects
 
 class TransformMix(object):
     def TransformFields(self, data, metadata={}):
@@ -70,12 +68,12 @@ class NetworkAnalyticsReport_ByPlacement(models.Model):
     def post_load(self, day):
         from_date = datetime.datetime(day.year, day.month, day.day, tzinfo=utc)
         to_date = datetime.datetime(day.year, day.month, day.day, 23, tzinfo=utc)
-        common.load_foreign_objects(self, 'campaign', Campaign, from_date, to_date)
-        common.load_foreign_objects(self, 'seller_member', PlatformMember, from_date, to_date)
-        common.load_foreign_objects(self, 'publisher', Publisher, from_date, to_date)
+        load_foreign_objects(self, 'campaign', Campaign, from_date, to_date)
+        load_foreign_objects(self, 'seller_member', PlatformMember, from_date, to_date)
+        load_foreign_objects(self, 'publisher', Publisher, from_date, to_date)
 
         with transaction.atomic():
-            placements_mising=common.load_foreign_objects(self, 'placement', Placement, from_date, to_date)
+            placements_mising=load_foreign_objects(self, 'placement', Placement, from_date, to_date)
             sites_missing = Placement.objects.filter(
                 pk__in=placements_mising,
                 site__name=None
@@ -92,7 +90,7 @@ class NetworkAnalyticsReport_ByPlacement(models.Model):
         db_table = "network_analytics_report_by_placement"
         index_together = ["campaign", "hour"]
 
-class NetworkCarrierReport_Simple(models.Model, common.PostLoadMix, TransformMix):
+class NetworkCarrierReport_Simple(models.Model, PostLoadMix, TransformMix):
     # https://wiki.appnexus.com/display/api/Network+Carrier+Analytics
     fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
     # month = time
@@ -132,7 +130,7 @@ class NetworkCarrierReport_Simple(models.Model, common.PostLoadMix, TransformMix
         db_table = "network_carrier_report_simple"
         app_label = 'rtb'
 
-class NetworkDeviceReport_Simple(models.Model, common.PostLoadMix, TransformMix):
+class NetworkDeviceReport_Simple(models.Model, PostLoadMix, TransformMix):
     # https://wiki.appnexus.com/display/api/Network+Device+Analytics
     fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
     # month = time

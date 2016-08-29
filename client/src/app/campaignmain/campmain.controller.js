@@ -23,7 +23,7 @@
         'cpa': false,
         'cpc': false,
         'clicks': false,
-        'mediaspent': false,
+        'cost': false,
         'conversions': false,
         'ctr': false
       };
@@ -35,50 +35,6 @@
         $state.go('home.campaignoptimiser', {"id": vm.campId});
       }
     };
-
-    vm.seriesCamp = [{
-      name: 'Impressions',
-      argumentField: "day",
-      valueField: "impression",
-      axis: 'impression',
-      visible: $localStorage.checkCharCamp.impression
-    }, {
-      argumentField: "day",
-      valueField: "cpa",
-      name: 'CPA',
-      axis: 'cpa',
-      visible: $localStorage.checkCharCamp.cpa
-    }, {
-      argumentField: "day",
-      valueField: "cpc",
-      name: 'CPC',
-      axis: 'cpc',
-      visible: $localStorage.checkCharCamp.cpc
-    }, {
-      argumentField: "day",
-      valueField: "clicks",
-      name: 'Clicks',
-      axis: 'clicks',
-      visible: $localStorage.checkCharCamp.clicks
-    }, {
-      argumentField: "day",
-      valueField: "mediaspent",
-      name: 'mediaspent',
-      axis: 'mediaspent',
-      visible: $localStorage.checkCharCamp.mediaspent
-    }, {
-      argumentField: "day",
-      valueField: "conversions",
-      name: 'Conversions',
-      axis: 'conversions',
-      visible: $localStorage.checkCharCamp.conversions
-    }, {
-      argumentField: "day",
-      valueField: "ctr",
-      name: 'CTR',
-      axis: 'ctr',
-      visible: $localStorage.checkCharCamp.ctr
-    }];
 
 
     vm.totals = [];
@@ -109,7 +65,7 @@
 
     vm.gridStore = new $window.DevExpress.data.CustomStore({
       totalCount: function () {
-        return vm.Camp.totalCount;
+        return vm.totalCount;
       },
       load: function (loadOptions) {
         if (loadOptions.searchOperation && loadOptions.dataField) {
@@ -117,6 +73,10 @@
         }
         return vm.Camp.campaignDomains(vm.campId, vm.dataStart, vm.dataEnd, loadOptions.skip,
             loadOptions.take, loadOptions.sort, loadOptions.order, loadOptions.filter, loadOptions.totalSummary)
+        .then(function (result) {
+          vm.totalCount = result.totalCount;
+          return result.data;
+        });
       }
     });
 
@@ -153,8 +113,8 @@
                         return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('CAMP.CHECKBOX.CPC') + '</span><br>' + this.value;
                       case 'clicks':
                         return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('CAMP.CHECKBOX.CLICKS') + '</span><br>' + this.value;
-                      case 'mediaspent':
-                        return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('CAMP.CHECKBOX.MEDIA_SPENT') + '</span><br>' + this.value;
+                      case 'cost':
+                        return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('CAMP.CHECKBOX.COST') + '</span><br>' + this.value;
                       case 'conversions':
                         return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('CAMP.CHECKBOX.CONVERSIONS') + '</span><br>' + this.value;
                       case 'ctr':
@@ -185,7 +145,7 @@
         {name: 'cpa', position: 'left'},
         {name: 'cpc', position: 'left'},
         {name: 'clicks', position: 'left'},
-        {name: 'mediaspent', position: 'left'},
+        {name: 'cost', position: 'left'},
         {name: 'conversions', position: 'left'},
         {name: 'ctr', position: 'left'}
       ],
@@ -223,7 +183,49 @@
       bindingOptions: {
         dataSource: 'campmain.chartStore'
       },
-      series: vm.seriesCamp,
+      series: [{
+        name: 'Impressions',
+        argumentField: "day",
+        valueField: "impression",
+        axis: 'impression',
+        visible: $localStorage.checkCharCamp.impression
+      }, {
+        argumentField: "day",
+        valueField: "cpa",
+        name: 'CPA',
+        axis: 'cpa',
+        visible: $localStorage.checkCharCamp.cpa
+      }, {
+        argumentField: "day",
+        valueField: "cpc",
+        name: 'CPC',
+        axis: 'cpc',
+        visible: $localStorage.checkCharCamp.cpc
+      }, {
+        argumentField: "day",
+        valueField: "clicks",
+        name: 'Clicks',
+        axis: 'clicks',
+        visible: $localStorage.checkCharCamp.clicks
+      }, {
+        argumentField: "day",
+        valueField: "cost",
+        name: 'Cost',
+        axis: 'cost',
+        visible: $localStorage.checkCharCamp.cost
+      }, {
+        argumentField: "day",
+        valueField: "conversions",
+        name: 'Conversions',
+        axis: 'conversions',
+        visible: $localStorage.checkCharCamp.conversions
+      }, {
+        argumentField: "day",
+        valueField: "ctr",
+        name: 'CTR',
+        axis: 'ctr',
+        visible: $localStorage.checkCharCamp.ctr
+      }],
       loadingIndicator: {
         show: true,
         text: "Creating a chart..."
@@ -323,8 +325,8 @@
           if (item == 'clicks') {
             vm.gridCharts.getSeriesByName('Clicks').show();
           }
-          if (item == 'mediaspent') {
-            vm.gridCharts.getSeriesByName('mediaspent').show();
+          if (item == 'cost') {
+            vm.gridCharts.getSeriesByName('Cost').show();
           }
           if (item == 'conversions') {
             vm.gridCharts.getSeriesByName('Conversions').show();
@@ -345,8 +347,8 @@
           if (item == 'clicks') {
             vm.gridCharts.getSeriesByName('Clicks').hide();
           }
-          if (item == 'mediaspent') {
-            vm.gridCharts.getSeriesByName('mediaspent').hide();
+          if (item == 'cost') {
+            vm.gridCharts.getSeriesByName('Cost').hide();
           }
           if (item == 'conversions') {
             vm.gridCharts.getSeriesByName('Conversions').hide();
@@ -418,14 +420,14 @@
         CheckLocalStorage();
       }
     };
-    vm.media = {
-      text: LC('CAMP.CHECKBOX.MEDIA_SPENT'),
-      value: $localStorage.checkCharCamp.mediaspent,
+    vm.cost = {
+      text: LC('CAMP.CHECKBOX.COST'),
+      value: $localStorage.checkCharCamp.cost,
       onInitialized: function (data) {
         vm.Init.push(data.component);
       },
       onValueChanged: function (e) {
-        vm.updateCharts('mediaspent', 'mediaspent', e.value);
+        vm.updateCharts('Cost', 'cost', e.value);
         vm.onlyTwo(e.value);
         vm.charIsUpdating = false;
         vm.chartOptionsFirst.onDone();
@@ -585,10 +587,7 @@
           visible: true
         },
         label: {
-          visible: true,
-          customizeText: function (arg) {
-            return $window.moment().locale('en').isoWeekday(arg.value).format('ddd');
-          }
+          visible: true
         },
         discreteAxisDivisionMode: 'crossLabels'
       },
@@ -738,9 +737,11 @@
           }
         }
       },
-      showBorders: true,
       alignment: 'left',
       headerFilter: {
+        visible: true
+      },
+      filterRow: {
         visible: true
       },
       bindingOptions: {
@@ -760,24 +761,26 @@
       allowColumnResizing: true,
       columnAutoWidth: true,
       wordWrapEnabled: true,
-      howBorders: true,
+      showBorders: true,
       showRowLines: true,
       columns: [
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.PLACEMENT'),
           dataField: 'placement',
-          alignment: 'center'
+          alignment: 'center',
+          dataType: 'string'
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.NETWORK'),
           dataField: 'NetworkPublisher',
-          alignment: 'center'
+          alignment: 'center',
+          dataType: 'string'
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.CONV'),
           dataField: 'conv',
           alignment: 'center',
-          dataType: 'number'
+          dataType: 'number',
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.IMP'),
@@ -818,12 +821,14 @@
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.CVR') + ' ,%',
           dataField: 'cvr',
-          alignment: 'center'
+          alignment: 'center',
+          dataType: 'number'
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.CTR') + ' ,%',
           dataField: 'ctr',
-          alignment: 'center'
+          alignment: 'center',
+          dataType: 'number'
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.IMPS_VIEWED'),
@@ -846,14 +851,16 @@
           dataField: 'view_measurement_rate',
           alignment: 'center',
           visible: false,
-          width: 120
+          width: 120,
+          dataType: 'number'
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.VIEW_RATE') + ' ,%',
           dataField: 'view_rate',
           alignment: 'center',
           visible: false,
-          width: 80
+          width: 80,
+          dataType: 'number'
         },
         {
           caption: 'State',
@@ -942,7 +949,7 @@
             column: "placement",
             summaryType: "count",
             customizeText: function (data) {
-              data.valueText = 'Count: ' + vm.Camp.totalCount;
+              data.valueText = 'Count: ' + vm.totalCount;
               return data.valueText;
             }
           },

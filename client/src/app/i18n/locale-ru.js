@@ -114,7 +114,7 @@
         "CVR":"CVR",
         "CPC":"CPC",
         "CLICKS":"Клики",
-        "MEDIA_SPENT":"$ Затраты",
+        "COST":"$ Затраты",
         "CONVERSIONS":"Конверсии",
         "CTR":"CTR"
       }
@@ -127,7 +127,7 @@
         "CPA":"CPA",
         "CPC":"CPC",
         "CLICKS":"Клики",
-        "MEDIA_SPENT":"$ Затраты",
+        "COST":"$ Затраты",
         "CONVERSIONS":"Конверсии",
         "CTR":"CTR"
       },

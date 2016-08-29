@@ -114,7 +114,7 @@
         "CVR":"CVR",
         "CPC":"CPC",
         "CLICKS":"Clicks",
-        "MEDIA_SPENT":"$ Cost",
+        "COST":"$ Cost",
         "CONVERSIONS":"Conversions",
         "CTR":"CTR"
       }
@@ -127,7 +127,7 @@
         "CPA":"CPA",
         "CPC":"CPC",
         "CLICKS":"Clicks",
-        "MEDIA_SPENT":"$ Cost",
+        "COST":"$ Cost",
         "CONVERSIONS":"Conversions",
         "CTR":"CTR"
       },
@@ -135,7 +135,7 @@
         'COLUMNS':{
           "CAMPAIGN":"Campaign",
           "PLACEMENT": "Placement",
-          "NETWORK":"Network + Publisher",
+          "NETWORK":"Network + Seller",
           "SPENT":"Spent",
           "CONV":"Conv",
           "COST":"Cost",

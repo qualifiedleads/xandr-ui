@@ -54,6 +54,7 @@ class NetworkAnalyticsReport_ByPlacement(models.Model):
     site = models.ForeignKey("Site", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     site_name = models.TextField(null=True, blank=True)
     geo_country = models.ForeignKey("Country", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
+    geo_country_name = models.TextField(null=True, blank=True)
     bid_type = models.TextField(
         choices=BID_TYPE_CHOICES,
         null=True, blank=True)

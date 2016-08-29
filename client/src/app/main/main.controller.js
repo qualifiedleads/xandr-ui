@@ -33,9 +33,9 @@
       {valueField: 'imp', name: 'Impressions', axis: 'imp', visible: $localStorage.checkChart.imp},
       {valueField: 'cvr', name: 'CVR', axis: 'cvr', visible: $localStorage.checkChart.cvr},
       {valueField: 'cpc', name: 'CPC', axis: 'cpc', visible: $localStorage.checkChart.cpc},
-      {valueField: 'clicks', name: 'clicks', axis: 'clicks', visible: $localStorage.checkChart.clicks},
-      {valueField: 'spend', name: 'media', axis: 'spend', visible: $localStorage.checkChart.spend},
-      {valueField: 'conv', name: 'conversions', axis: 'conv', visible: $localStorage.checkChart.conv},
+      {valueField: 'clicks', name: 'Clicks', axis: 'clicks', visible: $localStorage.checkChart.clicks},
+      {valueField: 'spend', name: 'Cost', axis: 'spend', visible: $localStorage.checkChart.spend},
+      {valueField: 'conv', name: 'Conversions', axis: 'conv', visible: $localStorage.checkChart.conv},
       {valueField: 'ctr', name: 'CTR', axis: 'ctr', visible: $localStorage.checkChart.ctr}
     ];
     /** LOCAL STORAGE CHECKBOX - END **/
@@ -374,7 +374,7 @@
                 tooltip: {
                   enabled: true,
                   customizeTooltip: function (arg) {
-                    if (arg.seriesName == 'media' || arg.seriesName == 'CPC') {
+                    if (arg.seriesName == 'Cost' || arg.seriesName == 'CPC') {
                       return {
                         text: '$'+arg.valueText+ ' ' + arg.seriesName
                       };
@@ -447,7 +447,7 @@
                       case 'clicks':
                         return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('MAIN.CHECKBOX.CLICKS') + '</span><br>' + this.value;
                       case 'spend':
-                        return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('MAIN.CHECKBOX.MEDIA_SPENT') + '</span><br>' + this.value;
+                        return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('MAIN.CHECKBOX.COST') + '</span><br>' + this.value;
                       case 'conv':
                         return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('MAIN.CHECKBOX.CONVERSIONS') + '</span><br>' + this.value;
                       case 'ctr':
@@ -549,7 +549,7 @@
         enabled: true,
         customizeTooltip: function (arg) {
           //console.log(arg);
-          if (arg.seriesName == 'media' || arg.seriesName == 'CPC') {
+          if (arg.seriesName == 'Cost' || arg.seriesName == 'CPC') {
             return {
               text: '$'+arg.valueText
             };
@@ -629,11 +629,11 @@
           } else if (item == 'cpc') {
             vm.chartOptionsFunc.getSeriesByName('CPC').show();
           } else if (item == 'clicks') {
-            vm.chartOptionsFunc.getSeriesByName('clicks').show();
+            vm.chartOptionsFunc.getSeriesByName('Clicks').show();
           } else if (item == 'spend') {
-            vm.chartOptionsFunc.getSeriesByName('media').show();
+            vm.chartOptionsFunc.getSeriesByName('Cost').show();
           } else if (item == 'conv') {
-            vm.chartOptionsFunc.getSeriesByName('conversions').show();
+            vm.chartOptionsFunc.getSeriesByName('Conversions').show();
           } else if (item == 'ctr') {
             vm.chartOptionsFunc.getSeriesByName('CTR').show();
           }
@@ -645,11 +645,11 @@
           } else if (item == 'cpc') {
             vm.chartOptionsFunc.getSeriesByName('CPC').hide();
           } else if (item == 'clicks') {
-            vm.chartOptionsFunc.getSeriesByName('clicks').hide();
+            vm.chartOptionsFunc.getSeriesByName('Clicks').hide();
           } else if (item == 'spend') {
-            vm.chartOptionsFunc.getSeriesByName('media').hide();
+            vm.chartOptionsFunc.getSeriesByName('Cost').hide();
           } else if (item == 'conv') {
-            vm.chartOptionsFunc.getSeriesByName('conversions').hide();
+            vm.chartOptionsFunc.getSeriesByName('Conversions').hide();
           } else if (item == 'ctr') {
             vm.chartOptionsFunc.getSeriesByName('CTR').hide();
           }
@@ -709,21 +709,21 @@
         vm.Init.push(data.component);
       },
       onValueChanged: function (e) {
-        vm.updateCharts('clicks', 'clicks', e.value);
+        vm.updateCharts('Clicks', 'clicks', e.value);
         vm.onlyTwo(e.value);
         vm.charIsUpdating = false;
         vm.chartOptions.onDone();
         CheckLocalStorage();
       }
     };
-    vm.media = {
-      text: LC('MAIN.CHECKBOX.MEDIA_SPENT'),
+    vm.cost = {
+      text: LC('MAIN.CHECKBOX.COST'),
       value: $localStorage.checkChart.spend,
       onInitialized: function (data) {
         vm.Init.push(data.component);
       },
       onValueChanged: function (e) {
-        vm.updateCharts('media', 'spend', e.value);
+        vm.updateCharts('Cost', 'spend', e.value);
         vm.onlyTwo(e.value);
         vm.charIsUpdating = false;
         vm.chartOptions.onDone();
@@ -737,7 +737,7 @@
         vm.Init.push(data.component);
       },
       onValueChanged: function (e) {
-        vm.updateCharts('conversions', 'conv', e.value);
+        vm.updateCharts('Conversions', 'conv', e.value);
         vm.onlyTwo(e.value);
         vm.charIsUpdating = false;
         vm.chartOptions.onDone();

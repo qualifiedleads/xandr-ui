@@ -13,7 +13,7 @@
     function nameCampaigns(id) {
       return $http({
         method: 'GET',
-        headers: { 'Authorization': 'Token ' + $cookies.get('token') },
+        headers: {'Authorization': 'Token ' + $cookies.get('token')},
         url: '/api/v1/campaigns/' + encodeURI(id) + ''
       })
       .then(function (res) {
@@ -28,7 +28,7 @@
       return $http({
         method: 'GET',
         url: '/api/v1/campaigns/' + encodeURI(id) + '/graphinfo',
-        headers: { 'Authorization': 'Token ' + $cookies.get('token') },
+        headers: {'Authorization': 'Token ' + $cookies.get('token')},
         params: {from_date: from, to_date: to, by: by}
       })
       .then(function (res) {
@@ -39,7 +39,7 @@
           res.data[index].cpa = +parseFloat(res.data[index].cpa).toFixed(4);
           res.data[index].cpc = +parseFloat(res.data[index].cpc).toFixed(4);
           res.data[index].clicks = +parseFloat(res.data[index].clicks).toFixed(4);
-          res.data[index].mediaspent = +parseFloat(res.data[index].mediaspent).toFixed(4);
+          res.data[index].cost = +parseFloat(res.data[index].mediaspent).toFixed(4);
           res.data[index].day = $window.moment(res.data[index].day).format('DD/MM');
         }
         return res.data;
@@ -54,7 +54,7 @@
       return $http({
         method: 'GET',
         url: '/api/v1/campaigns/' + encodeURI(id) + '/cpareport',
-        headers: { 'Authorization': 'Token ' + $cookies.get('token') },
+        headers: {'Authorization': 'Token ' + $cookies.get('token')},
         params: {from_date: from, to_date: to}
       })
       .then(function (res) {
@@ -65,7 +65,7 @@
           res.data[index].high = +parseFloat(res.data[index].high).toFixed(4);
           res.data[index].low = +parseFloat(res.data[index].low).toFixed(4);
           res.data[index].open = +parseFloat(res.data[index].open).toFixed(4);
-          res.data[index].day = res.data[index].date;
+          res.data[index].day = $window.moment().locale('en').isoWeekday(res.data[index].date).format('ddd');
         }
         return res.data;
       })
@@ -97,8 +97,17 @@
       return $http({
         method: 'GET',
         url: '/api/v1/campaigns/' + encodeURI(id) + '/domains',
-        headers: { 'Authorization': 'Token ' + $cookies.get('token') },
-        params: {from_date: from, to_date: to, skip: skip, take: take, sort: sort, order: order, filter: filter, totalSummary: totalSummary}
+        headers: {'Authorization': 'Token ' + $cookies.get('token')},
+        params: {
+          from_date: from,
+          to_date: to,
+          skip: skip,
+          take: take,
+          sort: sort,
+          order: order,
+          filter: filter,
+          totalSummary: totalSummary
+        }
       })
       .then(function (res) {
         for (var index in res.data.data) {
@@ -107,7 +116,7 @@
           res.data.data[index].cpc = +parseFloat(res.data.data[index].cpc).toFixed(4);
           res.data.data[index].cpm = +parseFloat(res.data.data[index].cpm).toFixed(4);
           res.data.data[index].imp = +parseFloat(res.data.data[index].imp).toFixed(4);
-          res.data.data[index].cpa = +parseFloat(res.data.data[index].cpa).toFixed(4) ;
+          res.data.data[index].cpa = +parseFloat(res.data.data[index].cpa).toFixed(4);
           res.data.data[index].clicks = +parseFloat(res.data.data[index].clicks).toFixed(4);
           res.data.data[index].conv = +parseFloat(res.data.data[index].conv).toFixed(4);
           res.data.data[index].cost = +parseFloat(res.data.data[index].cost).toFixed(2);

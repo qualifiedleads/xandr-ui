@@ -65,7 +65,7 @@
 
     vm.gridStore = new $window.DevExpress.data.CustomStore({
       totalCount: function () {
-        return vm.Camp.totalCount;
+        return vm.totalCount;
       },
       load: function (loadOptions) {
         if (loadOptions.searchOperation && loadOptions.dataField) {
@@ -73,6 +73,10 @@
         }
         return vm.Camp.campaignDomains(vm.campId, vm.dataStart, vm.dataEnd, loadOptions.skip,
             loadOptions.take, loadOptions.sort, loadOptions.order, loadOptions.filter, loadOptions.totalSummary)
+        .then(function (result) {
+          vm.totalCount = result.totalCount;
+          return result.data;
+        });
       }
     });
 
@@ -733,9 +737,11 @@
           }
         }
       },
-      showBorders: true,
       alignment: 'left',
       headerFilter: {
+        visible: true
+      },
+      filterRow: {
         visible: true
       },
       bindingOptions: {
@@ -755,24 +761,26 @@
       allowColumnResizing: true,
       columnAutoWidth: true,
       wordWrapEnabled: true,
-      howBorders: true,
+      showBorders: true,
       showRowLines: true,
       columns: [
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.PLACEMENT'),
           dataField: 'placement',
-          alignment: 'center'
+          alignment: 'center',
+          dataType: 'string'
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.NETWORK'),
           dataField: 'NetworkPublisher',
-          alignment: 'center'
+          alignment: 'center',
+          dataType: 'string'
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.CONV'),
           dataField: 'conv',
           alignment: 'center',
-          dataType: 'number'
+          dataType: 'number',
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.IMP'),
@@ -813,12 +821,14 @@
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.CVR') + ' ,%',
           dataField: 'cvr',
-          alignment: 'center'
+          alignment: 'center',
+          dataType: 'number'
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.CTR') + ' ,%',
           dataField: 'ctr',
-          alignment: 'center'
+          alignment: 'center',
+          dataType: 'number'
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.IMPS_VIEWED'),
@@ -841,14 +851,16 @@
           dataField: 'view_measurement_rate',
           alignment: 'center',
           visible: false,
-          width: 120
+          width: 120,
+          dataType: 'number'
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.VIEW_RATE') + ' ,%',
           dataField: 'view_rate',
           alignment: 'center',
           visible: false,
-          width: 80
+          width: 80,
+          dataType: 'number'
         },
         {
           caption: 'State',
@@ -937,7 +949,7 @@
             column: "placement",
             summaryType: "count",
             customizeText: function (data) {
-              data.valueText = 'Count: ' + vm.Camp.totalCount;
+              data.valueText = 'Count: ' + vm.totalCount;
               return data.valueText;
             }
           },

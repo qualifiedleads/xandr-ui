@@ -135,7 +135,7 @@
         'COLUMNS':{
           "CAMPAIGN":"Campaign",
           "PLACEMENT": "Placement",
-          "NETWORK":"Network + Publisher",
+          "NETWORK":"Network + Seller",
           "SPENT":"Spent",
           "CONV":"Conv",
           "COST":"Cost",

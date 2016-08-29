@@ -189,7 +189,6 @@
         vm.dataGridOptionsMultipleFunc = data.component;
         /*vm.dataGridOptionsMultipleFunc._controllers.columns._commandColumns[1].visibleIndex = 15;*/
       },
-      showBorders: true,
       alignment: 'left',
       headerFilter: {
         visible: true
@@ -221,7 +220,7 @@
         visible: true,
         showNavigationButtons: true
       },
-      howBorders: true,
+      showBorders: true,
       showRowLines: true,
       columns: [
         {
@@ -239,71 +238,75 @@
           caption: LC('MAIN.CAMPAIGN.COLUMNS.SPENT')+ ' ,$',
           dataField: 'spend',
           alignment: 'center',
-          format: 'fixedPoint'
+          dataType: 'number'
         },
         {
           caption: LC('MAIN.CAMPAIGN.COLUMNS.CONV'),
           dataField: 'conv',
           alignment: 'center',
-          format: 'fixedPoint'
+          dataType: 'number'
         }, {
           caption: LC('MAIN.CAMPAIGN.COLUMNS.IMP'),
           dataField: 'imp',
           sortOrder: 'desc',
           alignment: 'center',
-          format: 'fixedPoint'
+          dataType: 'number'
         }, {
           caption: LC('MAIN.CAMPAIGN.COLUMNS.CLICKS'),
           dataField: 'clicks',
           alignment: 'center',
-          format: 'fixedPoint'
+          dataType: 'number'
         }, {
           caption: LC('MAIN.CAMPAIGN.COLUMNS.CPC')+ ' ,$',
           dataField: 'cpc',
           alignment: 'center',
-          format: 'fixedPoint'
+          dataType: 'number'
         },
         {
           caption: LC('MAIN.CAMPAIGN.COLUMNS.CPM')+ ' ,$',
           dataField: 'cpm',
           alignment: 'center',
-          format: 'fixedPoint'
+          dataType: 'number'
         },
         {
           caption: LC('MAIN.CAMPAIGN.COLUMNS.CVR')+ ' ,%',
           dataField: 'cvr',
-          alignment: 'center'
+          alignment: 'center',
+          dataType: 'number'
         },
         {
           caption: LC('MAIN.CAMPAIGN.COLUMNS.CTR')+ ' ,%',
           dataField: 'ctr',
-          alignment: 'center'
+          alignment: 'center',
+          dataType: 'number'
         },
         {
           caption: LC('MAIN.CAMPAIGN.COLUMNS.IMPS_VIEWED'),
           dataField: 'imps_viewed',
           alignment: 'center',
           width: 90,
-          format: 'fixedPoint'
+          dataType: 'number'
         },
         {
           caption: LC('MAIN.CAMPAIGN.COLUMNS.VIEW_MEASURED_IMPS'),
           dataField: 'view_measured_imps',
           alignment: 'center',
           width: 100,
-          format: 'fixedPoint'
+          dataType: 'number'
         },
         {
           caption: LC('MAIN.CAMPAIGN.COLUMNS.VIEW_MEASUREMENT_RATE')+ ' ,%',
           dataField: 'view_measurement_rate',
           alignment: 'center',
-          width: 120
+          width: 120,
+          dataType: 'number'
         },
         {
           caption: LC('MAIN.CAMPAIGN.COLUMNS.VIEW_RATE')+ ' ,%',
           dataField: 'view_rate',
           alignment: 'center',
-          width: 80
+          width: 80,
+          dataType: 'number'
         },
         {
           width: 200,

@@ -131,7 +131,7 @@
       .then(function (result) {
         _this.totalCount = result.totalCount || 0;
         _this.totalSummary = result.totalSummary;
-        return result.data;
+        return result;
       })
       .catch(function (err) {
         return err;

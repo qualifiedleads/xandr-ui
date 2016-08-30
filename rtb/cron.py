@@ -383,15 +383,16 @@ def load_depending_data(token):
         print 'There is %d buyer groups ' % len(buyer_groups)
 
         # There is mutual dependence
-        with transaction.atomic():
-            ad_profiles = nexus_get_objects(token,
-                                            {},
-                                            AdProfile, False)
-            print 'There is %d adware profiles ' % len(ad_profiles)
-            members = nexus_get_objects(token,
+        #with transaction.atomic():
+        ad_profiles = nexus_get_objects(token,
                                         {},
-                                        Member, False)
-            print 'There is %d members ' % len(members)
+                                        AdProfile, False)
+        print 'There is %d adware profiles ' % len(ad_profiles)
+        members = nexus_get_objects(token,
+                                    {},
+                                    Member, False)
+        print 'There is %d members ' % len(members)
+        #end transaction
 
         # Get all operating system families:
         operating_systems_families = nexus_get_objects(token,
@@ -405,17 +406,18 @@ def load_depending_data(token):
                                               OperatingSystemExtended, False)
         print 'There is %d operating systems ' % len(operating_systems)
 
-        with transaction.atomic():
-            date_in_db = ContentCategory.objects.aggregate(
-                m=Max('fetch_date'))['m']
-            if cd - date_in_db > settings.INVALIDATE_TIME:
-                o1 = nexus_get_objects(token,
-                                       {},  # {'type':'universal'}
-                                       ContentCategory, True,
-                                       {'category_type': 'universal'})
-                o2 = nexus_get_objects(token,
-                                       {},
-                                       ContentCategory, True)
+        #with transaction.atomic():
+        date_in_db = ContentCategory.objects.aggregate(
+            m=Max('fetch_date'))['m']
+        if cd - date_in_db > settings.INVALIDATE_TIME:
+            o1 = nexus_get_objects(token,
+                                   {},  # {'type':'universal'}
+                                   ContentCategory, True,
+                                   {'category_type': 'universal'})
+            o2 = nexus_get_objects(token,
+                                   {},
+                                   ContentCategory, True)
+        # end transaction
         print 'There is %d content categories ' % ContentCategory.objects.count()
 
         # Get all optimisation zones:
@@ -430,35 +432,35 @@ def load_depending_data(token):
                                                  MobileAppInstance, False)
         print 'There is %d mobile app instances ' % len(mobile_app_instances)
 
-        with transaction.atomic():
-            # Get all sites:
-            sites = nexus_get_objects(token,
-                                      {},
-                                      Site, False)
-            print 'There is %d sites ' % len(sites)
-            # Get all publishers:
-            publishers = nexus_get_objects(token,
-                                           {"id__gt":0},
-                                           Publisher, False,{})
-            print 'There is %d publishers ' % len(publishers)
-            # Get all yield management profiles:
-            # loop ?
-            yield_management_profiles = nexus_get_objects(token,
-                                                          {},
-                                                          YieldManagementProfile, False)
-            print 'There is %d yield management profiles ' % len(yield_management_profiles)
-            payment_rules_to_load=Publisher.objects.filter(base_payment_rule_id__gt=0)\
-                .values_list('base_payment_rule_id','id').distinct()
-            print payment_rules_to_load
-            for x in payment_rules_to_load:
-                payment_rule = nexus_get_objects(token,
-                                                  {'id': x[0]},
-                                                  PaymentRule,
-                                                  True,
-                                                  {'publisher_id': x[1], 'id': x[0]}
-                                                )
-                print payment_rule
-
+        # with transaction.atomic():
+        # Get all sites:
+        sites = nexus_get_objects(token,
+                                  {},
+                                  Site, False)
+        print 'There is %d sites ' % len(sites)
+        # Get all publishers:
+        publishers = nexus_get_objects(token,
+                                       {"id__gt":0},
+                                       Publisher, False,{})
+        print 'There is %d publishers ' % len(publishers)
+        # Get all yield management profiles:
+        # loop ?
+        yield_management_profiles = nexus_get_objects(token,
+                                                      {},
+                                                      YieldManagementProfile, False)
+        print 'There is %d yield management profiles ' % len(yield_management_profiles)
+        payment_rules_to_load=Publisher.objects.filter(base_payment_rule_id__gt=0)\
+            .values_list('base_payment_rule_id','id').distinct()
+        print payment_rules_to_load
+        for x in payment_rules_to_load:
+            payment_rule = nexus_get_objects(token,
+                                              {'id': x[0]},
+                                              PaymentRule,
+                                              True,
+                                              {'publisher_id': x[1], 'id': x[0]}
+                                            )
+            print payment_rule
+        #end transaction
         companies = nexus_get_objects(token,
                                       {},
                                       Company, False)
@@ -502,32 +504,31 @@ def load_depending_data(token):
                                       Language, False)
         print 'There is %d languages ' % len(languages)
 
-        with transaction.atomic():
-            nexus_get_objects(token,
-                              {},
-                              Creative, False)
-            brand_ids = set(Creative.objects.filter(brand_id__isnull=False) \
-                               .values_list('brand', flat=True).distinct())
-            exiting_brands = set(Brand.objects.values_list('id', flat=True))
+        # with transaction.atomic():
+        nexus_get_objects(token,
+                          {},
+                          Creative, False)
+        brand_ids = set(Creative.objects.filter(brand_id__isnull=False) \
+                           .values_list('brand', flat=True).distinct())
+        exiting_brands = set(Brand.objects.values_list('id', flat=True))
 
-            print 'Creatives loaded'
-            ids_list = map(str,brand_ids-exiting_brands)
-            print 'Brand ids:', ids_list
-            brands = nexus_get_objects(token,
-                                       {},
-                                       Brand, True,
-                                       {'id':','.join(ids_list), 'simple':'true'})
-            print 'There is %d brands ' % len(brands)
-            profiles_ids = set(Creative.objects.filter(profile_id__isnull=False) \
-                               .values_list('profile', flat=True).distinct())
-            exiting_profiles = set(Profile.objects.values_list('id', flat=True))
-            profiles = nexus_get_objects(token,
-                                         {},
-                                         Profile, True,
-                                         {'id':','.join(map(str,profiles_ids-exiting_profiles))})
-            print 'There is %d new profiles'%len(profiles)
-
-        print 'Transaction with creatives completed succefully'
+        print 'Creatives loaded'
+        ids_list = map(str,brand_ids-exiting_brands)
+        print 'Brand ids:', ids_list
+        brands = nexus_get_objects(token,
+                                   {},
+                                   Brand, True,
+                                   {'id':','.join(ids_list), 'simple':'true'})
+        print 'There is %d brands ' % len(brands)
+        profiles_ids = set(Creative.objects.filter(profile_id__isnull=False) \
+                           .values_list('profile', flat=True).distinct())
+        exiting_profiles = set(Profile.objects.values_list('id', flat=True))
+        profiles = nexus_get_objects(token,
+                                     {},
+                                     Profile, True,
+                                     {'id':','.join(map(str,profiles_ids-exiting_profiles))})
+        print 'There is %d new profiles'%len(profiles)
+        # end transaction
         # Get all payment rules:
         for pub in []:  # publishers: There is too many publishers, disable loading depended objects
             payment_rules = nexus_get_objects(token,
@@ -639,13 +640,15 @@ def dayly_task(day=None, load_objects_from_services=True, output=None):
 
     one_day = datetime.timedelta(days=1)
 
-    yesterday = get_current_time().replace(hour=0, minute=0,second=0,microsecond=0)-one_day
+    yesterday = datetime.datetime.utcnow().replace(hour=0, minute=0,second=0,microsecond=0, tzinfo=utc)-one_day
     if day:
+        day = day.replace(tzinfo=utc)
         last_day=day
     else:
         day = SiteDomainPerformanceReport.objects.aggregate(m=Max('day'))['m']
         print 'Last loaded day', day
         if day:
+            day = day.replace(tzinfo=utc)
             day+=one_day
         else:
             # empty database

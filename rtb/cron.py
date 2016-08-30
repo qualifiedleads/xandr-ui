@@ -639,13 +639,15 @@ def dayly_task(day=None, load_objects_from_services=True, output=None):
 
     one_day = datetime.timedelta(days=1)
 
-    yesterday = get_current_time().replace(hour=0, minute=0,second=0,microsecond=0)-one_day
+    yesterday = datetime.datetime.utcnow().replace(hour=0, minute=0,second=0,microsecond=0, tzinfo=utc)-one_day
     if day:
+        day = day.replace(tzinfo=utc)
         last_day=day
     else:
         day = SiteDomainPerformanceReport.objects.aggregate(m=Max('day'))['m']
         print 'Last loaded day', day
         if day:
+            day = day.replace(tzinfo=utc)
             day+=one_day
         else:
             # empty database

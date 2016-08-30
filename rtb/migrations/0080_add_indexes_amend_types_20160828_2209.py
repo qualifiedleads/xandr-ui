@@ -27,7 +27,7 @@ class Migration(migrations.Migration):
             """),
         migrations.RunSQL("""
             DROP INDEX  IF EXISTS site_domain_performance_report_campaign_id_day;
-            CREATE INDEX site_domain_performance_report_campaign_id_day ON site_domain_performance_report USING btree (campaign_id, day);'
+            CREATE INDEX site_domain_performance_report_campaign_id_day ON site_domain_performance_report USING btree (campaign_id, day);
             """),
         migrations.RunSQL(
             'ALTER TABLE site_domain_performance_report CLUSTER ON site_domain_performance_report_campaign_id_days;'),

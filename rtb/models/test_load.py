@@ -26,6 +26,7 @@ class NetworkAnalyticsReport_ByPlacement_test(models.Model): #, common.PostLoadM
     site = models.ForeignKey("Site", null=True, blank=True, db_constraint=False, related_name="+", on_delete=models.DO_NOTHING)
     site_name = models.TextField(null=True, blank=True)
     geo_country = models.ForeignKey("Country", null=True, blank=True, db_constraint=False, related_name="+", on_delete=models.DO_NOTHING)
+    geo_country_name = models.TextField(null=True, blank=True)
     bid_type = models.TextField(null=True, blank=True)
     imp_type_id = models.IntegerField(null=True, blank=True)
 

@@ -672,6 +672,17 @@
       }
     };
 
+    function headerFilterColumn(source, dataField) {
+      return source.dataSource.postProcess = function(data) {
+        var list = $window._.uniqBy(data, dataField);
+        return list.map(function (item) {
+          return {
+            text: item[dataField],
+            value: item[dataField]
+          };
+        });
+      };
+    }
 
     vm.dataGridOptionsCampaign = {
       onInitialized: function (data) {
@@ -696,6 +707,9 @@
         }
       },
       alignment: 'left',
+      headerFilter: {
+        visible: true
+      },
       filterRow: {
         visible: true,
         applyFilter: "auto"
@@ -724,67 +738,123 @@
           caption: LC('CAMP.CAMPAIGN.COLUMNS.PLACEMENT'),
           dataField: 'placement',
           alignment: 'center',
-          dataType: 'number'
+          dataType: 'number',
+          headerFilter: {
+            dataSource: function(source) {
+              return headerFilterColumn(source, 'placement');
+            }
+          }
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.NETWORK'),
           dataField: 'NetworkPublisher',
           alignment: 'center',
-          dataType: 'string'
+          dataType: 'string',
+          headerFilter: {
+            dataSource: function(source) {
+              return headerFilterColumn(source, 'NetworkPublisher');
+            }
+          }
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.CONV'),
           dataField: 'conv',
           alignment: 'center',
-          dataType: 'number'
+          dataType: 'number',
+          headerFilter: {
+            dataSource: function (source) {
+              return headerFilterColumn(source, 'conv');
+            }
+          }
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.IMP'),
           dataField: 'imp',
           dataType: 'number',
           sortOrder: 'desc',
-          alignment: 'center'
+          alignment: 'center',
+          headerFilter: {
+            dataSource: function (source) {
+              return headerFilterColumn(source, 'imp');
+            }
+          }
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.CPA') + ' ,$',
           dataField: 'cpa',
           dataType: 'number',
-          alignment: 'center'
+          alignment: 'center',
+          headerFilter: {
+            dataSource: function (source) {
+              return headerFilterColumn(source, 'cpa');
+            }
+          }
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.COST') + ' ,$',
           dataField: 'cost',
           alignment: 'center',
-          dataType: 'number'
+          dataType: 'number',
+          headerFilter: {
+            dataSource: function (source) {
+              return headerFilterColumn(source, 'cost');
+            }
+          }
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.CLICKS'),
           dataField: 'clicks',
-          alignment: 'center'
+          alignment: 'center',
+          dataType: 'number',
+          headerFilter: {
+            dataSource: function (source) {
+              return headerFilterColumn(source, 'clicks');
+            }
+          }
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.CPC') + ' ,$',
           dataField: 'cpc',
           alignment: 'center',
-          dataType: 'number'
+          dataType: 'number',
+          headerFilter: {
+            dataSource: function (source) {
+              return headerFilterColumn(source, 'cpc');
+            }
+          }
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.CPM') + ' ,$',
           dataField: 'cpm',
           alignment: 'center',
-          dataType: 'number'
+          dataType: 'number',
+          headerFilter: {
+            dataSource: function (source) {
+              return headerFilterColumn(source, 'cpm');
+            }
+          }
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.CVR') + ' ,%',
           dataField: 'cvr',
           alignment: 'center',
-          dataType: 'number'
+          dataType: 'number',
+          headerFilter: {
+            dataSource: function (source) {
+              return headerFilterColumn(source, 'cvr');
+            }
+          }
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.CTR') + ' ,%',
           dataField: 'ctr',
           alignment: 'center',
-          dataType: 'number'
+          dataType: 'number',
+          headerFilter: {
+            dataSource: function (source) {
+              return headerFilterColumn(source, 'ctr');
+            }
+          }
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.IMPS_VIEWED'),
@@ -792,7 +862,12 @@
           alignment: 'center',
           visible: false,
           width: 80,
-          dataType: 'number'
+          dataType: 'number',
+          headerFilter: {
+            dataSource: function (source) {
+              return headerFilterColumn(source, 'imps_viewed');
+            }
+          }
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.VIEW_MEASURED_IMPS'),
@@ -800,7 +875,12 @@
           alignment: 'center',
           visible: false,
           width: 100,
-          dataType: 'number'
+          dataType: 'number',
+          headerFilter: {
+            dataSource: function (source) {
+              return headerFilterColumn(source, 'view_measured_imps');
+            }
+          }
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.VIEW_MEASUREMENT_RATE') + ' ,%',
@@ -808,7 +888,12 @@
           alignment: 'center',
           visible: false,
           width: 120,
-          dataType: 'number'
+          dataType: 'number',
+          headerFilter: {
+            dataSource: function (source) {
+              return headerFilterColumn(source, 'view_measurement_rate');
+            }
+          }
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.VIEW_RATE') + ' ,%',
@@ -816,7 +901,12 @@
           alignment: 'center',
           visible: false,
           width: 80,
-          dataType: 'number'
+          dataType: 'number',
+          headerFilter: {
+            dataSource: function (source) {
+              return headerFilterColumn(source, 'view_rate');
+            }
+          }
         },
         {
           caption: 'State',

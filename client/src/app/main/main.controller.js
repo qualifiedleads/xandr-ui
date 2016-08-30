@@ -245,18 +245,21 @@
           dataField: 'conv',
           alignment: 'center',
           dataType: 'number'
-        }, {
+        },
+        {
           caption: LC('MAIN.CAMPAIGN.COLUMNS.IMP'),
           dataField: 'imp',
           sortOrder: 'desc',
           alignment: 'center',
           dataType: 'number'
-        }, {
+        },
+        {
           caption: LC('MAIN.CAMPAIGN.COLUMNS.CLICKS'),
           dataField: 'clicks',
           alignment: 'center',
           dataType: 'number'
-        }, {
+        },
+        {
           caption: LC('MAIN.CAMPAIGN.COLUMNS.CPC')+ ' ,$',
           dataField: 'cpc',
           alignment: 'center',

@@ -159,6 +159,10 @@ def create_object_from_dict(data_row):
             if s.endswith('%'):
                 data[k] = s[:-1]
         modelClass = _create_execute_context_['modelClass']
+        for k in _create_execute_context_['boolean_fields']:
+            s = str(data.get(k, ''))
+            if s=='no': data[k] = False
+            if s == 'yes': data[k] = True
         try:
             c = modelClass(**data)
             replace_tzinfo(c, _create_execute_context_['time_fields'])
@@ -282,6 +286,8 @@ def analize_csv(filename, modelClass, metadata={}):
         context['float_keys'] = [
             field.name for field in modelClass._meta.fields if isinstance(
                 field, (django_types.FloatField, django_types.DecimalField))]
+        context['boolean_fields'] = [field.attname for field in modelClass._meta.fields
+                          if isinstance(field,(django_types.BooleanField, django_types.NullBooleanField))]
         foreign_fields = [field.attname for field in modelClass._meta.fields
             if isinstance(field, django_types.ForeignObject)]
         context['foreign_fields'] = filter(

@@ -6,6 +6,7 @@ from models import SiteDomainPerformanceReport, Campaign, GeoAnaliticsReport, Ne
     Placement, NetworkCarrierReport_Simple, NetworkDeviceReport_Simple
 from django.db.models import Sum, Min, Max, Avg, Value, When, Case, F, Q, Func, FloatField
 from django.db.models.functions import Coalesce, Concat, ExtractWeekDay
+from django.db import connection
 from django.core.cache import cache
 import itertools
 import datetime
@@ -128,7 +129,7 @@ Get single campaign statistics data for given period by selected categories: imp
 
 
 def get_campaign_cpa(advertiser_id, campaign_id, from_date, to_date):
-    key = '_'.join(('rtb_campaign_candle', str(advertiser_id), str(campaign_id), from_date.strftime('%Y-%m-%d'),
+    key = '_'.join(('rtb_campaign_candle', str(campaign_id), from_date.strftime('%Y-%m-%d'),
                     to_date.strftime('%Y-%m-%d'),))
     res = cache.get(key)
     if res: return res
@@ -137,58 +138,30 @@ def get_campaign_cpa(advertiser_id, campaign_id, from_date, to_date):
     # from_date = datetime.datetime(from_date.year, from_date.month, from_date.day, 23, tzinfo = utc)
     from_date = datetime.datetime(from_date.year, from_date.month, from_date.day, tzinfo=utc)
     to_date = datetime.datetime(to_date.year, to_date.month, to_date.day, 23, tzinfo=utc)
-    q = NetworkAnalyticsReport_ByPlacement.objects.filter(
-        # advertiser_id=advertiser_id,
-        campaign_id=campaign_id,
-        hour__gte=from_date,
-        hour__lte=to_date,
-    #).values('hour__week_day'
-    ).annotate(
-        week_day=ExtractWeekDay('hour'),
-    ).values(
-        'week_day'
-    ).annotate(
-        sum_cost=Sum('cost'),
-        convs=Sum('total_convs'),
-        # date=Func(Value("'day'"), 'hour', function="date_trunc")
-        min_cpa = Min(Case(When(~Q(total_convs=0), then=F('cost') / F('total_convs')), output_field=FloatField())),
-        max_cpa = Max(Case(When(~Q(total_convs=0), then=F('cost') / F('total_convs')), output_field=FloatField())),
-        # max_cpa = Max('rec_cpa')
-    # ).annotate(
-    #     cpa=Case(When(~Q(convs=0), then=F('sum_cost') / F('convs')), output_field=FloatField()),
-    ).order_by('week_day')
-    # .order_by("hour")
-    # values("date").annotate(
-    #     low=Min("cpa"),
-    #     high=Max("cpa"),
-    #     avg=Avg("cpa")
-    # )
-    # first, last = None, None
-    res = [{
-            "date": x['week_day'],
-            "low": x['min_cpa'],
-            "high": x['max_cpa'],
-            "open": None,
-            "close": None,
-            "avg": float(x['sum_cost'])/x['convs'] if x['convs']!=0 else None,
-           } for x in q]
-    # key_func = lambda x: x["cpa"]
-    # for key, g in itertools.groupby(q, lambda x: x["week_day"]):
-    #     group = list(g)
-    #     try:
-    #         avg = sum(itertools.imap(lambda x: x["sum_cost"], group)) / sum(itertools.imap(lambda x: x["convs"], group))
-    #     except:
-    #         avg = None
-    #     min_val = min(group, key=key_func)
-    #     max_val = max(group, key=key_func)
-    #     res.append({
-    #         "date": key,
-    #         "low": min_val["cpa"],
-    #         "high": max_val["cpa"],
-    #         "open": group[0]["cpa"],
-    #         "close": group[-1]["cpa"],
-    #         "avg": avg,
-    #     })
+    query = """
+SELECT
+  EXTRACT('dow' FROM "hour") AS "date",
+  MIN("cpa") AS "low",
+  MAX("cpa") AS "high",
+  percentile_cont(0.25) WITHIN GROUP (ORDER BY "cpa") AS "open",
+  percentile_cont(0.75) WITHIN GROUP (ORDER BY "cpa") AS "close",
+  AVG("cpa") AS "avg"
+FROM (SELECT
+  "hour",
+  SUM("total_convs") AS "convs",
+  SUM("cost") AS "cost",
+  CASE WHEN SUM("total_convs") <> 0 THEN SUM("cost")/SUM("total_convs") END AS "cpa"
+FROM "network_analytics_report_by_placement"
+WHERE ("hour" >= %(from_date)s
+  AND "hour" <=  %(to_date)s
+  AND "campaign_id" = %(campaign_id)s)
+GROUP BY "hour") subquery
+GROUP BY "date"
+ORDER BY "date"
+    """
+    cursor = connection.cursor()
+    cursor.execute(query, locals())
+    res = [dict(zip(("date","low","high","open","close","avg"),x)) for x in cursor.fetchall()]
     cache.set(key, res)
     return res
 
@@ -300,29 +273,6 @@ Get single campaign details by domains
     + order (string, optional) - Order of sorting (ASC or DESC)
         + Default: desc
     + filter (string, optional) - devextreme JSON serialized filter
-	+ totalSummary (array, optional) - devextreme array for total summary
-
-+ Examples of query values:
-	from_date:1469998800
-	order:desc
-	skip:0
-	sort:imp
-	take:10
-	to_date:1471180333
-	totalSummary:{"selector":"placement","summaryType":"count"}
-	totalSummary:{"selector":"conv","summaryType":"sum"}
-	totalSummary:{"selector":"imp","summaryType":"sum"}
-	totalSummary:{"selector":"cpa","summaryType":"sum"}
-	totalSummary:{"selector":"cost","summaryType":"sum"}
-	totalSummary:{"selector":"clicks","summaryType":"sum"}
-	totalSummary:{"selector":"cpc","summaryType":"sum"}
-	totalSummary:{"selector":"cpm","summaryType":"sum"}
-	totalSummary:{"selector":"cvr","summaryType":"sum"}
-	totalSummary:{"selector":"ctr","summaryType":"sum"}
-	totalSummary:{"selector":"view_rate","summaryType":"sum"}
-	totalSummary:{"selector":"imps_viewed","summaryType":"sum"}
-	totalSummary:{"selector":"view_measured_imps","summaryType":"sum"}
-	totalSummary:{"selector":"view_measurement_rate","summaryType":"sum"}
 
 Field "placement" must contain name and id of placement. Id in parenthesis
     """
@@ -348,19 +298,18 @@ Field "placement" must contain name and id of placement. Id in parenthesis
     totalCount = len(res)
     result = {"data": res[params['skip']:params['skip'] + params['take']], "totalCount": totalCount}
 
-    # TODO Probary, these complexity not needed for this api
-    try:
-        if 'totalSummary' in request.GET:
-            result['totalSummary']=dict()
-            for current_summator in request.GET.getlist('totalSummary'):
-                ts = json.loads(current_summator)
-                field_name = ts['selector']
-                if ts['summaryType'] == 'count':
-                    result['totalSummary'][field_name] = len(res)
-                else:
-                    result['totalSummary'][field_name] = sum(x[field_name] or 0 for x in res)
-    except Exception as e:
-        result['totalSummary'] ="Can't calc summaries: {}".format(e.message)
+    sums = reduce(make_sum, res, {"cost":0, "conv":0, "imp":0, "clicks":0, "imps_viewed":0, "view_measured_imps":0,
+                                  "view_rate":0, "view_measurement_rate":0})
+    sums['cpc'] = float(sums['cost']) / sums['clicks'] if sums['clicks'] else 0
+    sums['cpa'] = float(sums["cost"]) / sums['conv'] if sums['conv'] else 0
+    sums['view_rate'] = 100.0 * float(sums['imps_viewed']) / float(sums['view_measured_imps']) if sums[
+        'view_measured_imps'] else 0
+    sums['view_measurement_rate'] = 100.0 * float(sums['view_measured_imps']) / float(sums['imp']) if sums['imp'] else 0
+    sums["cpm"] = 1000.0 * float(sums['cost'])/sums['imp'] if sums['imp'] else 0
+    sums["cvr"] = float(sums['conv'])/sums['imp'] if sums['imp'] else 0
+    sums['ctr'] = 100.0 * float(sums["clicks"]) / sums['imp'] if sums['imp'] else 0
+
+    result['totalSummary'] = sums
     return Response(result)
 
 

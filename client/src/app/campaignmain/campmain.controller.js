@@ -8,11 +8,13 @@
   /** @ngInject */
   function CampaignMainController($window, $state, $localStorage, $translate, $timeout, CampMain, Campaign) {
     var vm = this;
+    var LC = $translate.instant;
+
     vm.Camp = CampMain;
-    vm.multipleTotalCount = 0;
+
     vm.checkChart = [];
     vm.by = 'imp,cvr,cpc,clicks,spend,conv,ctr';
-    var LC = $translate.instant;
+
     vm.campName = Campaign.campaign;
     vm.campId = Campaign.id;
     vm.Init = [];
@@ -23,466 +25,13 @@
         'cpa': false,
         'cpc': false,
         'clicks': false,
-        'mediaspent': false,
+        'cost': false,
         'conversions': false,
         'ctr': false
       };
     }
 
-    vm.optimiser = {
-      text: LC('CAMP.GO-OPTIMISER'),
-      onClick: function () {
-        $state.go('home.campaignoptimiser', {"id": vm.campId});
-      }
-    };
-
-    vm.seriesCamp = [{
-      name: 'Impressions',
-      argumentField: "day",
-      valueField: "impression",
-      axis: 'impression',
-      visible: $localStorage.checkCharCamp.impression
-    }, {
-      argumentField: "day",
-      valueField: "cpa",
-      name: 'CPA',
-      axis: 'cpa',
-      visible: $localStorage.checkCharCamp.cpa
-    }, {
-      argumentField: "day",
-      valueField: "cpc",
-      name: 'CPC',
-      axis: 'cpc',
-      visible: $localStorage.checkCharCamp.cpc
-    }, {
-      argumentField: "day",
-      valueField: "clicks",
-      name: 'Clicks',
-      axis: 'clicks',
-      visible: $localStorage.checkCharCamp.clicks
-    }, {
-      argumentField: "day",
-      valueField: "mediaspent",
-      name: 'mediaspent',
-      axis: 'mediaspent',
-      visible: $localStorage.checkCharCamp.mediaspent
-    }, {
-      argumentField: "day",
-      valueField: "conversions",
-      name: 'Conversions',
-      axis: 'conversions',
-      visible: $localStorage.checkCharCamp.conversions
-    }, {
-      argumentField: "day",
-      valueField: "ctr",
-      name: 'CTR',
-      axis: 'ctr',
-      visible: $localStorage.checkCharCamp.ctr
-    }];
-
-
-    vm.totals = [];
-    vm.chartStore = new $window.DevExpress.data.CustomStore({
-      totalCount: function () {
-        return 0;
-      },
-      load: function () {
-        return vm.Camp.graphinfo(vm.campId, vm.dataStart, vm.dataEnd, vm.by)
-        .then(function (result) {
-          return result;
-        });
-      }
-    });
-
-    vm.boxPlotStore = new $window.DevExpress.data.CustomStore({
-      totalCount: function () {
-        return 0;
-      },
-      load: function () {
-        return vm.Camp.cpaReport(vm.campId, vm.dataStart, vm.dataEnd)
-        .then(function (result) {
-          return result;
-        });
-      }
-    });
-
-
-    vm.gridStore = new $window.DevExpress.data.CustomStore({
-      totalCount: function () {
-        return vm.Camp.totalCount;
-      },
-      load: function (loadOptions) {
-        if (loadOptions.searchOperation && loadOptions.dataField) {
-          loadOptions.take = 999999;
-        }
-        return vm.Camp.campaignDomains(vm.campId, vm.dataStart, vm.dataEnd, loadOptions.skip,
-            loadOptions.take, loadOptions.sort, loadOptions.order, loadOptions.filter, loadOptions.totalSummary)
-      }
-    });
-
-    /** BIG DIAGRAM  - START **/
-    vm.types = ['line', 'stackedLine', 'fullStackedLine'];
-    vm.charIsUpdating = false;
-    vm.chartOptionsFirst = {
-      onDone: function () {
-        var chart = $('#zoomedChartFirst').dxChart('instance');
-        if (!vm.charIsUpdating) {
-          var update = [];
-          var flag = 'left';
-          vm.chartOptionsFirst.valueAxis.forEach(function (item, index) {
-            var visible = $localStorage.checkCharCamp[item.name];
-            update.push({
-              name: item.name,
-              position: flag,
-              label: {
-                alignment: 'center',
-                customizeText: function () {
-                  vm.charIsUpdating = true;
-                  var major = chart._valueAxes[index]._majorTicks;
-                  var maxMajor = null;
-                  if (Array.isArray(major) && maxMajor < major[major.length - 1].value) {
-                    maxMajor = major[major.length - 1].value;
-                  }
-                  if (this.value == maxMajor) {
-                    switch (item.name) {
-                      case 'impression':
-                        return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('CAMP.CHECKBOX.IMPRESSIONS') + '</span><br>' + this.value;
-                      case 'cpa':
-                        return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('CAMP.CHECKBOX.CPA') + '</span><br>' + this.value;
-                      case 'cpc':
-                        return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('CAMP.CHECKBOX.CPC') + '</span><br>' + this.value;
-                      case 'clicks':
-                        return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('CAMP.CHECKBOX.CLICKS') + '</span><br>' + this.value;
-                      case 'mediaspent':
-                        return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('CAMP.CHECKBOX.MEDIA_SPENT') + '</span><br>' + this.value;
-                      case 'conversions':
-                        return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('CAMP.CHECKBOX.CONVERSIONS') + '</span><br>' + this.value;
-                      case 'ctr':
-                        return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('CAMP.CHECKBOX.CTR') + '</span><br>' + this.value;
-                      default:
-                        return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + item.name + '</span><br>' + this.value;
-                    }
-                  }
-                  return this.value;
-                }
-              }
-            });
-            if (visible) {
-              if (flag == 'left')
-                flag = 'right';
-              else
-                flag = 'left';
-            }
-          });
-          chart.option('valueAxis', update);
-        }
-      },
-      onInitialized: function (data) {
-        vm.chartOptionsFuncFirst = data.component;
-      },
-      valueAxis: [
-        {name: 'impression', position: 'left'},
-        {name: 'cpa', position: 'left'},
-        {name: 'cpc', position: 'left'},
-        {name: 'clicks', position: 'left'},
-        {name: 'mediaspent', position: 'left'},
-        {name: 'conversions', position: 'left'},
-        {name: 'ctr', position: 'left'}
-      ],
-      argumentAxis: {
-        //valueMarginsEnabled: false,
-        discreteAxisDivisionMode: 'crossLabels',
-        grid: {
-          visible: true
-        }
-      },
-      crosshair: {
-        enabled: true,
-        color: 'deepskyblue',
-        label: {
-          visible: true
-        }
-      },
-      legend: {
-        verticalAlignment: 'top',
-        horizontalAlignment: 'center',
-        itemTextPosition: 'top'
-      },
-      commonSeriesSettings: {
-        point: {
-          size: 7,
-          hoverStyle: {
-            border: {
-              visible: true,
-              width: 2
-            },
-            size: 5
-          }
-        }
-      },
-      bindingOptions: {
-        dataSource: 'campmain.chartStore'
-      },
-      series: vm.seriesCamp,
-      loadingIndicator: {
-        show: true,
-        text: "Creating a chart..."
-      }
-    };
-
-    vm.rangeOptionsFirst = {
-      size: {
-        height: 80
-      },
-      scale: {
-        minorTickInterval: "day",
-        tickInterval: {days: 1},
-        minRange: "day",
-        maxRange: "year",
-        minorTick: {
-          visible: true
-        }
-      },
-      bindingOptions: {
-        dataSource: 'campmain.chartStore'
-      },
-      dataSourceField: 'day',
-      sliderMarker: {
-        format: "monthAndDay"
-      },
-      behavior: {
-        callSelectedRangeChanged: "onMoving"
-      },
-      onSelectedRangeChanged: function (e) {
-        var zoomedChart = $window.$("#zoomedContainerFirst #zoomedChartFirst").dxChart("instance");
-        zoomedChart.zoomArgument(e.startValue, e.endValue);
-      }
-    };
-
-    /** BIG DIAGRAM  - END **/
-
-    /** CHECKBOX CHART - START **/
-    /**
-     * @param seriesName {string}
-     * @param seriesShortName {string}
-     * @param selected {boolean}
-     */
-
-
-    vm.updateCharts = function (seriesName, seriesShortName, selected) {
-      $localStorage.checkCharCamp[seriesShortName] = selected;
-      vm.gridCharts = $window.$('#zoomedChartFirst').dxChart('instance');
-      vm.rangeChartFirst = $window.$('#rangeChartFirst').dxRangeSelector('instance');
-      if (selected) {
-        vm.gridCharts.getSeriesByName(seriesName).show();
-      } else {
-        vm.chartOptionsFuncFirst.getSeriesByName(seriesName).hide();
-      }
-    };
-
-
-    vm.onlyTwo = function (value) {
-      var i = 0;
-      var checkTrue = [];
-      var checkFalse = [];
-      for (i = 0; i < vm.Init.length; i++) {
-        if (vm.Init[i]._options.value == true) {
-          checkTrue.push(vm.Init[i]);
-        } else {
-          checkFalse.push(vm.Init[i]);
-        }
-      }
-      if (value == true) {
-        if (checkTrue.length == 2 && checkFalse.length > 4) {
-          for (i = 0; i < checkFalse.length; i++) {
-            checkFalse[i].option('disabled', true);
-          }
-        }
-      } else {
-        if (checkTrue.length <= 2) {
-          for (i = 0; i < checkFalse.length; i++) {
-            checkFalse[i].option('disabled', false);
-          }
-        }
-      }
-    };
-
-
-    function CheckLocalStorage() {
-      for (var item in $localStorage.checkCharCamp) {
-        if ($localStorage.checkCharCamp[item]) {
-          if (item == 'impression') {
-            vm.gridCharts.getSeriesByName('Impressions').show();
-          }
-          if (item == 'cpa') {
-            vm.gridCharts.getSeriesByName('CPA').show();
-          }
-          if (item == 'cpc') {
-            vm.gridCharts.getSeriesByName('CPC').show();
-          }
-          if (item == 'clicks') {
-            vm.gridCharts.getSeriesByName('Clicks').show();
-          }
-          if (item == 'mediaspent') {
-            vm.gridCharts.getSeriesByName('mediaspent').show();
-          }
-          if (item == 'conversions') {
-            vm.gridCharts.getSeriesByName('Conversions').show();
-          }
-          if (item == 'ctr') {
-            vm.gridCharts.getSeriesByName('CTR').show();
-          }
-        } else {
-          if (item == 'impression') {
-            vm.gridCharts.getSeriesByName('Impressions').hide();
-          }
-          if (item == 'cpa') {
-            vm.gridCharts.getSeriesByName('CPA').hide();
-          }
-          if (item == 'cpc') {
-            vm.gridCharts.getSeriesByName('CPC').hide();
-          }
-          if (item == 'clicks') {
-            vm.gridCharts.getSeriesByName('Clicks').hide();
-          }
-          if (item == 'mediaspent') {
-            vm.gridCharts.getSeriesByName('mediaspent').hide();
-          }
-          if (item == 'conversions') {
-            vm.gridCharts.getSeriesByName('Conversions').hide();
-          }
-          if (item == 'ctr') {
-            vm.gridCharts.getSeriesByName('CTR').hide();
-          }
-        }
-      }
-    }
-
-    /** CHECKBOX CHART - START **/
-    vm.impressions = {
-      text: LC('CAMP.CHECKBOX.IMPRESSIONS'),
-      value: $localStorage.checkCharCamp.impression,
-      onInitialized: function (data) {
-        vm.Init.push(data.component);
-      },
-      onValueChanged: function (e) {
-        vm.updateCharts('Impressions', 'impression', e.value);
-        vm.onlyTwo(e.value);
-        vm.charIsUpdating = false;
-        vm.chartOptionsFirst.onDone();
-        CheckLocalStorage();
-      }
-    };
-
-    vm.CPA = {
-      text: LC('CAMP.CHECKBOX.CPA'),
-      value: $localStorage.checkCharCamp.cpa,
-      onInitialized: function (data) {
-        vm.Init.push(data.component);
-      },
-      onValueChanged: function (e) {
-        vm.updateCharts('CPA', 'cpa', e.value);
-        vm.onlyTwo(e.value);
-        vm.charIsUpdating = false;
-        vm.chartOptionsFirst.onDone();
-        CheckLocalStorage();
-      }
-    };
-
-    vm.CPC = {
-      text: LC('CAMP.CHECKBOX.CPC'),
-      value: $localStorage.checkCharCamp.cpc,
-      onInitialized: function (data) {
-        vm.Init.push(data.component);
-      },
-      onValueChanged: function (e) {
-        vm.updateCharts('CPC', 'cpc', e.value);
-        vm.onlyTwo(e.value);
-        vm.charIsUpdating = false;
-        vm.chartOptionsFirst.onDone();
-        CheckLocalStorage();
-      }
-    };
-
-    vm.clicks = {
-      text: LC('CAMP.CHECKBOX.CLICKS'),
-      value: $localStorage.checkCharCamp.clicks,
-      onInitialized: function (data) {
-        vm.Init.push(data.component);
-      },
-      onValueChanged: function (e) {
-        vm.updateCharts('Clicks', 'clicks', e.value);
-        vm.onlyTwo(e.value);
-        vm.charIsUpdating = false;
-        vm.chartOptionsFirst.onDone();
-        CheckLocalStorage();
-      }
-    };
-    vm.media = {
-      text: LC('CAMP.CHECKBOX.MEDIA_SPENT'),
-      value: $localStorage.checkCharCamp.mediaspent,
-      onInitialized: function (data) {
-        vm.Init.push(data.component);
-      },
-      onValueChanged: function (e) {
-        vm.updateCharts('mediaspent', 'mediaspent', e.value);
-        vm.onlyTwo(e.value);
-        vm.charIsUpdating = false;
-        vm.chartOptionsFirst.onDone();
-        CheckLocalStorage();
-      }
-    };
-    vm.conversions = {
-      text: LC('CAMP.CHECKBOX.CONVERSIONS'),
-      value: $localStorage.checkCharCamp.conversions,
-      onInitialized: function (data) {
-        vm.Init.push(data.component);
-      },
-      onValueChanged: function (e) {
-        vm.updateCharts('Conversions', 'conversions', e.value);
-        vm.onlyTwo(e.value);
-        vm.charIsUpdating = false;
-        vm.chartOptionsFirst.onDone();
-        CheckLocalStorage();
-      }
-    };
-    vm.CTR = {
-      text: LC('CAMP.CHECKBOX.CTR'),
-      value: $localStorage.checkCharCamp.ctr,
-      onInitialized: function (data) {
-        vm.Init.push(data.component);
-      },
-      onValueChanged: function (e) {
-        vm.updateCharts('CTR', 'ctr', e.value);
-        vm.onlyTwo(e.value);
-        vm.charIsUpdating = false;
-        vm.chartOptionsFirst.onDone();
-        CheckLocalStorage();
-      }
-    };
-    /** CHECKBOX CHART - END **/
-
-    $timeout(function () {
-      var i = 0;
-      var checkTrue = [];
-      var checkFalse = [];
-      for (i = 0; i < vm.Init.length; i++) {
-        if (vm.Init[i]._options.value == true) {
-          checkTrue.push(vm.Init[i]);
-        } else {
-          checkFalse.push(vm.Init[i]);
-        }
-      }
-      if (checkTrue.length >= 2 && checkFalse.length > 4) {
-        for (i = 0; i < checkFalse.length; i++) {
-          checkFalse[i].option('disabled', true);
-        }
-      }
-
-    });
-
-
-    /** DATE PIKER - START **/
+    //region DATE PIKER
     if ($localStorage.SelectedTime == null) {
       $localStorage.SelectedTime = 0;
       $localStorage.dataStart = $window.moment({hour: '00'}).subtract(1, 'day').unix();
@@ -566,12 +115,425 @@
         $state.reload();
       }
     };
-    /** DATE PIKER - END **/
+    //endregion
+
+    vm.optimiser = {
+      text: LC('CAMP.GO-OPTIMISER'),
+      onClick: function () {
+        $state.go('home.campaignoptimiser', {"id": vm.campId});
+      }
+    };
+
+    //region STORES
+    vm.chartStore = CampMain.getChartStore(vm.campId, vm.dataStart, vm.dataEnd, vm.by);
+    vm.boxPlotStore = CampMain.getBoxPlotStore(vm.campId, vm.dataStart, vm.dataEnd);
+    vm.gridStore = CampMain.getGridCampaignStore(vm.campId, vm.dataStart, vm.dataEnd);
+    //endregion
+
+    //region BIG DIAGRAM
+    vm.types = ['line', 'stackedLine', 'fullStackedLine'];
+    vm.charIsUpdating = false;
+    vm.chartOptionsFirst = {
+      onDone: function () {
+        var chart = $('#zoomedChartFirst').dxChart('instance');
+        if (!vm.charIsUpdating) {
+          var update = [];
+          var flag = 'left';
+          vm.chartOptionsFirst.valueAxis.forEach(function (item, index) {
+            var visible = $localStorage.checkCharCamp[item.name];
+            update.push({
+              name: item.name,
+              position: flag,
+              label: {
+                alignment: 'center',
+                customizeText: function () {
+                  vm.charIsUpdating = true;
+                  var major = chart._valueAxes[index]._majorTicks;
+                  var maxMajor = null;
+                  if (Array.isArray(major) && maxMajor < major[major.length - 1].value) {
+                    maxMajor = major[major.length - 1].value;
+                  }
+                  if (this.value == maxMajor) {
+                    switch (item.name) {
+                      case 'impression':
+                        return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('CAMP.CHECKBOX.IMPRESSIONS') + '</span><br>' + this.value;
+                      case 'cpa':
+                        return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('CAMP.CHECKBOX.CPA') + '</span><br>' + this.value;
+                      case 'cpc':
+                        return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('CAMP.CHECKBOX.CPC') + '</span><br>' + this.value;
+                      case 'clicks':
+                        return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('CAMP.CHECKBOX.CLICKS') + '</span><br>' + this.value;
+                      case 'cost':
+                        return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('CAMP.CHECKBOX.COST') + '</span><br>' + this.value;
+                      case 'conversions':
+                        return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('CAMP.CHECKBOX.CONVERSIONS') + '</span><br>' + this.value;
+                      case 'ctr':
+                        return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('CAMP.CHECKBOX.CTR') + '</span><br>' + this.value;
+                      default:
+                        return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + item.name + '</span><br>' + this.value;
+                    }
+                  }
+                  return this.value;
+                }
+              }
+            });
+            if (visible) {
+              if (flag == 'left')
+                flag = 'right';
+              else
+                flag = 'left';
+            }
+          });
+          chart.option('valueAxis', update);
+        }
+      },
+      onInitialized: function (data) {
+        vm.chartOptionsFuncFirst = data.component;
+      },
+      valueAxis: [
+        {name: 'impression', position: 'left'},
+        {name: 'cpa', position: 'left'},
+        {name: 'cpc', position: 'left'},
+        {name: 'clicks', position: 'left'},
+        {name: 'cost', position: 'left'},
+        {name: 'conversions', position: 'left'},
+        {name: 'ctr', position: 'left'}
+      ],
+      argumentAxis: {
+        //valueMarginsEnabled: false,
+        discreteAxisDivisionMode: 'crossLabels',
+        grid: {
+          visible: true
+        }
+      },
+      crosshair: {
+        enabled: true,
+        color: 'deepskyblue',
+        label: {
+          visible: true
+        }
+      },
+      legend: {
+        verticalAlignment: 'top',
+        horizontalAlignment: 'center',
+        itemTextPosition: 'top'
+      },
+      commonSeriesSettings: {
+        point: {
+          size: 7,
+          hoverStyle: {
+            border: {
+              visible: true,
+              width: 2
+            },
+            size: 5
+          }
+        }
+      },
+      bindingOptions: {
+        dataSource: 'campmain.chartStore'
+      },
+      series: [{
+        name: 'Impressions',
+        argumentField: "day",
+        valueField: "impression",
+        axis: 'impression',
+        visible: $localStorage.checkCharCamp.impression
+      }, {
+        argumentField: "day",
+        valueField: "cpa",
+        name: 'CPA',
+        axis: 'cpa',
+        visible: $localStorage.checkCharCamp.cpa
+      }, {
+        argumentField: "day",
+        valueField: "cpc",
+        name: 'CPC',
+        axis: 'cpc',
+        visible: $localStorage.checkCharCamp.cpc
+      }, {
+        argumentField: "day",
+        valueField: "clicks",
+        name: 'Clicks',
+        axis: 'clicks',
+        visible: $localStorage.checkCharCamp.clicks
+      }, {
+        argumentField: "day",
+        valueField: "cost",
+        name: 'Cost',
+        axis: 'cost',
+        visible: $localStorage.checkCharCamp.cost
+      }, {
+        argumentField: "day",
+        valueField: "conversions",
+        name: 'Conversions',
+        axis: 'conversions',
+        visible: $localStorage.checkCharCamp.conversions
+      }, {
+        argumentField: "day",
+        valueField: "ctr",
+        name: 'CTR',
+        axis: 'ctr',
+        visible: $localStorage.checkCharCamp.ctr
+      }],
+      loadingIndicator: {
+        show: true,
+        text: "Creating a chart..."
+      }
+    };
+
+    vm.rangeOptionsFirst = {
+      size: {
+        height: 80
+      },
+      scale: {
+        minorTickInterval: "day",
+        tickInterval: {days: 1},
+        minRange: "day",
+        maxRange: "year",
+        minorTick: {
+          visible: true
+        }
+      },
+      bindingOptions: {
+        dataSource: 'campmain.chartStore'
+      },
+      dataSourceField: 'day',
+      sliderMarker: {
+        format: "monthAndDay"
+      },
+      behavior: {
+        callSelectedRangeChanged: "onMoving"
+      },
+      onSelectedRangeChanged: function (e) {
+        var zoomedChart = $window.$("#zoomedContainerFirst #zoomedChartFirst").dxChart("instance");
+        zoomedChart.zoomArgument(e.startValue, e.endValue);
+      }
+    };
+
+    //endregion
+
+    //region CHECKBOX CHART
+    /**
+     * @param seriesName {string}
+     * @param seriesShortName {string}
+     * @param selected {boolean}
+     */
 
 
-    /** BOX PLOT- START **/
+    vm.updateCharts = function (seriesName, seriesShortName, selected) {
+      $localStorage.checkCharCamp[seriesShortName] = selected;
+      vm.gridCharts = $window.$('#zoomedChartFirst').dxChart('instance');
+      vm.rangeChartFirst = $window.$('#rangeChartFirst').dxRangeSelector('instance');
+      if (selected) {
+        vm.gridCharts.getSeriesByName(seriesName).show();
+      } else {
+        vm.chartOptionsFuncFirst.getSeriesByName(seriesName).hide();
+      }
+    };
 
 
+    vm.onlyTwo = function (value) {
+      var i = 0;
+      var checkTrue = [];
+      var checkFalse = [];
+      for (i = 0; i < vm.Init.length; i++) {
+        if (vm.Init[i]._options.value == true) {
+          checkTrue.push(vm.Init[i]);
+        } else {
+          checkFalse.push(vm.Init[i]);
+        }
+      }
+      if (value == true) {
+        if (checkTrue.length == 2 && checkFalse.length > 4) {
+          for (i = 0; i < checkFalse.length; i++) {
+            checkFalse[i].option('disabled', true);
+          }
+        }
+      } else {
+        if (checkTrue.length <= 2) {
+          for (i = 0; i < checkFalse.length; i++) {
+            checkFalse[i].option('disabled', false);
+          }
+        }
+      }
+    };
+
+
+    function CheckLocalStorage() {
+      for (var item in $localStorage.checkCharCamp) {
+        if ($localStorage.checkCharCamp[item]) {
+          if (item == 'impression') {
+            vm.gridCharts.getSeriesByName('Impressions').show();
+          }
+          if (item == 'cpa') {
+            vm.gridCharts.getSeriesByName('CPA').show();
+          }
+          if (item == 'cpc') {
+            vm.gridCharts.getSeriesByName('CPC').show();
+          }
+          if (item == 'clicks') {
+            vm.gridCharts.getSeriesByName('Clicks').show();
+          }
+          if (item == 'cost') {
+            vm.gridCharts.getSeriesByName('Cost').show();
+          }
+          if (item == 'conversions') {
+            vm.gridCharts.getSeriesByName('Conversions').show();
+          }
+          if (item == 'ctr') {
+            vm.gridCharts.getSeriesByName('CTR').show();
+          }
+        } else {
+          if (item == 'impression') {
+            vm.gridCharts.getSeriesByName('Impressions').hide();
+          }
+          if (item == 'cpa') {
+            vm.gridCharts.getSeriesByName('CPA').hide();
+          }
+          if (item == 'cpc') {
+            vm.gridCharts.getSeriesByName('CPC').hide();
+          }
+          if (item == 'clicks') {
+            vm.gridCharts.getSeriesByName('Clicks').hide();
+          }
+          if (item == 'cost') {
+            vm.gridCharts.getSeriesByName('Cost').hide();
+          }
+          if (item == 'conversions') {
+            vm.gridCharts.getSeriesByName('Conversions').hide();
+          }
+          if (item == 'ctr') {
+            vm.gridCharts.getSeriesByName('CTR').hide();
+          }
+        }
+      }
+    }
+
+    vm.impressions = {
+      text: LC('CAMP.CHECKBOX.IMPRESSIONS'),
+      value: $localStorage.checkCharCamp.impression,
+      onInitialized: function (data) {
+        vm.Init.push(data.component);
+      },
+      onValueChanged: function (e) {
+        vm.updateCharts('Impressions', 'impression', e.value);
+        vm.onlyTwo(e.value);
+        vm.charIsUpdating = false;
+        vm.chartOptionsFirst.onDone();
+        CheckLocalStorage();
+      }
+    };
+
+    vm.CPA = {
+      text: LC('CAMP.CHECKBOX.CPA'),
+      value: $localStorage.checkCharCamp.cpa,
+      onInitialized: function (data) {
+        vm.Init.push(data.component);
+      },
+      onValueChanged: function (e) {
+        vm.updateCharts('CPA', 'cpa', e.value);
+        vm.onlyTwo(e.value);
+        vm.charIsUpdating = false;
+        vm.chartOptionsFirst.onDone();
+        CheckLocalStorage();
+      }
+    };
+
+    vm.CPC = {
+      text: LC('CAMP.CHECKBOX.CPC'),
+      value: $localStorage.checkCharCamp.cpc,
+      onInitialized: function (data) {
+        vm.Init.push(data.component);
+      },
+      onValueChanged: function (e) {
+        vm.updateCharts('CPC', 'cpc', e.value);
+        vm.onlyTwo(e.value);
+        vm.charIsUpdating = false;
+        vm.chartOptionsFirst.onDone();
+        CheckLocalStorage();
+      }
+    };
+
+    vm.clicks = {
+      text: LC('CAMP.CHECKBOX.CLICKS'),
+      value: $localStorage.checkCharCamp.clicks,
+      onInitialized: function (data) {
+        vm.Init.push(data.component);
+      },
+      onValueChanged: function (e) {
+        vm.updateCharts('Clicks', 'clicks', e.value);
+        vm.onlyTwo(e.value);
+        vm.charIsUpdating = false;
+        vm.chartOptionsFirst.onDone();
+        CheckLocalStorage();
+      }
+    };
+    vm.cost = {
+      text: LC('CAMP.CHECKBOX.COST'),
+      value: $localStorage.checkCharCamp.cost,
+      onInitialized: function (data) {
+        vm.Init.push(data.component);
+      },
+      onValueChanged: function (e) {
+        vm.updateCharts('Cost', 'cost', e.value);
+        vm.onlyTwo(e.value);
+        vm.charIsUpdating = false;
+        vm.chartOptionsFirst.onDone();
+        CheckLocalStorage();
+      }
+    };
+    vm.conversions = {
+      text: LC('CAMP.CHECKBOX.CONVERSIONS'),
+      value: $localStorage.checkCharCamp.conversions,
+      onInitialized: function (data) {
+        vm.Init.push(data.component);
+      },
+      onValueChanged: function (e) {
+        vm.updateCharts('Conversions', 'conversions', e.value);
+        vm.onlyTwo(e.value);
+        vm.charIsUpdating = false;
+        vm.chartOptionsFirst.onDone();
+        CheckLocalStorage();
+      }
+    };
+    vm.CTR = {
+      text: LC('CAMP.CHECKBOX.CTR'),
+      value: $localStorage.checkCharCamp.ctr,
+      onInitialized: function (data) {
+        vm.Init.push(data.component);
+      },
+      onValueChanged: function (e) {
+        vm.updateCharts('CTR', 'ctr', e.value);
+        vm.onlyTwo(e.value);
+        vm.charIsUpdating = false;
+        vm.chartOptionsFirst.onDone();
+        CheckLocalStorage();
+      }
+    };
+    //endregion
+
+    $timeout(function () {
+      var i = 0;
+      var checkTrue = [];
+      var checkFalse = [];
+      for (i = 0; i < vm.Init.length; i++) {
+        if (vm.Init[i]._options.value == true) {
+          checkTrue.push(vm.Init[i]);
+        } else {
+          checkFalse.push(vm.Init[i]);
+        }
+      }
+      if (checkTrue.length >= 2 && checkFalse.length > 4) {
+        for (i = 0; i < checkFalse.length; i++) {
+          checkFalse[i].option('disabled', true);
+        }
+      }
+
+    });
+
+
+    //region BOX PLOT
     vm.chartOptionsSecond = {
       bindingOptions: {
         dataSource: 'campmain.boxPlotStore'
@@ -585,10 +547,7 @@
           visible: true
         },
         label: {
-          visible: true,
-          customizeText: function (arg) {
-            return $window.moment().locale('en').isoWeekday(arg.value).format('ddd');
-          }
+          visible: true
         },
         discreteAxisDivisionMode: 'crossLabels'
       },
@@ -602,8 +561,8 @@
           }
           if (arg.seriesName === "Series 1") {
             return {
-              text: "Open: $" + arg.openValue + "<br/>" +
-              "Close: $" + arg.closeValue + "<br/>" +
+              text: "Q1: $" + arg.openValue + "<br/>" +
+              "Q3: $" + arg.closeValue + "<br/>" +
               "High: $" + arg.highValue + "<br/>" +
               "Low: $" + arg.lowValue + "<br/>"
             };
@@ -672,12 +631,10 @@
         zoomedChart.zoomArgument(new Date(e.startValue), new Date(e.endValue));
       }
     };
+    //endregion
 
 
-    /** BOX PLOT- END **/
-
-
-    /** MULTIPLE - START **/
+    //region MULTIPLE
     vm.selectedItems = [];
     vm.chartOptionsFuncgrid = [];
     if ($localStorage.boxPlotData == null) {
@@ -715,6 +672,17 @@
       }
     };
 
+    function headerFilterColumn(source, dataField) {
+      return source.dataSource.postProcess = function(data) {
+        var list = $window._.uniqBy(data, dataField);
+        return list.map(function (item) {
+          return {
+            text: item[dataField],
+            value: item[dataField]
+          };
+        });
+      };
+    }
 
     vm.dataGridOptionsCampaign = {
       onInitialized: function (data) {
@@ -738,10 +706,13 @@
           }
         }
       },
-      showBorders: true,
       alignment: 'left',
       headerFilter: {
         visible: true
+      },
+      filterRow: {
+        visible: true,
+        applyFilter: "auto"
       },
       bindingOptions: {
         dataSource: 'campmain.gridStore'
@@ -760,70 +731,130 @@
       allowColumnResizing: true,
       columnAutoWidth: true,
       wordWrapEnabled: true,
-      howBorders: true,
+      showBorders: true,
       showRowLines: true,
       columns: [
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.PLACEMENT'),
           dataField: 'placement',
-          alignment: 'center'
+          alignment: 'center',
+          dataType: 'number',
+          headerFilter: {
+            dataSource: function(source) {
+              return headerFilterColumn(source, 'placement');
+            }
+          }
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.NETWORK'),
           dataField: 'NetworkPublisher',
-          alignment: 'center'
+          alignment: 'center',
+          dataType: 'string',
+          headerFilter: {
+            dataSource: function(source) {
+              return headerFilterColumn(source, 'NetworkPublisher');
+            }
+          }
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.CONV'),
           dataField: 'conv',
           alignment: 'center',
-          dataType: 'number'
+          dataType: 'number',
+          headerFilter: {
+            dataSource: function (source) {
+              return headerFilterColumn(source, 'conv');
+            }
+          }
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.IMP'),
           dataField: 'imp',
           dataType: 'number',
           sortOrder: 'desc',
-          alignment: 'center'
+          alignment: 'center',
+          headerFilter: {
+            dataSource: function (source) {
+              return headerFilterColumn(source, 'imp');
+            }
+          }
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.CPA') + ' ,$',
           dataField: 'cpa',
           dataType: 'number',
-          alignment: 'center'
+          alignment: 'center',
+          headerFilter: {
+            dataSource: function (source) {
+              return headerFilterColumn(source, 'cpa');
+            }
+          }
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.COST') + ' ,$',
           dataField: 'cost',
           alignment: 'center',
-          dataType: 'number'
+          dataType: 'number',
+          headerFilter: {
+            dataSource: function (source) {
+              return headerFilterColumn(source, 'cost');
+            }
+          }
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.CLICKS'),
           dataField: 'clicks',
-          alignment: 'center'
+          alignment: 'center',
+          dataType: 'number',
+          headerFilter: {
+            dataSource: function (source) {
+              return headerFilterColumn(source, 'clicks');
+            }
+          }
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.CPC') + ' ,$',
           dataField: 'cpc',
           alignment: 'center',
-          dataType: 'number'
+          dataType: 'number',
+          headerFilter: {
+            dataSource: function (source) {
+              return headerFilterColumn(source, 'cpc');
+            }
+          }
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.CPM') + ' ,$',
           dataField: 'cpm',
           alignment: 'center',
-          dataType: 'number'
+          dataType: 'number',
+          headerFilter: {
+            dataSource: function (source) {
+              return headerFilterColumn(source, 'cpm');
+            }
+          }
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.CVR') + ' ,%',
           dataField: 'cvr',
-          alignment: 'center'
+          alignment: 'center',
+          dataType: 'number',
+          headerFilter: {
+            dataSource: function (source) {
+              return headerFilterColumn(source, 'cvr');
+            }
+          }
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.CTR') + ' ,%',
           dataField: 'ctr',
-          alignment: 'center'
+          alignment: 'center',
+          dataType: 'number',
+          headerFilter: {
+            dataSource: function (source) {
+              return headerFilterColumn(source, 'ctr');
+            }
+          }
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.IMPS_VIEWED'),
@@ -831,7 +862,12 @@
           alignment: 'center',
           visible: false,
           width: 80,
-          dataType: 'number'
+          dataType: 'number',
+          headerFilter: {
+            dataSource: function (source) {
+              return headerFilterColumn(source, 'imps_viewed');
+            }
+          }
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.VIEW_MEASURED_IMPS'),
@@ -839,21 +875,38 @@
           alignment: 'center',
           visible: false,
           width: 100,
-          dataType: 'number'
+          dataType: 'number',
+          headerFilter: {
+            dataSource: function (source) {
+              return headerFilterColumn(source, 'view_measured_imps');
+            }
+          }
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.VIEW_MEASUREMENT_RATE') + ' ,%',
           dataField: 'view_measurement_rate',
           alignment: 'center',
           visible: false,
-          width: 120
+          width: 120,
+          dataType: 'number',
+          headerFilter: {
+            dataSource: function (source) {
+              return headerFilterColumn(source, 'view_measurement_rate');
+            }
+          }
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.VIEW_RATE') + ' ,%',
           dataField: 'view_rate',
           alignment: 'center',
           visible: false,
-          width: 80
+          width: 80,
+          dataType: 'number',
+          headerFilter: {
+            dataSource: function (source) {
+              return headerFilterColumn(source, 'view_rate');
+            }
+          }
         },
         {
           caption: 'State',
@@ -940,7 +993,11 @@
         totalItems: [
           {
             column: "placement",
-            summaryType: "count"
+            summaryType: "count",
+            customizeText: function (data) {
+              data.valueText = 'Count: ' + vm.dataGridOptionsMultipleFunc.totalCount();
+              return data.valueText;
+            }
           },
           {
             column: "conv",
@@ -1033,10 +1090,10 @@
         vm.disabled = !vm.selectedItems.length;
       }
     };
-    /** MULTIPLE - END **/
+    //endregion
 
 
-    /** RANGE SELECTOR FIRST - START **/
+    //region RANGE SELECTOR FIRST
     vm.rangeFirstChartOptions = {
       margin: {
         left: 50
@@ -1060,9 +1117,9 @@
       // }
     };
 
-    /** RANGE SELECTOR FIRST - END **/
+    //endregion
 
-    /** RANGE SELECTOR SECOND - START **/
+    //region RANGE SELECTOR SECOND
     vm.rangeSecondChartOptions = {
       margin: {
         left: 50,
@@ -1091,10 +1148,10 @@
       // }
     };
 
-    /** RANGE SELECTOR SECOND - END **/
+    //endregion
 
 
-    /** PIE CHART CONTAINER - START **/
+    //region PIE CHART CONTAINER
     vm.ctrlBbtns = {
       placement: {
         btn: 'Placement',
@@ -1138,7 +1195,7 @@
       }
     };
     vm.pieChartHeader = $localStorage.pieChartHeader || vm.ctrlBbtns.os.header;
-
+    //endregion
   }
 })();
 

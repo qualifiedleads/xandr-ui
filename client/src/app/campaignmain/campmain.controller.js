@@ -8,11 +8,13 @@
   /** @ngInject */
   function CampaignMainController($window, $state, $localStorage, $translate, $timeout, CampMain, Campaign) {
     var vm = this;
+    var LC = $translate.instant;
+
     vm.Camp = CampMain;
-    vm.multipleTotalCount = 0;
+
     vm.checkChart = [];
     vm.by = 'imp,cvr,cpc,clicks,spend,conv,ctr';
-    var LC = $translate.instant;
+
     vm.campName = Campaign.campaign;
     vm.campId = Campaign.id;
     vm.Init = [];
@@ -29,6 +31,92 @@
       };
     }
 
+    //region DATE PIKER
+    if ($localStorage.SelectedTime == null) {
+      $localStorage.SelectedTime = 0;
+      $localStorage.dataStart = $window.moment({hour: '00'}).subtract(1, 'day').unix();
+      $localStorage.dataEnd = $window.moment({hour: '00'}).subtract(1, 'day').endOf('day').unix();
+      vm.dataStart = $window.moment({hour: '00'}).subtract(1, 'day').unix();
+      vm.dataEnd = $window.moment({hour: '00'}).subtract(1, 'day').endOf('day').unix();
+    } else {
+      if ($localStorage.dataStart == null || $localStorage.dataEnd == null) {
+        $localStorage.SelectedTime = 0;
+        $localStorage.dataStart = $window.moment({hour: '00'}).subtract(1, 'day').unix();
+        $localStorage.dataEnd = $window.moment({hour: '00'}).subtract(1, 'day').endOf('day').unix();
+        vm.dataStart = $window.moment({hour: '00'}).subtract(1, 'day').unix();
+        vm.dataEnd = $window.moment({hour: '00'}).subtract(1, 'day').endOf('day').unix();
+      } else {
+        vm.dataStart = $localStorage.dataStart;
+        vm.dataEnd = $localStorage.dataEnd;
+      }
+    }
+
+    var products = [
+      {
+        ID: 0,
+        Name: LC('MAIN.DATE_PICKER.YESTERDAY'),
+        dataStart: $window.moment({hour: '00'}).subtract(1, 'day').unix(),
+        dataEnd: $window.moment({hour: '00'}).subtract(1, 'day').endOf('day').unix()
+      }, {
+        ID: 1,
+        Name: LC('MAIN.DATE_PICKER.LAST_3_DAYS'),
+        dataStart: $window.moment({hour: '00'}).subtract(3, 'day').unix(),
+        dataEnd: $window.moment({hour: '00'}).unix()
+      }, {
+        ID: 2,
+        Name: LC('MAIN.DATE_PICKER.LAST_7_DAYS'),
+        dataStart: $window.moment({hour: '00'}).subtract(7, 'day').unix(),
+        dataEnd: $window.moment({hour: '00'}).unix()
+      }, {
+        ID: 3,
+        Name: LC('MAIN.DATE_PICKER.LAST_14_DAYS'),
+        dataStart: $window.moment({hour: '00'}).subtract(14, 'day').unix(),
+        dataEnd: $window.moment({hour: '00'}).unix()
+      }, {
+        ID: 4,
+        Name: LC('MAIN.DATE_PICKER.LAST_21_DAYS'),
+        dataStart: $window.moment({hour: '00'}).subtract(21, 'day').unix(),
+        dataEnd: $window.moment({hour: '00'}).unix()
+      }, {
+        ID: 5,
+        Name: LC('MAIN.DATE_PICKER.CURRENT_MONTH'),
+        dataStart: $window.moment().startOf('month').unix(),
+        dataEnd: $window.moment().unix()
+      }, {
+        ID: 6,
+        Name: LC('MAIN.DATE_PICKER.LAST_MONTH'),
+        dataStart: $window.moment().subtract(1, 'month').startOf('month').unix(),
+        dataEnd: $window.moment().subtract(1, 'month').endOf('month').unix()
+      }, {
+        ID: 7,
+        Name: LC('MAIN.DATE_PICKER.LAST_90_DAYS'),
+        dataStart: $window.moment({hour: '00'}).subtract(90, 'day').unix(),
+        dataEnd: $window.moment().unix()
+      }, {
+        ID: 8,
+        Name: LC('MAIN.DATE_PICKER.ALL_TIME'),
+        dataStart: 0,
+        dataEnd: $window.moment().unix()
+      }];
+
+    vm.datePiker = {
+      items: products,
+      displayExpr: 'Name',
+      valueExpr: 'ID',
+      value: products[$localStorage.SelectedTime].ID,
+      onValueChanged: function (e) {
+        //$log.info(products[e.value]);
+        $localStorage.SelectedTime = e.value;
+        $localStorage.dataStart = products[e.value].dataStart;
+        $localStorage.dataEnd = products[e.value].dataEnd;
+
+        //$('#gridContainer1').dxDataGrid('instance').refresh();
+        //$('#gridContainer2').dxDataGrid('instance').refresh();
+        $state.reload();
+      }
+    };
+    //endregion
+
     vm.optimiser = {
       text: LC('CAMP.GO-OPTIMISER'),
       onClick: function () {
@@ -36,51 +124,13 @@
       }
     };
 
+    //region STORES
+    vm.chartStore = CampMain.getChartStore(vm.campId, vm.dataStart, vm.dataEnd, vm.by);
+    vm.boxPlotStore = CampMain.getBoxPlotStore(vm.campId, vm.dataStart, vm.dataEnd);
+    vm.gridStore = CampMain.getGridCampaignStore(vm.campId, vm.dataStart, vm.dataEnd);
+    //endregion
 
-    vm.totals = [];
-    vm.chartStore = new $window.DevExpress.data.CustomStore({
-      totalCount: function () {
-        return 0;
-      },
-      load: function () {
-        return vm.Camp.graphinfo(vm.campId, vm.dataStart, vm.dataEnd, vm.by)
-        .then(function (result) {
-          return result;
-        });
-      }
-    });
-
-    vm.boxPlotStore = new $window.DevExpress.data.CustomStore({
-      totalCount: function () {
-        return 0;
-      },
-      load: function () {
-        return vm.Camp.cpaReport(vm.campId, vm.dataStart, vm.dataEnd)
-        .then(function (result) {
-          return result;
-        });
-      }
-    });
-
-
-    vm.gridStore = new $window.DevExpress.data.CustomStore({
-      totalCount: function () {
-        return vm.totalCount;
-      },
-      load: function (loadOptions) {
-        if (loadOptions.searchOperation && loadOptions.dataField) {
-          loadOptions.take = 999999;
-        }
-        return vm.Camp.campaignDomains(vm.campId, vm.dataStart, vm.dataEnd, loadOptions.skip,
-            loadOptions.take, loadOptions.sort, loadOptions.order, loadOptions.filter, loadOptions.totalSummary)
-        .then(function (result) {
-          vm.totalCount = result.totalCount;
-          return result.data;
-        });
-      }
-    });
-
-    /** BIG DIAGRAM  - START **/
+    //region BIG DIAGRAM
     vm.types = ['line', 'stackedLine', 'fullStackedLine'];
     vm.charIsUpdating = false;
     vm.chartOptionsFirst = {
@@ -261,9 +311,9 @@
       }
     };
 
-    /** BIG DIAGRAM  - END **/
+    //endregion
 
-    /** CHECKBOX CHART - START **/
+    //region CHECKBOX CHART
     /**
      * @param seriesName {string}
      * @param seriesShortName {string}
@@ -360,7 +410,6 @@
       }
     }
 
-    /** CHECKBOX CHART - START **/
     vm.impressions = {
       text: LC('CAMP.CHECKBOX.IMPRESSIONS'),
       value: $localStorage.checkCharCamp.impression,
@@ -462,7 +511,7 @@
         CheckLocalStorage();
       }
     };
-    /** CHECKBOX CHART - END **/
+    //endregion
 
     $timeout(function () {
       var i = 0;
@@ -484,96 +533,7 @@
     });
 
 
-    /** DATE PIKER - START **/
-    if ($localStorage.SelectedTime == null) {
-      $localStorage.SelectedTime = 0;
-      $localStorage.dataStart = $window.moment({hour: '00'}).subtract(1, 'day').unix();
-      $localStorage.dataEnd = $window.moment({hour: '00'}).subtract(1, 'day').endOf('day').unix();
-      vm.dataStart = $window.moment({hour: '00'}).subtract(1, 'day').unix();
-      vm.dataEnd = $window.moment({hour: '00'}).subtract(1, 'day').endOf('day').unix();
-    } else {
-      if ($localStorage.dataStart == null || $localStorage.dataEnd == null) {
-        $localStorage.SelectedTime = 0;
-        $localStorage.dataStart = $window.moment({hour: '00'}).subtract(1, 'day').unix();
-        $localStorage.dataEnd = $window.moment({hour: '00'}).subtract(1, 'day').endOf('day').unix();
-        vm.dataStart = $window.moment({hour: '00'}).subtract(1, 'day').unix();
-        vm.dataEnd = $window.moment({hour: '00'}).subtract(1, 'day').endOf('day').unix();
-      } else {
-        vm.dataStart = $localStorage.dataStart;
-        vm.dataEnd = $localStorage.dataEnd;
-      }
-    }
-
-    var products = [
-      {
-        ID: 0,
-        Name: LC('MAIN.DATE_PICKER.YESTERDAY'),
-        dataStart: $window.moment({hour: '00'}).subtract(1, 'day').unix(),
-        dataEnd: $window.moment({hour: '00'}).subtract(1, 'day').endOf('day').unix()
-      }, {
-        ID: 1,
-        Name: LC('MAIN.DATE_PICKER.LAST_3_DAYS'),
-        dataStart: $window.moment({hour: '00'}).subtract(3, 'day').unix(),
-        dataEnd: $window.moment({hour: '00'}).unix()
-      }, {
-        ID: 2,
-        Name: LC('MAIN.DATE_PICKER.LAST_7_DAYS'),
-        dataStart: $window.moment({hour: '00'}).subtract(7, 'day').unix(),
-        dataEnd: $window.moment({hour: '00'}).unix()
-      }, {
-        ID: 3,
-        Name: LC('MAIN.DATE_PICKER.LAST_14_DAYS'),
-        dataStart: $window.moment({hour: '00'}).subtract(14, 'day').unix(),
-        dataEnd: $window.moment({hour: '00'}).unix()
-      }, {
-        ID: 4,
-        Name: LC('MAIN.DATE_PICKER.LAST_21_DAYS'),
-        dataStart: $window.moment({hour: '00'}).subtract(21, 'day').unix(),
-        dataEnd: $window.moment({hour: '00'}).unix()
-      }, {
-        ID: 5,
-        Name: LC('MAIN.DATE_PICKER.CURRENT_MONTH'),
-        dataStart: $window.moment().startOf('month').unix(),
-        dataEnd: $window.moment().unix()
-      }, {
-        ID: 6,
-        Name: LC('MAIN.DATE_PICKER.LAST_MONTH'),
-        dataStart: $window.moment().subtract(1, 'month').startOf('month').unix(),
-        dataEnd: $window.moment().subtract(1, 'month').endOf('month').unix()
-      }, {
-        ID: 7,
-        Name: LC('MAIN.DATE_PICKER.LAST_90_DAYS'),
-        dataStart: $window.moment({hour: '00'}).subtract(90, 'day').unix(),
-        dataEnd: $window.moment().unix()
-      }, {
-        ID: 8,
-        Name: LC('MAIN.DATE_PICKER.ALL_TIME'),
-        dataStart: 0,
-        dataEnd: $window.moment().unix()
-      }];
-
-    vm.datePiker = {
-      items: products,
-      displayExpr: 'Name',
-      valueExpr: 'ID',
-      value: products[$localStorage.SelectedTime].ID,
-      onValueChanged: function (e) {
-        //$log.info(products[e.value]);
-        $localStorage.SelectedTime = e.value;
-        $localStorage.dataStart = products[e.value].dataStart;
-        $localStorage.dataEnd = products[e.value].dataEnd;
-
-        //$('#gridContainer1').dxDataGrid('instance').refresh();
-        //$('#gridContainer2').dxDataGrid('instance').refresh();
-        $state.reload();
-      }
-    };
-    /** DATE PIKER - END **/
-
-
-    /** BOX PLOT- START **/
-
-
+    //region BOX PLOT
     vm.chartOptionsSecond = {
       bindingOptions: {
         dataSource: 'campmain.boxPlotStore'
@@ -671,12 +631,10 @@
         zoomedChart.zoomArgument(new Date(e.startValue), new Date(e.endValue));
       }
     };
+    //endregion
 
 
-    /** BOX PLOT- END **/
-
-
-    /** MULTIPLE - START **/
+    //region MULTIPLE
     vm.selectedItems = [];
     vm.chartOptionsFuncgrid = [];
     if ($localStorage.boxPlotData == null) {
@@ -714,6 +672,17 @@
       }
     };
 
+    function headerFilterColumn(source, dataField) {
+      return source.dataSource.postProcess = function(data) {
+        var list = $window._.uniqBy(data, dataField);
+        return list.map(function (item) {
+          return {
+            text: item[dataField],
+            value: item[dataField]
+          };
+        });
+      };
+    }
 
     vm.dataGridOptionsCampaign = {
       onInitialized: function (data) {
@@ -742,7 +711,8 @@
         visible: true
       },
       filterRow: {
-        visible: true
+        visible: true,
+        applyFilter: "auto"
       },
       bindingOptions: {
         dataSource: 'campmain.gridStore'
@@ -768,67 +738,123 @@
           caption: LC('CAMP.CAMPAIGN.COLUMNS.PLACEMENT'),
           dataField: 'placement',
           alignment: 'center',
-          dataType: 'string'
+          dataType: 'number',
+          headerFilter: {
+            dataSource: function(source) {
+              return headerFilterColumn(source, 'placement');
+            }
+          }
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.NETWORK'),
           dataField: 'NetworkPublisher',
           alignment: 'center',
-          dataType: 'string'
+          dataType: 'string',
+          headerFilter: {
+            dataSource: function(source) {
+              return headerFilterColumn(source, 'NetworkPublisher');
+            }
+          }
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.CONV'),
           dataField: 'conv',
           alignment: 'center',
           dataType: 'number',
+          headerFilter: {
+            dataSource: function (source) {
+              return headerFilterColumn(source, 'conv');
+            }
+          }
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.IMP'),
           dataField: 'imp',
           dataType: 'number',
           sortOrder: 'desc',
-          alignment: 'center'
+          alignment: 'center',
+          headerFilter: {
+            dataSource: function (source) {
+              return headerFilterColumn(source, 'imp');
+            }
+          }
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.CPA') + ' ,$',
           dataField: 'cpa',
           dataType: 'number',
-          alignment: 'center'
+          alignment: 'center',
+          headerFilter: {
+            dataSource: function (source) {
+              return headerFilterColumn(source, 'cpa');
+            }
+          }
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.COST') + ' ,$',
           dataField: 'cost',
           alignment: 'center',
-          dataType: 'number'
+          dataType: 'number',
+          headerFilter: {
+            dataSource: function (source) {
+              return headerFilterColumn(source, 'cost');
+            }
+          }
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.CLICKS'),
           dataField: 'clicks',
-          alignment: 'center'
+          alignment: 'center',
+          dataType: 'number',
+          headerFilter: {
+            dataSource: function (source) {
+              return headerFilterColumn(source, 'clicks');
+            }
+          }
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.CPC') + ' ,$',
           dataField: 'cpc',
           alignment: 'center',
-          dataType: 'number'
+          dataType: 'number',
+          headerFilter: {
+            dataSource: function (source) {
+              return headerFilterColumn(source, 'cpc');
+            }
+          }
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.CPM') + ' ,$',
           dataField: 'cpm',
           alignment: 'center',
-          dataType: 'number'
+          dataType: 'number',
+          headerFilter: {
+            dataSource: function (source) {
+              return headerFilterColumn(source, 'cpm');
+            }
+          }
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.CVR') + ' ,%',
           dataField: 'cvr',
           alignment: 'center',
-          dataType: 'number'
+          dataType: 'number',
+          headerFilter: {
+            dataSource: function (source) {
+              return headerFilterColumn(source, 'cvr');
+            }
+          }
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.CTR') + ' ,%',
           dataField: 'ctr',
           alignment: 'center',
-          dataType: 'number'
+          dataType: 'number',
+          headerFilter: {
+            dataSource: function (source) {
+              return headerFilterColumn(source, 'ctr');
+            }
+          }
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.IMPS_VIEWED'),
@@ -836,7 +862,12 @@
           alignment: 'center',
           visible: false,
           width: 80,
-          dataType: 'number'
+          dataType: 'number',
+          headerFilter: {
+            dataSource: function (source) {
+              return headerFilterColumn(source, 'imps_viewed');
+            }
+          }
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.VIEW_MEASURED_IMPS'),
@@ -844,7 +875,12 @@
           alignment: 'center',
           visible: false,
           width: 100,
-          dataType: 'number'
+          dataType: 'number',
+          headerFilter: {
+            dataSource: function (source) {
+              return headerFilterColumn(source, 'view_measured_imps');
+            }
+          }
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.VIEW_MEASUREMENT_RATE') + ' ,%',
@@ -852,7 +888,12 @@
           alignment: 'center',
           visible: false,
           width: 120,
-          dataType: 'number'
+          dataType: 'number',
+          headerFilter: {
+            dataSource: function (source) {
+              return headerFilterColumn(source, 'view_measurement_rate');
+            }
+          }
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.VIEW_RATE') + ' ,%',
@@ -860,7 +901,12 @@
           alignment: 'center',
           visible: false,
           width: 80,
-          dataType: 'number'
+          dataType: 'number',
+          headerFilter: {
+            dataSource: function (source) {
+              return headerFilterColumn(source, 'view_rate');
+            }
+          }
         },
         {
           caption: 'State',
@@ -949,7 +995,7 @@
             column: "placement",
             summaryType: "count",
             customizeText: function (data) {
-              data.valueText = 'Count: ' + vm.totalCount;
+              data.valueText = 'Count: ' + vm.dataGridOptionsMultipleFunc.totalCount();
               return data.valueText;
             }
           },
@@ -1044,10 +1090,10 @@
         vm.disabled = !vm.selectedItems.length;
       }
     };
-    /** MULTIPLE - END **/
+    //endregion
 
 
-    /** RANGE SELECTOR FIRST - START **/
+    //region RANGE SELECTOR FIRST
     vm.rangeFirstChartOptions = {
       margin: {
         left: 50
@@ -1071,9 +1117,9 @@
       // }
     };
 
-    /** RANGE SELECTOR FIRST - END **/
+    //endregion
 
-    /** RANGE SELECTOR SECOND - START **/
+    //region RANGE SELECTOR SECOND
     vm.rangeSecondChartOptions = {
       margin: {
         left: 50,
@@ -1102,10 +1148,10 @@
       // }
     };
 
-    /** RANGE SELECTOR SECOND - END **/
+    //endregion
 
 
-    /** PIE CHART CONTAINER - START **/
+    //region PIE CHART CONTAINER
     vm.ctrlBbtns = {
       placement: {
         btn: 'Placement',
@@ -1149,7 +1195,7 @@
       }
     };
     vm.pieChartHeader = $localStorage.pieChartHeader || vm.ctrlBbtns.os.header;
-
+    //endregion
   }
 })();
 

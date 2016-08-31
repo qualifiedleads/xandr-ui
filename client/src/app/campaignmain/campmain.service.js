@@ -8,7 +8,7 @@
   /** @ngInject */
   function CampMain($http, $window, $cookies) {
     var _this = this;
-    _this.totalCount = 0;
+    var _totalCountCampaign = 0;
 
     function nameCampaigns(id) {
       return $http({
@@ -24,7 +24,7 @@
       });
     }
 
-    function graphinfo(id, from, to, by) {
+    function _graphInfo(id, from, to, by) {
       return $http({
         method: 'GET',
         url: '/api/v1/campaigns/' + encodeURI(id) + '/graphinfo',
@@ -48,9 +48,7 @@
         return err;
       });
     }
-
-
-    function cpaReport(id, from, to) {
+    function _cpaReport(id, from, to) {
       return $http({
         method: 'GET',
         url: '/api/v1/campaigns/' + encodeURI(id) + '/cpareport',
@@ -73,9 +71,7 @@
         return err;
       });
     }
-
-
-    function campaignDomains(id, from, to, skip, take, sort, order, filter, totalSummary) {
+    function _campaignDomains(id, from, to, skip, take, sort, order, filter, totalSummary) {
       if (sort) {
         if (sort[0].desc === true) {
           order = 'desc'
@@ -110,39 +106,80 @@
         }
       })
       .then(function (res) {
-        for (var index in res.data.data) {
-          res.data.data[index].cvr = +parseFloat(res.data.data[index].cvr).toFixed(4);
-          res.data.data[index].ctr = +parseFloat(res.data.data[index].ctr).toFixed(4);
-          res.data.data[index].cpc = +parseFloat(res.data.data[index].cpc).toFixed(4);
-          res.data.data[index].cpm = +parseFloat(res.data.data[index].cpm).toFixed(4);
-          res.data.data[index].imp = +parseFloat(res.data.data[index].imp).toFixed(4);
-          res.data.data[index].cpa = +parseFloat(res.data.data[index].cpa).toFixed(4);
-          res.data.data[index].clicks = +parseFloat(res.data.data[index].clicks).toFixed(4);
-          res.data.data[index].conv = +parseFloat(res.data.data[index].conv).toFixed(4);
-          res.data.data[index].cost = +parseFloat(res.data.data[index].cost).toFixed(2);
-          res.data.data[index].imps_viewed = +parseFloat(res.data.data[index].imps_viewed).toFixed(4);
-          res.data.data[index].view_measured_imps = +parseFloat(res.data.data[index].view_measured_imps).toFixed(4);
-          res.data.data[index].view_measurement_rate = +parseFloat(res.data.data[index].view_measurement_rate).toFixed(1);
-          res.data.data[index].view_rate = +parseFloat(res.data.data[index].view_rate).toFixed(1);
-        }
+        var list = res.data.data.map(function (item) {
+          return {
+            NetworkPublisher: item.NetworkPublisher,
+            placement: item.placement,
+            placement_name: item.placement_name,
+            cvr: parseFloat((item.cvr || 0).toFixed(4)),
+            ctr: parseFloat((item.ctr || 0).toFixed(4)),
+            cpc: parseFloat((item.cpc || 0).toFixed(4)),
+            cpm: parseFloat((item.cpm || 0).toFixed(4)),
+            imp: parseFloat((item.imp || 0).toFixed(4)),
+            cpa: parseFloat((item.cpa || 0).toFixed(4)),
+            clicks: parseFloat((item.clicks || 0).toFixed(4)),
+            conv: parseFloat((item.conv || 0).toFixed(4)),
+            cost: parseFloat((item.cost || 0).toFixed(2)),
+            imps_viewed: parseFloat((item.imps_viewed || 0).toFixed(4)),
+            view_measured_imps: parseFloat((item.view_measured_imps || 0).toFixed(4)),
+            view_measurement_rate: parseFloat((item.view_measurement_rate || 0).toFixed(1)),
+            view_rate: parseFloat((item.view_rate || 0).toFixed(1)),
+            state: {
+              blackList: item.state.blackList,
+              suspended: item.state.suspended,
+              whiteList: item.state.whiteList
+            }
+          };
+        });
 
-        return res.data;
-      })
-      .then(function (result) {
-        _this.totalCount = result.totalCount || 0;
-        _this.totalSummary = result.totalSummary;
-        return result;
+        _totalCountCampaign = res.data.totalCount;
+        _this.totalSummary = res.data.totalSummary;
+
+        return list;
       })
       .catch(function (err) {
         return err;
       });
     }
 
+    function getChartStore(campId, dataStart, dataEnd, by) {
+      return new $window.DevExpress.data.CustomStore({
+        totalCount: function () {
+          return 0;
+        },
+        load: function () {
+          return _graphInfo(campId, dataStart, dataEnd, by);
+        }
+      });
+    }
+    function getBoxPlotStore(campId, dataStart, dataEnd) {
+      return new $window.DevExpress.data.CustomStore({
+        totalCount: function () {
+          return 0;
+        },
+        load: function () {
+          return _cpaReport(campId, dataStart, dataEnd);
+        }
+      });
+    }
+    function getGridCampaignStore(campId, dataStart, dataEnd) {
+      return new $window.DevExpress.data.CustomStore({
+        totalCount: function () {
+          return _totalCountCampaign;
+        },
+        load: function (loadOptions) {
+          if (loadOptions.searchOperation && loadOptions.dataField) {
+            loadOptions.take = 999999;
+          }
+          return _campaignDomains(campId, dataStart, dataEnd, loadOptions.skip, loadOptions.take, loadOptions.sort, loadOptions.order, loadOptions.filter, loadOptions.totalSummary);
+        }
+      });
+    }
 
-    _this.cpaReport = cpaReport;
     _this.nameCampaigns = nameCampaigns;
-    _this.graphinfo = graphinfo;
-    _this.campaignDomains = campaignDomains
 
+    _this.getChartStore = getChartStore;
+    _this.getGridCampaignStore = getGridCampaignStore;
+    _this.getBoxPlotStore = getBoxPlotStore;
   }
 })();

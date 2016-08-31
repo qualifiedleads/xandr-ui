@@ -10,6 +10,6 @@ urlpatterns = [
                   url(r'^admin/', admin.site.urls),
                   url(r'^api/v1/', include('rtb.urls')),
                   url(r'^docs/', include('rest_framework_docs.urls')),
-                  url(r'^$', RedirectView.as_view(url='/client/index.html'))
+                  url(r'^$', RedirectView.as_view(url='/client/dist/index.html'))
               ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 

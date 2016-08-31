@@ -654,7 +654,7 @@ def dayly_task(day=None, load_objects_from_services=True, output=None):
         day = SiteDomainPerformanceReport.objects.aggregate(m=Max('day'))['m']
         print 'Last loaded day', day
         if day:
-            day = day.replace(tzinfo=utc)
+            day = datetime.datetime(day=day.day, month=day.month, year=day.year, tzinfo=utc)
             day+=one_day
         else:
             # empty database

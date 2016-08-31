@@ -648,7 +648,7 @@ def dayly_task(day=None, load_objects_from_services=True, output=None):
 
     yesterday = datetime.datetime.utcnow().replace(hour=0, minute=0,second=0,microsecond=0, tzinfo=utc)-one_day
     if day:
-        day = day.replace(tzinfo=utc)
+        day = datetime.datetime(day=day.day, month=day.month, year=day.year, tzinfo=utc)
         last_day=day
     else:
         day = SiteDomainPerformanceReport.objects.aggregate(m=Max('day'))['m']

@@ -24,6 +24,34 @@
         });
     }
 
+    function campaignTargeting(id, from, to) {
+      return {
+        domains: [
+          "about.com",
+          "celebritytoob.com",
+          "lotto.pch.com",
+          "verywell.com",
+        ],
+        geo: [
+          "US",
+          "UK",
+          "NZ"
+        ],
+        device: [
+          "Desktops & Laptops",
+          "AND",
+          "Web"
+        ],
+        block: [
+          "Phones",
+          "Tablets",
+          "Mobile web",
+          "Apps"
+        ]
+      };
+    }
+
+    _this.campaignTargeting = campaignTargeting;
     _this.campaignDomains = campaignDomains;
 
 

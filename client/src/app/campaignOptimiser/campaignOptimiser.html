@@ -1,0 +1,57 @@
+<div class="container-fluid optimiser-camp col-lg-12  col-md-12 col-sm-12">
+  <div class="row stats-header">
+    <div  dx-button="CO.UI.navCamp"></div>
+    <div class="groupHeadOpti">
+      <span class="glyphicon glyphicon-cog iconOpti"></span>
+      <span translate="CO.OPTIMISER-FOR" class="camp-header"></span>:<span class="camp-header">
+        <a href="" ui-sref="home.campaign.details({id: CO.campId})"  >{{CO.campName}} </a>
+        <div class="control pull-right" dx-select-box="CO.UI.datePiker"></div>
+      </span>
+    </div>
+  </div>
+  <div class="row camp-content1">
+    <div class="transformable" ng-class="{'smallTargeting':isSmall, 'bigTargeting':!isSmall}" >
+      <table class="table table-bordered">
+        <tr>
+          <td class="col-md-3">
+            <h5>Domain Lists & Domains</h5>
+            <p ng-repeat="domain in CO.object.domains">
+              {{domain}} - Domain
+            </p>
+          </td>
+          <td class="col-md-2">
+            <h5>Geo</h5>
+            <p ng-repeat="geo in CO.object.geo">
+              {{geo}}
+            </p>
+          </td>
+          <td class="col-md-5">
+            <div class="col-md-6">
+              <h5>Device and Supply Type</h5>
+              <p ng-repeat="device in CO.object.device">
+                {{device}}
+              </p>
+            </div>
+            <div class="col-md-6">
+              <h5>Blocking</h5>
+              <p ng-repeat="block in CO.object.block">
+                {{block}}
+              </p>
+            </div>
+          </td>
+          <td class="col-md-2">
+
+          </td>
+        </tr>
+      </table>
+    </div>
+
+    <h3 class="titleRules" translate="CO.RULES">Rules for All Domains:</h3>
+
+    <br><br>
+    <hr class="lineMiddle">
+
+
+
+  </div>
+</div>

@@ -6,14 +6,13 @@
   .controller('CampaignOptimiserController', CampaignOptimiserController);
 
   /** @ngInject */
-  function CampaignOptimiserController($window, $state, $localStorage, $translate, Campaign, CampaignOptimiser) {
+  function CampaignOptimiserController($window, $state, $localStorage, $scope, $translate, Campaign, CampaignOptimiser) {
     var vm = this;
-    var CampaignOptimiser = CampaignOptimiser;
     vm.campName = Campaign.campaign;
     vm.campId = Campaign.id;
     var LC = $translate.instant;
     vm.object = CampaignOptimiser.campaignTargeting(1,1,1);
-
+    vm.grindIf = 1;
 
     //region DATE PIKER
     /** DATE PIKER **/
@@ -86,11 +85,10 @@
     ];
     //endregion
 
-
     //region MULTIPLE
     vm.selectedItems = [];
     vm.state = '';
-    vm.selectCell = {
+/*    vm.selectCell = {
       dataSource: [
         {
           'name': 'White List',
@@ -110,7 +108,7 @@
       displayExpr: 'name',
       valueExpr: vm.state,
       onSelectionChanged: function () {
-        var selectedRows = $window.$('#gridContainer2')[0].querySelectorAll('[aria-selected="true"]');
+        var selectedRows = $window.$('.gridContainerWhite')[0].querySelectorAll('[aria-selected="true"]');
         if (selectedRows[0]) {
           var selectedArr = [];
           for (var i = 0; i < selectedRows.length; i++) {
@@ -118,7 +116,7 @@
           }
         }
       }
-    };
+    };*/
 
     function headerFilterColumn(source, dataField) {
       return source.dataSource.postProcess = function(data) {
@@ -133,7 +131,34 @@
     }
     //endregion
 
+    //region STORE
+    vm.gridStore = CampaignOptimiser.getGridCampaignStore(vm.campId, vm.dataStart, vm.dataEnd);
+
+    //endregion
+
+
     vm.UI = {
+      showGridWhiteList: {
+        text: 'Whitelist',
+        onClick: function (e) {
+          vm.grindIf = 1;
+          $scope.$apply();
+        }
+      },
+      showGridBlackList: {
+        text: 'Blacklisted',
+        onClick: function (e) {
+          vm.grindIf = 2;
+          $scope.$apply();
+        }
+      },
+      showGridTempSuspendList: {
+        text: 'Temp. Suspend',
+        onClick: function (e) {
+          vm.grindIf = 3;
+          $scope.$apply();
+        }
+      },
       navCamp: {
         text: LC('CO.CAMPAIGN-HOME'),
         onClick: function () {
@@ -153,26 +178,9 @@
         }
       },
       dataGridOptionsCampaign: {
-        onInitialized: function (data) {
-          vm.dataGridOptionsMultipleFunc = data.component;
-          vm.dataGridOptionsMultipleFunc._controllers.columns._commandColumns[1].visibleIndex = 9;
-          vm.dataGridOptionsMultipleFunc._controllers.columns._commandColumns[1].width = 35;
-        },
-        onRowPrepared: function (data) {
-          vm.objectData = data;
-          if (vm.objectData.rowType == 'data') {
-            var allRowBtns = data.rowElement[0].childNodes[11];
-            var state = data.data.state;
-            if (state.whiteList == "true") {
-              allRowBtns.classList.add('active-white');
-            }
-            if (state.blackList == "true") {
-              allRowBtns.classList.add('active-black');
-            }
-            if (state.suspended == "true") {
-              allRowBtns.classList.add('active-suspended');
-            }
-          }
+        editing: {
+          mode: "batch",
+          allowUpdating: true
         },
         alignment: 'left',
         headerFilter: {
@@ -183,7 +191,7 @@
           applyFilter: "auto"
         },
         bindingOptions: {
-          dataSource: 'campmain.gridStore'
+          dataSource: 'CO.gridStore'
         },
         paging: {
           pageSize: 10
@@ -207,6 +215,7 @@
             dataField: 'placement',
             alignment: 'center',
             dataType: 'number',
+            allowEditing: false,
             headerFilter: {
               dataSource: function(source) {
                 return headerFilterColumn(source, 'placement');
@@ -218,6 +227,7 @@
             dataField: 'NetworkPublisher',
             alignment: 'center',
             dataType: 'string',
+            allowEditing: false,
             headerFilter: {
               dataSource: function(source) {
                 return headerFilterColumn(source, 'NetworkPublisher');
@@ -229,6 +239,7 @@
             dataField: 'conv',
             alignment: 'center',
             dataType: 'number',
+            allowEditing: false,
             headerFilter: {
               dataSource: function (source) {
                 return headerFilterColumn(source, 'conv');
@@ -241,6 +252,7 @@
             dataType: 'number',
             sortOrder: 'desc',
             alignment: 'center',
+            allowEditing: false,
             headerFilter: {
               dataSource: function (source) {
                 return headerFilterColumn(source, 'imp');
@@ -252,6 +264,7 @@
             dataField: 'cpa',
             dataType: 'number',
             alignment: 'center',
+            allowEditing: false,
             headerFilter: {
               dataSource: function (source) {
                 return headerFilterColumn(source, 'cpa');
@@ -263,6 +276,7 @@
             dataField: 'cost',
             alignment: 'center',
             dataType: 'number',
+            allowEditing: false,
             headerFilter: {
               dataSource: function (source) {
                 return headerFilterColumn(source, 'cost');
@@ -274,6 +288,7 @@
             dataField: 'clicks',
             alignment: 'center',
             dataType: 'number',
+            allowEditing: false,
             headerFilter: {
               dataSource: function (source) {
                 return headerFilterColumn(source, 'clicks');
@@ -285,6 +300,7 @@
             dataField: 'cpc',
             alignment: 'center',
             dataType: 'number',
+            allowEditing: false,
             headerFilter: {
               dataSource: function (source) {
                 return headerFilterColumn(source, 'cpc');
@@ -296,6 +312,7 @@
             dataField: 'cpm',
             alignment: 'center',
             dataType: 'number',
+            allowEditing: false,
             headerFilter: {
               dataSource: function (source) {
                 return headerFilterColumn(source, 'cpm');
@@ -331,6 +348,8 @@
             visible: false,
             width: 80,
             dataType: 'number',
+
+            allowEditing: false,
             headerFilter: {
               dataSource: function (source) {
                 return headerFilterColumn(source, 'imps_viewed');
@@ -344,6 +363,7 @@
             visible: false,
             width: 100,
             dataType: 'number',
+            allowEditing: false,
             headerFilter: {
               dataSource: function (source) {
                 return headerFilterColumn(source, 'view_measured_imps');
@@ -357,6 +377,7 @@
             visible: false,
             width: 120,
             dataType: 'number',
+            allowEditing: false,
             headerFilter: {
               dataSource: function (source) {
                 return headerFilterColumn(source, 'view_measurement_rate');
@@ -370,6 +391,7 @@
             visible: false,
             width: 80,
             dataType: 'number',
+            allowEditing: false,
             headerFilter: {
               dataSource: function (source) {
                 return headerFilterColumn(source, 'view_rate');
@@ -507,7 +529,7 @@
               column: "conv",
               summaryType: "sum",
               customizeText: function (data) {
-                data.valueText = 'Conv: ' + vm.Camp.totalSummary.conv;
+                data.valueText = 'Conv: ' + CampaignOptimiser.totalSummary.conv;
                 return data.valueText;
               }
             },
@@ -515,7 +537,7 @@
               column: "imp",
               summaryType: "sum",
               customizeText: function (data) {
-                data.valueText = 'Imp: ' + vm.Camp.totalSummary.imp;
+                data.valueText = 'Imp: ' + CampaignOptimiser.totalSummary.imp;
                 return data.valueText;
               }
             },
@@ -524,7 +546,7 @@
               summaryType: "sum",
               valueFormat: "currency",
               customizeText: function (data) {
-                data.valueText = 'CPA: $' + vm.Camp.totalSummary.cpa.toFixed(4);
+                data.valueText = 'CPA: $' + CampaignOptimiser.totalSummary.cpa.toFixed(4);
                 return data.valueText;
               }
             },
@@ -533,7 +555,7 @@
               summaryType: "sum",
               valueFormat: "currency",
               customizeText: function (data) {
-                data.valueText = 'Cost: $' + vm.Camp.totalSummary.cost.toFixed(2);
+                data.valueText = 'Cost: $' + CampaignOptimiser.totalSummary.cost.toFixed(2);
                 return data.valueText;
               }
             },
@@ -541,7 +563,7 @@
               column: "clicks",
               summaryType: "sum",
               customizeText: function (data) {
-                data.valueText = 'Clicks: ' + vm.Camp.totalSummary.clicks;
+                data.valueText = 'Clicks: ' + CampaignOptimiser.totalSummary.clicks;
                 return data.valueText;
               }
             },
@@ -549,7 +571,7 @@
               column: "cpc",
               summaryType: "sum",
               customizeText: function (data) {
-                data.valueText = 'CPC: $' + vm.Camp.totalSummary.cpc.toFixed(4);
+                data.valueText = 'CPC: $' + CampaignOptimiser.totalSummary.cpc.toFixed(4);
                 return data.valueText;
               }
             },
@@ -557,7 +579,7 @@
               column: "cpm",
               summaryType: "sum",
               customizeText: function (data) {
-                data.valueText = 'CPM: $' + vm.Camp.totalSummary.cpm.toFixed(4);
+                data.valueText = 'CPM: $' + CampaignOptimiser.totalSummary.cpm.toFixed(4);
                 return data.valueText;
               }
             },
@@ -565,7 +587,7 @@
               column: "cvr",
               summaryType: "sum",
               customizeText: function (data) {
-                data.valueText = 'CVR: ' + vm.Camp.totalSummary.cvr.toFixed(4);
+                data.valueText = 'CVR: ' + CampaignOptimiser.totalSummary.cvr.toFixed(4);
                 return data.valueText;
               }
             },
@@ -573,7 +595,7 @@
               column: "ctr",
               summaryType: "sum",
               customizeText: function (data) {
-                data.valueText = 'CTR: ' + vm.Camp.totalSummary.ctr.toFixed(4);
+                data.valueText = 'CTR: ' + CampaignOptimiser.totalSummary.ctr.toFixed(4);
                 return data.valueText;
               }
             }
@@ -585,10 +607,70 @@
           width: 400,
           emptyPanelText: 'A place to hide the columns'
         },
-        // selection: {
-        //   mode: 'multiple',
-        //   showCheckBoxesMode: 'always'
-        // },
+        selection: {
+          mode: 'multiple',
+          allowSelectAll: false,
+          showCheckBoxesMode: 'always'
+        },
+        onInitialized: function (data) {
+          vm.dataGridOptionsMultipleFunc = data.component;
+          vm.dataGridOptionsMultipleFunc._controllers.columns._commandColumns[1].visibleIndex = 9;
+          vm.dataGridOptionsMultipleFunc._controllers.columns._commandColumns[1].width = 35;
+        },
+        onRowPrepared: function (data) {
+          vm.objectData = data;
+          if (vm.objectData.rowType == 'data') {
+            var allRowBtns = data.rowElement[0].childNodes[11];
+            var state = data.data.state;
+            if (state.whiteList == "true") {
+              allRowBtns.classList.add('active-white');
+            }
+            if (state.blackList == "true") {
+              allRowBtns.classList.add('active-black');
+            }
+            if (state.suspended == "true") {
+              allRowBtns.classList.add('active-suspended');
+            }
+          }
+        },
+        onEditorPreparing: function (info) {
+          if ((info.parentType == 'filterRow') && (info.caption=='State')) {
+            info.editorElement.dxSelectBox({
+              dataSource: [
+                {
+                  'name': 'White List',
+                  'state': 'whiteList'
+                },
+                {
+                  'name': 'Black List',
+                  'state': 'blackList'
+                },
+                {
+                  'name': 'Suspended',
+                  'state': 'suspended'
+                }
+              ],
+              placeholder: 'Select a state',
+              displayExpr: 'name',
+              valueExpr: vm.state,
+              onSelectionChanged: function (e) {
+                var selectedRows = $window.$('.gridContainerWhite')[0].querySelectorAll('[aria-selected="true"]');
+                if (selectedRows[0]) {
+                  var selectedArr = [];
+                  for (var i = 0; i < selectedRows.length; i++) {
+                    selectedArr.push(selectedRows[i].firstChild.innerText);
+                  }
+                  if (selectedArr != []){
+
+                  }
+                  e;
+                  selectedArr;
+                }
+              }
+            });
+            info.cancel = true;
+          }
+        },
         onSelectionChanged: function (data) {
           vm.selectedItems = data.selectedRowsData;
           vm.disabled = !vm.selectedItems.length;

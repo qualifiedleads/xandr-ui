@@ -50,8 +50,15 @@
 
     <br><br>
     <hr class="lineMiddle">
-
+    <span class="optimizerTitle">Optimizer</span>
+    <div dx-button="CO.UI.showGridWhiteList"></div>
+    <div dx-button="CO.UI.showGridBlackList"></div>
+    <div dx-button="CO.UI.showGridTempSuspendList"></div>
+    <div ng-if="CO.grindIf == 1" class="gridContainerWhite" dx-data-grid="CO.UI.dataGridOptionsCampaign"></div>
+    <div ng-if="CO.grindIf == 2" class="gridContainer2" dx-data-grid="CO.UI.dataGridOptionsCampaign"></div>
+    <div ng-if="CO.grindIf == 3" class="gridContainer2" dx-data-grid="CO.UI.dataGridOptionsCampaign"></div>
 
 
   </div>
+</div>
 </div>

@@ -120,7 +120,7 @@
     vm.optimiser = {
       text: LC('CAMP.GO-OPTIMISER'),
       onClick: function () {
-        $state.go('home.campaignoptimiser', {"id": vm.campId});
+        $state.go('home.campaignOptimiser', {"id": vm.campId});
       }
     };
 

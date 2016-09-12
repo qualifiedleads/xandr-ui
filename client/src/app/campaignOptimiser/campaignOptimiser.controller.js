@@ -14,6 +14,7 @@
     vm.object = CampaignOptimiser.campaignTargeting(1,1,1);
     vm.grindIf = 1;
 
+    console.log(vm.content);
     //region DATE PIKER
     /** DATE PIKER **/
     if ($localStorage.SelectedTime == null) {
@@ -133,9 +134,7 @@
 
     //region STORE
     vm.gridStore = CampaignOptimiser.getGridCampaignStore(vm.campId, vm.dataStart, vm.dataEnd);
-
     //endregion
-
 
     vm.UI = {
       showGridWhiteList: {
@@ -158,6 +157,62 @@
           vm.grindIf = 3;
           $scope.$apply();
         }
+      },
+      popSuspend: {
+        target: ".suspended",
+        position: "top",
+        width: 300,
+        shading: true,
+        shadingColor: "rgba(0, 0, 0, 0.5)",
+        visible: false
+      },
+      popRadio: {
+        items: ["re-test in", 'Send to "Suspend list" until I get to it'],
+        value: "re-test in",
+/*        itemTemplate: function(itemData, _, itemElement){
+          if (itemData == 're-test in') {
+            itemElement
+            .parent().addClass('re-test-in')
+            .text(itemData)
+            .append( "<div class='timeRadio'>Test</div>" );
+
+            $window.$('div.re-test-in').append( "<p>Test</p>" );
+     /!*       $window.$('.re-test-in').dxButton({
+              text: 'white',
+              height: 30,
+              width: 89,
+              disabled: false,
+              onClick: function (e) {
+
+              }
+            }).appendTo('div.re-test-in');*!/
+          } else {
+            itemElement
+            .parent().addClass(itemData.toLowerCase())
+            .text(itemData);
+          }
+        },*/
+        onValueChanged: function (e) {
+          if (e.previousValue != 're-test in') {
+/*           var checkbox = e.element.find(".dx-radiobutton-checked")
+           var item = $window.$('<div></div>').dxButton({
+              text: 'white',
+              height: 30,
+              width: 89,
+              disabled: false,
+              onClick: function (e) {
+
+              }
+            })
+            checkbox.append(item);*/
+            //.addClass('white-list').appendTo('div.dx-template-wrapper.dx-item-content');
+            //$window.$("#popover4").dxPopover("instance").toggle();
+          }
+        }
+      },
+      popRetestRadio: {
+        items: ["24hrs", "3 days", "7 days", "Specific date"],
+
       },
       navCamp: {
         text: LC('CO.CAMPAIGN-HOME'),
@@ -403,7 +458,7 @@
             width: 300,
             columnIndex: 16,
             dataField: 'state',
-            //headerCellTemplate: 'headerCellTemplate',
+            allowEditing: false,
             headerFilter: {
               dataSource: [ {
                 text: "White",
@@ -423,8 +478,7 @@
                 width: 89,
                 disabled: false,
                 onClick: function (e) {
-
-                  vm.Camp.editCampaignDomains(vm.campId,options.data.placement,'white')
+                  CampaignOptimiser.editCampaignDomains(vm.campId,options.data.placement,'white')
                   .then(function (res) {
                     return res;
                   })
@@ -455,8 +509,7 @@
                 width: 89,
                 disabled: false,
                 onClick: function (e) {
-
-                  vm.Camp.editCampaignDomains(vm.campId,options.data.placement,'black')
+                  CampaignOptimiser.editCampaignDomains(vm.campId,options.data.placement,'black')
                   .then(function (res) {
                     return res;
                   })
@@ -487,7 +540,7 @@
                 width: 95,
                 disabled: false,
                 onClick: function (e) {
-                  vm.Camp.editCampaignDomains(vm.campId,options.data.placement,'suspend')
+/*                  CampaignOptimiser.editCampaignDomains(vm.campId,options.data.placement,'suspend')
                   .then(function (res) {
                     return res;
                   })
@@ -508,7 +561,10 @@
                     parentWhiteBtn.classList.remove('active-white');
                     parentWhiteBtn.classList.remove('active-black');
 
-                  }
+                  }*/
+
+                  $window.$("#popover4").dxPopover("instance").toggle();
+
 
                 }
               }).addClass('suspended').appendTo(container);
@@ -639,15 +695,15 @@
               dataSource: [
                 {
                   'name': 'White List',
-                  'state': 'whiteList'
+                  'state': 'white'
                 },
                 {
                   'name': 'Black List',
-                  'state': 'blackList'
+                  'state': 'black'
                 },
                 {
                   'name': 'Suspended',
-                  'state': 'suspended'
+                  'state': 'suspend'
                 }
               ],
               placeholder: 'Select a state',
@@ -660,11 +716,15 @@
                   for (var i = 0; i < selectedRows.length; i++) {
                     selectedArr.push(selectedRows[i].firstChild.innerText);
                   }
-                  if (selectedArr != []){
-
+                  if (selectedArr != '[]'){
+                    CampaignOptimiser.editCampaignDomains(vm.campId, selectedArr, e.selectedItem.state).then(function (res) {
+                      $('.gridContainerWhite').dxDataGrid('instance').refresh();
+                    }).catch(function (err) {
+                      $('.gridContainerWhite').dxDataGrid('instance').refresh();
+                    });
                   }
-                  e;
-                  selectedArr;
+                } else {
+                  console.log('поп овер на невыбраные селекты');
                 }
               }
             });

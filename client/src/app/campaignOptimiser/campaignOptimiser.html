@@ -58,7 +58,28 @@
     <div ng-if="CO.grindIf == 2" class="gridContainer2" dx-data-grid="CO.UI.dataGridOptionsCampaign"></div>
     <div ng-if="CO.grindIf == 3" class="gridContainer2" dx-data-grid="CO.UI.dataGridOptionsCampaign"></div>
 
+    <div id="popover4"  dx-popover="CO.UI.popSuspend">
+      <div data-options="dxTemplate: { name: 'content' }">
+<!--        <div dx-radio-group="CO.UI.popRadio">
+          <div id="popRetestRadio" dx-radio-group="CO.UI.popRetestRadio">
+
+          </div>
+        </div>-->
+        <input id="first" type="radio" name="content" ng-model="CO.content" ng-value="1">
+        <label for="first">re-test in</label>
+        <div ng-if="CO.content == 1" class="radioReTest">
+          <label><input type="radio" name="optradio" ng-model="CO.reTestTime" ng-value="1">24hrs</label><br>
+          <label><input type="radio" name="optradio" ng-model="CO.reTestTime" ng-value="3">3 days</label><br>
+          <label><input type="radio" name="optradio" ng-model="CO.reTestTime" ng-value="3">7 days</label><br>
+          <label><input type="radio" name="optradio" ng-model="CO.reTestTime" ng-value="spec">Specific date</label><br>
+        </div>
+        <br />
+        <input id="other" type="radio" name="content" ng-model="CO.content" ng-value="2">
+        <label for="other">Show other content</label>
+
+
+      </div>
+    </div>
 
   </div>
-</div>
 </div>

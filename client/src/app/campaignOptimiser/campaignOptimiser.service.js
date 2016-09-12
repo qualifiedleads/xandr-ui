@@ -123,7 +123,23 @@
       };
     }
 
+    function editCampaignDomains(id,placement,activeState) {
+      return $http({
+        method: 'PUT',
+        url: '/api/v1/campaigns/' + encodeURI(id) + '/domains',
+        headers: {'Authorization': 'Token ' + $cookies.get('token')},
+        params: {
+          placement: placement,
+          activeState: activeState,
+        }
+      })
+      .then(function (res) {
+        return res.data;
+      });
+    }
+
     _this.campaignTargeting = campaignTargeting;
+    _this.editCampaignDomains = editCampaignDomains;
     _this.getGridCampaignStore = getGridCampaignStore;
 
   }

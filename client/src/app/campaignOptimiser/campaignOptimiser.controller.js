@@ -13,7 +13,7 @@
     var LC = $translate.instant;
     vm.object = CampaignOptimiser.campaignTargeting(1,1,1);
     vm.grindIf = 1;
-
+    var dataSuspend = null;
 
     //region DATE PIKER
     /** DATE PIKER **/
@@ -135,9 +135,12 @@
         }
       },
       dateFormatPop :{
-        visible: false,
+        disabled: true,
         type: "date",
-        value: now
+        value: now,
+        onValueChanged: function (e) {
+          dataSuspend = e.value;
+        }
       },
       radioGroupMain: {
         items: ["24 hrs", "3 days", "7 days", "Specific date"],
@@ -151,11 +154,12 @@
             //e;
             var datePik = $('#dateFormatPop')
             .dxDateBox('instance');
-            datePik.option('visible', true);
+            datePik.option('disabled', false);
           } else {
             var datePik = $('#dateFormatPop')
             .dxDateBox('instance');
-            datePik.option('visible', false);
+            datePik.option('disabled', true);
+            dataSuspend = null;
           }
 
           /*$scope.list = tasks.filter(function(item) {
@@ -166,9 +170,10 @@
       radioGroupSend: {
         items: ["Send to 'Suspend list' until I get to it"],
         onValueChanged: function(e) {
+          dataSuspend = null;
           var datePik = $('#dateFormatPop')
           .dxDateBox('instance');
-          datePik.option('visible', false);
+          datePik.option('disabled', true);
 
           var k = $('#radioGroupMain')
           .dxRadioGroup('instance');
@@ -191,6 +196,7 @@
         text: 'OK',
         disabled: false,
         onClick: function () {
+          dataSuspend;
 /*          CountersRegister.cancelAverage(vm.selectedRowKey, vm.textBoxsimpleValue)
           .then(function (result) {
             if (result.data == true) {

@@ -48,6 +48,8 @@
 
     <h3 class="titleRules" translate="CO.RULES">Rules for All Domains:</h3>
 
+
+
     <br><br>
     <hr class="lineMiddle">
     <span class="optimizerTitle">Optimizer</span>
@@ -58,28 +60,42 @@
     <div ng-if="CO.grindIf == 2" class="gridContainer2" dx-data-grid="CO.UI.dataGridOptionsCampaign"></div>
     <div ng-if="CO.grindIf == 3" class="gridContainer2" dx-data-grid="CO.UI.dataGridOptionsCampaign"></div>
 
-    <div id="popover4"  dx-popover="CO.UI.popSuspend">
-      <div data-options="dxTemplate: { name: 'content' }">
-<!--        <div dx-radio-group="CO.UI.popRadio">
-          <div id="popRetestRadio" dx-radio-group="CO.UI.popRetestRadio">
+    <div id="popoverSuspend" >
+      <div data-options="dxTemplate: { name: 'test_tmpl' }">
+        <!--        <input id="first" type="radio" name="content" ng-model="RootController.reTestCheck" value="reTest" ng-change="$parent.RootController.retestchecked()" >
+                <label for="first">re-test in</label>
+                <div ng-if="RootController.reTestCheck == 'reTest'"  class="radioReTest">
+                  <label><input type="radio" name="optradio" ng-model="CO.reTestTime" ng-value="1">24hrs</label><br>
+                  <label><input type="radio" name="optradio" ng-model="CO.reTestTime" ng-value="3">3 days</label><br>
+                  <label><input type="radio" name="optradio" ng-model="CO.reTestTime" ng-value="7">7 days</label><br>
+                  <label><input type="radio" name="optradio" ng-model="CO.reTestTime" ng-value="spec">Specific date</label><br>
+                </div>
+                <br />
+                <input id="other" type="radio" name="content" ng-model="RootController.reTestCheck" value="others"  ng-change="RootController.retestchecked()">
+                <label for="other">Show other content</label>-->
 
-          </div>
-        </div>-->
-        <input id="first" type="radio" name="content" ng-model="CO.content" ng-value="1">
-        <label for="first">re-test in</label>
-        <div ng-if="CO.content == 1" class="radioReTest">
-          <label><input type="radio" name="optradio" ng-model="CO.reTestTime" ng-value="1">24hrs</label><br>
-          <label><input type="radio" name="optradio" ng-model="CO.reTestTime" ng-value="3">3 days</label><br>
-          <label><input type="radio" name="optradio" ng-model="CO.reTestTime" ng-value="3">7 days</label><br>
-          <label><input type="radio" name="optradio" ng-model="CO.reTestTime" ng-value="spec">Specific date</label><br>
-        </div>
-        <br />
-        <input id="other" type="radio" name="content" ng-model="CO.content" ng-value="2">
-        <label for="other">Show other content</label>
+
 
 
       </div>
     </div>
 
+
+
+    <div class="counter-popup-group" dx-popup="CO.UI.confirmPopup" >
+      <div class="title" >Suspend</div>
+
+      <div id="radioGroupMain" dx-radio-group="CO.UI.radioGroupMain" ></div>
+      <div id="dateFormatPop" style="margin-left: 35px" dx-date-box="CO.UI.dateFormatPop"></div>
+
+      <div id="radioGroupSend" dx-radio-group="CO.UI.radioGroupSend" ></div>
+
+      <div class="button" id="buttonOk" dx-button="CO.UI.confirmPopupOk"></div>
+      <div class="button" dx-button="CO.UI.confirmPopupCancel"></div>
+
+
+    </div>
   </div>
+
+</div>
 </div>

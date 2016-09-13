@@ -6,7 +6,7 @@
   .controller('CampaignOptimiserController', CampaignOptimiserController);
 
   /** @ngInject */
-  function CampaignOptimiserController($window, $state, $localStorage, $scope, $translate, Campaign, CampaignOptimiser) {
+  function CampaignOptimiserController($window,  $state, $localStorage, $scope, $rootScope, $translate, Campaign, CampaignOptimiser) {
     var vm = this;
     vm.campName = Campaign.campaign;
     vm.campId = Campaign.id;
@@ -14,7 +14,7 @@
     vm.object = CampaignOptimiser.campaignTargeting(1,1,1);
     vm.grindIf = 1;
 
-    console.log(vm.content);
+
     //region DATE PIKER
     /** DATE PIKER **/
     if ($localStorage.SelectedTime == null) {
@@ -86,38 +86,11 @@
     ];
     //endregion
 
+
     //region MULTIPLE
     vm.selectedItems = [];
     vm.state = '';
-/*    vm.selectCell = {
-      dataSource: [
-        {
-          'name': 'White List',
-          'state': 'whiteList'
-        },
-        {
-          'name': 'Black List',
-          'state': 'blackList'
-        },
-        {
-          'name': 'Suspended',
-          'state': 'suspended'
-        }
-      ],
-      disabled: true,
-      placeholder: 'Select a state',
-      displayExpr: 'name',
-      valueExpr: vm.state,
-      onSelectionChanged: function () {
-        var selectedRows = $window.$('.gridContainerWhite')[0].querySelectorAll('[aria-selected="true"]');
-        if (selectedRows[0]) {
-          var selectedArr = [];
-          for (var i = 0; i < selectedRows.length; i++) {
-            selectedArr.push(selectedRows[i].firstChild.innerText);
-          }
-        }
-      }
-    };*/
+
 
     function headerFilterColumn(source, dataField) {
       return source.dataSource.postProcess = function(data) {
@@ -135,6 +108,9 @@
     //region STORE
     vm.gridStore = CampaignOptimiser.getGridCampaignStore(vm.campId, vm.dataStart, vm.dataEnd);
     //endregion
+
+    var startDate = new Date(1981, 3, 27),
+        now = new Date();
 
     vm.UI = {
       showGridWhiteList: {
@@ -158,61 +134,86 @@
           $scope.$apply();
         }
       },
-      popSuspend: {
-        target: ".suspended",
-        position: "top",
-        width: 300,
-        shading: true,
-        shadingColor: "rgba(0, 0, 0, 0.5)",
-        visible: false
+      dateFormatPop :{
+        visible: false,
+        type: "date",
+        value: now
       },
-      popRadio: {
-        items: ["re-test in", 'Send to "Suspend list" until I get to it'],
-        value: "re-test in",
-/*        itemTemplate: function(itemData, _, itemElement){
-          if (itemData == 're-test in') {
-            itemElement
-            .parent().addClass('re-test-in')
-            .text(itemData)
-            .append( "<div class='timeRadio'>Test</div>" );
+      radioGroupMain: {
+        items: ["24 hrs", "3 days", "7 days", "Specific date"],
+        onValueChanged: function(e) {
+         var k = $('#radioGroupSend')
+         .dxRadioGroup('instance');
+          if (!e.value) return;
+          k.option('value', false);
 
-            $window.$('div.re-test-in').append( "<p>Test</p>" );
-     /!*       $window.$('.re-test-in').dxButton({
-              text: 'white',
-              height: 30,
-              width: 89,
-              disabled: false,
-              onClick: function (e) {
-
-              }
-            }).appendTo('div.re-test-in');*!/
+          if (e.value == "Specific date") {
+            //e;
+            var datePik = $('#dateFormatPop')
+            .dxDateBox('instance');
+            datePik.option('visible', true);
           } else {
-            itemElement
-            .parent().addClass(itemData.toLowerCase())
-            .text(itemData);
+            var datePik = $('#dateFormatPop')
+            .dxDateBox('instance');
+            datePik.option('visible', false);
           }
-        },*/
-        onValueChanged: function (e) {
-          if (e.previousValue != 're-test in') {
-/*           var checkbox = e.element.find(".dx-radiobutton-checked")
-           var item = $window.$('<div></div>').dxButton({
-              text: 'white',
-              height: 30,
-              width: 89,
-              disabled: false,
-              onClick: function (e) {
 
-              }
-            })
-            checkbox.append(item);*/
-            //.addClass('white-list').appendTo('div.dx-template-wrapper.dx-item-content');
-            //$window.$("#popover4").dxPopover("instance").toggle();
-          }
+          /*$scope.list = tasks.filter(function(item) {
+            return priorities[item.priorityIndex] == e.value;
+          });*/
         }
       },
-      popRetestRadio: {
-        items: ["24hrs", "3 days", "7 days", "Specific date"],
+      radioGroupSend: {
+        items: ["Send to 'Suspend list' until I get to it"],
+        onValueChanged: function(e) {
+          var datePik = $('#dateFormatPop')
+          .dxDateBox('instance');
+          datePik.option('visible', false);
 
+          var k = $('#radioGroupMain')
+          .dxRadioGroup('instance');
+          if (!e.value) return;
+          k.option('value', false);
+        }
+      },
+      confirmPopup: {
+        onInitialized: function (data) {
+          vm.confirmPopup = data.component;
+        },
+        bindingOptions: {
+          visible: 'crc.confirmPopupVisible'
+        },
+        showTitle: false,
+        width: 320,
+        height: 240
+      },
+      confirmPopupOk: {
+        text: 'OK',
+        disabled: false,
+        onClick: function () {
+/*          CountersRegister.cancelAverage(vm.selectedRowKey, vm.textBoxsimpleValue)
+          .then(function (result) {
+            if (result.data == true) {
+              $window.DevExpress.ui.notify(LC('CRC.CANCEL_AVERAGE.SUCCESS'), "success", 3000);
+              $localStorage.groupTabs = 0;
+              $state.reload();
+            }
+          })
+          .catch(function (err) {
+            ErrorMessages.process(err);
+          });*/
+          vm.confirmPopupVisible = false;
+          vm.confirmPopup.option('visible', false);
+          $scope.$apply();
+        }
+      },
+      confirmPopupCancel: {
+        text: 'Cancel',
+        onClick: function () {
+          vm.confirmPopupVisible = false;
+          vm.confirmPopup.option('visible', false);
+          $scope.$apply();
+        }
       },
       navCamp: {
         text: LC('CO.CAMPAIGN-HOME'),
@@ -563,11 +564,22 @@
 
                   }*/
 
-                  $window.$("#popover4").dxPopover("instance").toggle();
+/*                  $window.$("#popoverSuspend").dxPopover({
+                    target: ".suspended" + options.data.placement,
+                    position: "top",
+                    width: 300,
+                    shading: false,
+                    shadingColor: "rgba(0, 0, 0, 0.5)",
+                    visible: false,
+                    contentTemplate: 'test_tmpl'
+                  }).dxPopover("instance").toggle();
+                  $scope.$apply();*/
 
-
+                  vm.confirmPopupVisible = true;
+                  vm.confirmPopup.option('visible', true);
                 }
-              }).addClass('suspended').appendTo(container);
+              }).addClass('suspended' + options.data.placement).appendTo(container);
+
             }
           }
         ],

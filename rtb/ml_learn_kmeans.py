@@ -56,7 +56,8 @@ def learn (placement_id=None,featuresList=None):
     #print queryResults
     maxDay=queryResults[0]
 
-    #len(columnsfeatures)#вместо 3 при умножении Nfeatures=i*3
+    #len(columnsfeatures)#������ 3 ��� ��������� Nfeatures=i*3
+    #maxDay=
     colNumb = 0
     for i in xrange(1, maxDay):#learning
         kmeansSpaces.append(KMeans(n_clusters=2, init='k-means++'))

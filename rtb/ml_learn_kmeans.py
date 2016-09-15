@@ -10,7 +10,7 @@ import psycopg2
 from psycopg2 import extras
 from datetime import datetime
 from datetime import timedelta
-from models.ML_kmeans_model import PlacementDailyFeatures, ClustersCentroids, PlacementsClustersKmeans
+from models.ml_kmeans_model import MLPlacementDailyFeatures, MLClustersCentroidsKmeans, MLPlacementsClustersKmeans
 
 from rest_framework.decorators import api_view, parser_classes
 from rest_framework.response import Response
@@ -51,7 +51,7 @@ def learn (placement_id=None,featuresList=None):
 
     kmeansSpaces = []
     Nfeatures = 0
-    queryResults= PlacementDailyFeatures.objects.all.aggregate(Max("day"))
+    queryResults= MLPlacementDailyFeatures.objects.all.aggregate(Max("day"))
 
     #print queryResults
     maxDay=queryResults[0]
@@ -63,7 +63,7 @@ def learn (placement_id=None,featuresList=None):
         kmeansSpaces.append(KMeans(n_clusters=2, init='k-means++'))
         Nfeatures = i*3
         onePlacementFeatures = np.zeros(Nfeatures)
-        queryResults = PlacementDailyFeatures.objects.all.aggregate(Max("cpa"), Max("ctr"))
+        queryResults = MLPlacementDailyFeatures.objects.all.aggregate(Max("cpa"), Max("ctr"))
 
         maxCPA = queryResults[0]
         maxCTR = queryResults[1]
@@ -95,12 +95,12 @@ def learn (placement_id=None,featuresList=None):
 
             for j in range(len(labels)):
                 if labels[j] == 0:
-                    PlacementsClustersKmeans.objects.save()
+                    MLPlacementsClustersKmeans.objects.save()
                     #recognitionBaseCursor.execute("INSERT INTO first_cluster_cpa1 (placement_id,day) VALUES (%s,%s)",
                     #                             (allFeaturesPlacement[j],i))
                     #recognitionBaseConnect.commit();
                 else:
-                    PlacementsClustersKmeans.objects.save()
+                    MLPlacementsClustersKmeans.objects.save()
                     #recognitionBaseCursor.execute("INSERT INTO second_cluster_cpa1 (placement_id,day) VALUES (%s,%s)",
                     #                             (allFeaturesPlacement[j],i))
                     #recognitionBaseConnect.commit();

@@ -11,26 +11,14 @@ from psycopg2 import extras
 from datetime import datetime
 from datetime import timedelta
 from models.ml_kmeans_model import MLPlacementDailyFeatures, MLClustersCentroidsKmeans, MLPlacementsClustersKmeans
-
-from rest_framework.decorators import api_view, parser_classes
-from rest_framework.response import Response
-from django.http import JsonResponse
-from utils import parse_get_params, make_sum, check_user_advertiser_permissions
-from models import SiteDomainPerformanceReport, Campaign, GeoAnaliticsReport, NetworkAnalyticsReport_ByPlacement, \
-    Placement, NetworkCarrierReport_Simple, NetworkDeviceReport_Simple
+from models import NetworkAnalyticsReport_ByPlacement
 from django.db.models import Sum, Min, Max, Avg, Value, When, Case, F, Q, Func, FloatField
-from django.db.models.functions import Coalesce, Concat, ExtractWeekDay
-from django.db import connection
-from django.core.cache import cache
-import itertools
 import datetime
-from pytz import utc
-import filter_func
 
 #from .models import PlacementDailyFearures
 
-class Placement:#objects with features for recognition
-    placement = 0
+class PlacementInfo:#objects with features for recognition
+    placement_id = 0
 
     imps = 0
     clicks = 0
@@ -47,7 +35,7 @@ class Placement:#objects with features for recognition
     cluster=0
     importance=True
 
-def learn (placement_id=None,featuresList=None):
+def mlLearnKmeans (placement_id=None,featuresList=None):
 
     kmeansSpaces = []
     Nfeatures = 0
@@ -92,6 +80,7 @@ def learn (placement_id=None,featuresList=None):
             allFeatures = np.float32(allFeatures)
             allFeaturesForRecognition = np.vstack(allFeatures)
             labels = kmeansSpaces[i-1].fit_predict(allFeaturesForRecognition)
+            #NEED TO SAVE CENTROIDS IN DB
 
             for j in range(len(labels)):
                 if labels[j] == 0:
@@ -119,7 +108,7 @@ def learn (placement_id=None,featuresList=None):
     for row in queryResults:
         temp = str(row.hour.split())
         if temp[0] not in allDays:
-            allDays[temp[0]] = Placement()
+            allDays[temp[0]] = PlacementInfo()
             sortedDays.append(datetime.strptime(temp[0], dbDateFormat))
 
         allDays[temp[0]].imps += row.imps

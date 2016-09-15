@@ -1,12 +1,11 @@
-import numpy as np
 import psycopg2
 from psycopg2 import extras
 # import datetime
 from datetime import datetime
 from datetime import timedelta
 
-
-class Placement:
+#OLD ORIGINAL
+"""class Placement:
     imps = 0
     clicks = 0
     cost = 0
@@ -142,3 +141,97 @@ for i in range(minPlacement, maxPlacement):
 recognitionBaseConnect.close()
 connect.close()
 print "DONE"
+"""
+#NEW TRY
+from models.ml_kmeans_model import MLPlacementDailyFeatures
+from models import NetworkAnalyticsReport_ByPlacement
+from django.db.models import Sum, Min, Max, Avg, Value, When, Case, F, Q, Func, FloatField
+def mlCreatePlacementDailyFeaturesDB():
+    queryResult = NetworkAnalyticsReport_ByPlacement.object.orderd_by('placement_id', 'hour')
+    curPlacement = queryResult[0].placement_id #get first placement for the loop
+    pastHour = queryResult[0].hour  # to see day changing
+
+
+    curPlacementDailyFeatures = MLPlacementDailyFeatures()
+    curPlacementDailyFeatures.imps = 0
+    curPlacementDailyFeatures.clicks = 0
+    curPlacementDailyFeatures.total_convs = 0
+    curPlacementDailyFeatures.imps_viewed = 0
+    curPlacementDailyFeatures.view_measured_imps = 0
+    curPlacementDailyFeatures.cost = 0
+    nDay = 1
+
+    for row in queryResult:
+        if curPlacement != queryResult.placement_id:#adding last day of the placement to the DB
+            curPlacementDailyFeatures.day = nDay
+            try:
+                curPlacementDailyFeatures.cpa = float(curPlacementDailyFeatures.cost) / float(curPlacementDailyFeatures.conversions)
+            except ZeroDivisionError:
+                curPlacementDailyFeatures.cpa = 0
+
+            try:
+                curPlacementDailyFeatures.ctr = float(curPlacementDailyFeatures.clicks) / float(curPlacementDailyFeatures.imps)
+            except ZeroDivisionError:
+                curPlacementDailyFeatures.ctr = 0
+
+            try:
+                curPlacementDailyFeatures.view_rate = float(curPlacementDailyFeatures.imps_viewed) / float(curPlacementDailyFeatures.view_measured_imps)
+            except ZeroDivisionError:
+                curPlacementDailyFeatures.view_rate = 0
+
+            try:
+                curPlacementDailyFeatures.view_measurement_rate = float(curPlacementDailyFeatures.view_measured_imps) / float(curPlacementDailyFeatures.imps)
+            except ZeroDivisionError:
+                curPlacementDailyFeatures.view_measurement_rate = 0
+            curPlacementDailyFeatures.save()
+
+            curPlacementDailyFeatures.imps = 0
+            curPlacementDailyFeatures.clicks = 0
+            curPlacementDailyFeatures.total_convs = 0
+            curPlacementDailyFeatures.imps_viewed = 0
+            curPlacementDailyFeatures.view_measured_imps = 0
+            curPlacementDailyFeatures.cost = 0
+
+            nDay = 1
+
+        if row.hour - pastHour < timedelta (days=1):#COULD BE ERROR: is timedelta subtract day-day or time-time and then find difference in day?
+            curPlacementDailyFeatures.imps += row.imps
+            curPlacementDailyFeatures.clicks += row.clicks
+            curPlacementDailyFeatures.total_convs += row.total_convs
+            curPlacementDailyFeatures.imps_viewed += row.imps_viewed
+            curPlacementDailyFeatures.view_measured_imps += row.view_measured_imps
+            curPlacementDailyFeatures.cost += row.cost
+        else: #adding a day
+            curPlacementDailyFeatures.day = nDay
+            try:
+                curPlacementDailyFeatures.cpa = float(curPlacementDailyFeatures.cost) / float(curPlacementDailyFeatures.conversions)
+            except ZeroDivisionError:
+                curPlacementDailyFeatures.cpa = 0
+
+            try:
+                curPlacementDailyFeatures.ctr = float(curPlacementDailyFeatures.clicks) / float(curPlacementDailyFeatures.imps)
+            except ZeroDivisionError:
+                curPlacementDailyFeatures.ctr = 0
+
+            try:
+                curPlacementDailyFeatures.view_rate = float(curPlacementDailyFeatures.imps_viewed) / float(curPlacementDailyFeatures.view_measured_imps)
+            except ZeroDivisionError:
+                curPlacementDailyFeatures.view_rate = 0
+
+            try:
+                curPlacementDailyFeatures.view_measurement_rate = float(curPlacementDailyFeatures.view_measured_imps) / float(curPlacementDailyFeatures.imps)
+            except ZeroDivisionError:
+                curPlacementDailyFeatures.view_measurement_rate = 0
+            curPlacementDailyFeatures.save()
+
+            nDay += 1
+            pastHour = row.hour
+
+            curPlacementDailyFeatures.imps = 0
+            curPlacementDailyFeatures.clicks = 0
+            curPlacementDailyFeatures.total_convs = 0
+            curPlacementDailyFeatures.imps_viewed = 0
+            curPlacementDailyFeatures.view_measured_imps = 0
+            curPlacementDailyFeatures.cost = 0
+
+

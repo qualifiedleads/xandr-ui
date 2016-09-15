@@ -7,7 +7,7 @@ from django.contrib.postgres.fields import ArrayField
 
 class MLPlacementDailyFeatures(models.Model):
     id = models.AutoField(primary_key=True)
-    placement= models.ForeignKey("Placement", db_constraint=False, on_delete = models.DO_NOTHING)
+    placement = models.ForeignKey("Placement", db_constraint=False, on_delete = models.DO_NOTHING)
     day = models.IntegerField(db_index=True)
     #weekday_start = models.IntegerField()#0 - Monday???  don't need to storage in every row
     imps = models.IntegerField()

@@ -1,7 +1,7 @@
 __author__ = 'USER'
 
 from django.core.management import BaseCommand
-from rtb.ml_learn_kmeans import learn
+from rtb.ml_learn_kmeans import mlLearnKmeans
 
 class Command(BaseCommand):
     help = """
@@ -20,4 +20,4 @@ class Command(BaseCommand):
         placement_id = options.get('placement_id')
         #learn(file_name)
         #learn()
-        learn(placement_id)
+        mlLearnKmeans(placement_id)

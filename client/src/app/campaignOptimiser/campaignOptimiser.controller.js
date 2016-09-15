@@ -6,7 +6,7 @@
   .controller('CampaignOptimiserController', CampaignOptimiserController);
 
   /** @ngInject */
-  function CampaignOptimiserController($window,  $state, $localStorage, $scope, $rootScope, $translate, Campaign, CampaignOptimiser) {
+  function CampaignOptimiserController($window, $state, $localStorage, $scope, $translate, Campaign, CampaignOptimiser) {
     var vm = this;
     vm.campName = Campaign.campaign;
     vm.campId = Campaign.id;
@@ -14,6 +14,7 @@
     vm.object = CampaignOptimiser.campaignTargeting(1,1,1);
     vm.grindIf = 1;
     var dataSuspend = null;
+    var tempSespendRow = {};
 
     //region DATE PIKER
     /** DATE PIKER **/
@@ -114,21 +115,21 @@
 
     vm.UI = {
       showGridWhiteList: {
-        text: 'Whitelist',
+        text: LC('CO.WHITELIST'),
         onClick: function (e) {
           vm.grindIf = 1;
           $scope.$apply();
         }
       },
       showGridBlackList: {
-        text: 'Blacklisted',
+        text: LC('CO.BLACKLISTED'),
         onClick: function (e) {
           vm.grindIf = 2;
           $scope.$apply();
         }
       },
       showGridTempSuspendList: {
-        text: 'Temp. Suspend',
+        text: LC('CO.TEMP-SUSPEND'),
         onClick: function (e) {
           vm.grindIf = 3;
           $scope.$apply();
@@ -143,14 +144,14 @@
         }
       },
       radioGroupMain: {
-        items: ["24 hrs", "3 days", "7 days", "Specific date"],
+        items: [LC('CO.24-HRS'), LC('CO.3-DAYS'), LC('CO.7-DAYS'), LC('CO.SPECIFIC-DATE')],
         onValueChanged: function(e) {
-         var k = $('#radioGroupSend')
-         .dxRadioGroup('instance');
+          var radioGroupSend = $('#radioGroupSend')
+          .dxRadioGroup('instance');
           if (!e.value) return;
-          k.option('value', false);
+          radioGroupSend.option('value', false);
 
-          if (e.value == "Specific date") {
+          if (e.value ==  LC('CO.SPECIFIC-DATE')) {
             //e;
             var datePik = $('#dateFormatPop')
             .dxDateBox('instance');
@@ -161,24 +162,20 @@
             datePik.option('disabled', true);
             dataSuspend = null;
           }
-
-          /*$scope.list = tasks.filter(function(item) {
-            return priorities[item.priorityIndex] == e.value;
-          });*/
         }
       },
       radioGroupSend: {
-        items: ["Send to 'Suspend list' until I get to it"],
+        items: [LC('CO.SEND-TO-SUSPEND-LIST')],
         onValueChanged: function(e) {
           dataSuspend = null;
           var datePik = $('#dateFormatPop')
           .dxDateBox('instance');
           datePik.option('disabled', true);
 
-          var k = $('#radioGroupMain')
+          var radioGroupMain = $('#radioGroupMain')
           .dxRadioGroup('instance');
           if (!e.value) return;
-          k.option('value', false);
+          radioGroupMain.option('value', false);
         }
       },
       confirmPopup: {
@@ -190,32 +187,58 @@
         },
         showTitle: false,
         width: 320,
-        height: 240
+        height: 280
       },
       confirmPopupOk: {
+        width: 110,
         text: 'OK',
         disabled: false,
         onClick: function () {
-          dataSuspend;
-/*          CountersRegister.cancelAverage(vm.selectedRowKey, vm.textBoxsimpleValue)
-          .then(function (result) {
-            if (result.data == true) {
-              $window.DevExpress.ui.notify(LC('CRC.CANCEL_AVERAGE.SUCCESS'), "success", 3000);
-              $localStorage.groupTabs = 0;
-              $state.reload();
+          var suspendPlacement;
+          var radioGroupMain = $('#radioGroupMain').dxRadioGroup('instance');
+          var radioGroupSend = $('#radioGroupSend').dxRadioGroup('instance');
+
+          if (radioGroupMain._options.value !== false) {
+            if (radioGroupMain._options.value == LC('CO.24-HRS')) {
+              suspendPlacement = $window.moment().add(1, 'day').unix();
             }
-          })
-          .catch(function (err) {
-            ErrorMessages.process(err);
-          });*/
+
+            if (radioGroupMain._options.value == LC('CO.3-DAYS')) {
+              suspendPlacement = $window.moment().add(3, 'day').unix();
+            }
+
+            if (radioGroupMain._options.value == LC('CO.7-DAYS')) {
+              suspendPlacement = $window.moment().add(7, 'day').unix();
+            }
+
+          }
+
+          if (radioGroupSend._options.value !== false) {
+            suspendPlacement = "unlimited";
+          }
+
+          if (dataSuspend !== null) {
+            suspendPlacement = $window.moment(dataSuspend).unix();
+          }
+
+          CampaignOptimiser.editCampaignDomains(vm.campId, tempSespendRow.placement, tempSespendRow.suspend, suspendPlacement)
+          .then(function () {
+            $('.gridContainerWhite').dxDataGrid('instance').refresh();
+          }).catch(function () {
+            $('.gridContainerWhite').dxDataGrid('instance').refresh();
+          });
+
           vm.confirmPopupVisible = false;
           vm.confirmPopup.option('visible', false);
           $scope.$apply();
         }
       },
       confirmPopupCancel: {
-        text: 'Cancel',
+        width: 120,
+        text: LC('COMMON.CANCEL'),
         onClick: function () {
+          tempSespendRow = null;
+          dataSuspend = null;
           vm.confirmPopupVisible = false;
           vm.confirmPopup.option('visible', false);
           $scope.$apply();
@@ -386,6 +409,7 @@
             dataField: 'cvr',
             alignment: 'center',
             dataType: 'number',
+            allowEditing: false,
             headerFilter: {
               dataSource: function (source) {
                 return headerFilterColumn(source, 'cvr');
@@ -397,6 +421,7 @@
             dataField: 'ctr',
             alignment: 'center',
             dataType: 'number',
+            allowEditing: false,
             headerFilter: {
               dataSource: function (source) {
                 return headerFilterColumn(source, 'ctr');
@@ -547,13 +572,7 @@
                 width: 95,
                 disabled: false,
                 onClick: function (e) {
-/*                  CampaignOptimiser.editCampaignDomains(vm.campId,options.data.placement,'suspend')
-                  .then(function (res) {
-                    return res;
-                  })
-                  .catch(function (err) {
-                    return err;
-                  });
+
                   var parentWhiteBtn = e.element[0].parentNode;
                   if (parentWhiteBtn.classList.contains('active-suspended')) {
                     parentWhiteBtn.classList.remove('active-suspended');
@@ -567,19 +586,10 @@
                     options.data.state.blackList = 'false';
                     parentWhiteBtn.classList.remove('active-white');
                     parentWhiteBtn.classList.remove('active-black');
+                  }
 
-                  }*/
-
-/*                  $window.$("#popoverSuspend").dxPopover({
-                    target: ".suspended" + options.data.placement,
-                    position: "top",
-                    width: 300,
-                    shading: false,
-                    shadingColor: "rgba(0, 0, 0, 0.5)",
-                    visible: false,
-                    contentTemplate: 'test_tmpl'
-                  }).dxPopover("instance").toggle();
-                  $scope.$apply();*/
+                  tempSespendRow.placement = options.data.placement;
+                  tempSespendRow.suspend = 'suspend';
 
                   vm.confirmPopupVisible = true;
                   vm.confirmPopup.option('visible', true);
@@ -734,15 +744,26 @@
                   for (var i = 0; i < selectedRows.length; i++) {
                     selectedArr.push(selectedRows[i].firstChild.innerText);
                   }
-                  if (selectedArr != '[]'){
-                    CampaignOptimiser.editCampaignDomains(vm.campId, selectedArr, e.selectedItem.state).then(function (res) {
-                      $('.gridContainerWhite').dxDataGrid('instance').refresh();
-                    }).catch(function (err) {
-                      $('.gridContainerWhite').dxDataGrid('instance').refresh();
-                    });
+
+                  //e;
+                  if (e.selectedItem.state == "suspend") {
+                    if (selectedArr != '[]') {
+                      tempSespendRow.placement = selectedArr;
+                      tempSespendRow.suspend = 'suspend';
+                      vm.confirmPopupVisible = true;
+                      vm.confirmPopup.option('visible', true);
+                    }
+                  } else {
+                    if (selectedArr != '[]'){
+                      CampaignOptimiser.editCampaignDomains(vm.campId, selectedArr, e.selectedItem.state).then(function (res) {
+                        $('.gridContainerWhite').dxDataGrid('instance').refresh();
+                      }).catch(function (err) {
+                        $('.gridContainerWhite').dxDataGrid('instance').refresh();
+                      });
+                    }
                   }
                 } else {
-                  console.log('поп овер на невыбраные селекты');
+                  $window.DevExpress.ui.notify( LC('CO.NO-ITEMS-CHOSEN'), "error", 4000);
                 }
               }
             });

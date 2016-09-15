@@ -14,26 +14,26 @@
       <table class="table table-bordered">
         <tr>
           <td class="col-md-3">
-            <h5>Domain Lists & Domains</h5>
+            <h5> {{ 'CO.DOMAIN-LISTS' | translate }} & {{ 'CO.DOMAINS' | translate}} </h5>
             <p ng-repeat="domain in CO.object.domains">
-              {{domain}} - Domain
+              {{domain}} - {{ 'CO.DOMAIN' | translate }}
             </p>
           </td>
           <td class="col-md-2">
-            <h5>Geo</h5>
+            <h5> {{ 'CO.GEO' | translate }}</h5>
             <p ng-repeat="geo in CO.object.geo">
               {{geo}}
             </p>
           </td>
           <td class="col-md-5">
             <div class="col-md-6">
-              <h5>Device and Supply Type</h5>
+              <h5>{{ 'CO.DEVICE-AND-SUPPLY-TYPE' | translate }}</h5>
               <p ng-repeat="device in CO.object.device">
                 {{device}}
               </p>
             </div>
             <div class="col-md-6">
-              <h5>Blocking</h5>
+              <h5>{{ 'CO.BLOCKING' | translate }}</h5>
               <p ng-repeat="block in CO.object.block">
                 {{block}}
               </p>
@@ -52,7 +52,7 @@
 
     <br><br>
     <hr class="lineMiddle">
-    <span class="optimizerTitle">Optimizer</span>
+    <span class="optimizerTitle">{{ 'CO.OPTIMIZER' | translate }}</span>
     <div dx-button="CO.UI.showGridWhiteList"></div>
     <div dx-button="CO.UI.showGridBlackList"></div>
     <div dx-button="CO.UI.showGridTempSuspendList"></div>
@@ -60,42 +60,19 @@
     <div ng-if="CO.grindIf == 2" class="gridContainer2" dx-data-grid="CO.UI.dataGridOptionsCampaign"></div>
     <div ng-if="CO.grindIf == 3" class="gridContainer2" dx-data-grid="CO.UI.dataGridOptionsCampaign"></div>
 
-    <div id="popoverSuspend" >
-      <div data-options="dxTemplate: { name: 'test_tmpl' }">
-        <!--        <input id="first" type="radio" name="content" ng-model="RootController.reTestCheck" value="reTest" ng-change="$parent.RootController.retestchecked()" >
-                <label for="first">re-test in</label>
-                <div ng-if="RootController.reTestCheck == 'reTest'"  class="radioReTest">
-                  <label><input type="radio" name="optradio" ng-model="CO.reTestTime" ng-value="1">24hrs</label><br>
-                  <label><input type="radio" name="optradio" ng-model="CO.reTestTime" ng-value="3">3 days</label><br>
-                  <label><input type="radio" name="optradio" ng-model="CO.reTestTime" ng-value="7">7 days</label><br>
-                  <label><input type="radio" name="optradio" ng-model="CO.reTestTime" ng-value="spec">Specific date</label><br>
-                </div>
-                <br />
-                <input id="other" type="radio" name="content" ng-model="RootController.reTestCheck" value="others"  ng-change="RootController.retestchecked()">
-                <label for="other">Show other content</label>-->
-
-
-
-
-      </div>
-    </div>
-
-
 
     <div class="counter-popup-group" dx-popup="CO.UI.confirmPopup" >
-      <div class="title" >Suspend</div>
+      <div class="title" >{{ 'CO.SUSPEND' | translate }}</div>
 
       <div id="radioGroupMain" dx-radio-group="CO.UI.radioGroupMain" ></div>
-      <div id="dateFormatPop" style="margin-left: 35px" dx-date-box="CO.UI.dateFormatPop"></div>
-
+      <div id="dateFormatPop" style="margin-left: 35px; " dx-date-box="CO.UI.dateFormatPop"></div>
+      <br>
       <div id="radioGroupSend" dx-radio-group="CO.UI.radioGroupSend" ></div>
 
       <div class="button" id="buttonOk" dx-button="CO.UI.confirmPopupOk"></div>
       <div class="button" dx-button="CO.UI.confirmPopupCancel"></div>
 
-
     </div>
   </div>
 
-</div>
 </div>

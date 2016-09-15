@@ -91,7 +91,7 @@
         return list;
       })
       .catch(function (err) {
-        return err;
+        $window.DevExpress.ui.notify(err.data.detail, "error", 4000);
       });
     }
 
@@ -123,7 +123,7 @@
       };
     }
 
-    function editCampaignDomains(id,placement,activeState) {
+    function editCampaignDomains(id,placement,activeState, time) {
       return $http({
         method: 'PUT',
         url: '/api/v1/campaigns/' + encodeURI(id) + '/domains',
@@ -131,10 +131,14 @@
         params: {
           placement: placement,
           activeState: activeState,
+          suspendTimes: time
         }
       })
       .then(function (res) {
         return res.data;
+      })
+      .catch(function (err) {
+        $window.DevExpress.ui.notify(err.data.detail, "error", 4000);
       });
     }
 

@@ -145,6 +145,7 @@
       },
       radioGroupMain: {
         items: [LC('CO.24-HRS'), LC('CO.3-DAYS'), LC('CO.7-DAYS'), LC('CO.SPECIFIC-DATE')],
+        value: LC('CO.24-HRS'),
         onValueChanged: function(e) {
           var radioGroupSend = $('#radioGroupSend')
           .dxRadioGroup('instance');
@@ -219,6 +220,10 @@
 
           if (dataSuspend !== null) {
             suspendPlacement = $window.moment(dataSuspend).unix();
+          }
+
+          if ((radioGroupSend._options.value == null)&&(radioGroupMain._options.value == LC('CO.24-HRS'))) {
+            suspendPlacement = $window.moment().add(1, 'day').unix();
           }
 
           CampaignOptimiser.editCampaignDomains(vm.campId, tempSespendRow.placement, tempSespendRow.suspend, suspendPlacement)
@@ -757,13 +762,13 @@
                     if (selectedArr != '[]'){
                       CampaignOptimiser.editCampaignDomains(vm.campId, selectedArr, e.selectedItem.state).then(function (res) {
                         $('.gridContainerWhite').dxDataGrid('instance').refresh();
-                      }).catch(function (err) {
+                      }).catch(function () {
                         $('.gridContainerWhite').dxDataGrid('instance').refresh();
                       });
                     }
                   }
                 } else {
-                  $window.DevExpress.ui.notify( LC('CO.NO-ITEMS-CHOSEN'), "error", 4000);
+                  $window.DevExpress.ui.notify( LC('CO.NO-ITEMS-CHOSEN'), "warning", 4000);
                 }
               }
             });

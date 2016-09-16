@@ -11,6 +11,7 @@
       'CANCEL': 'Cancel'
     },
     'AUTH':{
+      'EMAIL-OR-PASSWORD-EMPTY':'Email or Password is empty',
       'GO_BUTTON':'GO',
       'MAIL-REQUIRED': 'Your email is required',
       'MAIL-VALID': 'Your email is not valid.',
@@ -178,5 +179,4 @@
       "CAMPAIGN-HOME": "back to Campaign Home"
     }
   })
-
 })();

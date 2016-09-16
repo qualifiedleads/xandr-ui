@@ -11,6 +11,7 @@
       'CANCEL': 'Отмена'
     },
     'AUTH':{
+      'EMAIL-OR-PASSWORD-EMPTY':'E-mail или пароль пуст',
       'GO_BUTTON':'Дальше',
       'MAIL-REQUIRED': 'Введите ваш email',
       'MAIL-VALID': 'Некорректный адрес электронной почты',

@@ -17,8 +17,6 @@
   <div class="row">
     <div class="Absolute-Center is-Responsive reg-form-wrapper">
       <form name="auth.userForm" ng-submit="auth.submitForm(auth.user)" novalidate>
-
-        <!-- insert the name -->
         <div class="col-sm-10">
           <div class="form-group" ng-class="{ 'has-error' : auth.userForm.email.$invalid && !auth.userForm.email.$pristine }">
             <i class="fa fa-user fa-2x icon-for-user"></i>
@@ -45,8 +43,8 @@
       <div class="Absolute-Center is-Responsive">
         <div class="col-sm-12 col-md-10 col-md-offset-1">
           <div class="mode-button">
-            <div dx-select-box="auth.selectAdvertisers"></div>
-            <div dx-button="auth.addButton" class="add-advertisers" ></div>
+            <div dx-select-box="auth.UI.selectAdvertisers"></div>
+            <div dx-button="auth.UI.addButton" class="add-advertisers" ></div>
           </div>
         </div>
       </div>

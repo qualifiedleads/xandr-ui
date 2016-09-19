@@ -39,10 +39,9 @@ def mlLearnKmeans (placement_id=None,featuresList=None):
 
     kmeansSpaces = []
     Nfeatures = 0
-    queryResults= MLPlacementDailyFeatures.objects.all.aggregate(Max("day"))
-
-    #print queryResults
-    maxDay=queryResults[0]
+    #queryResults= MLPlacementDailyFeatures.objects.all.aggregate(Max("day"))
+    #maxDay=queryResults[0]
+    maxDay = MLPlacementDailyFeatures.objects.all.aggregate(m = Max("day"))['m']
 
     #len(columnsfeatures)#������ 3 ��� ��������� Nfeatures=i*3
     #maxDay=
@@ -51,10 +50,14 @@ def mlLearnKmeans (placement_id=None,featuresList=None):
         kmeansSpaces.append(KMeans(n_clusters=2, init='k-means++'))
         Nfeatures = i*3
         onePlacementFeatures = np.zeros(Nfeatures)
-        queryResults = MLPlacementDailyFeatures.objects.all.aggregate(Max("cpa"), Max("ctr"))
+        #queryResults = MLPlacementDailyFeatures.objects.all.aggregate(Max("cpa"), Max("ctr"))
+        queryResults = MLPlacementDailyFeatures.objects.all.aggregate(mcpa = Max("cpa"), mctr = Max("ctr"))
 
-        maxCPA = queryResults[0]
-        maxCTR = queryResults[1]
+        #maxCPA = queryResults[0]
+        #maxCTR = queryResults[1]
+
+        maxCPA = queryResults['cpa']
+        maxCTR = queryResults['ctr']
 
         allFeatures = []
         allFeaturesPlacement = []

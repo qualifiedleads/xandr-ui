@@ -1,6 +1,3 @@
-import psycopg2
-from psycopg2 import extras
-# import datetime
 from datetime import datetime
 from datetime import timedelta
 
@@ -144,10 +141,10 @@ print "DONE"
 """
 #NEW TRY
 from models.ml_kmeans_model import MLPlacementDailyFeatures
-from models import NetworkAnalyticsReport_ByPlacement
+from models.network_analitics_models import NetworkAnalyticsReport_ByPlacement
 from django.db.models import Sum, Min, Max, Avg, Value, When, Case, F, Q, Func, FloatField
 def mlCreatePlacementDailyFeaturesDB():
-    queryResult = NetworkAnalyticsReport_ByPlacement.object.orderd_by('placement_id', 'hour')
+    queryResult = NetworkAnalyticsReport_ByPlacement.objects.order_by('placement_id', 'hour')
     curPlacement = queryResult[0].placement_id #get first placement for the loop
     pastHour = queryResult[0].hour  # to see day changing
 
@@ -161,8 +158,26 @@ def mlCreatePlacementDailyFeaturesDB():
     curPlacementDailyFeatures.cost = 0
     nDay = 1
 
+    testIter = 0;
+    dayGap = False
+
+    print "1"
+
     for row in queryResult:
-        if curPlacement != queryResult.placement_id:#adding last day of the placement to the DB
+        print "2"
+        if testIter > 1:
+            break
+
+        if curPlacement == row.placement_id and dayGap:
+            continue
+
+        if curPlacement != row.placement_id and dayGap:
+            dayGap = False
+            curPlacement = row.placement_id
+            pastHour = row.hour
+
+
+        if curPlacement != row.placement_id:#adding last day of the placement to the DB
             curPlacementDailyFeatures.day = nDay
             try:
                 curPlacementDailyFeatures.cpa = float(curPlacementDailyFeatures.cost) / float(curPlacementDailyFeatures.conversions)
@@ -183,28 +198,52 @@ def mlCreatePlacementDailyFeaturesDB():
                 curPlacementDailyFeatures.view_measurement_rate = float(curPlacementDailyFeatures.view_measured_imps) / float(curPlacementDailyFeatures.imps)
             except ZeroDivisionError:
                 curPlacementDailyFeatures.view_measurement_rate = 0
-            curPlacementDailyFeatures.save()
 
-            curPlacementDailyFeatures.imps = 0
-            curPlacementDailyFeatures.clicks = 0
-            curPlacementDailyFeatures.total_convs = 0
-            curPlacementDailyFeatures.imps_viewed = 0
-            curPlacementDailyFeatures.view_measured_imps = 0
-            curPlacementDailyFeatures.cost = 0
+            try:
+                curPlacementDailyFeatures.save()
+            except:
+                print "Failed to insert data about placement"
 
+            #TEST
+            testQuery = NetworkAnalyticsReport_ByPlacement.objects.filter(placement_id=curPlacement)
+            print "Placement " + str(curPlacement)
+            for tt in testQuery:
+                print str(testQuery.hour) + " " + str(testQuery.imps)
+
+            testQuery = MLPlacementDailyFeatures.objects.filter(placement_id=curPlacement)
+            print "In our DB"
+            for tt in testQuery:
+                print str(testQuery.day) + " " + str(testQuery.imps)
+            #TEST
+
+            curPlacementDailyFeatures.imps = row.imps
+            curPlacementDailyFeatures.clicks = row.clicks
+            curPlacementDailyFeatures.total_convs = row.total_convs
+            curPlacementDailyFeatures.imps_viewed = row.imps_viewed
+            curPlacementDailyFeatures.view_measured_imps = row.view_measured_imps
+            curPlacementDailyFeatures.cost = row.cost
+
+            pastHour = row.hour
             nDay = 1
+            curPlacement = row.placement_id
 
-        if row.hour - pastHour < timedelta (days=1):#COULD BE ERROR: is timedelta subtract day-day or time-time and then find difference in day?
+            testIter += 1
+            continue
+
+
+        if row.hour.day - pastHour.day == 0:#
             curPlacementDailyFeatures.imps += row.imps
             curPlacementDailyFeatures.clicks += row.clicks
             curPlacementDailyFeatures.total_convs += row.total_convs
             curPlacementDailyFeatures.imps_viewed += row.imps_viewed
             curPlacementDailyFeatures.view_measured_imps += row.view_measured_imps
             curPlacementDailyFeatures.cost += row.cost
-        else: #adding a day
+            pastHour = row.hour
+
+        if row.hour.day - pastHour.day > 0: #adding a current day, go to the next
             curPlacementDailyFeatures.day = nDay
             try:
-                curPlacementDailyFeatures.cpa = float(curPlacementDailyFeatures.cost) / float(curPlacementDailyFeatures.conversions)
+                curPlacementDailyFeatures.cpa = float(curPlacementDailyFeatures.cost) / float(curPlacementDailyFeatures.total_convs)
             except ZeroDivisionError:
                 curPlacementDailyFeatures.cpa = 0
 
@@ -222,16 +261,32 @@ def mlCreatePlacementDailyFeaturesDB():
                 curPlacementDailyFeatures.view_measurement_rate = float(curPlacementDailyFeatures.view_measured_imps) / float(curPlacementDailyFeatures.imps)
             except ZeroDivisionError:
                 curPlacementDailyFeatures.view_measurement_rate = 0
-            curPlacementDailyFeatures.save()
 
-            nDay += 1
-            pastHour = row.hour
+            try:
+                curPlacementDailyFeatures.save()#save current day
+            except:
+                print "Failed to insert data about placement"
 
-            curPlacementDailyFeatures.imps = 0
-            curPlacementDailyFeatures.clicks = 0
-            curPlacementDailyFeatures.total_convs = 0
-            curPlacementDailyFeatures.imps_viewed = 0
-            curPlacementDailyFeatures.view_measured_imps = 0
-            curPlacementDailyFeatures.cost = 0
+            if row.hour.day - pastHour.day > 1:#day gap
+                nDay = 1
+                dayGap = True;
+                testIter += 1
+                pastHour = row.hour
+
+            else:#next day
+                nDay += 1
+                pastHour = row.hour
+
+                curPlacementDailyFeatures.imps = row.imps
+                curPlacementDailyFeatures.clicks = row.clicks
+                curPlacementDailyFeatures.total_convs = row.total_convs
+                curPlacementDailyFeatures.imps_viewed = row.imps_viewed
+                curPlacementDailyFeatures.view_measured_imps = row.view_measured_imps
+                curPlacementDailyFeatures.cost = row.cost
 
 
+    print "Database ml_placement_daily_features filled"
+
+    #region test
+
+    #endregion

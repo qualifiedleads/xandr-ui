@@ -148,7 +148,6 @@ def mlCreatePlacementDailyFeaturesDB():
     curPlacement = queryResult[0].placement_id #get first placement for the loop
     pastHour = queryResult[0].hour  # to see day changing
 
-
     curPlacementDailyFeatures = MLPlacementDailyFeatures()
     curPlacementDailyFeatures.imps = 0
     curPlacementDailyFeatures.clicks = 0
@@ -180,7 +179,7 @@ def mlCreatePlacementDailyFeaturesDB():
         if curPlacement != row.placement_id:#adding last day of the placement to the DB
             curPlacementDailyFeatures.day = nDay
             try:
-                curPlacementDailyFeatures.cpa = float(curPlacementDailyFeatures.cost) / float(curPlacementDailyFeatures.conversions)
+                curPlacementDailyFeatures.cpa = float(curPlacementDailyFeatures.cost) / float(curPlacementDailyFeatures.total_convs)
             except ZeroDivisionError:
                 curPlacementDailyFeatures.cpa = 0
 
@@ -208,12 +207,12 @@ def mlCreatePlacementDailyFeaturesDB():
             testQuery = NetworkAnalyticsReport_ByPlacement.objects.filter(placement_id=curPlacement)
             print "Placement " + str(curPlacement)
             for tt in testQuery:
-                print str(testQuery.hour) + " " + str(testQuery.imps)
+                print str(tt.hour) + " " + str(tt.imps)
 
             testQuery = MLPlacementDailyFeatures.objects.filter(placement_id=curPlacement)
             print "In our DB"
             for tt in testQuery:
-                print str(testQuery.day) + " " + str(testQuery.imps)
+                print str(tt.day) + " " + str(tt.imps)
             #TEST
 
             curPlacementDailyFeatures.imps = row.imps

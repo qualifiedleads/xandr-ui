@@ -51,7 +51,7 @@ def mlLearnKmeans (placement_id=None,featuresList=None):
         Nfeatures = i*3
         onePlacementFeatures = np.zeros(Nfeatures)
         #queryResults = MLPlacementDailyFeatures.objects.all.aggregate(Max("cpa"), Max("ctr"))
-        queryResults = MLPlacementDailyFeatures.objects.all.aggregate(mcpa = Max("cpa"), mctr = Max("ctr"))
+        queryResults = MLPlacementDailyFeatures.objects.all.aggregate(mcpa = Max("cpa"), mctr = Max("ctr"))['cpa']['ctr']
 
         #maxCPA = queryResults[0]
         #maxCTR = queryResults[1]
@@ -63,6 +63,8 @@ def mlLearnKmeans (placement_id=None,featuresList=None):
         allFeaturesPlacement = []
 
         #queryResults = PlacementDailyFeatures.objects.filter #SELECT day,cpa,ctr,view_rate,placement_id  FROM placement_daily_features WHERE placement_id IN (SELECT placement_id FROM placement_daily_features WHERE day=%s) AND day<=%s ORDER BY placement_id,day
+        queryResults = MLPlacementDailyFeatures.objects.raw("SELECT day,cpa,ctr,view_rate,placement_id  FROM placement_daily_features WHERE placement_id IN (SELECT placement_id FROM placement_daily_features WHERE day=%s) AND day<=" + str(i) + " ORDER BY placement_id,day")
+
         for row in queryResults:
             if row.cpa == 0:
                 onePlacementFeatures[colNumb] = 1

@@ -6,7 +6,6 @@ class MLPlacementDailyFeatures(models.Model):
     id = models.AutoField(primary_key=True)
     placement = models.ForeignKey("Placement", db_constraint=False, on_delete = models.DO_NOTHING)
     day = models.IntegerField(db_index=True)
-    #weekday_start = models.IntegerField()#0 - Monday???  don't need to storage in every row
     imps = models.IntegerField()
     clicks = models.IntegerField()
     total_convs = models.IntegerField()
@@ -46,5 +45,5 @@ class MLClustersCentroidsKmeans(models.Model):
         )
 
     class Meta:
-        db_table = "clusters_centroids_kmeans"
+        db_table = "ml_clusters_centroids_kmeans"
         unique_together = (('cluster', 'day'),)

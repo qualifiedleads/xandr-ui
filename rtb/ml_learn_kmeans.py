@@ -3,7 +3,7 @@ __author__ = 'USER'
 import numpy as np
 from sklearn.cluster import KMeans
 from sklearn import preprocessing
-from matplotlib import pyplot as plt
+#from matplotlib import pyplot as plt
 from sklearn import metrics
 from sklearn.ensemble import ExtraTreesClassifier
 import psycopg2
@@ -14,6 +14,7 @@ from models.ml_kmeans_model import MLPlacementDailyFeatures, MLClustersCentroids
 from models import NetworkAnalyticsReport_ByPlacement
 from django.db.models import Sum, Min, Max, Avg, Value, When, Case, F, Q, Func, FloatField
 import datetime
+import math
 
 #from .models import PlacementDailyFearures
 
@@ -22,159 +23,160 @@ class PlacementInfo:#objects with features for recognition
 
     imps = 0
     clicks = 0
-    cost=0
-    conversions=0
-    imps_viewed=0
-    view_measured_imps=0
+    cost = 0
+    conversions = 0
+    imps_viewed = 0
+    view_measured_imps = 0
 
-    cpa=0
-    view_rate=0
-    view_measurement_rate=0
+    cpa = 0
+    view_rate = 0
+    view_measurement_rate = 0
 
-    features=np.empty(1)
-    cluster=0
-    importance=True
+    features = np.empty(1)
+    cluster = 0
 
-def mlLearnKmeans (placement_id=None,featuresList=None):
-
+def mlLearnKmeans (listRecognPlacement_id=None,featuresList=None):
     kmeansSpaces = []
-    Nfeatures = 0
-    #queryResults= MLPlacementDailyFeatures.objects.all.aggregate(Max("day"))
-    #maxDay=queryResults[0]
-    maxDay = MLPlacementDailyFeatures.objects.all.aggregate(m = Max("day"))['m']
 
-    #len(columnsfeatures)#������ 3 ��� ��������� Nfeatures=i*3
-    #maxDay=
     colNumb = 0
-    for i in xrange(1, maxDay):#learning
-        kmeansSpaces.append(KMeans(n_clusters=2, init='k-means++'))
-        Nfeatures = i*3
-        onePlacementFeatures = np.zeros(Nfeatures)
-        #queryResults = MLPlacementDailyFeatures.objects.all.aggregate(Max("cpa"), Max("ctr"))
-        queryResults = MLPlacementDailyFeatures.objects.all.aggregate(mcpa = Max("cpa"), mctr = Max("ctr"))['cpa']['ctr']
+    numbDays = 7
+    numbFeaturesInDay = 3#change on len(featuresList) for dynamic
+    numbClusters = 2
+    #LEARN/PREDICT
+    queryResults = MLPlacementDailyFeatures.objects.aggregate(mcpa=Max("cpa"), mctr=Max("ctr"))['cpa']['ctr']
 
-        #maxCPA = queryResults[0]
-        #maxCTR = queryResults[1]
+    maxCPA = queryResults['cpa']
+    maxCTR = queryResults['ctr']
 
-        maxCPA = queryResults['cpa']
-        maxCTR = queryResults['ctr']
+    for i in xrange(numbDays):
+        print "Learning and predicting" + str(i) + " K-means space"
+        kmeansSpaces.append(KMeans(n_clusters = numbClusters, init = 'k-means++'))
+        numbFeaturesAll = (i + 1) * numbFeaturesInDay
 
         allFeatures = []
         allFeaturesPlacement = []
 
-        #queryResults = PlacementDailyFeatures.objects.filter #SELECT day,cpa,ctr,view_rate,placement_id  FROM placement_daily_features WHERE placement_id IN (SELECT placement_id FROM placement_daily_features WHERE day=%s) AND day<=%s ORDER BY placement_id,day
-        queryResults = MLPlacementDailyFeatures.objects.raw("SELECT day,cpa,ctr,view_rate,placement_id  FROM placement_daily_features WHERE placement_id IN (SELECT placement_id FROM placement_daily_features WHERE day=%s) AND day<=" + str(i) + " ORDER BY placement_id,day")
+        onePlacementFeatures = np.zeros(numbFeaturesAll)
 
-        for row in queryResults:
+        queryResults = MLPlacementDailyFeatures.objects.raw("""
+               SELECT
+                 day,cpa,ctr,view_rate,placement_id
+               FROM
+                 placement_daily_features
+               WHERE
+                 placement_id
+               IN
+                 (SELECT placement_id FROM placement_daily_features WHERE day=%s)
+                 AND day<=""" + str(i) +
+               "ORDER BY placement_id,day")
+
+        for row in queryResults.iterator():
             if row.cpa == 0:
                 onePlacementFeatures[colNumb] = 1
             else:
-                onePlacementFeatures[colNumb] = float(row.cpa)/float(maxCPA)
+                onePlacementFeatures[colNumb] = float(row.cpa) / float(maxCPA)
 
-            onePlacementFeatures[colNumb+1] = float(row.ctr)/float(maxCTR)
-            onePlacementFeatures[colNumb+2] = row.view_rate
+            onePlacementFeatures[colNumb + 1] = float(row.ctr) / float(maxCTR)
+            onePlacementFeatures[colNumb + 2] = row.view_rate
             colNumb += 3
 
-            if colNumb >= Nfeatures:
-                #print "test"
+            if colNumb >= numbFeaturesAll:
                 allFeatures.append(onePlacementFeatures)
                 allFeaturesPlacement.append(row.placement_id)
-                onePlacementFeatures=np.zeros(Nfeatures)
-                colNumb=0
+                onePlacementFeatures = np.zeros(numbFeaturesAll)
+                colNumb = 0
 
-            allFeatures = np.float32(allFeatures)
-            allFeaturesForRecognition = np.vstack(allFeatures)
-            labels = kmeansSpaces[i-1].fit_predict(allFeaturesForRecognition)
-            #NEED TO SAVE CENTROIDS IN DB
+        allFeatures = np.float32(allFeatures)
+        allFeaturesForRecognition = np.vstack(allFeatures)
+        labels = kmeansSpaces[i].fit_predict(allFeaturesForRecognition)
+        # PREDICT
+        #saving centroids in DB
+        MLClustersCentroidsKmeans.objects.save(day = i, cluster = 1, centroid = kmeansSpaces[i].cluster_centers_[0])
+        MLClustersCentroidsKmeans.objects.save(day = i, cluster = 2, centroid = kmeansSpaces[i].cluster_centers_[1])
+        for j in range(len(labels)):
+            placementClusterRerocd = MLPlacementsClustersKmeans()
+            placementClusterRerocd.day = i
+            placementClusterRerocd.placement_id = allFeaturesPlacement[j]
+            centroidsDistance = []
 
-            for j in range(len(labels)):
-                if labels[j] == 0:
-                    MLPlacementsClustersKmeans.objects.save()
-                    #recognitionBaseCursor.execute("INSERT INTO first_cluster_cpa1 (placement_id,day) VALUES (%s,%s)",
-                    #                             (allFeaturesPlacement[j],i))
-                    #recognitionBaseConnect.commit();
-                else:
-                    MLPlacementsClustersKmeans.objects.save()
-                    #recognitionBaseCursor.execute("INSERT INTO second_cluster_cpa1 (placement_id,day) VALUES (%s,%s)",
-                    #                             (allFeaturesPlacement[j],i))
-                    #recognitionBaseConnect.commit();
+            for nCentr in xrange(numbClusters):
+                for iFeature in xrange(len(kmeansSpaces[i].cluster_centers_[0])):
+                    centroidsDistance[nCentr] += (kmeansSpaces[i].cluster_centers_[0][iFeature] - allFeatures[j][iFeature])**2
 
-    #get info about new
-    #cursor.execute("SELECT hour,imps,clicks,cost,total_convs,imps_viewed,view_measured_imps FROM network_analytics_report_by_placement WHERE placement_id=%s;",(i,))
-    try:
-        queryResults = NetworkAnalyticsReport_ByPlacement.objects.filter(placement_id=placement_id).order_by('hour')#get info about new placement for recognition
-    except:
-        print "Error in getting data about new placement"
-    allDays = {}
-    sortedDays = []
+                centroidsDistance[nCentr] = math.sqrt(centroidsDistance[nCentr])
 
-    dbDateFormat = "%Y-%m-%d"
+            if labels[j] == 0:
+                placementClusterRerocd.cluster = 1
+            else:
+                placementClusterRerocd.cluster = 2
 
-    for row in queryResults:
-        temp = str(row.hour.split())
-        if temp[0] not in allDays:
-            allDays[temp[0]] = PlacementInfo()
-            sortedDays.append(datetime.strptime(temp[0], dbDateFormat))
+            MLPlacementsClustersKmeans.objects.save()
 
-        allDays[temp[0]].imps += row.imps
-        allDays[temp[0]].clicks += row.clicks
-        allDays[temp[0]].cost += row.cost
-        allDays[temp[0]].conversions += row.total_convs
-        allDays[temp[0]].imps_viewed += row.imps_viewed
-        allDays[temp[0]].view_measured_imps += row.view_measured_imps
+        print str(i) + " space done"
 
-    for time, placement in allDays.iteritems():
-        try:
-            placement.cpa = float(placement.cost)/float(placement.conversions)
-        except ZeroDivisionError:
-            placement.cpa = 0
+    #RECOGNITION
+    placementNumb = listRecognPlacement_id
+    #for placementNumb in listRecognPlacement_id:
+    #start 1 tab+
+    queryResults = MLPlacementDailyFeatures.objects.filter(placement_id = placementNumb).aggregate(mday=Max("day"))['mday']
+    maxDay = queryResults['mday']
 
-        try:
-            placement.ctr = float(placement.clicks)/float(placement.imps)
-        except ZeroDivisionError:
-            placement.ctr = 0
+    queryResultsPlacementInfo = MLPlacementDailyFeatures.objects.raw("""
+    SELECT
+          placement_id,
+          extract (dow from hour) "dow",
+          SUM(imps), SUM(clicks), SUM(total_convs), SUM(imps_viewed), SUM(view_measured_imps), SUM(cost),
+          case SUM(total_convs) when 0 then 0 else SUM(cost)::float/SUM(total_convs) end CPA,
+          case SUM(imps) when 0 then 0 else SUM(clicks)::float/SUM(imps) end CTR,
+          case SUM(view_measured_imps) when 0 then 0 else SUM(imps_viewed)::float/SUM(view_measured_imps) end view_rate,
+          case SUM(imps) when 0 then 0 else SUM(view_measured_imps)::float/SUM(imps) end view_measurement_rate
+        FROM
+          network_analytics_report_by_placement
+        WHERE
+          placement_id = """ + str(placementNumb) + """
+        group by
+          placement_id, extract (dow from hour);
+        ORDER BY
+          dow;
+        """
+    )
 
-        try:
-            placement.view_rate = float(placement.imps_viewed)/float(placement.view_measured_imps)
-        except ZeroDivisionError:
-            placement.view_rate = 0
+    for i in xrange(maxDay+1):
+        onePlacementFeatures = np.zeros(numbFeaturesAll)
+        colNumb = 0
 
-        try:
-            placement.view_measurement_rate = float(placement.view_measured_imps)/float(placement.imps)
-        except ZeroDivisionError:
-            placement.view_measurement_rate = 0
+        for row in queryResultsPlacementInfo:
+            if row.cpa == 0:
+                onePlacementFeatures[colNumb] = 1
+            else:
+                onePlacementFeatures[colNumb] = float(row.cpa) / float(maxCPA)
 
+            if row.ctr == 0:
+                onePlacementFeatures[colNumb + 1] = 0
+            else:
+                onePlacementFeatures[colNumb + 1] = float(row.ctr) / float(maxCTR)
+            onePlacementFeatures[colNumb + 2] = row.view_rate
+            colNumb += 3
 
-    #allFeatures=[]
-    #currDayData = allDays[sortedDays[0].strftime(dbDateFormat)]
+        onePlacementFeatures = np.float32(onePlacementFeatures)
+        labels = kmeansSpaces[i].predict(onePlacementFeatures)
+        placementClusterRerocd = MLPlacementsClustersKmeans()
+        placementClusterRerocd.day = i
+        placementClusterRerocd.placement_id = placementNumb
+        centroidsDistance = []
 
-    sortedDays.sort()
-    nDay = 1
-    for j in range(1, len(sortedDays)):#
-        if sortedDays[j]-sortedDays[j-1] == timedelta(days=1):
-            #currDayData=allDays[sortedDays[j].strftime(dbDateFormat)]
-            #nDay=j+1
-            nDay += 1
+        for nCentr in xrange(numbClusters):
+            for iFeature in xrange(len(kmeansSpaces[i].cluster_centers_[0])):
+                centroidsDistance[nCentr] += (kmeansSpaces[i].cluster_centers_[0][iFeature] - onePlacementFeatures[iFeature])**2
+
+            centroidsDistance[nCentr] = math.sqrt(centroidsDistance[nCentr])
+        placementClusterRerocd.distanceToClusters = centroidsDistance
+
+        if labels[0] == 0:
+            placementClusterRerocd.cluster = 1
         else:
-            break
+            placementClusterRerocd.cluster = 2
 
-    Nfeatures = 3 # len(featuresList) - in future
-    onePlacementFeatures = np.zeros(nDay*3)
-    colNumb = 0
-    for j in xrange(nDay):
-        if (allDays[sortedDays[j].strftime(dbDateFormat)].cpa == 0):
-            onePlacementFeatures[j*Nfeatures] = 1
-        else:
-            onePlacementFeatures[j*Nfeatures] = float(allDays[sortedDays[j].strftime(dbDateFormat)].cpa) / float(maxCPA)
+        MLPlacementsClustersKmeans.objects.save()
 
-        onePlacementFeatures[j*Nfeatures+1] = float(allDays[sortedDays[j].strftime(dbDateFormat)].ctr) / float(maxCTR)
-        onePlacementFeatures[j*Nfeatures+2] = allDays[sortedDays[j].strftime(dbDateFormat)]
-
-    #allFeatures.append(onePlacementFeatures)
-    #allFeatures = np.float32(allFeatures)
-    #allFeaturesForRecognition = np.vstack(allFeatures)
-    onePlacementFeatures = np.float32(onePlacementFeatures)
-    labels = kmeansSpaces[nDay-1].predict(onePlacementFeatures)#send on recognition
-    #labels = kmeansSpaces[nDay-1].predict(allFeaturesForRecognition)#send on recognition
-
-    print "Placement " + str(placement_id) + " belongs to " + str(labels[[0]+1]) + " cluster"
+        #fin 1 tab+

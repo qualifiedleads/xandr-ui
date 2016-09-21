@@ -2,9 +2,6 @@ __author__ = 'USER'
 from django.db import models
 from django.contrib.postgres.fields import ArrayField
 
-
-
-
 class MLPlacementDailyFeatures(models.Model):
     id = models.AutoField(primary_key=True)
     placement = models.ForeignKey("Placement", db_constraint=False, on_delete = models.DO_NOTHING)
@@ -31,6 +28,9 @@ class MLPlacementsClustersKmeans(models.Model):
     placement = models.ForeignKey("Placement", db_constraint=False, on_delete = models.DO_NOTHING)
     day = models.IntegerField(db_index=True)
     cluster = models.IntegerField(db_index=True)
+    distance_to_clusters = ArrayField(
+            models.DecimalField(max_digits=35, decimal_places=10), null = True,
+        )
 
     class Meta:
         db_table = "ml_placements_clusters_kmeans"

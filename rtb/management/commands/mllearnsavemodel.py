@@ -11,13 +11,9 @@ class Command(BaseCommand):
     """
 
     def add_arguments(self, parser):
-        #parser.add_argument('file_name', type=str)
         parser.add_argument('placement_id', type=int)
 
     def handle(self, *args, **options):
         self.stdout.write('mllearnsavemode called')
-        #file_name = options.get('file_name')
         placement_id = options.get('placement_id')
-        #learn(file_name)
-        #learn()
         mlLearnKmeans(placement_id)

@@ -6,7 +6,7 @@
   .controller('CampaignOptimiserController', CampaignOptimiserController);
 
   /** @ngInject */
-  function CampaignOptimiserController($window, $state, $localStorage, $scope, $translate, Campaign, CampaignOptimiser) {
+  function CampaignOptimiserController($window, $state, $localStorage, $scope, $translate, $compile, Campaign, CampaignOptimiser) {
     var vm = this;
     vm.campName = Campaign.campaign;
     vm.campId = Campaign.id;
@@ -111,7 +111,7 @@
     //endregion
 
     var startDate = new Date(1981, 3, 27),
-        now = new Date();
+      now = new Date();
 
     vm.UI = {
       showGridWhiteList: {
@@ -449,45 +449,79 @@
             }
           },
           {
-            caption: LC('CAMP.CAMPAIGN.COLUMNS.VIEW_MEASURED_IMPS'),
-            dataField: 'view_measured_imps',
-            alignment: 'center',
-            visible: false,
-            width: 100,
-            dataType: 'number',
+            caption: 'Analytics',
+            width: 210,
+            columnIndex: 16,
+            dataField: 'analytics',
             allowEditing: false,
-            headerFilter: {
-              dataSource: function (source) {
-                return headerFilterColumn(source, 'view_measured_imps');
+            cellTemplate: function (container, options) {
+              var bad = options.data.analitics.bad;
+              var good = options.data.analitics.good;
+              var badOpasity = 1;
+              var goodOpasity = 1;
+              var k = +((bad*100)/(bad + good));
+              if (((k/100 <=0.5)) && (((k/100) >0.45)) || ((((100-k)/100)<=0.5) && (((100-k)/100)>0.45 ))) { badOpasity = 0.03; goodOpasity = 0.03;}
+              if ((k/100 <0.44 && k/100 >0.4)  || (((100-k)/100)<0.44 && ((100-k)/100)>0.4 )) { badOpasity = 0.09; goodOpasity = 0.09;}
+              if ((k/100 <0.4 && k/100 >0.3)   || (((100-k)/100)<0.4 && ((100-k)/100)>0.3 )) { badOpasity = 0.2; goodOpasity = 0.2;}
+              if ((k/100 <0.3 && k/100 >0.2)   || (((100-k)/100)<0.3 && ((100-k)/100)>0.2 )) { badOpasity = 0.5; goodOpasity = 0.5;}
+              if ((k/100 <0.2 && k/100 >0.1)   || (((100-k)/100)<0.2 && ((100-k)/100)>0.1 )) { badOpasity = 0.7; goodOpasity = 0.7;}
+              if ((k/100 <0.1 && k/100 >0)     || (((100-k)/100)<0.1 && ((100-k)/100)>0 )) { badOpasity = 1.0; goodOpasity = 1.0;}
+              var goodDiagram = (100-k)+'%';
+              var badDiagram = k+'%';
+              var tpl = $compile(
+                '<div class="analiticCO">'+
+                '<div class="diagramCO">'+
+                '<div class="badDiagramCO" style="width:' + badDiagram + ';opacity:' + badOpasity + ';"></div>'+
+                '<div class="goodDiagramCO" style="width:' + goodDiagram + ';opacity:'+goodOpasity+';"></div>'+
+                '<p class="textBadDiagramCO" >'+bad.toFixed(1)+'('+k.toFixed(1)+'%)</p>'+
+                '<p class="textGoodDiagramCO">'+good.toFixed(1)+'(' + (100-k).toFixed(1)+ '%)</p>'+
+                '</div>'+
+                '<div class="buttonAnaliticCO'+ options.data.placement+'">'+
+                '<div class="trueButtonAnaliticCO'+ options.data.placement +'"></div>'+
+                '<div class="falseButtonAnaliticCO'+ options.data.placement +'"></div>'+
+                '</div>'+
+                '</div>;')( $scope );
+              tpl.appendTo(container);
+
+              var trueButton = $window.$(".trueButtonAnaliticCO"+ options.data.placement).dxButton({
+                text: 'True',
+                disabled: false,
+                onClick: function () {
+                  $window.$(".falseButtonAnaliticCO"+ options.data.placement).removeClass('active-white');
+                  $window.$(".trueButtonAnaliticCO"+ options.data.placement).addClass('active-white');
+                  CampaignOptimiser.decisionML(vm.campId, options.data.placement, true)
+                  .then(function (res) {
+                    return res;
+                  });
+                }
+              });
+
+              var falseButton = $window.$(".falseButtonAnaliticCO"+ options.data.placement).dxButton({
+                text: 'False',
+                disabled: false,
+                onClick: function () {
+                  $window.$(".falseButtonAnaliticCO"+ options.data.placement).addClass('active-white');
+                  $window.$(".trueButtonAnaliticCO"+ options.data.placement).removeClass('active-white');
+                  CampaignOptimiser.decisionML(vm.campId, options.data.placement, false)
+                  .then(function (res) {
+                    return res;
+                  });
+                }
+              });
+
+              if (options.data.analitics.checked == true) {
+                trueButton.addClass('active-white').append();
+              } else {
+                trueButton.append();
               }
-            }
-          },
-          {
-            caption: LC('CAMP.CAMPAIGN.COLUMNS.VIEW_MEASUREMENT_RATE') + ' ,%',
-            dataField: 'view_measurement_rate',
-            alignment: 'center',
-            visible: false,
-            width: 120,
-            dataType: 'number',
-            allowEditing: false,
-            headerFilter: {
-              dataSource: function (source) {
-                return headerFilterColumn(source, 'view_measurement_rate');
+
+              if (options.data.analitics.checked == false) {
+                falseButton.addClass('active-white').append();
+              } else {
+                falseButton.append();
               }
-            }
-          },
-          {
-            caption: LC('CAMP.CAMPAIGN.COLUMNS.VIEW_RATE') + ' ,%',
-            dataField: 'view_rate',
-            alignment: 'center',
-            visible: false,
-            width: 80,
-            dataType: 'number',
-            allowEditing: false,
-            headerFilter: {
-              dataSource: function (source) {
-                return headerFilterColumn(source, 'view_rate');
-              }
+
+
             }
           },
           {
@@ -711,6 +745,7 @@
           if (vm.objectData.rowType == 'data') {
             var allRowBtns = data.rowElement[0].childNodes[11];
             var state = data.data.state;
+            var analitics = data.data.analitics;
             if (state.whiteList == "true") {
               allRowBtns.classList.add('active-white');
             }

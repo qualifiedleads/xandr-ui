@@ -59,7 +59,12 @@
         }
       })
       .then(function (res) {
+        var i = 0;
+        var j  = 1.1;
+        var rand = [true, false, null];
         var list = res.data.data.map(function (item) {
+          i = i+ 0.1;
+          j = j- 0.1;
           return {
             NetworkPublisher: item.NetworkPublisher,
             placement: item.placement,
@@ -73,6 +78,11 @@
             clicks: parseFloat((item.clicks || 0).toFixed(4)),
             conv: parseFloat((item.conv || 0).toFixed(4)),
             cost: parseFloat((item.cost || 0).toFixed(2)),
+            analitics: {
+              "good": i,
+              "bad": j,
+              "checked": rand[Math.floor(Math.random()*3)]
+            },
             imps_viewed: parseFloat((item.imps_viewed || 0).toFixed(4)),
             view_measured_imps: parseFloat((item.view_measured_imps || 0).toFixed(4)),
             view_measurement_rate: parseFloat((item.view_measurement_rate || 0).toFixed(1)),
@@ -142,6 +152,21 @@
       });
     }
 
+    function decisionML(id, placementId, checked) {
+      return $http({
+        method: 'POST',
+        url: '/api/v1/campaigns/' + id + '/placement',
+        data: {placementId: placementId, checked: checked}
+      })
+      .then(function (res) {
+        return res;
+      })
+      .catch(function (err) {
+        $window.DevExpress.ui.notify(err.statusText, "error", 4000);
+      });
+    }
+
+    _this.decisionML = decisionML;
     _this.campaignTargeting = campaignTargeting;
     _this.editCampaignDomains = editCampaignDomains;
     _this.getGridCampaignStore = getGridCampaignStore;

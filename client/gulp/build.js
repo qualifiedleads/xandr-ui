@@ -50,8 +50,8 @@ gulp.task('html', ['inject', 'partials'], function () {
     .pipe(jsFilter.restore)
     .pipe(cssFilter)
     // .pipe($.sourcemaps.init())
-    .pipe($.replace('../../bower_components/bootstrap/fonts/', '../fonts/'))
-    .pipe($.replace('../../bower_components/font-awesome/fonts/', '../fonts/'))
+  .pipe($.replace(/url\([^'"].*?([^/]+\.(eot|svg|ttf|woff|woff2))/gm, 'url(/assets/fonts/$1'))
+  .pipe($.replace(/url\(('|").*?([^/]+\.(eot|svg|ttf|woff|woff2))/gm, 'url($1/assets/fonts/$2'))
     .pipe($.cssnano())
     .pipe($.rev())
     //.pipe($.sourcemaps.write('maps'))
@@ -75,7 +75,18 @@ gulp.task('fonts', function () {
   return gulp.src($.mainBowerFiles())
     .pipe($.filter('**/*.{eot,otf,svg,ttf,woff,woff2}'))
     .pipe($.flatten())
-    .pipe(gulp.dest(path.join(conf.paths.dist, '/fonts/')));
+    .pipe(gulp.dest(path.join(conf.paths.dist, '/assets/fonts/')));
+});
+
+gulp.task('change-path', ['html'], function () {
+  var cssFilter = $.filter('**/*.css', {restore: true});
+
+  return gulp.src([
+    path.join(conf.paths.dist, '**/*.{css,js}'),
+    path.join(conf.paths.dist, 'app.html')
+  ])
+  .pipe($.replace('assets/', conf.appName + '/assets/'))
+  .pipe(gulp.dest(path.join(conf.paths.dist, '/')));
 });
 
 gulp.task('other', function () {
@@ -100,4 +111,4 @@ gulp.task('clean', function () {
   return $.del([path.join(conf.paths.dist, '/'), path.join(conf.paths.tmp, '/')]);
 });
 
-gulp.task('build', ['html', 'fonts', 'other', 'copyDxIcon']);
+gulp.task('build', ['html', 'fonts', 'other', 'change-path']);

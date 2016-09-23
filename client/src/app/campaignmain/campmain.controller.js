@@ -120,7 +120,7 @@
     vm.optimiser = {
       text: LC('CAMP.GO-OPTIMISER'),
       onClick: function () {
-        $state.go('home.campaignoptimiser', {"id": vm.campId});
+        $state.go('home.campaignOptimiser', {"id": vm.campId});
       }
     };
 
@@ -693,7 +693,7 @@
       onRowPrepared: function (data) {
         vm.objectData = data;
         if (vm.objectData.rowType == 'data') {
-          var allRowBtns = data.rowElement[0].childNodes[9];
+          var allRowBtns = data.rowElement[0].childNodes[11];
           var state = data.data.state;
           if (state.whiteList == "true") {
             allRowBtns.classList.add('active-white');
@@ -912,14 +912,35 @@
           caption: 'State',
           width: 300,
           columnIndex: 16,
-          headerCellTemplate: 'headerCellTemplate',
+          dataField: 'state',
+          //headerCellTemplate: 'headerCellTemplate',
+          headerFilter: {
+            dataSource: [ {
+              text: "White",
+              value: ["white"]
+            }, {
+              text: "Black",
+              value: ["black"]
+            }, {
+              text: "Suspended",
+              value: ["suspend"]
+            }]
+          },
           cellTemplate: function (container, options) {
             $window.$("<div />").dxButton({
               text: 'white',
               height: 30,
               width: 89,
-              disabled: true,
+              disabled: false,
               onClick: function (e) {
+
+                vm.Camp.editCampaignDomains(vm.campId,options.data.placement,'white')
+                .then(function (res) {
+                  return res;
+                })
+                .catch(function (err) {
+                  return err;
+                });
                 var parentWhiteBtn = e.element[0].parentNode;
                 if (parentWhiteBtn.classList.contains('active-white')) {
                   parentWhiteBtn.classList.remove('active-white');
@@ -942,8 +963,16 @@
               text: 'black',
               height: 30,
               width: 89,
-              disabled: true,
+              disabled: false,
               onClick: function (e) {
+
+                vm.Camp.editCampaignDomains(vm.campId,options.data.placement,'black')
+                .then(function (res) {
+                  return res;
+                })
+                .catch(function (err) {
+                  return err;
+                });
                 var parentWhiteBtn = e.element[0].parentNode;
                 if (parentWhiteBtn.classList.contains('active-black')) {
                   parentWhiteBtn.classList.remove('active-black');
@@ -966,8 +995,15 @@
               text: 'suspend',
               height: 30,
               width: 95,
-              disabled: true,
+              disabled: false,
               onClick: function (e) {
+                vm.Camp.editCampaignDomains(vm.campId,options.data.placement,'suspend')
+                .then(function (res) {
+                  return res;
+                })
+                .catch(function (err) {
+                  return err;
+                });
                 var parentWhiteBtn = e.element[0].parentNode;
                 if (parentWhiteBtn.classList.contains('active-suspended')) {
                   parentWhiteBtn.classList.remove('active-suspended');

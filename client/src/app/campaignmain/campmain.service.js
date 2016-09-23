@@ -24,6 +24,21 @@
       });
     }
 
+    function editCampaignDomains(id,placement,activeState) {
+      return $http({
+        method: 'PUT',
+        url: '/api/v1/campaigns/' + encodeURI(id) + '/domains',
+        headers: {'Authorization': 'Token ' + $cookies.get('token')},
+        params: {
+          placement: placement,
+          activeState: activeState,
+        }
+      })
+      .then(function (res) {
+        return res.data;
+      });
+    }
+
     function _graphInfo(id, from, to, by) {
       return $http({
         method: 'GET',
@@ -177,6 +192,7 @@
     }
 
     _this.nameCampaigns = nameCampaigns;
+    _this.editCampaignDomains = editCampaignDomains;
 
     _this.getChartStore = getChartStore;
     _this.getGridCampaignStore = getGridCampaignStore;

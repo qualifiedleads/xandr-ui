@@ -97,9 +97,9 @@
         }
       }
     })
-    .state('home.campaignoptimiser', {
-      url: '/campaignoptimiser/:id',
-      templateUrl: 'app/campaignoptimiser/campaignoptimiser.html',
+    .state('home.campaignOptimiser', {
+      url: '/campaignOptimiser/:id',
+      templateUrl: 'app/campaignOptimiser/campaignOptimiser.html',
       controller: 'CampaignOptimiserController',
       controllerAs: 'CO',
       resolve: {

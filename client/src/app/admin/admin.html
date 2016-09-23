@@ -31,10 +31,6 @@
           <p ng-show="!admin.userForm.passwordconfirm.$error.required && (admin.user.passwordconfirm !== admin.user.password) && !admin.userForm.passwordconfirm.$pristine" class="help-block">{{ 'ADMIN.ANU.CONFIRM-PASSWORD-INCORRECT' | translate }}</p>
           <p ng-show="admin.userForm.passwordconfirm.$invalid && !admin.userForm.passwordconfirm.$pristine && admin.userForm.passwordconfirm.$error.required" class="help-block">{{ 'ADMIN.ANU.CONFIRM-PASSWORD-REQUIRED' | translate }}</p>
         </div>
-<!--        <div class="form-group" ng-class="{ 'has-error' : admin.userForm.username.$invalid && !admin.userForm.username.$pristine }">
-          <input type="text" name= "username" class="form-control input-item-login"  placeholder="{{ 'ADMIN.ANU.USER-NAME' | translate }}" ng-model="admin.user.username" required>
-          <p ng-show="admin.userForm.username.$invalid && !admin.userForm.username.$pristine && admin.userForm.username.$error.required" class="help-block">{{ 'ADMIN.ANU.USER-NAME-REQUIRED' | translate }}</p>
-        </div>-->
         <div class="form-group" ng-class="{ 'has-error' : admin.userForm.first_name.$invalid && !admin.userForm.first_name.$pristine }">
           <input type="text" name= "first_name" class="form-control input-item-login"  placeholder="{{ 'ADMIN.ANU.FIRST-NAME' | translate }}" ng-model="admin.user.first_name" required>
           <p ng-show="admin.userForm.first_name.$invalid && !admin.userForm.first_name.$pristine && admin.userForm.first_name.$error.required" class="help-block">{{ 'ADMIN.ANU.FIRST-NAME-REQUIRED' | translate }}</p>
@@ -43,7 +39,6 @@
           <input type="text" name= "last_name" class="form-control input-item-login"  placeholder="{{ 'ADMIN.ANU.LAST-NAME' | translate }}" ng-model="admin.user.last_name" required>
           <p ng-show="admin.userForm.last_name.$invalid && !admin.userForm.last_name.$pristine && admin.userForm.last_name.$error.required" class="help-block">{{ 'ADMIN.ANU.LAST-NAME-REQUIRED' | translate }}</p>
         </div>
-
 
         <div class="form-group">
           <select ng-model="admin.user.permission" name="permission" class="select-user-type form-control" title="user">
@@ -55,18 +50,14 @@
           </select>
         </div>
         <div ng-show="admin.user.permission=='userfull' || admin.user.permission=='userread'" class="form-group">
-          <!--<select ng-model="admin.user.appnexususer" name="appnexususer" class="select-user-type form-control">-->
-            <!--<option value="" disabled selected>Select the appnexus user</option>-->
-            <!--<option ng-repeat="userappnexus in admin.appNexusUsers" value="{{userappnexus.name}}">{{userappnexus.name}}</option>-->
-          <!--</select>-->
-          <div dx-select-box="admin.selectAppNexusUser"></div>
+          <div dx-select-box="admin.UI.selectAppNexusUser"></div>
         </div>
         <button type="submit" class="btn btn-primary" ng-disabled="admin.userForm.$invalid">{{ 'ADMIN.ANU.SUBMIT' | translate }}</button>
       </form>
     </div>
     <div class="col-lg-9 col-md-9 col-sm-12">
       <h3>{{ 'ADMIN.LIST-USER.TITLE' | translate }}</h3>
-      <div dx-data-grid="admin.listOfUsers" id="usersList"></div>
+      <div dx-data-grid="admin.UI.listOfUsers" id="usersList"></div>
     </div>
   </div>
 </div>

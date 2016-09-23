@@ -7,9 +7,11 @@
     'COMMON': {
       'GO-TO-ADMIN-PANEL': 'Admin panel',
       'LOGOUT': 'Log out',
-      'TO-MAIN-PAGE': 'Main page'
+      'TO-MAIN-PAGE': 'Main page',
+      'CANCEL': 'Cancel'
     },
     'AUTH':{
+      'EMAIL-OR-PASSWORD-EMPTY':'Email or Password is empty',
       'GO_BUTTON':'GO',
       'MAIL-REQUIRED': 'Your email is required',
       'MAIL-VALID': 'Your email is not valid.',
@@ -155,21 +157,26 @@
       }
     },
     "CO":{
-      "NAME":"Campaign optimiser",
-      "ORIGINAL": "Original",
-      "OPTIMISED": "Optimised (Whitelist)",
+      "NO-ITEMS-CHOSEN" : "No items chosen. Please, choose at least 1 item",
+      "SEND-TO-SUSPEND-LIST" : "Send to 'Suspend list' until I get to it",
+      "SPECIFIC-DATE" : "Specific date",
+      "7-DAYS" : "7 days",
+      "3-DAYS" : "3 days",
+      "24-HRS" : "24 hrs",
+      "TEMP-SUSPEND" : "Temp. Suspend",
+      "BLACKLISTED" : "Blacklisted",
+      "WHITELIST" : "Whitelist",
+      "SUSPEND" : "Suspend",
+      "OPTIMIZER" : "Optimizer",
+      "BLOCKING" : "Blocking",
+      "DEVICE-AND-SUPPLY-TYPE" : "Device and Supply Type",
+      "GEO" : "Geo",
+      "DOMAIN" : "Domain",
+      "DOMAIN-LISTS" : 'Domain Lists',
+      "DOMAINS" : 'Domains',
       "RULES": "Rules for All Domains:",
-      "SPENDS": "if an app/domain spends more than",
-      "CONVERSIONS1": "and conversions are 0 then",
-      "APP": "if an app/domain has more than",
-      "CONVERSIONS2": "imp. and conversions are 0 then",
-      "UNDISCLOSED": "if an app/domain is marked as \"Undisclosed\"",
-      "DOMAIN-RULES": "Domain-specific rules:",
-      "CURRENT-LIST": "Current list of placements - Live now",
-      "CAMPAIGN-HOME": "Campaign Home",
-      "OPTIMIZER-VIEW": "Optimizer View",
-      "SUSPEND-LIST": "Suspend list"
+      "OPTIMISER-FOR":"Optimiser for",
+      "CAMPAIGN-HOME": "back to Campaign Home"
     }
   })
-
 })();

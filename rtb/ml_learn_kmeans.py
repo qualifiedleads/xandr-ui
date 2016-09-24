@@ -4,17 +4,12 @@ import numpy as np
 from sklearn.cluster import KMeans
 from sklearn import preprocessing
 #from matplotlib import pyplot as plt
-from sklearn import metrics
-from sklearn.ensemble import ExtraTreesClassifier
-import psycopg2
-from psycopg2 import extras
-from datetime import datetime
-from datetime import timedelta
 from models.ml_kmeans_model import MLPlacementDailyFeatures, MLClustersCentroidsKmeans, MLPlacementsClustersKmeans
 from models import NetworkAnalyticsReport_ByPlacement
 from django.db.models import Sum, Min, Max, Avg, Value, When, Case, F, Q, Func, FloatField
 import datetime
 import math
+import csv
 
 #from .models import PlacementDailyFearures
 
@@ -35,7 +30,7 @@ class PlacementInfo:#objects with features for recognition
     features = np.empty(1)
     cluster = 0
 
-def mlLearnKmeans (predict = False):#learn machine, save clusters, predict on training set
+def mlLearnKmeans ():#learn machine, save clusters, predict on training set
     kmeansSpaces = []
     colNumb = 0
     numbDays = 7
@@ -114,17 +109,39 @@ def mlLearnKmeans (predict = False):#learn machine, save clusters, predict on tr
             cluster=1,
             centroid=kmeansSpaces[i].cluster_centers_[0].tolist())
         try:
-            centroidsRecord.save()
+            tempRecord = MLClustersCentroidsKmeans.objects.raw("""
+                        SELECT
+                          *
+                        FROM
+                          ml_clusters_centroids_kmeans
+                        WHERE
+                          cluster=""" + str(centroidsRecord.cluster) + 'AND day=' + str(centroidsRecord.day)
+                                                                )
+            tempRecord = tempRecord[0]
+            tempRecord.centroid = centroidsRecord.centroid
+            tempRecord.save()
         except:
-            print "Already exists"#need to UPDATE!
+            centroidsRecord.save()
+
+
         centroidsRecord = MLClustersCentroidsKmeans(
             day=i,
             cluster=2,
             centroid=kmeansSpaces[i].cluster_centers_[1].tolist())
         try:
-            centroidsRecord.save()
+            tempRecord = MLClustersCentroidsKmeans.objects.raw("""
+                        SELECT
+                          *
+                        FROM
+                          ml_clusters_centroids_kmeans
+                        WHERE
+                          cluster=""" + str(centroidsRecord.cluster) + 'AND day=' + str(centroidsRecord.day)
+                                                                )
+            tempRecord = tempRecord[0]
+            tempRecord.centroid = centroidsRecord.centroid
+            tempRecord.save()
         except:
-            print "Already exists"  # need to UPDATE!
+            centroidsRecord.save()
 
     print "Learning finished"
 
@@ -138,7 +155,8 @@ def mlPredictKmeans(placement_idRecogn):#prediction
                  placement_id AS id
                FROM
                  network_analytics_report_by_placement
-                 LIMIT 40
+               ORDER BY
+                 placement_id
                """)
 
         for plId in queryResultsAllPlacements:
@@ -148,33 +166,62 @@ def mlPredictKmeans(placement_idRecogn):#prediction
     else:
         mlPredictOnePlacement(placement_id=placement_idRecogn, numbClusters=numbClusters, numbFeaturesInDay=numbFeaturesInDay)
 
+        goodClusters = mlGetGoodClusters()#getting info about good cluster in days
+        queryClusterInfo = MLPlacementsClustersKmeans.objects.filter(placement_id = placement_idRecogn)
+        mlAnswer = {}#mlAnswer[day][good/bad]
+        for row in queryClusterInfo.iterator():
+            if str(row.day) not in mlAnswer:
+                mlAnswer[str(row.day)] = {}
+            if goodClusters[row.day] == row.cluster:
+                prediction = 'good'
+            else:
+                prediction = 'bad'
+            mlAnswer[str(row.day)][prediction] = row.distance_to_clusters[row.cluster - 1]
 
-    """for i in xrange(numbDays - 1):#clusters centres distance to 0 calculating
-        print "Day " + str(i)
+        return mlAnswer
+
+
+def mlGetGoodClusters():
+    numbFeaturesInDay = 2
+    numbClusters = 2
+    numbDays = 8
+
+    queryResults = MLClustersCentroidsKmeans.objects.all()
+    centroidsCoord = [0] * numbDays
+    goodClusters = []  # goodClusters[x] - x day good cluster
+    for i in xrange(numbDays):
+        centroidsCoord[i] = [0] * numbClusters
+
+    for row in queryResults.iterator():  # getting data about cluster centroids
+        centroidsCoord[row.day][row.cluster - 1] = row.centroid
+
+        # centroidsCoord[x][y][x] - x=day, y=cluster, z=coord numb
+
+    #weekdays
+    for i in xrange(numbDays - 1):  # clusters centres distance to 0 calculating
+        maxClustDist = 0
+        maxClust = 0
         for j in xrange(numbClusters):
             dist = 0
             for iFeature in xrange(numbFeaturesInDay):
-                #print centroidsCoord[i][j][iFeature]
-                dist += centroidsCoord[i][j][iFeature]**2
-                #print dist
+                dist += centroidsCoord[i][j][iFeature] ** 2
 
             dist = math.sqrt(dist)
-
-            print "  Cluster " + str(j+1) + ": " + str(dist)
-
-    print "Day 7 (all)"
-    for j in xrange(numbClusters):
+            if dist > maxClustDist:
+                maxClustDist = dist
+                maxClust = j + 1
+        goodClusters.append(maxClust)
+    #whole week
+    for j in xrange(numbClusters):  # for all weekdays
         dist = 0
         for iFeature in xrange(numbFeaturesInDay * (numbDays - 1)):
             dist += centroidsCoord[7][j][iFeature] ** 2
         dist = math.sqrt(dist)
-        print "  Cluster " + str(j + 1) + ": " + str(dist)
-    return"""
-
-
-
-
-
+        if dist > maxClustDist:
+            maxClustDist = dist
+            maxClust = j + 1
+    goodClusters.append(maxClust)
+    return goodClusters
 
 def mlPredictOnePlacement(placement_id, numbClusters, numbFeaturesInDay):
     numbDays = 8
@@ -207,6 +254,7 @@ def mlPredictOnePlacement(placement_id, numbClusters, numbFeaturesInDay):
                   dow;
                 """
                                                                                )
+
     allDaysPlacementFeatures = []
     for row in queryResultsPlacementInfo:
         placementClusterRecord = MLPlacementsClustersKmeans()
@@ -230,11 +278,25 @@ def mlPredictOnePlacement(placement_id, numbClusters, numbFeaturesInDay):
             if clustersDistance[i] < minDistance:
                 minDistance = clustersDistance[i]
                 placementClusterRecord.cluster = i + 1
-        placementClusterRecord.save()
+
+        try:
+            tempRecord = MLPlacementsClustersKmeans.objects.raw("""
+            SELECT
+              *
+            FROM
+              ml_placements_clusters_kmeans
+            WHERE
+              placement_id=""" + str(placement_id) + 'AND day=' + str(placementClusterRecord.day)
+            )
+            tempRecord = tempRecord[0]
+            tempRecord.cluster = placementClusterRecord.cluster
+            tempRecord.distance_to_cluster = placementClusterRecord.distance_to_clusters = clustersDistance
+            tempRecord.save()
+        except:
+            placementClusterRecord.save()
 
     if len(allDaysPlacementFeatures) < (numbDays - 1) * numbFeaturesInDay:
         print "Prediction completed (not enough data for weekly space) " + str(placement_id)
-        # return
     else:
         placementClusterRecord = MLPlacementsClustersKmeans()
         placementClusterRecord.day = 7
@@ -254,5 +316,49 @@ def mlPredictOnePlacement(placement_id, numbClusters, numbFeaturesInDay):
             if clustersDistance[i] < minDistance:
                 minDistance = clustersDistance[i]
                 placementClusterRecord.cluster = i + 1
-        placementClusterRecord.save()
+
+        try:
+            tempRecord = MLPlacementsClustersKmeans.objects.raw("""
+            SELECT
+              *
+            FROM
+              ml_placements_clusters_kmeans
+            WHERE
+              placement_id=""" + str(placement_id) + 'AND day=' + str(placementClusterRecord.day)
+            )
+            tempRecord = tempRecord[0]
+            tempRecord.cluster = placementClusterRecord.cluster
+            tempRecord.distance_to_cluster = placementClusterRecord.distance_to_clusters = clustersDistance
+            tempRecord.save()
+        except:
+            placementClusterRecord.save()
         print "Prediction completed " + str(placement_id)
+
+def makeCsv():
+    goodClusters = mlGetGoodClusters()
+    queryResults = MLPlacementsClustersKmeans.objects.all().order_by('placement_id', 'day')
+
+    with open('ml_placements_prediction_ctr_viewrate.csv', 'w') as csvfile:
+        fieldnames = ['placement_id', 'day', 'predict', 'distance to good', 'distance to bad', 'distance difference']
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        writer.writeheader()
+        for row in queryResults.iterator():
+            if goodClusters[row.day] == row.cluster:
+                prediction = 'good'
+            else:
+                prediction = 'bad'
+
+            distGood = row.distance_to_clusters[goodClusters[row.day] - 1]
+            if goodClusters[row.day] == 1:
+                distBad = row.distance_to_clusters[1]
+            else:
+                distBad = row.distance_to_clusters[0]
+            dist = math.fabs(distGood - distBad)
+
+            writer.writerow({'placement_id': row.placement_id,
+                             'day': row.day,
+                             'predict': prediction,
+                             'distance to good': distGood,
+                             'distance to bad': distBad,
+                             'distance difference': dist})
+

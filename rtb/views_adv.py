@@ -249,46 +249,27 @@ def get_campaign_placement(campaign_id, from_date, to_date):
         }
         #mlAnswer = mlPredictKmeans(x['placement'])  # INSERT PLACEMENT_ID
         mlAnswer = mlGetPlacementInfoKmeans(x['placement'])
-        #x['analitics'] = []
-        temp = 0
+
+        if mlAnswer == -1:
+            continue
+
+        x['analitics'] = []
         for weekday in xrange(8):  #8 - quantity of weekdays+whole week in mlAnswer
-            #x['analitics'].append({})
             if str(weekday) not in mlAnswer:
-                """x['analitics'] = {
-                "good": -1,
-                "bad": -1,
-                "checked": -1
-                }"""
-                x['analitics'][str(weekday)] = {
+                x['analitics'].append( {
                     "day": weekday,
                     "good": -1,
                     "bad": -1,
                     "checked": -1
-                }
+                })
             else:
-                x['analitics'] = {
-                    "day": weekday,
-                    "good": mlAnswer[str(weekday)]['good'],#mlAnswer[str(weekday)]['good']
-                    "bad": mlAnswer[str(weekday)]['bad'],#mlAnswer[str(weekday)]['bad']
-                    "checked": 1
-                }
-                """x['analitics'][temp].append( {
+                x['analitics'].append( {
                     "day": weekday,
                     "good": mlAnswer[str(weekday)]['good'],  # mlAnswer[str(weekday)]['good']
                     "bad": mlAnswer[str(weekday)]['bad'],  # mlAnswer[str(weekday)]['bad']
                     "checked": 0
                 })
-            temp += 1"""
         x.pop('placementState', None)
-
-
-    """for x in res:#???????????????
-        mlAnswer = mlPredictKmeans(x['placement'])  # INSERT PLACEMENT_ID
-        x['analitics'] = {
-            "good": mlAnswer['7']['good'],
-            "bad": mlAnswer['7']['bad'],
-            "checked": 3
-        }"""
 
 
     cache.set(key, res)

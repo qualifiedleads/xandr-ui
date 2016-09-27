@@ -16,6 +16,7 @@
     vm.popUpIf = false;
     var dataSuspend = null;
     var tempSespendRow = {};
+    vm.arrayDiagram = [];
     vm.confirmAllDiagramPopupVisible = false;
 
 
@@ -488,6 +489,7 @@
             dataField: 'analytics',
             allowEditing: false,
             cellTemplate: function (container, options) {
+              vm.arrayDiagram.push(options.data);
               var bad = options.data.analitics[7].bad;
               var good = options.data.analitics[7].good;
               var badOpasity = 1;
@@ -503,11 +505,11 @@
               var badDiagram = k+'%';
               var tpl = $compile(
                 '<div class="analiticCO">'+
-                '<div class="diagramCO" ng-click="CO.showAllDiagram()">'+
+                '<div class="diagramCO" ng-click="CO.showAllDiagram('+ options.rowIndex +')">'+
                 '<div class="badDiagramCO" style="width:' + badDiagram + ';opacity:' + badOpasity + ';"></div>'+
                 '<div class="goodDiagramCO" style="width:' + goodDiagram + ';opacity:'+goodOpasity+';"></div>'+
-                '<p class="textBadDiagramCO" >'+bad.toFixed(1)+'('+k.toFixed(1)+'%)</p>'+
-                '<p class="textGoodDiagramCO">'+good.toFixed(1)+'(' + (100-k).toFixed(1)+ '%)</p>'+
+                '<p class="textBadDiagramCO" >'+bad.toFixed(3)+'('+k.toFixed(2)+'%)</p>'+
+                '<p class="textGoodDiagramCO">'+good.toFixed(3)+'(' + (100-k).toFixed(2)+ '%)</p>'+
                 '</div>'+
                 '<div class="buttonAnaliticCO'+ options.data.placement+'">'+
                 '<div class="trueButtonAnaliticCO'+ options.data.placement +'"></div>'+
@@ -516,9 +518,9 @@
                 '</div>;')( $scope );
               tpl.appendTo(container);
 
-              vm.showAllDiagram = function () {
+              vm.showAllDiagram = function (item) {
                 vm.popUpIf = true;
-                vm.arrayDiagram = options.data.analitics;
+                vm.arraytoPopup = vm.arrayDiagram[item].analitics;
               };
 
               var trueButton = $window.$(".trueButtonAnaliticCO"+ options.data.placement).dxButton({

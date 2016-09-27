@@ -77,15 +77,15 @@
         <div id="btn-close" class="btn-close" ng-click="CO.popUpHide()"  title="Закрыть"></div>
         <h4 class="title">Analitic diagrams</h4>
         <table class="table">
-          <tr ng-repeat="item in CO.arrayDiagram" class="repitDiagram" style="display: block; position: relative; ">
+          <tr ng-repeat="item in CO.arraytoPopup" class="repitDiagram" style="display: block; position: relative; ">
             <td>{{item.day}}</td>
             <td>
               <div class="analiticCO" style="text-align: center;">
                 <div class="diagramCO">
                   <div class="badDiagramCO" style="width:{{item.badDiagram}}; opacity: {{item.badOpasity}};"></div>
                   <div class="goodDiagramCO" style="width:{{item.goodDiagram}};opacity:{{item.goodOpasity}};"></div>
-                  <p class="textBadDiagramCO" >{{item.bad.toFixed(1)}}({{ item.k.toFixed(1)}}%)</p>
-                  <p class="textGoodDiagramCO">{{item.good.toFixed(1)}} ( {{(100-item.k).toFixed(1)}}%)</p>
+                  <p class="textBadDiagramCO" >{{item.bad.toFixed(3)}}({{ item.k.toFixed(2)}}%)</p>
+                  <p class="textGoodDiagramCO">{{item.good.toFixed(3)}} ( {{(100-item.k).toFixed(2)}}%)</p>
                 </div>
                 <div class="buttonAnaliticCO">
                   <div class="trueButtonAnaliticCO"></div>

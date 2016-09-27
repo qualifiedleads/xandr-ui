@@ -85,7 +85,7 @@ gulp.task('change-path', ['html'], function () {
     path.join(conf.paths.dist, '**/*.{css,js}'),
     path.join(conf.paths.dist, 'app.html')
   ])
-  .pipe($.replace('assets/', conf.appName + '/assets/'))
+  .pipe($.replace('assets/', '/assets/'))
   .pipe(gulp.dest(path.join(conf.paths.dist, '/')));
 });
 

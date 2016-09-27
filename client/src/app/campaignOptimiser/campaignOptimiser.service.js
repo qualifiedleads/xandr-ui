@@ -59,144 +59,106 @@
         }
       })
       .then(function (res) {
-        var rand = [true, false, null];
-
-        var list = res.data.data.map(function (item) {
-          item.analitics = [
-            {
-              "day" : "0", //7 - Whole week, 0 - Sunday, 1 - Monday, .., 6 - Saturday
-              "good": 0.1,
-              "bad": 0.8,
-              "checked": rand[Math.floor(Math.random()*3)],
-            },
-            {
-              "day" : "1",
-              "good": 0.7,
-              "bad": 0.8,
-              "checked": rand[Math.floor(Math.random()*3)],
-            },
-            {
-              "day" : "2",
-              "good": 0.2,
-              "bad": 1.5,
-              "checked": rand[Math.floor(Math.random()*3)],
-            },
-            {
-              "day" : "3",
-              "good": 0.7,
-              "bad": 0.4,
-              "checked": rand[Math.floor(Math.random()*3)],
+        for (var item in res.data.data) {
+          var itemArray = [];
+          //7 - Whole week, 0 - Sunday, 1 - Monday, .., 6 - Saturday
+          for (var itemAnal in res.data.data[item].analitics) {
+            if (res.data.data[item].analitics[itemAnal].day == '0') {
+              res.data.data[item].analitics[itemAnal].day = 'Sunday';
             }
-            ,
-            {
-              "day" : "4",
-              "good": 0.3,
-              "bad": 0.4,
-              "checked": rand[Math.floor(Math.random()*3)],
-            },
-            {
-              "day" : "5",
-              "good": 0.7,
-              "bad": 1.4,
-              "checked": rand[Math.floor(Math.random()*3)],
-            },
-            {
-              "day" : "6",
-              "good": 3.7,
-              "bad": 5.4,
-              "checked": rand[Math.floor(Math.random()*3)],
-            },
-            {
-              "day" : "7",
-              "good": 0.7,
-              "bad": 0.23,
-              "checked": rand[Math.floor(Math.random()*3)],
+            if (res.data.data[item].analitics[itemAnal].day == '1') {
+              res.data.data[item].analitics[itemAnal].day = 'Monday';
             }
-          ];
+            if (res.data.data[item].analitics[itemAnal].day == '2') {
+              res.data.data[item].analitics[itemAnal].day = 'Tuesday';
+            }
+            if (res.data.data[item].analitics[itemAnal].day == '3') {
+              res.data.data[item].analitics[itemAnal].day = 'Wednesday';
+            }
+            if (res.data.data[item].analitics[itemAnal].day == '4') {
+              res.data.data[item].analitics[itemAnal].day = 'Thursday';
+            }
+            if (res.data.data[item].analitics[itemAnal].day == '5') {
+              res.data.data[item].analitics[itemAnal].day = 'Friday';
+            }
+            if (res.data.data[item].analitics[itemAnal].day == '6') {
+              res.data.data[item].analitics[itemAnal].day = 'Saturday';
+            }
+            if (res.data.data[item].analitics[itemAnal].day == '7') {
+              res.data.data[item].analitics[itemAnal].day = 'All week';
+            }
 
-          return {
-            NetworkPublisher: item.NetworkPublisher,
-            placement: item.placement,
-            placement_name: item.placement_name,
-            cvr: parseFloat((item.cvr || 0).toFixed(4)),
-            ctr: parseFloat((item.ctr || 0).toFixed(4)),
-            cpc: parseFloat((item.cpc || 0).toFixed(4)),
-            cpm: parseFloat((item.cpm || 0).toFixed(4)),
-            imp: parseFloat((item.imp || 0).toFixed(4)),
-            cpa: parseFloat((item.cpa || 0).toFixed(4)),
-            clicks: parseFloat((item.clicks || 0).toFixed(4)),
-            conv: parseFloat((item.conv || 0).toFixed(4)),
-            cost: parseFloat((item.cost || 0).toFixed(2)),
-            analitics: item.analitics.map(function (item) {
+            var bad = res.data.data[item].analitics[itemAnal].bad;
+            var good = res.data.data[item].analitics[itemAnal].good;
+            var badOpasity = 1;
+            var goodOpasity = 1;
+            var k = +((bad*100)/(bad + good));
+            if (((k/100 <=0.5)) && (((k/100) >0.45)) || ((((100-k)/100)<=0.5) && (((100-k)/100)>0.45 ))) { badOpasity = 0.03; goodOpasity = 0.03;}
+            if ((k/100 <0.44 && k/100 >0.4)  || (((100-k)/100)<0.44 && ((100-k)/100)>0.4 )) { badOpasity = 0.09; goodOpasity = 0.09;}
+            if ((k/100 <0.4 && k/100 >0.3)   || (((100-k)/100)<0.4 && ((100-k)/100)>0.3 )) { badOpasity = 0.2; goodOpasity = 0.2;}
+            if ((k/100 <0.3 && k/100 >0.2)   || (((100-k)/100)<0.3 && ((100-k)/100)>0.2 )) { badOpasity = 0.5; goodOpasity = 0.5;}
+            if ((k/100 <0.2 && k/100 >0.1)   || (((100-k)/100)<0.2 && ((100-k)/100)>0.1 )) { badOpasity = 0.7; goodOpasity = 0.7;}
+            if ((k/100 <0.1 && k/100 >0)     || (((100-k)/100)<0.1 && ((100-k)/100)>0 )) { badOpasity = 1.0; goodOpasity = 1.0;}
+            var goodDiagram = (100-k)+'%';
+            var badDiagram = k+'%';
 
-//7 - Whole week, 0 - Sunday, 1 - Monday, .., 6 - Saturday
-              if (item.day == '0') {
-                item.day = 'Sunday';
-              }
-              if (item.day == '1') {
-                item.day = 'Monday';
-              }
-              if (item.day == '2') {
-                item.day = 'Tuesday';
-              }
-              if (item.day == '3') {
-                item.day = 'Wednesday';
-              }
-              if (item.day == '4') {
-                item.day = 'Thursday';
-              }
-              if (item.day == '5') {
-                item.day = 'Friday';
-              }
-              if (item.day == '6') {
-                item.day = 'Saturday';
-              }
-              if (item.day == '7') {
-                item.day = 'All week';
-              }
-
-              var bad = item.bad;
-              var good = item.good;
-              var badOpasity = 1;
-              var goodOpasity = 1;
-              var k = +((bad*100)/(bad + good));
-              if (((k/100 <=0.5)) && (((k/100) >0.45)) || ((((100-k)/100)<=0.5) && (((100-k)/100)>0.45 ))) { badOpasity = 0.03; goodOpasity = 0.03;}
-              if ((k/100 <0.44 && k/100 >0.4)  || (((100-k)/100)<0.44 && ((100-k)/100)>0.4 )) { badOpasity = 0.09; goodOpasity = 0.09;}
-              if ((k/100 <0.4 && k/100 >0.3)   || (((100-k)/100)<0.4 && ((100-k)/100)>0.3 )) { badOpasity = 0.2; goodOpasity = 0.2;}
-              if ((k/100 <0.3 && k/100 >0.2)   || (((100-k)/100)<0.3 && ((100-k)/100)>0.2 )) { badOpasity = 0.5; goodOpasity = 0.5;}
-              if ((k/100 <0.2 && k/100 >0.1)   || (((100-k)/100)<0.2 && ((100-k)/100)>0.1 )) { badOpasity = 0.7; goodOpasity = 0.7;}
-              if ((k/100 <0.1 && k/100 >0)     || (((100-k)/100)<0.1 && ((100-k)/100)>0 )) { badOpasity = 1.0; goodOpasity = 1.0;}
-              var goodDiagram = (100-k)+'%';
-              var badDiagram = k+'%';
-
-              return {
-                "day" : item.day,
-                "good": item.good,
-                "bad": item.bad,
-                "checked": item.checked,
+            if (res.data.data[item].analitics[itemAnal].good == -1) {
+              itemArray.push({
+                "day" : res.data.data[item].analitics[itemAnal].day,
+                "good": null,
+                "bad": null,
+                "checked": null,
+                "badDiagram": null,
+                "goodDiagram": null,
+                "badOpasity": 0,
+                "goodOpasity": 0,
+                "k": 0
+              });
+            } else {
+              itemArray.push({
+                "day" : res.data.data[item].analitics[itemAnal].day,
+                "good": res.data.data[item].analitics[itemAnal].good,
+                "bad": res.data.data[item].analitics[itemAnal].bad,
+                "checked": res.data.data[item].analitics[itemAnal].checked,
                 "badDiagram": badDiagram,
                 "goodDiagram": goodDiagram,
                 "badOpasity": badOpasity,
                 "goodOpasity": goodOpasity,
                 "k": k
-              }
-            }),
-            imps_viewed: parseFloat((item.imps_viewed || 0).toFixed(4)),
-            view_measured_imps: parseFloat((item.view_measured_imps || 0).toFixed(4)),
-            view_measurement_rate: parseFloat((item.view_measurement_rate || 0).toFixed(1)),
-            view_rate: parseFloat((item.view_rate || 0).toFixed(1)),
-            state: {
-              blackList: item.state.blackList,
-              suspended: item.state.suspended,
-              whiteList: item.state.whiteList
+              });
             }
-          };
-        });
+          }
+
+            res.data.data[item].NetworkPublisher= res.data.data[item].NetworkPublisher,
+            res.data.data[item].placement= res.data.data[item].placement,
+            res.data.data[item].placement_name= res.data.data[item].placement_name,
+            res.data.data[item].cvr= parseFloat((res.data.data[item].cvr || 0).toFixed(4)),
+            res.data.data[item].ctr= parseFloat((item.ctr || 0).toFixed(4)),
+            res.data.data[item].cpc= parseFloat((item.cpc || 0).toFixed(4)),
+            res.data.data[item].cpm= parseFloat((item.cpm || 0).toFixed(4)),
+            res.data.data[item].imp= parseFloat((item.imp || 0).toFixed(4)),
+            res.data.data[item].cpa= parseFloat((item.cpa || 0).toFixed(4)),
+            res.data.data[item].clicks= parseFloat((item.clicks || 0).toFixed(4)),
+            res.data.data[item].conv= parseFloat((item.conv || 0).toFixed(4)),
+            res.data.data[item].cost= parseFloat((item.cost || 0).toFixed(2)),
+            res.data.data[item].analitics = itemArray,
+            res.data.data[item].imps_viewed= parseFloat((item.imps_viewed || 0).toFixed(4)),
+            res.data.data[item].view_measured_imps= parseFloat((item.view_measured_imps || 0).toFixed(4)),
+            res.data.data[item].view_measurement_rate= parseFloat((item.view_measurement_rate || 0).toFixed(1)),
+            res.data.data[item].view_rate= parseFloat((item.view_rate || 0).toFixed(1)),
+            res.data.data[item].state= {
+              blackList: res.data.data[item].state.blackList,
+              suspended: res.data.data[item].state.suspended,
+              whiteList: res.data.data[item].state.whiteList
+            }
+
+
+        }
 
         _totalCountCampaign = res.data.totalCount;
         _this.totalSummary = res.data.totalSummary;
 
-        return list;
+        return res.data.data;
       })
       .catch(function (err) {
         $window.DevExpress.ui.notify(err.data.detail, "error", 4000);

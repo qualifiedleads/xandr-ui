@@ -249,7 +249,7 @@ def get_campaign_placement(campaign_id, from_date, to_date):
         }
         #mlAnswer = mlPredictKmeans(x['placement'])  # INSERT PLACEMENT_ID
         mlAnswer = mlGetPlacementInfoKmeans(x['placement'])
-        #x['analitics'] = []
+        x['analitics'] = []
         temp = 0
         for weekday in xrange(8):  #8 - quantity of weekdays+whole week in mlAnswer
             #x['analitics'].append({})
@@ -259,26 +259,19 @@ def get_campaign_placement(campaign_id, from_date, to_date):
                 "bad": -1,
                 "checked": -1
                 }"""
-                x['analitics'][str(weekday)] = {
-                    "day": weekday,
-                    "good": -1,
-                    "bad": -1,
-                    "checked": -1
-                }
+                x['analitics'].append( {
+                                    "day": weekday,
+                                    "good": -1,  # mlAnswer[str(weekday)]['good']
+                                    "bad": -1,  # mlAnswer[str(weekday)]['bad']
+                                    "checked": -1
+                                })
             else:
-                x['analitics'] = {
-                    "day": weekday,
-                    "good": mlAnswer[str(weekday)]['good'],#mlAnswer[str(weekday)]['good']
-                    "bad": mlAnswer[str(weekday)]['bad'],#mlAnswer[str(weekday)]['bad']
-                    "checked": 1
-                }
-                """x['analitics'][temp].append( {
-                    "day": weekday,
-                    "good": mlAnswer[str(weekday)]['good'],  # mlAnswer[str(weekday)]['good']
-                    "bad": mlAnswer[str(weekday)]['bad'],  # mlAnswer[str(weekday)]['bad']
-                    "checked": 0
-                })
-            temp += 1"""
+                x['analitics'].append( {
+                                    "day": weekday,
+                                    "good": mlAnswer[str(weekday)]['good'],  # mlAnswer[str(weekday)]['good']
+                                    "bad": mlAnswer[str(weekday)]['bad'],  # mlAnswer[str(weekday)]['bad']
+                                    "checked": 0
+                                })
         x.pop('placementState', None)
 
 

@@ -79,70 +79,6 @@
         float: left;
       }
     }
-
-    .analiticCO {
-      width: 280px;
-      height: 38px;
-      position: relative;
-
-      .diagramCO {
-        width: 200px;
-        height: 20px;
-        position: relative;
-
-        .badDiagramCO {
-          float: left;
-          height: 20px;
-          background-color: red;
-          border-radius: 50px 0 0 50px;
-          opacity:1.0;
-        }
-
-        .textBadDiagramCO {
-          top: 1px;
-          position: absolute;
-          text-align: left;
-          margin-left: 3px;
-          opacity:1.0;
-          color:black;
-        }
-
-        .goodDiagramCO{
-          float:right;
-          height: 20px;
-          background-color:green;
-          border-radius: 0 50px 50px 0;
-          color: #fff;
-        }
-
-        .textGoodDiagramCO {
-          top: 1px;
-          right: 0;
-          position: absolute;
-          text-align: right;
-          margin-right: 3px;
-          opacity:1.0;
-          color:black;
-        }
-      }
-
-      .active-white {
-        background-color: rgba(0, 210, 212, 0.63);
-      }
-
-      .dx-button {
-        height: 20px;
-        font-size: 12px;
-        font-weight: 600;
-        color: black;
-        width: 95px;
-      }
-
-      .dx-button-text {
-        display: inline-block;
-        line-height: inherit;
-      }
-    }
   }
 
   .active-white {
@@ -197,6 +133,127 @@
 
 }
 
+
+.b-popup{
+  z-index: 999999999;
+  width:100%;
+  min-height:100%;
+  background-color: rgba(0,0,0,0.5);
+  overflow:hidden;
+  position:fixed;
+  left: 0px;
+  top:0px;
+
+  .analiticCO {
+    width: 280px;
+    height: 38px;
+    position: relative;
+
+    .diagramCO {
+      width: 200px;
+      height: 20px;
+      position: relative;
+
+      .badDiagramCO {
+        float: left;
+        height: 20px;
+        background-color: red;
+        border-radius: 50px 0 0 50px;
+        opacity:1.0;
+      }
+
+      .textBadDiagramCO {
+        top: 1px;
+        position: absolute;
+        text-align: left;
+        margin-left: 3px;
+        opacity:1.0;
+        color:black;
+      }
+
+      .goodDiagramCO{
+        float:right;
+        height: 20px;
+        background-color:green;
+        border-radius: 0 50px 50px 0;
+        color: #fff;
+      }
+
+      .textGoodDiagramCO {
+        top: 1px;
+        right: 0;
+        position: absolute;
+        text-align: right;
+        margin-right: 3px;
+        opacity:1.0;
+        color:black;
+      }
+    }
+
+    .active-white {
+      background-color: rgba(0, 210, 212, 0.63);
+    }
+
+    .dx-button {
+      height: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      color: black;
+      width: 95px;
+    }
+
+    .dx-button-text {
+      display: inline-block;
+      line-height: inherit;
+    }
+  }
+
+  .b-popup-content {
+    position: relative;
+    margin:5% auto 0px auto;
+    vertical-align: 40%;
+    width:340px;
+    height: 480px;
+    padding:10px;
+    background-color: #ffffff;
+    border-radius:5px;
+    box-shadow: 0px 0px 10px #000;
+
+    table {
+      width: 330px;
+      tr {
+        td {
+          border-top: none;
+          text-align: center;
+          width: 110px;
+        }
+      }
+    }
+
+    .title {
+      font-weight: 600;
+      text-align: center;
+    }
+
+    .btn-close {
+      background: url(../../assets/images/btn-close.png) no-repeat;
+      height: 17px;
+      left: 310px;
+      position: absolute;
+      top: 13px;
+      width: 16px;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      -o-user-select: none;
+      user-select: none;
+    }
+  }
+}
+
+
+
+
 .counter-popup-group {
 
   .title {
@@ -210,6 +267,69 @@
 }
 
 
+.analiticCO {
+  width: 280px;
+  height: 38px;
+  position: relative;
+
+  .diagramCO {
+    width: 200px;
+    height: 20px;
+    position: relative;
+
+    .badDiagramCO {
+      float: left;
+      height: 20px;
+      background-color: red;
+      border-radius: 50px 0 0 50px;
+      opacity:1.0;
+    }
+
+    .textBadDiagramCO {
+      top: 1px;
+      position: absolute;
+      text-align: left;
+      margin-left: 3px;
+      opacity:1.0;
+      color:black;
+    }
+
+    .goodDiagramCO{
+      float:right;
+      height: 20px;
+      background-color:green;
+      border-radius: 0 50px 50px 0;
+      color: #fff;
+    }
+
+    .textGoodDiagramCO {
+      top: 1px;
+      right: 0;
+      position: absolute;
+      text-align: right;
+      margin-right: 3px;
+      opacity:1.0;
+      color:black;
+    }
+  }
+
+  .active-white {
+    background-color: rgba(0, 210, 212, 0.63);
+  }
+
+  .dx-button {
+    height: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    color: black;
+    width: 95px;
+  }
+
+  .dx-button-text {
+    display: inline-block;
+    line-height: inherit;
+  }
+}
 
 
 /*div.dx-overlay-wrapper {

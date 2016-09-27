@@ -12,6 +12,10 @@ import itertools
 import datetime
 from pytz import utc
 import filter_func
+
+from models.ml_kmeans_model import MLPlacementDailyFeatures, MLClustersCentroidsKmeans, MLPlacementsClustersKmeans
+from rtb.ml_learn_kmeans import mlPredictKmeans,mlGetPlacementInfoKmeans
+
 import bisect
 from django.contrib.auth.decorators import login_required, user_passes_test
 import json
@@ -239,11 +243,47 @@ def get_campaign_placement(campaign_id, from_date, to_date):
     res = list(q)
     for x in res:
         x['state'] = {
-            "whiteList": "true",
-            "blackList": "false",
+            "whiteList": True,
+            "blackList": False,
             "suspended": x['placementState'] == 'inactive'
         }
+        #mlAnswer = mlPredictKmeans(x['placement'])  # INSERT PLACEMENT_ID
+        mlAnswer = mlGetPlacementInfoKmeans(x['placement'])
+        x['analitics'] = []
+        temp = 0
+        for weekday in xrange(8):  #8 - quantity of weekdays+whole week in mlAnswer
+            #x['analitics'].append({})
+            if str(weekday) not in mlAnswer:
+                """x['analitics'] = {
+                "good": -1,
+                "bad": -1,
+                "checked": -1
+                }"""
+                x['analitics'].append( {
+                                    "day": weekday,
+                                    "good": -1,  # mlAnswer[str(weekday)]['good']
+                                    "bad": -1,  # mlAnswer[str(weekday)]['bad']
+                                    "checked": -1
+                                })
+            else:
+                x['analitics'].append( {
+                                    "day": weekday,
+                                    "good": mlAnswer[str(weekday)]['good'],  # mlAnswer[str(weekday)]['good']
+                                    "bad": mlAnswer[str(weekday)]['bad'],  # mlAnswer[str(weekday)]['bad']
+                                    "checked": 0
+                                })
         x.pop('placementState', None)
+
+
+    """for x in res:#???????????????
+        mlAnswer = mlPredictKmeans(x['placement'])  # INSERT PLACEMENT_ID
+        x['analitics'] = {
+            "good": mlAnswer['7']['good'],
+            "bad": mlAnswer['7']['bad'],
+            "checked": 3
+        }"""
+
+
     cache.set(key, res)
     return res
 
@@ -287,7 +327,7 @@ Field "placement" must contain name and id of placement. Id in parenthesis
     reverse_order = params['order'] == 'desc'
     allowed_key_names = set(
         ["placement", "NetworkPublisher", "placementState", "cost", "conv", "imp", "clicks", "cpc", "cpm", "cvr", "ctr", "cpa",
-         'imps_viewed', 'view_measured_imps', 'view_rate', 'view_measurement_rate', ])
+         'imps_viewed', 'view_measured_imps', 'view_rate', 'view_measurement_rate', "analitics"])
     key_name = params['sort']
     if 'sort' not in request.GET:
         key_name = 'imp'
@@ -296,6 +336,7 @@ Field "placement" must contain name and id of placement. Id in parenthesis
         key_name = 'placement'
     res.sort(key=lambda x: x[key_name], reverse=reverse_order)
     totalCount = len(res)
+
     result = {"data": res[params['skip']:params['skip'] + params['take']], "totalCount": totalCount}
 
     sums = reduce(make_sum, res, {"cost":0, "conv":0, "imp":0, "clicks":0, "imps_viewed":0, "view_measured_imps":0,
@@ -310,6 +351,7 @@ Field "placement" must contain name and id of placement. Id in parenthesis
     sums['ctr'] = 100.0 * float(sums["clicks"]) / sums['imp'] if sums['imp'] else 0
 
     result['totalSummary'] = sums
+
     return Response(result)
 
 

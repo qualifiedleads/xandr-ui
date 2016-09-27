@@ -48,29 +48,58 @@
 
     <h3 class="titleRules" translate="CO.RULES">Rules for All Domains:</h3>
 
-      <br><br>
-      <hr class="lineMiddle">
-      <span class="optimizerTitle">{{ 'CO.OPTIMIZER' | translate }}</span>
-      <div dx-button="CO.UI.showGridWhiteList"></div>
-      <div dx-button="CO.UI.showGridBlackList"></div>
-      <div dx-button="CO.UI.showGridTempSuspendList"></div>
-      <div ng-if="CO.grindIf == 1" class="gridContainerWhite" dx-data-grid="CO.UI.dataGridOptionsCampaign"></div>
-      <div ng-if="CO.grindIf == 2" class="gridContainer2" dx-data-grid="CO.UI.dataGridOptionsCampaign"></div>
-      <div ng-if="CO.grindIf == 3" class="gridContainer2" dx-data-grid="CO.UI.dataGridOptionsCampaign"></div>
+    <br><br>
+    <hr class="lineMiddle">
+    <span class="optimizerTitle">{{ 'CO.OPTIMIZER' | translate }}</span>
+    <div dx-button="CO.UI.showGridWhiteList"></div>
+    <div dx-button="CO.UI.showGridBlackList"></div>
+    <div dx-button="CO.UI.showGridTempSuspendList"></div>
+    <div ng-if="CO.grindIf == 1" class="gridContainerWhite" dx-data-grid="CO.UI.dataGridOptionsCampaign"></div>
+    <div ng-if="CO.grindIf == 2" class="gridContainer2" dx-data-grid="CO.UI.dataGridOptionsCampaign"></div>
+    <div ng-if="CO.grindIf == 3" class="gridContainer2" dx-data-grid="CO.UI.dataGridOptionsCampaign"></div>-->
 
 
-      <div class="counter-popup-group" dx-popup="CO.UI.confirmPopup" >
-        <div class="title" >{{ 'CO.SUSPEND' | translate }}</div>
+    <div class="counter-popup-group" dx-popup="CO.UI.confirmPopup" >
+      <div class="title" >{{ 'CO.SUSPEND' | translate }}</div>
 
-        <div id="radioGroupMain" dx-radio-group="CO.UI.radioGroupMain" ></div>
-        <div id="dateFormatPop" style="margin-left: 35px; " dx-date-box="CO.UI.dateFormatPop"></div>
-        <br>
-        <div id="radioGroupSend" dx-radio-group="CO.UI.radioGroupSend" ></div>
+      <div id="radioGroupMain" dx-radio-group="CO.UI.radioGroupMain" ></div>
+      <div id="dateFormatPop" style="margin-left: 35px; " dx-date-box="CO.UI.dateFormatPop"></div>
+      <br>
+      <div id="radioGroupSend" dx-radio-group="CO.UI.radioGroupSend" ></div>
 
-        <div class="button" id="buttonOk" dx-button="CO.UI.confirmPopupOk"></div>
-        <div class="button" dx-button="CO.UI.confirmPopupCancel"></div>
+      <div class="button" id="buttonOk" dx-button="CO.UI.confirmPopupOk"></div>
+      <div class="button" dx-button="CO.UI.confirmPopupCancel"></div>
 
+    </div>
+
+    <div class="b-popup" id="popup1"  ng-if="CO.popUpIf==true">
+      <div class="b-popup-content">
+        <div id="btn-close" class="btn-close" ng-click="CO.popUpHide()"  title="Закрыть"></div>
+        <h4 class="title">Analitic diagrams</h4>
+        <table class="table">
+          <tr ng-repeat="item in CO.arraytoPopup" class="repitDiagram" style="display: block; position: relative; ">
+            <td>{{item.day}}</td>
+            <td>
+              <div class="analiticCO" style="text-align: center;">
+                <div class="diagramCO">
+                  <div class="badDiagramCO" style="width:{{item.badDiagram}}; opacity: {{item.badOpasity}};"></div>
+                  <div class="goodDiagramCO" style="width:{{item.goodDiagram}};opacity:{{item.goodOpasity}};"></div>
+                  <p class="textBadDiagramCO" >{{item.bad.toFixed(3)}}({{ item.k.toFixed(2)}}%)</p>
+                  <p class="textGoodDiagramCO">{{item.good.toFixed(3)}} ( {{(100-item.k).toFixed(2)}}%)</p>
+                </div>
+                <div class="buttonAnaliticCO">
+                  <div class="trueButtonAnaliticCO"></div>
+                  <div class="falseButtonAnaliticCO"></div>
+                </div>
+              </div>
+            </td>
+
+          </tr>
+        </table>
       </div>
+    </div>
   </div>
+
+</div>
 
 </div>

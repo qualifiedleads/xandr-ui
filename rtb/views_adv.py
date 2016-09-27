@@ -247,10 +247,11 @@ def get_campaign_placement(campaign_id, from_date, to_date):
             "blackList": False,
             "suspended": x['placementState'] == 'inactive'
         }
-        #mlAnswer = mlPredictKmeans(x['placement'])  # INSERT PLACEMENT_ID
+
         mlAnswer = mlGetPlacementInfoKmeans(x['placement'])
 
         if mlAnswer == -1:
+            x.pop('placementState', None)
             continue
 
         x['analitics'] = []

@@ -6,7 +6,7 @@ from sklearn import preprocessing
 #from matplotlib import pyplot as plt
 from models.ml_kmeans_model import MLPlacementDailyFeatures, MLClustersCentroidsKmeans, MLPlacementsClustersKmeans
 from models import NetworkAnalyticsReport_ByPlacement
-from django.db.models import Sum, Min, Max, Avg, Value, When, Case, F, Q, Func, FloatField
+from django.db.models import Sum, Min, Max, Avg, Value, When, Case, F, Q, Func, FloatField, Count
 import datetime
 import math
 import csv
@@ -146,6 +146,11 @@ def mlLearnKmeans ():#learn machine, save clusters, predict on training set
     print "Learning finished"
 
 def mlPredictKmeans(placement_idRecogn):#prediction
+
+
+    #mlGetPlacementInfoKmeans(placement_idRecogn)
+    #return
+
     numbFeaturesInDay = 2
     numbClusters = 2
 
@@ -155,6 +160,8 @@ def mlPredictKmeans(placement_idRecogn):#prediction
                  placement_id AS id
                FROM
                  network_analytics_report_by_placement
+               WHERE
+                 placement_id >= 7706175
                ORDER BY
                  placement_id
                """)
@@ -166,7 +173,7 @@ def mlPredictKmeans(placement_idRecogn):#prediction
     else:
         mlPredictOnePlacement(placement_id=placement_idRecogn, numbClusters=numbClusters, numbFeaturesInDay=numbFeaturesInDay)
 
-        goodClusters = mlGetGoodClusters()#getting info about good cluster in days
+        """goodClusters = mlGetGoodClusters()#getting info about good cluster in days
         queryClusterInfo = MLPlacementsClustersKmeans.objects.filter(placement_id = placement_idRecogn)
         mlAnswer = {}#mlAnswer[day][good/bad]
         for row in queryClusterInfo.iterator():
@@ -178,7 +185,37 @@ def mlPredictKmeans(placement_idRecogn):#prediction
                 prediction = 'bad'
             mlAnswer[str(row.day)][prediction] = row.distance_to_clusters[row.cluster - 1]
 
-        return mlAnswer
+        return mlAnswer"""
+
+
+def mlGetPlacementInfoKmeans(placement_id):
+    goodClusters = mlGetGoodClusters()  # getting info about good cluster in days
+    queryClusterInfo = MLPlacementsClustersKmeans.objects.filter(placement_id=placement_id)
+    mlAnswer = {}  # mlAnswer[day][good/bad]
+    print goodClusters
+    for row in queryClusterInfo.iterator():
+        if str(row.day) not in mlAnswer:
+            mlAnswer[str(row.day)] = {}
+        """if goodClusters[row.day] == row.cluster:
+            prediction = 'good'
+        else:
+            prediction = 'bad'
+        mlAnswer[str(row.day)][prediction] = row.distance_to_clusters[row.cluster - 1]"""
+        mlAnswer[str(row.day)]['good'] = row.distance_to_clusters[goodClusters[row.day]-1]
+        mlAnswer[str(row.day)]['bad'] = row.distance_to_clusters[goodClusters[row.day] % 2]
+
+    #print mlAnswer
+    #return
+
+    for weekday in xrange(8):  # 8 - quantity of weekdays+whole week in mlAnswer
+        print weekday
+        if str(weekday) not in mlAnswer:
+            print "Nope"
+        else:
+            print "Good " + str(mlAnswer[str(weekday)]['good'])
+            print "Bad " + str(mlAnswer[str(weekday)]['bad'])
+
+    return mlAnswer
 
 
 def mlGetGoodClusters():
@@ -234,7 +271,7 @@ def mlPredictOnePlacement(placement_id, numbClusters, numbFeaturesInDay):
         centroidsCoord[row.day][row.cluster - 1] = row.centroid
 
     # centroidsCoord[x][y][x] - x=day, y=cluster, z=coord numb
-
+    #Add dow as column in DB, set trigger on it to recalculate, create index for it
     queryResultsPlacementInfo = NetworkAnalyticsReport_ByPlacement.objects.raw("""
                 SELECT
                   placement_id AS id,
@@ -253,8 +290,8 @@ def mlPredictOnePlacement(placement_id, numbClusters, numbFeaturesInDay):
                 ORDER BY
                   dow;
                 """
-                                                                               )
-
+                )
+    print placement_id
     allDaysPlacementFeatures = []
     for row in queryResultsPlacementInfo:
         placementClusterRecord = MLPlacementsClustersKmeans()
@@ -278,7 +315,6 @@ def mlPredictOnePlacement(placement_id, numbClusters, numbFeaturesInDay):
             if clustersDistance[i] < minDistance:
                 minDistance = clustersDistance[i]
                 placementClusterRecord.cluster = i + 1
-
         try:
             tempRecord = MLPlacementsClustersKmeans.objects.raw("""
             SELECT
@@ -294,7 +330,6 @@ def mlPredictOnePlacement(placement_id, numbClusters, numbFeaturesInDay):
             tempRecord.save()
         except:
             placementClusterRecord.save()
-
     if len(allDaysPlacementFeatures) < (numbDays - 1) * numbFeaturesInDay:
         print "Prediction completed (not enough data for weekly space) " + str(placement_id)
     else:

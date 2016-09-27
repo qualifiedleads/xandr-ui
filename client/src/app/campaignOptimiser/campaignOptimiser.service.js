@@ -2,8 +2,8 @@
   'use strict';
 
   angular
-    .module('pjtLayout')
-    .service('CampaignOptimiser', CampaignOptimiser);
+  .module('pjtLayout')
+  .service('CampaignOptimiser', CampaignOptimiser);
 
   /** @ngInject */
   function CampaignOptimiser($http, $cookies, $window) {
@@ -59,12 +59,61 @@
         }
       })
       .then(function (res) {
-        var i = 0;
-        var j  = 1.1;
         var rand = [true, false, null];
+
         var list = res.data.data.map(function (item) {
-          i = i+ 0.1;
-          j = j- 0.1;
+          item.analitics = [
+            {
+              "day" : "0", //7 - Whole week, 0 - Sunday, 1 - Monday, .., 6 - Saturday
+              "good": 0.1,
+              "bad": 0.8,
+              "checked": rand[Math.floor(Math.random()*3)],
+            },
+            {
+              "day" : "1",
+              "good": 0.7,
+              "bad": 0.8,
+              "checked": rand[Math.floor(Math.random()*3)],
+            },
+            {
+              "day" : "2",
+              "good": 0.2,
+              "bad": 1.5,
+              "checked": rand[Math.floor(Math.random()*3)],
+            },
+            {
+              "day" : "3",
+              "good": 0.7,
+              "bad": 0.4,
+              "checked": rand[Math.floor(Math.random()*3)],
+            }
+            ,
+            {
+              "day" : "4",
+              "good": 0.3,
+              "bad": 0.4,
+              "checked": rand[Math.floor(Math.random()*3)],
+            },
+            {
+              "day" : "5",
+              "good": 0.7,
+              "bad": 1.4,
+              "checked": rand[Math.floor(Math.random()*3)],
+            },
+            {
+              "day" : "6",
+              "good": 3.7,
+              "bad": 5.4,
+              "checked": rand[Math.floor(Math.random()*3)],
+            },
+            {
+              "day" : "7",
+              "good": 0.7,
+              "bad": 0.23,
+              "checked": rand[Math.floor(Math.random()*3)],
+            }
+          ];
+
           return {
             NetworkPublisher: item.NetworkPublisher,
             placement: item.placement,
@@ -78,11 +127,60 @@
             clicks: parseFloat((item.clicks || 0).toFixed(4)),
             conv: parseFloat((item.conv || 0).toFixed(4)),
             cost: parseFloat((item.cost || 0).toFixed(2)),
-            analitics: {
-              "good": i,
-              "bad": j,
-              "checked": rand[Math.floor(Math.random()*3)]
-            },
+            analitics: item.analitics.map(function (item) {
+
+//7 - Whole week, 0 - Sunday, 1 - Monday, .., 6 - Saturday
+              if (item.day == '0') {
+                item.day = 'Sunday';
+              }
+              if (item.day == '1') {
+                item.day = 'Monday';
+              }
+              if (item.day == '2') {
+                item.day = 'Tuesday';
+              }
+              if (item.day == '3') {
+                item.day = 'Wednesday';
+              }
+              if (item.day == '4') {
+                item.day = 'Thursday';
+              }
+              if (item.day == '5') {
+                item.day = 'Friday';
+              }
+              if (item.day == '6') {
+                item.day = 'Saturday';
+              }
+              if (item.day == '7') {
+                item.day = 'All week';
+              }
+
+              var bad = item.bad;
+              var good = item.good;
+              var badOpasity = 1;
+              var goodOpasity = 1;
+              var k = +((bad*100)/(bad + good));
+              if (((k/100 <=0.5)) && (((k/100) >0.45)) || ((((100-k)/100)<=0.5) && (((100-k)/100)>0.45 ))) { badOpasity = 0.03; goodOpasity = 0.03;}
+              if ((k/100 <0.44 && k/100 >0.4)  || (((100-k)/100)<0.44 && ((100-k)/100)>0.4 )) { badOpasity = 0.09; goodOpasity = 0.09;}
+              if ((k/100 <0.4 && k/100 >0.3)   || (((100-k)/100)<0.4 && ((100-k)/100)>0.3 )) { badOpasity = 0.2; goodOpasity = 0.2;}
+              if ((k/100 <0.3 && k/100 >0.2)   || (((100-k)/100)<0.3 && ((100-k)/100)>0.2 )) { badOpasity = 0.5; goodOpasity = 0.5;}
+              if ((k/100 <0.2 && k/100 >0.1)   || (((100-k)/100)<0.2 && ((100-k)/100)>0.1 )) { badOpasity = 0.7; goodOpasity = 0.7;}
+              if ((k/100 <0.1 && k/100 >0)     || (((100-k)/100)<0.1 && ((100-k)/100)>0 )) { badOpasity = 1.0; goodOpasity = 1.0;}
+              var goodDiagram = (100-k)+'%';
+              var badDiagram = k+'%';
+
+              return {
+                "day" : item.day,
+                "good": item.good,
+                "bad": item.bad,
+                "checked": item.checked,
+                "badDiagram": badDiagram,
+                "goodDiagram": goodDiagram,
+                "badOpasity": badOpasity,
+                "goodOpasity": goodOpasity,
+                "k": k
+              }
+            }),
             imps_viewed: parseFloat((item.imps_viewed || 0).toFixed(4)),
             view_measured_imps: parseFloat((item.view_measured_imps || 0).toFixed(4)),
             view_measurement_rate: parseFloat((item.view_measurement_rate || 0).toFixed(1)),

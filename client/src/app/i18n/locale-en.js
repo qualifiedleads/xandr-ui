@@ -156,27 +156,27 @@
         }
       }
     },
-    "CO":{
-      "NO-ITEMS-CHOSEN" : "No items chosen. Please, choose at least 1 item",
-      "SEND-TO-SUSPEND-LIST" : "Send to 'Suspend list' until I get to it",
-      "SPECIFIC-DATE" : "Specific date",
-      "7-DAYS" : "7 days",
-      "3-DAYS" : "3 days",
-      "24-HRS" : "24 hrs",
-      "TEMP-SUSPEND" : "Temp. Suspend",
-      "BLACKLISTED" : "Blacklisted",
-      "WHITELIST" : "Whitelist",
-      "SUSPEND" : "Suspend",
-      "OPTIMIZER" : "Optimizer",
-      "BLOCKING" : "Blocking",
-      "DEVICE-AND-SUPPLY-TYPE" : "Device and Supply Type",
-      "GEO" : "Geo",
-      "DOMAIN" : "Domain",
-      "DOMAIN-LISTS" : 'Domain Lists',
-      "DOMAINS" : 'Domains',
-      "RULES": "Rules for All Domains:",
-      "OPTIMISER-FOR":"Optimiser for",
-      "CAMPAIGN-HOME": "back to Campaign Home"
+    'CO':{
+      'NO-ITEMS-CHOSEN' : 'No items chosen. Please, choose at least 1 item',
+      'SEND-TO-SUSPEND-LIST' : 'Send to "Suspend list" until I get to it',
+      'SPECIFIC-DATE' : 'Specific date',
+      '7-DAYS' : '7 days',
+      '3-DAYS' : '3 days',
+      '24-HRS' : '24 hrs',
+      'TEMP-SUSPEND' : 'Temp. Suspend',
+      'BLACKLISTED' : 'Blacklisted',
+      'WHITELIST' : 'Whitelist',
+      'SUSPEND' : 'Suspend',
+      'OPTIMIZER' : 'Optimizer',
+      'BLOCKING' : 'Blocking',
+      'DEVICE-AND-SUPPLY-TYPE' : 'Device and Supply Type',
+      'GEO' : 'Geo',
+      'DOMAIN' : 'Domain',
+      'DOMAIN-LISTS' : 'Domain Lists',
+      'DOMAINS' : 'Domains',
+      'RULES': 'Rules for All Domains:',
+      'OPTIMISER-FOR':'Optimiser for',
+      'CAMPAIGN-HOME': 'back to Campaign Home'
     }
   })
 })();

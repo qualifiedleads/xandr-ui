@@ -36,9 +36,13 @@ def mlLearnKmeans ():#learn machine, save clusters, predict on training set
     numbDays = 7
     numbFeaturesInDay = 2#change on len(featuresList) for dynamic
     numbClusters = 2
+    random_state = 266
     for i in xrange(numbDays):#for every day K-means space
         print str(i) + " K-means space"
-        kmeansSpaces.append(KMeans(n_clusters = numbClusters, init = 'k-means++'))
+
+        #kmeansSpaces.append(KMeans(n_clusters = numbClusters, init = 'k-means++'))
+        kmeansSpaces.append(KMeans(n_clusters=numbClusters, random_state=random_state))
+
         #numbFeaturesAll = (i + 1) * numbFeaturesInDay
 
         allFeatures = []
@@ -71,7 +75,9 @@ def mlLearnKmeans ():#learn machine, save clusters, predict on training set
         print str(i) + " space done"
 
     print str(numbDays) + " K-means space"#for last K-means space with all week
-    kmeansSpaces.append(KMeans(n_clusters=numbClusters, init='k-means++'))
+    #kmeansSpaces.append(KMeans(n_clusters=numbClusters, init='k-means++'))
+    kmeansSpaces.append(KMeans(n_clusters=numbClusters, random_state=random_state))
+
     queryResults = MLPlacementDailyFeatures.objects.raw("""
                    SELECT
                      id,day,ctr,view_rate,placement_id
@@ -109,14 +115,17 @@ def mlLearnKmeans ():#learn machine, save clusters, predict on training set
             cluster=1,
             centroid=kmeansSpaces[i].cluster_centers_[0].tolist())
         try:
-            MLClustersCentroidsKmeans.objects.filter(
+            tempQuery = MLClustersCentroidsKmeans.objects.filter(
                 cluster=centroidsRecord.cluster,
                 day=centroidsRecord.day
-            ).update(
+            )
+            if not tempQuery:
+                centroidsRecord.save()
+            tempQuery.update(
                 centroid=centroidsRecord.centroid
             )
         except:
-            centroidsRecord.save()
+            print "Can't save centroid to database"
 
 
         centroidsRecord = MLClustersCentroidsKmeans(
@@ -124,22 +133,26 @@ def mlLearnKmeans ():#learn machine, save clusters, predict on training set
             cluster=2,
             centroid=kmeansSpaces[i].cluster_centers_[1].tolist())
         try:
-            MLClustersCentroidsKmeans.objects.filter(
+            tempQuery = MLClustersCentroidsKmeans.objects.filter(
                 cluster=centroidsRecord.cluster,
                 day=centroidsRecord.day
-            ).update(
+            )
+
+            if not tempQuery:
+                centroidsRecord.save()
+
+            tempQuery.update(
                 centroid=centroidsRecord.centroid
             )
         except:
-            centroidsRecord.save()
+            print "Can't save centroid to database"
 
     print "Learning finished"
 
 def mlPredictKmeans(placement_idRecogn):#prediction
 
-
-    mlGetPlacementInfoKmeans(placement_idRecogn)
-    return
+    #mlGetPlacementInfoKmeans(placement_idRecogn,True)
+    #return
 
     numbFeaturesInDay = 2
     numbClusters = 2
@@ -151,9 +164,9 @@ def mlPredictKmeans(placement_idRecogn):#prediction
                FROM
                  network_analytics_report_by_placement
                WHERE
-                 placement_id >= 1
+                 placement_id <= 9024766
                ORDER BY
-                 placement_id
+                 placement_id DESC
                """)
 
         for plId in queryResultsAllPlacements:
@@ -163,43 +176,46 @@ def mlPredictKmeans(placement_idRecogn):#prediction
     else:
         mlPredictOnePlacement(placement_id=placement_idRecogn, numbClusters=numbClusters, numbFeaturesInDay=numbFeaturesInDay)
 
-        """goodClusters = mlGetGoodClusters()#getting info about good cluster in days
-        queryClusterInfo = MLPlacementsClustersKmeans.objects.filter(placement_id = placement_idRecogn)
-        mlAnswer = {}#mlAnswer[day][good/bad]
-        for row in queryClusterInfo.iterator():
-            if str(row.day) not in mlAnswer:
-                mlAnswer[str(row.day)] = {}
-            if goodClusters[row.day] == row.cluster:
-                prediction = 'good'
-            else:
-                prediction = 'bad'
-            mlAnswer[str(row.day)][prediction] = row.distance_to_clusters[row.cluster - 1]
 
-        return mlAnswer"""
-
-
-def mlGetPlacementInfoKmeans(placement_id):
+def mlGetPlacementInfoKmeans(placement_id = 1, flagAllWeek = False):
+    wholeWeekInd = 7
     goodClusters = mlGetGoodClusters()  # getting info about good cluster in days
     if goodClusters == -1:
         return -1
 
     queryClusterInfo = MLPlacementsClustersKmeans.objects.filter(placement_id=placement_id)
-    mlAnswer = {}  # mlAnswer[day][good/bad]
-    print goodClusters
-    for row in queryClusterInfo.iterator():
-        if str(row.day) not in mlAnswer:
-            mlAnswer[str(row.day)] = {}
-        mlAnswer[str(row.day)]['good'] = row.distance_to_clusters[goodClusters[row.day]-1]
-        mlAnswer[str(row.day)]['bad'] = row.distance_to_clusters[goodClusters[row.day] % 2]
 
-    for weekday in xrange(8):  # 8 - quantity of weekdays+whole week in mlAnswer
+    if not queryClusterInfo:
+        return -2
+
+    mlAnswer = {}  # mlAnswer[day][good/bad]
+    if flagAllWeek == True:
+        #print goodClusters
+        for row in queryClusterInfo.iterator():
+            if str(row.day) not in mlAnswer:
+                mlAnswer[str(row.day)] = {}
+            mlAnswer[str(row.day)]['good'] = row.distance_to_clusters[goodClusters[row.day]-1]
+            mlAnswer[str(row.day)]['bad'] = row.distance_to_clusters[goodClusters[row.day] % 2]
+
+            #mlAnswer[str(row.day)]['checked'] = row.expert_decision
+    else:
+        queryClusterInfo = MLPlacementsClustersKmeans.objects.filter(placement_id=placement_id, day=wholeWeekInd)
+        if not queryClusterInfo:
+            #print mlAnswer
+            return mlAnswer
+        mlAnswer[str(wholeWeekInd)] = {}
+        mlAnswer[str(queryClusterInfo[0].day)]['good'] = queryClusterInfo[0].distance_to_clusters[goodClusters[queryClusterInfo[0].day] - 1]
+        mlAnswer[str(queryClusterInfo[0].day)]['bad'] = queryClusterInfo[0].distance_to_clusters[goodClusters[queryClusterInfo[0].day] % 2]
+
+
+    """for weekday in xrange(8):  # 8 - quantity of weekdays+whole week in mlAnswer
         print weekday
         if str(weekday) not in mlAnswer:
             print "Nope"
         else:
             print "Good " + str(mlAnswer[str(weekday)]['good'])
-            print "Bad " + str(mlAnswer[str(weekday)]['bad'])
-
+            print "Bad " + str(mlAnswer[str(weekday)]['bad'])"""
+    #print  mlAnswer
     return mlAnswer
 
 
@@ -305,14 +321,17 @@ def mlPredictOnePlacement(placement_id, numbClusters, numbFeaturesInDay):
                 minDistance = clustersDistance[i]
                 placementClusterRecord.cluster = i + 1
         try:
-            MLPlacementsClustersKmeans.objects.filter(
+            tempQuery = MLPlacementsClustersKmeans.objects.filter(
                 placement_id=placement_id,
                 day=placementClusterRecord.day
-            ).update(
+            )
+            if not tempQuery:
+                placementClusterRecord.save()
+            tempQuery.update(
                 distance_to_clusters=placementClusterRecord.distance_to_clusters
             )
         except:
-            placementClusterRecord.save()
+            print "Can't save recognition info"
 
     if len(allDaysPlacementFeatures) < (numbDays - 1) * numbFeaturesInDay:
         print "Prediction completed (not enough data for weekly space) " + str(placement_id)
@@ -337,15 +356,17 @@ def mlPredictOnePlacement(placement_id, numbClusters, numbFeaturesInDay):
                 placementClusterRecord.cluster = i + 1
 
         try:
-            MLPlacementsClustersKmeans.objects.filter(
+            tempQuery = MLPlacementsClustersKmeans.objects.filter(
                 placement_id=placement_id,
                 day=placementClusterRecord.day
-            ).update(
+            )
+            if not tempQuery:
+                placementClusterRecord.save()
+            tempQuery.update(
                 distance_to_clusters=placementClusterRecord.distance_to_clusters
             )
         except:
-            placementClusterRecord.save()
-        print "Prediction completed " + str(placement_id)
+            print "Can't save recognition info"
 
 def makeCsv():
     goodClusters = mlGetGoodClusters()
@@ -374,4 +395,57 @@ def makeCsv():
                              'distance to good': distGood,
                              'distance to bad': distBad,
                              'distance difference': dist})
+
+def trash():
+    return
+    #mlAnswer = mlGetPlacementInfoKmeans(x['placement'], False)
+    #x['analitics'] = []
+    #wholeWeekInd = 7
+    """if mlAnswer == -1 or mlAnswer == -2:
+        for weekday in xrange(8):  #for all week, 8 - quantity of weekdays+whole week in mlAnswer
+            x['analitics'].append({
+                "day": weekday,
+                "good": mlAnswer,
+                "bad": mlAnswer,
+                "checked": mlAnswer
+            })
+        x['analitics'] = ({#for one object
+            "day": wholeWeekInd,
+            "good": mlAnswer,
+            "bad": mlAnswer,
+            "checked": mlAnswer
+        })
+        x.pop('placementState', None)
+        continue"""
+
+    """if str(wholeWeekInd) not in mlAnswer:  #for one object
+        x['analitics'] = ({
+            "day": wholeWeekInd,
+            "good": -3,
+            "bad": -3,
+            "checked": -3
+        })
+    else:
+        x['analitics'] = ({
+            "day": wholeWeekInd,
+            "good": mlAnswer[str(wholeWeekInd)]['good'],  # mlAnswer[str(weekday)]['good']
+            "bad": mlAnswer[str(wholeWeekInd)]['bad'],  # mlAnswer[str(weekday)]['bad']
+            "checked": 0
+        })"""
+
+    """for weekday in xrange(8):  #8 - quantity of weekdays+whole week in mlAnswer
+        if str(weekday) not in mlAnswer:#for array
+            x['analitics'].append({
+                "day": weekday,
+                "good": -3,
+                "bad": -3,
+                "checked": -3
+            })
+        else:
+            x['analitics'].append({
+                "day": weekday,
+                "good": mlAnswer[str(weekday)]['good'],  # mlAnswer[str(weekday)]['good']
+                "bad": mlAnswer[str(weekday)]['bad'],  # mlAnswer[str(weekday)]['bad']
+                "checked": 0
+            })"""
 

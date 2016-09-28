@@ -31,6 +31,9 @@ class MLPlacementsClustersKmeans(models.Model):
             models.DecimalField(max_digits=35, decimal_places=10), null = True,
         )
 
+    #test_number = models.IntegerField(null=True)
+    #expert_decision = models.IntegerField(null=True)
+
     class Meta:
         db_table = "ml_placements_clusters_kmeans"
         unique_together = (('placement', 'day'),)

@@ -248,28 +248,32 @@ def get_campaign_placement(campaign_id, from_date, to_date):
             "suspended": x['placementState'] == 'inactive'
         }
 
-        mlAnswer = mlGetPlacementInfoKmeans(x['placement'])
-
-        if mlAnswer == -1:
+        mlAnswer = mlGetPlacementInfoKmeans(x['placement'], False)
+        wholeWeekInd = 7
+        if mlAnswer == -1 or mlAnswer == -2:
+            x['analitics'] = ({#for one object
+                "day": wholeWeekInd,
+                "good": mlAnswer,
+                "bad": mlAnswer,
+                "checked": mlAnswer
+            })
             x.pop('placementState', None)
             continue
 
-        x['analitics'] = []
-        for weekday in xrange(8):  #8 - quantity of weekdays+whole week in mlAnswer
-            if str(weekday) not in mlAnswer:
-                x['analitics'].append( {
-                    "day": weekday,
-                    "good": -1,
-                    "bad": -1,
-                    "checked": -1
-                })
-            else:
-                x['analitics'].append( {
-                    "day": weekday,
-                    "good": mlAnswer[str(weekday)]['good'],  # mlAnswer[str(weekday)]['good']
-                    "bad": mlAnswer[str(weekday)]['bad'],  # mlAnswer[str(weekday)]['bad']
-                    "checked": 0
-                })
+        if str(wholeWeekInd) not in mlAnswer:  #for one object
+            x['analitics'] = ({
+                "day": wholeWeekInd,
+                "good": -3,
+                "bad": -3,
+                "checked": -3
+            })
+        else:
+            x['analitics'] = ({
+                "day": wholeWeekInd,
+                "good": mlAnswer[str(wholeWeekInd)]['good'],  # mlAnswer[str(weekday)]['good']
+                "bad": mlAnswer[str(wholeWeekInd)]['bad'],  # mlAnswer[str(weekday)]['bad']
+                "checked": 0
+            })
         x.pop('placementState', None)
 
 

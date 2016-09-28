@@ -163,8 +163,8 @@ def mlPredictKmeans(placement_idRecogn):#prediction
                  placement_id AS id
                FROM
                  network_analytics_report_by_placement
-               WHERE
-                 placement_id <= 9024766
+               --WHERE
+               --  placement_id <= 9024766
                ORDER BY
                  placement_id DESC
                """)

@@ -56,7 +56,7 @@
     <div dx-button="CO.UI.showGridTempSuspendList"></div>
     <div ng-if="CO.grindIf == 1" class="gridContainerWhite" dx-data-grid="CO.UI.dataGridOptionsCampaign"></div>
     <div ng-if="CO.grindIf == 2" class="gridContainer2" dx-data-grid="CO.UI.dataGridOptionsCampaign"></div>
-    <div ng-if="CO.grindIf == 3" class="gridContainer2" dx-data-grid="CO.UI.dataGridOptionsCampaign"></div>-->
+    <div ng-if="CO.grindIf == 3" class="gridContainer2" dx-data-grid="CO.UI.dataGridOptionsCampaign"></div>
 
 
     <div class="counter-popup-group" dx-popup="CO.UI.confirmPopup" >
@@ -77,15 +77,15 @@
         <div id="btn-close" class="btn-close" ng-click="CO.popUpHide()"  title="Закрыть"></div>
         <h4 class="title">Analitic diagrams</h4>
         <table class="table">
-          <tr ng-repeat="item in CO.arraytoPopup" class="repitDiagram" style="display: block; position: relative; ">
-            <td>{{item.day}}</td>
-            <td>
+          <tr ng-repeat="item in CO.arraytoPopup track by $index" class="repitDiagram" style="display: block; position: relative; ">
+            <td ng-if="item">{{item.day}}</td>
+            <td ng-if="item">
               <div class="analiticCO" style="text-align: center;">
                 <div class="diagramCO">
                   <div class="badDiagramCO" style="width:{{item.badDiagram}}; opacity: {{item.badOpasity}};"></div>
                   <div class="goodDiagramCO" style="width:{{item.goodDiagram}};opacity:{{item.goodOpasity}};"></div>
-                  <p class="textBadDiagramCO" >{{item.bad.toFixed(3)}}({{ item.k.toFixed(2)}}%)</p>
-                  <p class="textGoodDiagramCO">{{item.good.toFixed(3)}} ( {{(100-item.k).toFixed(2)}}%)</p>
+                  <p class="textBadDiagramCO" >{{item.bad.toFixed(3)}}({{ item.k.toFixed(1)}}%)</p>
+                  <p class="textGoodDiagramCO">{{item.good.toFixed(3)}} ( {{(100-item.k).toFixed(1)}}%)</p>
                 </div>
                 <div class="buttonAnaliticCO">
                   <div class="trueButtonAnaliticCO"></div>

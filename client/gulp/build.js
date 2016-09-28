@@ -85,7 +85,8 @@ gulp.task('change-path', ['html'], function () {
     path.join(conf.paths.dist, '**/*.{css,js}'),
     path.join(conf.paths.dist, 'app.html')
   ])
-  .pipe($.replace('assets/', conf.appName + '/assets/'))
+  .pipe($.replace(/url\([^'"]assets/gm, 'url(/' + conf.appName + '/assets/'))
+  .pipe($.replace(/url\(('|").*?assets/gm, 'url($1/' + conf.appName + '/assets/'))
   .pipe(gulp.dest(path.join(conf.paths.dist, '/')));
 });
 
@@ -100,11 +101,6 @@ gulp.task('other', function () {
   ])
     .pipe(fileFilter)
     .pipe(gulp.dest(path.join(conf.paths.dist, '/')));
-});
-
-gulp.task('copyDxIcon', function () {
-  return gulp.src(['bower_components/devextreme/css/icons/*.*'])
-    .pipe(gulp.dest('dist/styles/icons/'));
 });
 
 gulp.task('clean', function () {

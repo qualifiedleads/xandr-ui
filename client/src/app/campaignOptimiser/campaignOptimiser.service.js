@@ -61,35 +61,16 @@
       .then(function (res) {
         for (var item in res.data.data) {
           var itemArray = [];
-          //7 - Whole week, 0 - Sunday, 1 - Monday, .., 6 - Saturday
-          for (var itemAnal in res.data.data[item].analitics) {
-            if (res.data.data[item].analitics[itemAnal].day == '0') {
-              res.data.data[item].analitics[itemAnal].day = 'Sunday';
-            }
-            if (res.data.data[item].analitics[itemAnal].day == '1') {
-              res.data.data[item].analitics[itemAnal].day = 'Monday';
-            }
-            if (res.data.data[item].analitics[itemAnal].day == '2') {
-              res.data.data[item].analitics[itemAnal].day = 'Tuesday';
-            }
-            if (res.data.data[item].analitics[itemAnal].day == '3') {
-              res.data.data[item].analitics[itemAnal].day = 'Wednesday';
-            }
-            if (res.data.data[item].analitics[itemAnal].day == '4') {
-              res.data.data[item].analitics[itemAnal].day = 'Thursday';
-            }
-            if (res.data.data[item].analitics[itemAnal].day == '5') {
-              res.data.data[item].analitics[itemAnal].day = 'Friday';
-            }
-            if (res.data.data[item].analitics[itemAnal].day == '6') {
-              res.data.data[item].analitics[itemAnal].day = 'Saturday';
-            }
-            if (res.data.data[item].analitics[itemAnal].day == '7') {
-              res.data.data[item].analitics[itemAnal].day = 'All week';
-            }
-
-            var bad = res.data.data[item].analitics[itemAnal].bad;
-            var good = res.data.data[item].analitics[itemAnal].good;
+          /*          res.data.data[item].analitics = {
+           "good": 1,
+           "bad": 0.5,
+           "checked": true,
+           };*/
+          if (res.data.data[item].analitics.good == -1 || res.data.data[item].analitics.good == -2 || res.data.data[item].analitics.good == -3) {
+            itemArray = null;
+          } else {
+            var bad = res.data.data[item].analitics.bad;
+            var good = res.data.data[item].analitics.good;
             var badOpasity = 1;
             var goodOpasity = 1;
             var k = +((bad*100)/(bad + good));
@@ -102,37 +83,20 @@
             var goodDiagram = (100-k)+'%';
             var badDiagram = k+'%';
 
-            if (res.data.data[item].analitics[itemAnal].good == -1) {
-              itemArray.push({
-                "day" : res.data.data[item].analitics[itemAnal].day,
-                "good": null,
-                "bad": null,
-                "checked": null,
-                "badDiagram": null,
-                "goodDiagram": null,
-                "badOpasity": 0,
-                "goodOpasity": 0,
-                "k": 0
-              });
-            } else {
-              itemArray.push({
-                "day" : res.data.data[item].analitics[itemAnal].day,
-                "good": res.data.data[item].analitics[itemAnal].good,
-                "bad": res.data.data[item].analitics[itemAnal].bad,
-                "checked": res.data.data[item].analitics[itemAnal].checked,
-                "badDiagram": badDiagram,
-                "goodDiagram": goodDiagram,
-                "badOpasity": badOpasity,
-                "goodOpasity": goodOpasity,
-                "k": k
-              });
-            }
+
+            itemArray = {
+              "good": res.data.data[item].analitics.good,
+              "bad": res.data.data[item].analitics.bad,
+              "checked": res.data.data[item].analitics.checked,
+              "badDiagram": badDiagram,
+              "goodDiagram": goodDiagram,
+              "badOpasity": badOpasity,
+              "goodOpasity": goodOpasity,
+              "k": k
+            };
           }
 
-            res.data.data[item].NetworkPublisher= res.data.data[item].NetworkPublisher,
-            res.data.data[item].placement= res.data.data[item].placement,
-            res.data.data[item].placement_name= res.data.data[item].placement_name,
-            res.data.data[item].cvr= parseFloat((res.data.data[item].cvr || 0).toFixed(4)),
+          res.data.data[item].cvr= parseFloat((res.data.data[item].cvr || 0).toFixed(4)),
             res.data.data[item].ctr= parseFloat((item.ctr || 0).toFixed(4)),
             res.data.data[item].cpc= parseFloat((item.cpc || 0).toFixed(4)),
             res.data.data[item].cpm= parseFloat((item.cpm || 0).toFixed(4)),
@@ -151,8 +115,6 @@
               suspended: res.data.data[item].state.suspended,
               whiteList: res.data.data[item].state.whiteList
             }
-
-
         }
 
         _totalCountCampaign = res.data.totalCount;
@@ -215,17 +177,161 @@
     function decisionML(id, placementId, checked) {
       return $http({
         method: 'POST',
-        url: '/api/v1/campaigns/' + id + '/placement',
+        url: '/api/v1/campaigns/' + id + '/MLPlacement',
         data: {placementId: placementId, checked: checked}
       })
       .then(function (res) {
-        return res;
+        return res.data;
       })
       .catch(function (err) {
         $window.DevExpress.ui.notify(err.statusText, "error", 4000);
       });
     }
 
+    function showAllMLDiagram(id, placementId) {
+      /*      return $http({
+       method: 'GET',
+       url: '/api/v1/campaigns/' + id + '/MLPlacement',
+       params: {
+       placementId: placementId,
+       }
+       })
+       .then(function (res) {
+       return res.data;
+       })
+       .catch(function (err) {
+       $window.DevExpress.ui.notify(err.statusText, "error", 4000);
+       });*/
+      var res = {
+        data: [
+          {
+            "day": 0,
+            "good": 0.8,
+            "bad": 0.5,
+            "checked": true,
+          },
+          {
+            "day": 1,
+            "good": 1,
+            "bad": 1.5,
+            "checked": true,
+          },
+          {
+            "day": 2,
+            "good": 5,
+            "bad": 0.5,
+            "checked": true,
+          },
+          {
+            "day": 3,
+            "good": 0.1,
+            "bad": 0.5,
+            "checked": true,
+          },
+          {
+            "day": 4,
+            "good": 1,
+            "bad": 0.8,
+            "checked": true,
+          },
+          {
+            "day": 5,
+            "good": 0.78,
+            "bad": 1.5,
+            "checked": true,
+          },
+          {
+            "day": 6,
+            "good": 1,
+            "bad": 1.1,
+            "checked": true,
+          },
+          {
+            "day": 7,
+            "good": 1,
+            "bad": 0.5,
+            "checked": true,
+          }]
+      };
+      var itemArray = [];
+      for (var item in res.data) {
+        if (res.data[item].good == -1) {
+          itemArray[item] = false;
+        } else {
+          if (res.data[item].day == '0') {
+            res.data[item].day = 'Sunday';
+          }
+          if (res.data[item].day == '1') {
+            res.data[item].day = 'Monday';
+          }
+          if (res.data[item].day == '2') {
+            res.data[item].day = 'Tuesday';
+          }
+          if (res.data[item].day == '3') {
+            res.data[item].day = 'Wednesday';
+          }
+          if (res.data[item].day == '4') {
+            res.data[item].day = 'Thursday';
+          }
+          if (res.data[item].day == '5') {
+            res.data[item].day = 'Friday';
+          }
+          if (res.data[item].day == '6') {
+            res.data[item].day = 'Saturday';
+          }
+          if (res.data[item].day == '7') {
+            res.data[item].day = 'All week';
+          }
+
+          var bad = res.data[item].bad;
+          var good = res.data[item].good;
+          var badOpasity = 1;
+          var goodOpasity = 1;
+          var k = +((bad * 100) / (bad + good));
+          if (((k / 100 <= 0.5)) && (((k / 100) > 0.45)) || ((((100 - k) / 100) <= 0.5) && (((100 - k) / 100) > 0.45 ))) {
+            badOpasity = 0.03;
+            goodOpasity = 0.03;
+          }
+          if ((k / 100 < 0.44 && k / 100 > 0.4) || (((100 - k) / 100) < 0.44 && ((100 - k) / 100) > 0.4 )) {
+            badOpasity = 0.09;
+            goodOpasity = 0.09;
+          }
+          if ((k / 100 < 0.4 && k / 100 > 0.3) || (((100 - k) / 100) < 0.4 && ((100 - k) / 100) > 0.3 )) {
+            badOpasity = 0.2;
+            goodOpasity = 0.2;
+          }
+          if ((k / 100 < 0.3 && k / 100 > 0.2) || (((100 - k) / 100) < 0.3 && ((100 - k) / 100) > 0.2 )) {
+            badOpasity = 0.5;
+            goodOpasity = 0.5;
+          }
+          if ((k / 100 < 0.2 && k / 100 > 0.1) || (((100 - k) / 100) < 0.2 && ((100 - k) / 100) > 0.1 )) {
+            badOpasity = 0.7;
+            goodOpasity = 0.7;
+          }
+          if ((k / 100 < 0.1 && k / 100 > 0) || (((100 - k) / 100) < 0.1 && ((100 - k) / 100) > 0 )) {
+            badOpasity = 1.0;
+            goodOpasity = 1.0;
+          }
+          var goodDiagram = (100 - k) + '%';
+          var badDiagram = k + '%';
+
+          itemArray.push({
+            "day": res.data[item].day,
+            "good": res.data[item].good,
+            "bad": res.data[item].bad,
+            "checked": res.data[item].checked,
+            "badDiagram": badDiagram,
+            "goodDiagram": goodDiagram,
+            "badOpasity": badOpasity,
+            "goodOpasity": goodOpasity,
+            "k": k
+          });
+        }
+      }
+      return itemArray;
+    }
+
+    _this.showAllMLDiagram = showAllMLDiagram;
     _this.decisionML = decisionML;
     _this.campaignTargeting = campaignTargeting;
     _this.editCampaignDomains = editCampaignDomains;

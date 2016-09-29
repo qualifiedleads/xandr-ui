@@ -247,41 +247,31 @@ def get_campaign_placement(campaign_id, from_date, to_date):
             "blackList": False,
             "suspended": x['placementState'] == 'inactive'
         }
-        #mlAnswer = mlPredictKmeans(x['placement'])  # INSERT PLACEMENT_ID
-        mlAnswer = mlGetPlacementInfoKmeans(x['placement'])
-        x['analitics'] = []
-        temp = 0
-        for weekday in xrange(8):  #8 - quantity of weekdays+whole week in mlAnswer
-            #x['analitics'].append({})
-            if str(weekday) not in mlAnswer:
-                """x['analitics'] = {
-                "good": -1,
-                "bad": -1,
-                "checked": -1
-                }"""
-                x['analitics'].append( {
-                                    "day": weekday,
-                                    "good": -1,  # mlAnswer[str(weekday)]['good']
-                                    "bad": -1,  # mlAnswer[str(weekday)]['bad']
-                                    "checked": -1
-                                })
-            else:
-                x['analitics'].append( {
-                                    "day": weekday,
-                                    "good": mlAnswer[str(weekday)]['good'],  # mlAnswer[str(weekday)]['good']
-                                    "bad": mlAnswer[str(weekday)]['bad'],  # mlAnswer[str(weekday)]['bad']
-                                    "checked": 0
-                                })
+
+        mlAnswer = mlGetPlacementInfoKmeans(x['placement'], False)
+        wholeWeekInd = 7
+        if mlAnswer == -1 or mlAnswer == -2:
+            x['analitics'] = ({#for one object
+                "good": mlAnswer,
+                "bad": mlAnswer,
+                "checked": mlAnswer
+            })
+            x.pop('placementState', None)
+            continue
+
+        if str(wholeWeekInd) not in mlAnswer:  #for one object
+            x['analitics'] = ({
+                "good": -3,
+                "bad": -3,
+                "checked": -3
+            })
+        else:
+            x['analitics'] = ({
+                "good": mlAnswer[str(wholeWeekInd)]['good'],  # mlAnswer[str(weekday)]['good']
+                "bad": mlAnswer[str(wholeWeekInd)]['bad'],  # mlAnswer[str(weekday)]['bad']
+                "checked": 0
+            })
         x.pop('placementState', None)
-
-
-    """for x in res:#???????????????
-        mlAnswer = mlPredictKmeans(x['placement'])  # INSERT PLACEMENT_ID
-        x['analitics'] = {
-            "good": mlAnswer['7']['good'],
-            "bad": mlAnswer['7']['bad'],
-            "checked": 3
-        }"""
 
 
     cache.set(key, res)
@@ -542,3 +532,4 @@ Get single campaign details for given period
     res = get_cpa_buckets(id, params['from_date'], params['to_date'], params['category'])
     # convs
     return Response(res)
+

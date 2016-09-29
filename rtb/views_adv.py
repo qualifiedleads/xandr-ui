@@ -252,7 +252,6 @@ def get_campaign_placement(campaign_id, from_date, to_date):
         wholeWeekInd = 7
         if mlAnswer == -1 or mlAnswer == -2:
             x['analitics'] = ({#for one object
-                "day": wholeWeekInd,
                 "good": mlAnswer,
                 "bad": mlAnswer,
                 "checked": mlAnswer
@@ -262,14 +261,12 @@ def get_campaign_placement(campaign_id, from_date, to_date):
 
         if str(wholeWeekInd) not in mlAnswer:  #for one object
             x['analitics'] = ({
-                "day": wholeWeekInd,
                 "good": -3,
                 "bad": -3,
                 "checked": -3
             })
         else:
             x['analitics'] = ({
-                "day": wholeWeekInd,
                 "good": mlAnswer[str(wholeWeekInd)]['good'],  # mlAnswer[str(weekday)]['good']
                 "bad": mlAnswer[str(wholeWeekInd)]['bad'],  # mlAnswer[str(weekday)]['bad']
                 "checked": 0
@@ -535,3 +532,4 @@ Get single campaign details for given period
     res = get_cpa_buckets(id, params['from_date'], params['to_date'], params['category'])
     # convs
     return Response(res)
+

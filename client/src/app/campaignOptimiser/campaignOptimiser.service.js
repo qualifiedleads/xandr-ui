@@ -66,10 +66,9 @@
            "bad": 0.5,
            "checked": true,
            };*/
-          if (res.data.data[item].analitics.good == -1) {
+          if (res.data.data[item].analitics.good == -1 || res.data.data[item].analitics.good == -2 || res.data.data[item].analitics.good == -3) {
             itemArray = null;
           } else {
-
             var bad = res.data.data[item].analitics.bad;
             var good = res.data.data[item].analitics.good;
             var badOpasity = 1;
@@ -243,7 +242,7 @@
           },
           {
             "day": 6,
-            "good": -1,
+            "good": 1,
             "bad": 1.1,
             "checked": true,
           },

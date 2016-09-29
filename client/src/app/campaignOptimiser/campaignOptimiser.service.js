@@ -61,54 +61,30 @@
       .then(function (res) {
         for (var item in res.data.data) {
           var itemArray = [];
-          res.data.data[item].analitics = {
-            "good": 1,
-            "bad": 0.5,
-            "checked": true,
-          };
-          //7 - Whole week, 0 - Sunday, 1 - Monday, .., 6 - Saturday
-          /*            if (res.data.data[item].analitics.day == '0') {
-           res.data.data[item].analitics.day = 'Sunday';
-           }
-           if (res.data.data[item].analitics.day == '1') {
-           res.data.data[item].analitics.day = 'Monday';
-           }
-           if (res.data.data[item].analitics.day == '2') {
-           res.data.data[item].analitics.day = 'Tuesday';
-           }
-           if (res.data.data[item].analitics.day == '3') {
-           res.data.data[item].analitics.day = 'Wednesday';
-           }
-           if (res.data.data[item].analitics.day == '4') {
-           res.data.data[item].analitics.day = 'Thursday';
-           }
-           if (res.data.data[item].analitics.day == '5') {
-           res.data.data[item].analitics.day = 'Friday';
-           }
-           if (res.data.data[item].analitics.day == '6') {
-           res.data.data[item].analitics.day = 'Saturday';
-           }
-           if (res.data.data[item].analitics.day == '7') {
-           res.data.data[item].analitics.day = 'All week';
-           }*/
-
-          var bad = res.data.data[item].analitics.bad;
-          var good = res.data.data[item].analitics.good;
-          var badOpasity = 1;
-          var goodOpasity = 1;
-          var k = +((bad*100)/(bad + good));
-          if (((k/100 <=0.5)) && (((k/100) >0.45)) || ((((100-k)/100)<=0.5) && (((100-k)/100)>0.45 ))) { badOpasity = 0.03; goodOpasity = 0.03;}
-          if ((k/100 <0.44 && k/100 >0.4)  || (((100-k)/100)<0.44 && ((100-k)/100)>0.4 )) { badOpasity = 0.09; goodOpasity = 0.09;}
-          if ((k/100 <0.4 && k/100 >0.3)   || (((100-k)/100)<0.4 && ((100-k)/100)>0.3 )) { badOpasity = 0.2; goodOpasity = 0.2;}
-          if ((k/100 <0.3 && k/100 >0.2)   || (((100-k)/100)<0.3 && ((100-k)/100)>0.2 )) { badOpasity = 0.5; goodOpasity = 0.5;}
-          if ((k/100 <0.2 && k/100 >0.1)   || (((100-k)/100)<0.2 && ((100-k)/100)>0.1 )) { badOpasity = 0.7; goodOpasity = 0.7;}
-          if ((k/100 <0.1 && k/100 >0)     || (((100-k)/100)<0.1 && ((100-k)/100)>0 )) { badOpasity = 1.0; goodOpasity = 1.0;}
-          var goodDiagram = (100-k)+'%';
-          var badDiagram = k+'%';
-
+          /*          res.data.data[item].analitics = {
+           "good": 1,
+           "bad": 0.5,
+           "checked": true,
+           };*/
           if (res.data.data[item].analitics.good == -1) {
             itemArray = null;
           } else {
+
+            var bad = res.data.data[item].analitics.bad;
+            var good = res.data.data[item].analitics.good;
+            var badOpasity = 1;
+            var goodOpasity = 1;
+            var k = +((bad*100)/(bad + good));
+            if (((k/100 <=0.5)) && (((k/100) >0.45)) || ((((100-k)/100)<=0.5) && (((100-k)/100)>0.45 ))) { badOpasity = 0.03; goodOpasity = 0.03;}
+            if ((k/100 <0.44 && k/100 >0.4)  || (((100-k)/100)<0.44 && ((100-k)/100)>0.4 )) { badOpasity = 0.09; goodOpasity = 0.09;}
+            if ((k/100 <0.4 && k/100 >0.3)   || (((100-k)/100)<0.4 && ((100-k)/100)>0.3 )) { badOpasity = 0.2; goodOpasity = 0.2;}
+            if ((k/100 <0.3 && k/100 >0.2)   || (((100-k)/100)<0.3 && ((100-k)/100)>0.2 )) { badOpasity = 0.5; goodOpasity = 0.5;}
+            if ((k/100 <0.2 && k/100 >0.1)   || (((100-k)/100)<0.2 && ((100-k)/100)>0.1 )) { badOpasity = 0.7; goodOpasity = 0.7;}
+            if ((k/100 <0.1 && k/100 >0)     || (((100-k)/100)<0.1 && ((100-k)/100)>0 )) { badOpasity = 1.0; goodOpasity = 1.0;}
+            var goodDiagram = (100-k)+'%';
+            var badDiagram = k+'%';
+
+
             itemArray = {
               "good": res.data.data[item].analitics.good,
               "bad": res.data.data[item].analitics.bad,
@@ -218,7 +194,7 @@
        method: 'GET',
        url: '/api/v1/campaigns/' + id + '/MLPlacement',
        params: {
-       placement_id: placementId,
+       placementId: placementId,
        }
        })
        .then(function (res) {
@@ -267,7 +243,7 @@
           },
           {
             "day": 6,
-            "good": 1,
+            "good": -1,
             "bad": 1.1,
             "checked": true,
           },

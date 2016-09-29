@@ -790,10 +790,10 @@
         onRowPrepared: function (data) {
           vm.objectData = data;
           if (vm.objectData.rowType == 'data') {
-            var allRowBtns = data.rowElement[0].childNodes[11];
+            var allRowBtns = data.rowElement[0].childNodes[12];
             var state = data.data.state;
             var analitics = data.data.analitics;
-            if (state.whiteList == "true") {
+            if (state.whiteList == true) {
               allRowBtns.classList.add('active-white');
             }
             if (state.blackList == "true") {

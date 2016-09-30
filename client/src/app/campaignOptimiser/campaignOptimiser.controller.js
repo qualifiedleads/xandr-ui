@@ -17,22 +17,6 @@
     var dataSuspend = null;
     var tempSespendRow = {};
     vm.arrayDiagram = [];
-    vm.confirmAllDiagramPopupVisible = false;
-
-
-    vm.bad = 0.6;
-    vm.good = 0.4;
-    vm.badOpasity = 1;
-    vm.goodOpasity = 1;
-    vm.k = +(( vm.bad*100)/( vm.bad +  vm.good));
-    if (((vm.k/100 <=0.5)) && (((vm.k/100) >0.45)) || ((((100-vm.k)/100)<=0.5) && (((100-vm.k)/100)>0.45 ))) { vm.badOpasity = 0.03; vm.goodOpasity = 0.03;}
-    if ((vm.k/100 <0.44 && vm.k/100 >0.4)  || (((100-vm.k)/100)<0.44 && ((100-vm.k)/100)>0.4 )) { vm.badOpasity = 0.09; vm.goodOpasity = 0.09;}
-    if ((vm.k/100 <0.4 && vm.k/100 >0.3)   || (((100-vm.k)/100)<0.4 && ((100-vm.k)/100)>0.3 )) { vm.badOpasity = 0.2; vm.goodOpasity = 0.2;}
-    if ((vm.k/100 <0.3 && vm.k/100 >0.2)   || (((100-vm.k)/100)<0.3 && ((100-vm.k)/100)>0.2 )) { vm.badOpasity = 0.5; vm.goodOpasity = 0.5;}
-    if ((vm.k/100 <0.2 && vm.k/100 >0.1)   || (((100-vm.k)/100)<0.2 && ((100-vm.k)/100)>0.1 )) { vm.badOpasity = 0.7; vm.goodOpasity = 0.7;}
-    if ((vm.k/100 <0.1 && vm.k/100 >0)     || (((100-vm.k)/100)<0.1 && ((100-vm.k)/100)>0 )) { vm.badOpasity = 1.0; vm.goodOpasity = 1.0;}
-    vm.goodDiagram = (100-vm.k)+'%';
-    vm.badDiagram = vm.k+'%';
 
     vm.popUpHide = function () {
       vm.popUpIf = false;
@@ -474,11 +458,49 @@
             visible: false,
             width: 80,
             dataType: 'number',
-
             allowEditing: false,
             headerFilter: {
               dataSource: function (source) {
                 return headerFilterColumn(source, 'imps_viewed');
+              }
+            }
+          },
+          {
+            caption: LC('CAMP.CAMPAIGN.COLUMNS.VIEW_MEASURED_IMPS'),
+            dataField: 'view_measured_imps',
+            alignment: 'center',
+            visible: false,
+            width: 100,
+            dataType: 'number',
+            headerFilter: {
+              dataSource: function (source) {
+                return headerFilterColumn(source, 'view_measured_imps');
+              }
+            }
+          },
+          {
+            caption: LC('CAMP.CAMPAIGN.COLUMNS.VIEW_MEASUREMENT_RATE') + ' ,%',
+            dataField: 'view_measurement_rate',
+            alignment: 'center',
+            visible: false,
+            width: 120,
+            dataType: 'number',
+            headerFilter: {
+              dataSource: function (source) {
+                return headerFilterColumn(source, 'view_measurement_rate');
+              }
+            }
+          },
+          {
+            caption: LC('CAMP.CAMPAIGN.COLUMNS.VIEW_RATE') + ' ,%',
+            dataField: 'view_rate',
+            alignment: 'center',
+            visible: false,
+            width: 80,
+            dataType: 'number',
+            headerFilter: {
+              dataSource: function (source) {
+                return headerFilterColumn(source, 'view_rate');
               }
             }
           },

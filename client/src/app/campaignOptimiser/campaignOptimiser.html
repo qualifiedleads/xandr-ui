@@ -75,7 +75,7 @@
     <div class="b-popup" id="popup1"  ng-if="CO.popUpIf==true">
       <div class="b-popup-content">
         <div id="btn-close" class="btn-close" ng-click="CO.popUpHide()"  title="Закрыть"></div>
-        <h4 class="title">Analitic diagrams</h4>
+        <h4 class="title">Prediction 1</h4>
         <table class="table">
           <tr ng-repeat="item in CO.arraytoPopup track by $index" class="repitDiagram" style="display: block; position: relative; ">
             <td ng-if="item">{{item.day}}</td>
@@ -84,8 +84,8 @@
                 <div class="diagramCO">
                   <div class="badDiagramCO" style="width:{{item.badDiagram}}; opacity: {{item.badOpasity}};"></div>
                   <div class="goodDiagramCO" style="width:{{item.goodDiagram}};opacity:{{item.goodOpasity}};"></div>
-                  <p class="textBadDiagramCO" >{{item.bad.toFixed(3)}}({{ item.k.toFixed(1)}}%)</p>
-                  <p class="textGoodDiagramCO">{{item.good.toFixed(3)}} ( {{(100-item.k).toFixed(1)}}%)</p>
+                  <p class="textBadDiagramCO" >{{ item.k.toFixed(1)}}%</p>
+                  <p class="textGoodDiagramCO">{{(100-item.k).toFixed(1)}}%</p>
                 </div>
                 <div class="buttonAnaliticCO">
                   <div class="trueButtonAnaliticCO"></div>

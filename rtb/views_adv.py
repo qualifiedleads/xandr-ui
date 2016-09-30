@@ -270,8 +270,7 @@ def get_campaign_placement(campaign_id, from_date, to_date):
             x['analitics'] = ({
                 "good": mlAnswer[str(wholeWeekInd)]['good'],  # mlAnswer[str(weekday)]['good']
                 "bad": mlAnswer[str(wholeWeekInd)]['bad'],  # mlAnswer[str(weekday)]['bad']
-                "checked": 0
-                #"checked": mlAnswer[str(wholeWeekInd)]['checked']
+                "checked": mlAnswer[str(wholeWeekInd)]['checked']
             })
         x.pop('placementState', None)
 

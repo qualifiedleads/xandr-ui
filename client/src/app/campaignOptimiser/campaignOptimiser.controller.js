@@ -23,17 +23,23 @@
     };
 
 
-    /*   var array = [{
+   var array = [{
       "if": {
-        [{
+        gr1: [{
           "target": "placement",
           "compare": "<",
           "cpa": "2"
-        }]
+        }],
+        "logic": "or",
+        gr2: [{
+          "target": "placement",
+          "compare": "<",
+          "cpa": "2"
+        }],
       },
       "then": "black"
     }];
-*/
+
 
     //region DATE PIKER
     /** DATE PIKER **/
@@ -505,8 +511,8 @@
             }
           },
           {
-            caption: 'Analytics',
-            width: 210,
+            caption: 'Prediction 1',
+            width: 115,
             columnIndex: 16,
             dataField: 'analytics',
             allowEditing: false,
@@ -530,8 +536,8 @@
                   '<div class="diagramCO" ng-click="CO.showAllDiagram('+ options.data.placement +')">'+
                   '<div class="badDiagramCO" style="width:' + badDiagram + ';opacity:' + badOpasity + ';"></div>'+
                   '<div class="goodDiagramCO" style="width:' + goodDiagram + ';opacity:'+goodOpasity+';"></div>'+
-                  '<p class="textBadDiagramCO" >'+bad.toFixed(3)+'('+k.toFixed(1)+'%)</p>'+
-                  '<p class="textGoodDiagramCO">'+good.toFixed(3)+'(' + (100-k).toFixed(1)+ '%)</p>'+
+                  '<p class="textBadDiagramCO" >'+k.toFixed(1)+'%</p>'+
+                  '<p class="textGoodDiagramCO">'+(100-k).toFixed(1)+ '%</p>'+
                   '</div>'+
                   '<div class="buttonAnaliticCO'+ options.data.placement+'">'+
                   '<div class="trueButtonAnaliticCO'+ options.data.placement +'"></div>'+

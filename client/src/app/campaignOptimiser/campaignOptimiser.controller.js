@@ -586,13 +586,13 @@
 
                 vm.showAllDiagram = function (item) {
                   vm.popUpIf = true;
-                  /*CampaignOptimiser.showAllMLDiagram(vm.campId, item)
+                  CampaignOptimiser.showAllMLDiagram(vm.campId, item)
                   .then(function (res) {
                     vm.arraytoPopup = res;
-                  }); */
+                  });
 
-                  vm.arraytoPopup = CampaignOptimiser.showAllMLDiagram(vm.campId, item)
-                  vm.arraytoPopup;
+/*                  vm.arraytoPopup = CampaignOptimiser.showAllMLDiagram(vm.campId, item)
+                  vm.arraytoPopup;*/
                 };
 
 

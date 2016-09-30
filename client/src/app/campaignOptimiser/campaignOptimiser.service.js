@@ -178,6 +178,7 @@
       return $http({
         method: 'POST',
         url: '/api/v1/campaigns/' + id + '/MLPlacement',
+        headers: {'Authorization': 'Token ' + $cookies.get('token')},
         data: {placementId: placementId, checked: checked}
       })
       .then(function (res) {
@@ -189,146 +190,149 @@
     }
 
     function showAllMLDiagram(id, placementId) {
-      /*      return $http({
-       method: 'GET',
-       url: '/api/v1/campaigns/' + id + '/MLPlacement',
-       params: {
-       placementId: placementId,
-       }
-       })
-       .then(function (res) {
-       return res.data;
-       })
-       .catch(function (err) {
-       $window.DevExpress.ui.notify(err.statusText, "error", 4000);
-       });*/
-      var res = {
-        data: [
-          {
-            "day": 0,
-            "good": 0.8,
-            "bad": 0.5,
-            "checked": true,
-          },
-          {
-            "day": 1,
-            "good": 1,
-            "bad": 1.5,
-            "checked": true,
-          },
-          {
-            "day": 2,
-            "good": 5,
-            "bad": 0.5,
-            "checked": true,
-          },
-          {
-            "day": 3,
-            "good": 0.1,
-            "bad": 0.5,
-            "checked": true,
-          },
-          {
-            "day": 4,
-            "good": 1,
-            "bad": 0.8,
-            "checked": true,
-          },
-          {
-            "day": 5,
-            "good": 0.78,
-            "bad": 1.5,
-            "checked": true,
-          },
-          {
-            "day": 6,
-            "good": 1,
-            "bad": 1.1,
-            "checked": true,
-          },
-          {
-            "day": 7,
-            "good": 1,
-            "bad": 0.5,
-            "checked": true,
-          }]
-      };
-      var itemArray = [];
-      for (var item in res.data) {
-        if (res.data[item].good == -1) {
-          itemArray[item] = false;
-        } else {
-          if (res.data[item].day == '0') {
-            res.data[item].day = 'Sunday';
-          }
-          if (res.data[item].day == '1') {
-            res.data[item].day = 'Monday';
-          }
-          if (res.data[item].day == '2') {
-            res.data[item].day = 'Tuesday';
-          }
-          if (res.data[item].day == '3') {
-            res.data[item].day = 'Wednesday';
-          }
-          if (res.data[item].day == '4') {
-            res.data[item].day = 'Thursday';
-          }
-          if (res.data[item].day == '5') {
-            res.data[item].day = 'Friday';
-          }
-          if (res.data[item].day == '6') {
-            res.data[item].day = 'Saturday';
-          }
-          if (res.data[item].day == '7') {
-            res.data[item].day = 'All week';
-          }
-
-          var bad = res.data[item].bad;
-          var good = res.data[item].good;
-          var badOpasity = 1;
-          var goodOpasity = 1;
-          var k = +((bad * 100) / (bad + good));
-          if (((k / 100 <= 0.5)) && (((k / 100) >= 0.45)) || ((((100 - k) / 100) <= 0.5) && (((100 - k) / 100) > 0.45 ))) {
-            badOpasity = 0.03;
-            goodOpasity = 0.03;
-          }
-          if ((k / 100 < 0.45 && k / 100 > 0.4) || (((100 - k) / 100) <= 0.45 && ((100 - k) / 100) > 0.4 )) {
-            badOpasity = 0.09;
-            goodOpasity = 0.09;
-          }
-          if ((k / 100 <= 0.4 && k / 100 > 0.3) || (((100 - k) / 100) <= 0.4 && ((100 - k) / 100) > 0.3 )) {
-            badOpasity = 0.2;
-            goodOpasity = 0.2;
-          }
-          if ((k / 100 <= 0.3 && k / 100 > 0.2) || (((100 - k) / 100) <= 0.3 && ((100 - k) / 100) > 0.2 )) {
-            badOpasity = 0.5;
-            goodOpasity = 0.5;
-          }
-          if ((k / 100 <= 0.2 && k / 100 > 0.1) || (((100 - k) / 100) <= 0.2 && ((100 - k) / 100) > 0.1 )) {
-            badOpasity = 0.7;
-            goodOpasity = 0.7;
-          }
-          if ((k / 100 <= 0.1 && k / 100 > 0) || (((100 - k) / 100) <= 0.1 && ((100 - k) / 100) > 0 )) {
-            badOpasity = 1.0;
-            goodOpasity = 1.0;
-          }
-          var goodDiagram = (100 - k) + '%';
-          var badDiagram = k + '%';
-
-          itemArray.push({
-            "day": res.data[item].day,
-            "good": res.data[item].good,
-            "bad": res.data[item].bad,
-            "checked": res.data[item].checked,
-            "badDiagram": badDiagram,
-            "goodDiagram": goodDiagram,
-            "badOpasity": badOpasity,
-            "goodOpasity": goodOpasity,
-            "k": k
-          });
+      return $http({
+        method: 'GET',
+        url: '/api/v1/campaigns/' + id + '/MLPlacement',
+        headers: {'Authorization': 'Token ' + $cookies.get('token')},
+        params: {
+          placementId: placementId,
         }
-      }
-      return itemArray;
+      })
+      .then(function (res) {
+        var itemArray = [];
+        for (var item in res.data.analitics) {
+          if (res.data.analitics[item].good == -1) {
+            itemArray[item] = false;
+          } else {
+            if (res.data.analitics[item].day == '0') {
+              res.data.analitics[item].day = 'Sunday';
+            }
+            if (res.data.analitics[item].day == '1') {
+              res.data.analitics[item].day = 'Monday';
+            }
+            if (res.data.analitics[item].day == '2') {
+              res.data.analitics[item].day = 'Tuesday';
+            }
+            if (res.data.analitics[item].day == '3') {
+              res.data.analitics[item].day = 'Wednesday';
+            }
+            if (res.data.analitics[item].day == '4') {
+              res.data.analitics[item].day = 'Thursday';
+            }
+            if (res.data.analitics[item].day == '5') {
+              res.data.analitics[item].day = 'Friday';
+            }
+            if (res.data.analitics[item].day == '6') {
+              res.data.analitics[item].day = 'Saturday';
+            }
+            if (res.data.analitics[item].day == '7') {
+              res.data.analitics[item].day = 'All week';
+            }
+
+            var bad = res.data.analitics[item].bad;
+            var good = res.data.analitics[item].good;
+            var badOpasity = 1;
+            var goodOpasity = 1;
+            var k = +((bad * 100) / (bad + good));
+            if (((k / 100 <= 0.5)) && (((k / 100) >= 0.45)) || ((((100 - k) / 100) <= 0.5) && (((100 - k) / 100) > 0.45 ))) {
+              badOpasity = 0.03;
+              goodOpasity = 0.03;
+            }
+            if ((k / 100 < 0.45 && k / 100 > 0.4) || (((100 - k) / 100) <= 0.45 && ((100 - k) / 100) > 0.4 )) {
+              badOpasity = 0.09;
+              goodOpasity = 0.09;
+            }
+            if ((k / 100 <= 0.4 && k / 100 > 0.3) || (((100 - k) / 100) <= 0.4 && ((100 - k) / 100) > 0.3 )) {
+              badOpasity = 0.2;
+              goodOpasity = 0.2;
+            }
+            if ((k / 100 <= 0.3 && k / 100 > 0.2) || (((100 - k) / 100) <= 0.3 && ((100 - k) / 100) > 0.2 )) {
+              badOpasity = 0.5;
+              goodOpasity = 0.5;
+            }
+            if ((k / 100 <= 0.2 && k / 100 > 0.1) || (((100 - k) / 100) <= 0.2 && ((100 - k) / 100) > 0.1 )) {
+              badOpasity = 0.7;
+              goodOpasity = 0.7;
+            }
+            if ((k / 100 <= 0.1 && k / 100 > 0) || (((100 - k) / 100) <= 0.1 && ((100 - k) / 100) > 0 )) {
+              badOpasity = 1.0;
+              goodOpasity = 1.0;
+            }
+            var goodDiagram = (100 - k) + '%';
+            var badDiagram = k + '%';
+
+            itemArray.push({
+              "day": res.data.analitics[item].day,
+              "good": res.data.analitics[item].good,
+              "bad": res.data.analitics[item].bad,
+              "checked": res.data.analitics[item].checked,
+              "badDiagram": badDiagram,
+              "goodDiagram": goodDiagram,
+              "badOpasity": badOpasity,
+              "goodOpasity": goodOpasity,
+              "k": k
+            });
+          }
+        }
+        return itemArray;
+      })
+      .catch(function (err) {
+        $window.DevExpress.ui.notify(err.statusText, "error", 4000);
+      });
+      /*var res = {
+       data: [
+       {
+       "day": 0,
+       "good": 0.8,
+       "bad": 0.5,
+       "checked": true,
+       },
+       {
+       "day": 1,
+       "good": 1,
+       "bad": 1.5,
+       "checked": true,
+       },
+       {
+       "day": 2,
+       "good": 5,
+       "bad": 0.5,
+       "checked": true,
+       },
+       {
+       "day": 3,
+       "good": 0.1,
+       "bad": 0.5,
+       "checked": true,
+       },
+       {
+       "day": 4,
+       "good": 1,
+       "bad": 0.8,
+       "checked": true,
+       },
+       {
+       "day": 5,
+       "good": 0.78,
+       "bad": 1.5,
+       "checked": true,
+       },
+       {
+       "day": 6,
+       "good": 1,
+       "bad": 1.1,
+       "checked": true,
+       },
+       {
+       "day": 7,
+       "good": 1,
+       "bad": 0.5,
+       "checked": true,
+       }]
+       };*/
+
+
+
     }
 
     _this.showAllMLDiagram = showAllMLDiagram;

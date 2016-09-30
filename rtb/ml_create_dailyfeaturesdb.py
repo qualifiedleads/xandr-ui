@@ -16,6 +16,9 @@ def mlCreatePlacementDailyFeaturesDB():
           cost,
           cpa,
           ctr,
+          cvr,
+          cpc,
+          cpm,
           view_rate,
           view_measurement_rate)
 
@@ -25,6 +28,9 @@ def mlCreatePlacementDailyFeaturesDB():
           SUM(imps), SUM(clicks), SUM(total_convs), SUM(imps_viewed), SUM(view_measured_imps), SUM(cost),
           case SUM(total_convs) when 0 then 0 else SUM(cost)::float/SUM(total_convs) end CPA,
           case SUM(imps) when 0 then 0 else SUM(clicks)::float/SUM(imps) end CTR,
+          case SUM(imps) when 0 then 0 else SUM(total_convs)::float/SUM(imps) end CVR,
+          case SUM(clicks) when 0 then ? else SUM(cost)::float/SUM(clicks) end CPC,
+          case SUM(imps) when 0 then ? else SUM(cost)::float/SUM(imps) end CPM,
           case SUM(view_measured_imps) when 0 then 0 else SUM(imps_viewed)::float/SUM(view_measured_imps) end view_rate,
           case SUM(imps) when 0 then 0 else SUM(view_measured_imps)::float/SUM(imps) end view_measurement_rate
         FROM

@@ -16,6 +16,9 @@ class MLPlacementDailyFeatures(models.Model):
     view_measurement_rate = models.FloatField(db_index=True)
     cpa = models.FloatField()
     ctr = models.FloatField(db_index=True)
+    cvr = models.DecimalField(null=True, max_digits=35, decimal_places=10)
+    cpc = models.DecimalField(null=True, max_digits=35, decimal_places=10)
+    cpm = models.DecimalField(null=True, max_digits=35, decimal_places=10)
 
     class Meta:
         db_table = "ml_placement_daily_features"
@@ -30,13 +33,12 @@ class MLPlacementsClustersKmeans(models.Model):
     distance_to_clusters = ArrayField(
             models.DecimalField(max_digits=35, decimal_places=10), null = True,
         )
-
-    #test_number = models.IntegerField(null=True)
-    #expert_decision = models.IntegerField(null=True)
+    test_number = models.IntegerField(null=True)
+    expert_decision = models.NullBooleanField(null=True)
 
     class Meta:
         db_table = "ml_placements_clusters_kmeans"
-        unique_together = (('placement', 'day'),)
+        unique_together = (('placement', 'day', 'test_number'),)
 
 
 class MLClustersCentroidsKmeans(models.Model):
@@ -46,7 +48,8 @@ class MLClustersCentroidsKmeans(models.Model):
     centroid = ArrayField(
             models.DecimalField(max_digits=35, decimal_places=10),
         )
+    test_number = models.IntegerField(null=True)
 
     class Meta:
         db_table = "ml_clusters_centroids_kmeans"
-        unique_together = (('cluster', 'day'),)
+        unique_together = (('cluster', 'day', 'test_number'),)

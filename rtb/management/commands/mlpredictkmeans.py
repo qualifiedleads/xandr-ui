@@ -14,9 +14,5 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         self.stdout.write('mlpredictkmeans called')
-        """some = "/api/v1/campaigns/:id/domains?from_date=1466667274&to_date=1466667274&skip=0&take=5"
-        campaignDomains(some, 13831756)
-        return"""
-
         placement_id = options.get('placement_id')
         mlPredictKmeans(placement_id)

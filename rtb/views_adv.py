@@ -248,22 +248,19 @@ def get_campaign_placement(campaign_id, from_date, to_date):
             "blackList": False,
             "suspended": x['placementState'] == 'inactive'
         }
-        x.pop('placementState', None)
 
-    cache.set(key, res)
-
-    for x in res:
         mlAnswer = mlGetPlacementInfoKmeans(x['placement'], False)
         wholeWeekInd = 7
         if mlAnswer == -1 or mlAnswer == -2:
-            x['analitics'] = ({  # for one object
+            x['analitics'] = ({#for one object
                 "good": mlAnswer,
                 "bad": mlAnswer,
                 "checked": mlAnswer
             })
+            x.pop('placementState', None)
             continue
 
-        if str(wholeWeekInd) not in mlAnswer:  # for one object
+        if str(wholeWeekInd) not in mlAnswer:  #for one object
             x['analitics'] = ({
                 "good": -3,
                 "bad": -3,
@@ -271,11 +268,14 @@ def get_campaign_placement(campaign_id, from_date, to_date):
             })
         else:
             x['analitics'] = ({
-                "good": mlAnswer[str(wholeWeekInd)]['good'],
-                "bad": mlAnswer[str(wholeWeekInd)]['bad'],
+                "good": mlAnswer[str(wholeWeekInd)]['good'],  # mlAnswer[str(weekday)]['good']
+                "bad": mlAnswer[str(wholeWeekInd)]['bad'],  # mlAnswer[str(weekday)]['bad']
                 "checked": mlAnswer[str(wholeWeekInd)]['checked']
             })
+        x.pop('placementState', None)
 
+
+    cache.set(key, res)
     return res
 
 

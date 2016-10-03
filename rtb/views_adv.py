@@ -213,7 +213,32 @@ def get_campaign_placement(campaign_id, from_date, to_date):
     key = '_'.join(('rtb_campaign_placement', str(campaign_id), from_date.strftime('%Y-%m-%d'),
                     to_date.strftime('%Y-%m-%d'),))
     res = cache.get(key)
-    if res: return res
+    wholeWeekInd = 7
+    if res:
+        for x in res:
+            mlAnswer = mlGetPlacementInfoKmeans(x['placement'], False)
+
+            if mlAnswer == -1 or mlAnswer == -2:
+                x['analitics'] = ({  # for one object
+                    "good": mlAnswer,
+                    "bad": mlAnswer,
+                    "checked": mlAnswer
+                })
+                continue
+
+            if str(wholeWeekInd) not in mlAnswer:  # for one object
+                x['analitics'] = ({
+                    "good": -3,
+                    "bad": -3,
+                    "checked": -3
+                })
+            else:
+                x['analitics'] = ({
+                    "good": mlAnswer[str(wholeWeekInd)]['good'],
+                    "bad": mlAnswer[str(wholeWeekInd)]['bad'],
+                    "checked": mlAnswer[str(wholeWeekInd)]['checked']
+                })
+        return res
     # no cache hit
     from_date = datetime.datetime(from_date.year, from_date.month, from_date.day, tzinfo=utc)
     to_date = datetime.datetime(to_date.year, to_date.month, to_date.day, 23, tzinfo=utc)
@@ -250,7 +275,6 @@ def get_campaign_placement(campaign_id, from_date, to_date):
         }
 
         mlAnswer = mlGetPlacementInfoKmeans(x['placement'], False)
-        wholeWeekInd = 7
         if mlAnswer == -1 or mlAnswer == -2:
             x['analitics'] = ({#for one object
                 "good": mlAnswer,
@@ -268,8 +292,8 @@ def get_campaign_placement(campaign_id, from_date, to_date):
             })
         else:
             x['analitics'] = ({
-                "good": mlAnswer[str(wholeWeekInd)]['good'],  # mlAnswer[str(weekday)]['good']
-                "bad": mlAnswer[str(wholeWeekInd)]['bad'],  # mlAnswer[str(weekday)]['bad']
+                "good": mlAnswer[str(wholeWeekInd)]['good'],
+                "bad": mlAnswer[str(wholeWeekInd)]['bad'],
                 "checked": mlAnswer[str(wholeWeekInd)]['checked']
             })
         x.pop('placementState', None)

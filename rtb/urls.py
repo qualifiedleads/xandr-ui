@@ -28,6 +28,8 @@ urlpatterns = [
     url(r'^campaigns/(\d+)/cpareport', views_adv.cpaReport),
     url(r'^campaigns/(\d+)/domains', views_adv.campaignDomains),
     url(r'^campaigns/(\d+)/details', views_adv.campaignDetails),
+    url(r'^campaigns/(\d+)/MLPlacement', views_adv.mlApiAnalitics),
     url(r'^campaigns/(\d+)$', views_adv.singleCampaign),
     url(r'^campaigns', views.campaigns),
+
 ]

@@ -15,6 +15,7 @@ import filter_func
 
 from models.ml_kmeans_model import MLPlacementDailyFeatures, MLClustersCentroidsKmeans, MLPlacementsClustersKmeans
 from rtb.ml_learn_kmeans import mlPredictKmeans,mlGetPlacementInfoKmeans
+from rest_framework import status
 
 import bisect
 from django.contrib.auth.decorators import login_required, user_passes_test
@@ -269,7 +270,7 @@ def get_campaign_placement(campaign_id, from_date, to_date):
             x['analitics'] = ({
                 "good": mlAnswer[str(wholeWeekInd)]['good'],  # mlAnswer[str(weekday)]['good']
                 "bad": mlAnswer[str(wholeWeekInd)]['bad'],  # mlAnswer[str(weekday)]['bad']
-                "checked": 0
+                "checked": mlAnswer[str(wholeWeekInd)]['checked']
             })
         x.pop('placementState', None)
 
@@ -533,3 +534,103 @@ Get single campaign details for given period
     # convs
     return Response(res)
 
+@api_view(['GET', 'POST'])
+@check_user_advertiser_permissions()
+def mlApiAnalitics(request,id):
+    """
+Post: commends the decision taken by the machine
+
+## Url format: /api/v1/campaigns/:id/MLPlacement
+    body {
+        placementId: placementId,
+        checked: checked
+    }
+
++ Parameters
+    + id (Number) - id company
+    + placementId (Number) - placement id
+    + checked (boolean) - true | false
+
+
+http://localhost:3000/api/v1/campaigns/13921687/MLPlacement
+{placementId: 3898, checked: true}
+
+
+GET: diagramms for week for a placement
+## Url format: /api/v1/campaigns/:id/MLPlacement?placementId={placementId}
+
++ Parameters
+    + id (Number) - id company
+	+ placementId (Number) - placement id
+    """
+    if request.method == "GET":
+        res = mlApiWeeklyPlacementRecignition(request)
+    if request.method == "POST":
+        res = mlApiSaveExpertDecision(request)
+    return res
+
+
+def mlApiWeeklyPlacementRecignition(request):
+    placement_id = request.GET.get("placementId")
+    mlAnswer = mlGetPlacementInfoKmeans(placement_id, True)#get data from recognition database
+    res = {}
+    res['analitics'] = []
+    if mlAnswer == -1 or mlAnswer == -2:#error with data in database
+        for weekday in xrange(8):  # for all week, 8 - quantity of weekdays+whole week in mlAnswer
+            res['analitics'].append({
+                "day": weekday,
+                "good": mlAnswer,
+                "bad": mlAnswer,
+                "checked": mlAnswer
+            })
+        return Response(res)
+
+    for weekday in xrange(8):  # 8 - quantity of weekdays+whole week in mlAnswer
+        if str(weekday) not in mlAnswer:  # for array
+            res['analitics'].append({
+                "day": weekday,
+                "good": -3,
+                "bad": -3,
+                "checked": -3
+            })
+        else:
+            res['analitics'].append({
+                "day": weekday,
+                "good": mlAnswer[str(weekday)]['good'],  # mlAnswer[str(weekday)]['good']
+                "bad": mlAnswer[str(weekday)]['bad'],  # mlAnswer[str(weekday)]['bad']
+                "checked": mlAnswer[str(weekday)]['checked']
+            })
+    return Response(res)
+
+def mlApiSaveExpertDecision(request):
+    placement_id = request.data.get("placementId")
+    checked = request.data.get("checked")
+    try:
+        MLPlacementsClustersKmeans.objects.filter(placement_id=placement_id).update(expert_decision=checked)
+    except Exception, e:
+        print "Can't save expert decision. Error: " + str(e)
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+
+    mlAnswer = mlGetPlacementInfoKmeans(placement_id, False)
+    wholeWeekInd = 7
+    res = {}
+    if mlAnswer == -1 or mlAnswer == -2:
+        res['analitics'] = ({  # for one object
+            "good": mlAnswer,
+            "bad": mlAnswer,
+            "checked": mlAnswer
+        })
+
+    if str(wholeWeekInd) not in mlAnswer:  # for one object
+        res['analitics'] = ({
+            "good": -3,
+            "bad": -3,
+            "checked": -3
+        })
+    else:
+        res['analitics'] = ({
+            "good": mlAnswer[str(wholeWeekInd)]['good'],  # mlAnswer[str(weekday)]['good']
+            "bad": mlAnswer[str(wholeWeekInd)]['bad'],  # mlAnswer[str(weekday)]['bad']
+            "checked": mlAnswer[str(wholeWeekInd)]['checked']
+        })
+    return Response(res)

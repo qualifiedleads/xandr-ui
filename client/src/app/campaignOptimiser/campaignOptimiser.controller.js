@@ -23,20 +23,26 @@
     };
 
 
-   var array = [{
-      "if": {
-        gr1: [{
+    vm.array = [{
+      "if": [
+        {
           "target": "placement",
           "compare": "<",
           "cpa": "2"
-        }],
-        "logic": "or",
-        gr2: [{
-          "target": "placement",
-          "compare": "<",
-          "cpa": "2"
-        }],
-      },
+        },
+        "or",
+        [
+          {
+            "target": "placement",
+            "compare": "<",
+            "cpa": "2"
+          },
+          "and",
+          {
+
+          }
+        ]
+      ],
       "then": "black"
     }];
 
@@ -266,8 +272,8 @@
         width: 120,
         text: LC('COMMON.CANCEL'),
         onClick: function () {
-/*          tempSespendRow = null;
-          dataSuspend = null;*/
+          /*          tempSespendRow = null;
+           dataSuspend = null;*/
           //vm.confirmPopupVisible = false;
           vm.confirmPopup.option('visible', false);
           $scope.$apply();
@@ -519,10 +525,10 @@
             cellTemplate: function (container, options) {
               vm.arrayDiagram.push(options.data);
               if (options.data.analitics === null) {
-/*                var tpl = $compile(
-                  '<div class="analiticCO">'+
-                  '</div>;')( $scope );
-                tpl.appendTo(container);*/
+                /*                var tpl = $compile(
+                 '<div class="analiticCO">'+
+                 '</div>;')( $scope );
+                 tpl.appendTo(container);*/
               } else {
                 var bad = options.data.analitics.bad;
                 var good = options.data.analitics.good;
@@ -591,8 +597,8 @@
                     vm.arraytoPopup = res;
                   });
 
-/*                  vm.arraytoPopup = CampaignOptimiser.showAllMLDiagram(vm.campId, item)
-                  vm.arraytoPopup;*/
+                  /*                  vm.arraytoPopup = CampaignOptimiser.showAllMLDiagram(vm.campId, item)
+                   vm.arraytoPopup;*/
                 };
 
 
@@ -891,17 +897,6 @@
         }
       }
     };
-
-
-
-
-
-
-
-
-
-
-
 
 
 

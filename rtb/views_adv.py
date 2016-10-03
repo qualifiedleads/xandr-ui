@@ -535,7 +535,7 @@ Get single campaign details for given period
     return Response(res)
 
 @api_view(['GET', 'POST'])
-@check_user_advertiser_permissions()
+@check_user_advertiser_permissions(campaign_id_num=0)
 def mlApiAnalitics(request,id):
     """
 Post: commends the decision taken by the machine

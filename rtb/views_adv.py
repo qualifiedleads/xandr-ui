@@ -560,7 +560,9 @@ def mlApiWeeklyPlacementRecignition(request):
     placement_id = request.GET.get("placementId")
     #test_name = request.GET.get("test_name")
     test_name = "ctr_cvr_cpc_cpm_cpa"
-    res = mlFillPredictionAnswer(placement_id, True, test_name)
+    #res = mlFillPredictionAnswer(placement_id, True, test_name)
+    res = {}
+    res["analitics"] = mlFillPredictionAnswer(placement_id, True, test_name)
     return Response(res)
 
 def mlApiSaveExpertDecision(request):
@@ -568,8 +570,18 @@ def mlApiSaveExpertDecision(request):
     checked = request.data.get("checked")
     #test_name = request.GET.get("test_name")
     test_name = "ctr_cvr_cpc_cpm_cpa"
+
+    test_number = 0
+    if test_name == "ctr_viewrate":
+        test_number = 1
+    if test_name == "ctr_cvr_cpc_cpm_cpa":
+        test_number = 2
+    if test_number == 0:
+        print "Wrong test name"
+        return -1
+
     try:
-        MLPlacementsClustersKmeans.objects.filter(placement_id=placement_id).update(expert_decision=checked)
+        MLPlacementsClustersKmeans.objects.filter(placement_id=placement_id, test_number=test_number).update(expert_decision=checked)
     except Exception, e:
         print "Can't save expert decision. Error: " + str(e)
         return Response(status=status.HTTP_400_BAD_REQUEST)

@@ -1,5 +1,3 @@
-__author__ = 'USER'
-
 from django.core.management import BaseCommand
 from rtb.ml_learn_kmeans import mlLearnKmeans
 
@@ -10,8 +8,9 @@ class Command(BaseCommand):
     """
 
     def add_arguments(self, parser):
-        pass
+        parser.add_argument("test_name", type=str)
 
     def handle(self, *args, **options):
         self.stdout.write('mllearnsavemodel called')
-        mlLearnKmeans()
+        test_name = options.get("test_name")
+        mlLearnKmeans(test_name)

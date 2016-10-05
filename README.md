@@ -31,20 +31,17 @@ python manage.py createcachetable rtb_cache_table
 
 7. For create superuser, run
 python manage.py createsuperuser
-
-=============================
+======================================
 ML commands
------------------------------
-1. Create features test set for placements on weekdays
+1. Create test set for learning
 python manage.py mlcreatetestset
-
-2. Learn and save k-means model (create centroids for good/bad placements clusters)
-python manage.py mllearnsavemodel
-
-3. Predict clusters for all placements 
-python manage.py mlpredictkmeans -1 
-
-4. Predict clusters for one placement 
-python manage.py mlpredictkmeans [placement_id] 
-
+2. Learn k-means model
+python manage.py mllearnsavemodel <test_name>
+valid test names:
+  1) ctr_viewrate
+  2) ctr_cvr_cpc_cpm_cpa
+3. Predict placement and save to database
+python manage.py mlpredictkmeans <placement_id> <test_name>
+Example for one placement: python manage.py mlpredictkmeans 3898 ctr_cvr_cpc_cpm_cpa
+Example for all placements: python manage.py mlpredictkmeans -1 ctr_cvr_cpc_cpm_cpa
 ````

@@ -53,3 +53,16 @@ class MLClustersCentroidsKmeans(models.Model):
     class Meta:
         db_table = "ml_clusters_centroids_kmeans"
         unique_together = (('cluster', 'day', 'test_number'),)
+
+class MLNormalizationData(models.Model):
+    id = models.AutoField(primary_key=True)
+    test_number = models.IntegerField(db_index=True)
+    day = models.IntegerField(db_index=True)
+    maxcpa = models.FloatField(null=True)
+    maxcvr = models.DecimalField(null=True, max_digits=35, decimal_places=10)
+    maxcpc = models.DecimalField(null=True, max_digits=35, decimal_places=10)
+    maxcpm = models.DecimalField(null=True, max_digits=35, decimal_places=10)
+
+    class Meta:
+        db_table = "ml_normalization_data"
+        unique_together = (('test_number', 'day'),)

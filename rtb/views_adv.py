@@ -216,28 +216,9 @@ def get_campaign_placement(campaign_id, from_date, to_date):
     wholeWeekInd = 7
     if res:
         for x in res:
-            mlAnswer = mlGetPlacementInfoKmeans(x['placement'], False)
-
-            if mlAnswer == -1 or mlAnswer == -2:
-                x['analitics'] = ({  # for one object
-                    "good": mlAnswer,
-                    "bad": mlAnswer,
-                    "checked": mlAnswer
-                })
-                continue
-
-            if str(wholeWeekInd) not in mlAnswer:  # for one object
-                x['analitics'] = ({
-                    "good": -3,
-                    "bad": -3,
-                    "checked": -3
-                })
-            else:
-                x['analitics'] = ({
-                    "good": mlAnswer[str(wholeWeekInd)]['good'],
-                    "bad": mlAnswer[str(wholeWeekInd)]['bad'],
-                    "checked": mlAnswer[str(wholeWeekInd)]['checked']
-                })
+            #x["analitics"] = mlFillPredictionAnswer(x["placement"], False, "ctr_viewrate")
+            #x["analitics1"] = mlFillPredictionAnswer(x["placement"], False, "ctr_cvr_cpc_cpm_cpa")
+            x["analitics"] = mlFillPredictionAnswer(x["placement"], False, "ctr_cvr_cpc_cpm_cpa")
         return res
     # no cache hit
     from_date = datetime.datetime(from_date.year, from_date.month, from_date.day, tzinfo=utc)
@@ -274,28 +255,9 @@ def get_campaign_placement(campaign_id, from_date, to_date):
             "suspended": x['placementState'] == 'inactive'
         }
 
-        mlAnswer = mlGetPlacementInfoKmeans(x['placement'], False)
-        if mlAnswer == -1 or mlAnswer == -2:
-            x['analitics'] = ({#for one object
-                "good": mlAnswer,
-                "bad": mlAnswer,
-                "checked": mlAnswer
-            })
-            x.pop('placementState', None)
-            continue
-
-        if str(wholeWeekInd) not in mlAnswer:  #for one object
-            x['analitics'] = ({
-                "good": -3,
-                "bad": -3,
-                "checked": -3
-            })
-        else:
-            x['analitics'] = ({
-                "good": mlAnswer[str(wholeWeekInd)]['good'],
-                "bad": mlAnswer[str(wholeWeekInd)]['bad'],
-                "checked": mlAnswer[str(wholeWeekInd)]['checked']
-            })
+        #x["analitics"] = mlFillPredictionAnswer(x["placement"], False, "ctr_viewrate")
+        #x["analitics1"] = mlFillPredictionAnswer(x["placement"], False, "ctr_cvr_cpc_cpm_cpa")
+        x["analitics"] = mlFillPredictionAnswer(x["placement"], False, "ctr_cvr_cpc_cpm_cpa")
         x.pop('placementState', None)
 
 
@@ -560,7 +522,7 @@ Get single campaign details for given period
 
 @api_view(['GET', 'POST'])
 @check_user_advertiser_permissions(campaign_id_num=0)
-def mlApiAnalitics(request,id):
+def mlApiAnalitics(request, id):
     """
 Post: commends the decision taken by the machine
 
@@ -596,65 +558,78 @@ GET: diagramms for week for a placement
 
 def mlApiWeeklyPlacementRecignition(request):
     placement_id = request.GET.get("placementId")
-    mlAnswer = mlGetPlacementInfoKmeans(placement_id, True)#get data from recognition database
-    res = {}
-    res['analitics'] = []
-    if mlAnswer == -1 or mlAnswer == -2:#error with data in database
-        for weekday in xrange(8):  # for all week, 8 - quantity of weekdays+whole week in mlAnswer
-            res['analitics'].append({
-                "day": weekday,
-                "good": mlAnswer,
-                "bad": mlAnswer,
-                "checked": mlAnswer
-            })
-        return Response(res)
-
-    for weekday in xrange(8):  # 8 - quantity of weekdays+whole week in mlAnswer
-        if str(weekday) not in mlAnswer:  # for array
-            res['analitics'].append({
-                "day": weekday,
-                "good": -3,
-                "bad": -3,
-                "checked": -3
-            })
-        else:
-            res['analitics'].append({
-                "day": weekday,
-                "good": mlAnswer[str(weekday)]['good'],  # mlAnswer[str(weekday)]['good']
-                "bad": mlAnswer[str(weekday)]['bad'],  # mlAnswer[str(weekday)]['bad']
-                "checked": mlAnswer[str(weekday)]['checked']
-            })
+    #test_name = request.GET.get("test_name")
+    test_name = "ctr_cvr_cpc_cpm_cpa"
+    res = mlFillPredictionAnswer(placement_id, True, test_name)
     return Response(res)
 
 def mlApiSaveExpertDecision(request):
     placement_id = request.data.get("placementId")
     checked = request.data.get("checked")
+    #test_name = request.GET.get("test_name")
+    test_name = "ctr_cvr_cpc_cpm_cpa"
     try:
         MLPlacementsClustersKmeans.objects.filter(placement_id=placement_id).update(expert_decision=checked)
     except Exception, e:
         print "Can't save expert decision. Error: " + str(e)
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
-    mlAnswer = mlGetPlacementInfoKmeans(placement_id, False)
-    wholeWeekInd = 7
-    res = {}
-    if mlAnswer == -1 or mlAnswer == -2:
-        res['analitics'] = ({  # for one object
-            "good": mlAnswer,
-            "bad": mlAnswer,
-            "checked": mlAnswer
-        })
-
-    if str(wholeWeekInd) not in mlAnswer:  # for one object
-        res['analitics'] = ({
-            "good": -3,
-            "bad": -3,
-            "checked": -3
-        })
-    else:
-        res['analitics'] = ({
-            "good": mlAnswer[str(wholeWeekInd)]['good'],  # mlAnswer[str(weekday)]['good']
-            "bad": mlAnswer[str(wholeWeekInd)]['bad'],  # mlAnswer[str(weekday)]['bad']
-            "checked": mlAnswer[str(wholeWeekInd)]['checked']
-        })
+    res = mlFillPredictionAnswer(placement_id, False, test_name)
     return Response(res)
+
+def mlFillPredictionAnswer(placement_id = 1, flagAllWeek = False, test_name = "ctr_viewrate"):
+    mlAnswer = mlGetPlacementInfoKmeans(placement_id, flagAllWeek, test_name)
+
+
+    if flagAllWeek == False:
+        wholeWeekInd = 7
+        if mlAnswer == -1 or mlAnswer == -2:
+            res = ({  # for one object
+                "good": mlAnswer,
+                "bad": mlAnswer,
+                "checked": mlAnswer
+            })
+            return res
+
+        if str(wholeWeekInd) not in mlAnswer:  # for one object
+            res = ({
+                "good": -3,
+                "bad": -3,
+                "checked": -3
+            })
+        else:
+            res = ({
+                "good": mlAnswer[str(wholeWeekInd)]['good'],
+                "bad": mlAnswer[str(wholeWeekInd)]['bad'],
+                "checked": mlAnswer[str(wholeWeekInd)]['checked']
+            })
+        return res
+    else:
+        mlAnswer = mlGetPlacementInfoKmeans(placement_id, True, test_name)  # get data from recognition database
+        res = []
+        if mlAnswer == -1 or mlAnswer == -2:  # error with data in database
+            for weekday in xrange(8):  # for all week, 8 - quantity of weekdays+whole week in mlAnswer
+                res.append({
+                    "day": weekday,
+                    "good": mlAnswer,
+                    "bad": mlAnswer,
+                    "checked": mlAnswer
+                })
+            return res
+
+        for weekday in xrange(8):  # 8 - quantity of weekdays+whole week in mlAnswer
+            if str(weekday) not in mlAnswer:  # for array
+                res.append({
+                    "day": weekday,
+                    "good": -3,
+                    "bad": -3,
+                    "checked": -3
+                })
+            else:
+                res.append({
+                    "day": weekday,
+                    "good": mlAnswer[str(weekday)]['good'],
+                    "bad": mlAnswer[str(weekday)]['bad'],
+                    "checked": mlAnswer[str(weekday)]['checked']
+                })
+    return res

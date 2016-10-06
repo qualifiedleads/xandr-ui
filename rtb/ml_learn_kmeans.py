@@ -638,11 +638,50 @@ def mlmakeCsv(test_name = "ctr_viewrate"):#making csv file from recognized datab
         fileName = "ml_placements_prediction_ctr_viewrate.csv"
     if test_number == 2:
         fileName = "ml_placements_prediction_ctr_cvr_cpc_cpm_cpa.csv"
+
+    first = True
+    prevDay = 0
     with open(fileName, 'w') as csvfile:
         fieldnames = ['placement_id', 'day', 'predict', 'distance to good', 'distance to bad', 'distance difference']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         writer.writeheader()
         for row in queryResults.iterator():
+            if first:
+                curPlacement = row.placement_id
+                prevDay = row.day
+                first = False
+
+            if curPlacement != row.placement_id and prevDay != 7:
+                queryClusterInfo = MLPlacementsClustersKmeans.objects.filter(
+                    placement_id=curPlacement,
+                    test_number=test_number)
+                badDistance = 0
+                goodDistance = 0
+                n = 0
+                for rowInf in queryClusterInfo:
+                    n += 1
+                    goodDistance += rowInf.distance_to_clusters[goodClusters[rowInf.day] - 1]
+                    badDistance += rowInf.distance_to_clusters[goodClusters[rowInf.day] % 2]
+                distGood = goodDistance / n
+                distBad = badDistance / n
+                if distGood < distBad:
+                    prediction = "good"
+                else:
+                    prediction = "bad"
+                dist = math.fabs(distGood - distBad)
+                writer.writerow({'placement_id': curPlacement,
+                                 'day': 7,
+                                 'predict': prediction,
+                                 'distance to good': distGood,
+                                 'distance to bad': distBad,
+                                 'distance difference': dist})
+
+                curPlacement = row.placement_id
+
+
+            if curPlacement != row.placement_id:
+                curPlacement = row.placement_id
+
             if goodClusters[row.day] == row.cluster:
                 prediction = 'good'
             else:
@@ -654,10 +693,11 @@ def mlmakeCsv(test_name = "ctr_viewrate"):#making csv file from recognized datab
             else:
                 distBad = row.distance_to_clusters[0]
             dist = math.fabs(distGood - distBad)
-
+            prevDay = row.day
             writer.writerow({'placement_id': row.placement_id,
                              'day': row.day,
                              'predict': prediction,
                              'distance to good': distGood,
                              'distance to bad': distBad,
                              'distance difference': dist})
+

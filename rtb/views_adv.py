@@ -633,9 +633,9 @@ def mlFillPredictionAnswer(placement_id = 1, flagAllWeek = False, test_name = "c
             if str(weekday) not in mlAnswer:  # for array
                 res.append({
                     "day": weekday,
-                    "good": -3,
-                    "bad": -3,
-                    "checked": -3
+                    "good": -1,
+                    "bad": -1,
+                    "checked": -1
                 })
             else:
                 res.append({

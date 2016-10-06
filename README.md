@@ -44,4 +44,6 @@ valid test names:
 python manage.py mlpredictkmeans <placement_id> <test_name>
 Example for one placement: python manage.py mlpredictkmeans 3898 ctr_cvr_cpc_cpm_cpa
 Example for all placements: python manage.py mlpredictkmeans -1 ctr_cvr_cpc_cpm_cpa
+4. Create csv-file with prediction results
+python manage.py mlcreatecsvresult <test_name>
 ````

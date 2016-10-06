@@ -321,13 +321,48 @@ def mlGetPlacementInfoKmeans(placement_id = 1, flagAllWeek = False, test_name = 
             mlAnswer[str(row.day)]['good'] = row.distance_to_clusters[goodClusters[row.day]-1]
             mlAnswer[str(row.day)]['bad'] = row.distance_to_clusters[goodClusters[row.day] % 2]
             mlAnswer[str(row.day)]['checked'] = row.expert_decision
+        if str(wholeWeekInd) not in mlAnswer:
+            queryClusterInfo = MLPlacementsClustersKmeans.objects.filter(
+                placement_id=placement_id,
+                day=wholeWeekInd,
+                test_number=test_number)
+            if not queryClusterInfo:
+                queryClusterInfo = MLPlacementsClustersKmeans.objects.filter(
+                    placement_id=placement_id,
+                    test_number=test_number)
+                badDistance = 0
+                goodDistance = 0
+                n = 0
+                mlAnswer[str(wholeWeekInd)] = {}
+                for row in queryClusterInfo:
+                    n += 1
+                    goodDistance += row.distance_to_clusters[goodClusters[row.day] - 1]
+                    badDistance += row.distance_to_clusters[goodClusters[row.day] % 2]
+                    mlAnswer[str(wholeWeekInd)]["checked"] = row.expert_decision
+                mlAnswer[str(wholeWeekInd)]["good"] = goodDistance / n
+                mlAnswer[str(wholeWeekInd)]["bad"] = badDistance / n
     else:
         queryClusterInfo = MLPlacementsClustersKmeans.objects.filter(
             placement_id=placement_id,
             day=wholeWeekInd,
             test_number=test_number)
         if not queryClusterInfo:
+            queryClusterInfo = MLPlacementsClustersKmeans.objects.filter(
+                placement_id=placement_id,
+                test_number=test_number)
+            badDistance = 0
+            goodDistance = 0
+            n = 0
+            mlAnswer[str(wholeWeekInd)] = {}
+            for row in queryClusterInfo:
+                n += 1
+                goodDistance += row.distance_to_clusters[goodClusters[row.day] - 1]
+                badDistance += row.distance_to_clusters[goodClusters[row.day] % 2]
+                mlAnswer[str(wholeWeekInd)]["checked"] = row.expert_decision
+            mlAnswer[str(wholeWeekInd)]["good"] = goodDistance / n
+            mlAnswer[str(wholeWeekInd)]["bad"] = badDistance / n
             return mlAnswer
+
         mlAnswer[str(wholeWeekInd)] = {}#insert data for answer to contoller about all weekdays
         mlAnswer[str(queryClusterInfo[0].day)]['good'] = queryClusterInfo[0].distance_to_clusters[goodClusters[queryClusterInfo[0].day] - 1]
         mlAnswer[str(queryClusterInfo[0].day)]['bad'] = queryClusterInfo[0].distance_to_clusters[goodClusters[queryClusterInfo[0].day] % 2]
@@ -367,31 +402,53 @@ def mlGetGoodClusters(test_name = "ctr_viewrate"):#get array of "good" clusters 
 
     #separatly weekdays
     for i in xrange(numbDays - 1):  # clusters centres distance to 0 calculating
-        maxClustDist = 0
+        if test_name == "ctr_viewrate":
+            maxClustDist = 0
+        if test_name == "ctr_cvr_cpc_cpm_cpa":
+            maxClustDist = -100000
         maxClust = 0
         for j in xrange(numbClusters):
             dist = 0
-            for iFeature in xrange(numbFeaturesInDay):
-                dist += centroidsCoord[i][j][iFeature] ** 2
+            if test_name == "ctr_viewrate":
+                for iFeature in xrange(numbFeaturesInDay):
+                    dist += centroidsCoord[i][j][iFeature] ** 2
 
-            dist = math.sqrt(dist)
+                dist = math.sqrt(dist)
+            if test_name == "ctr_cvr_cpc_cpm_cpa":
+                dist = centroidsCoord[i][j][0]
+                dist += centroidsCoord[i][j][1]
+                dist -= centroidsCoord[i][j][2]
+                dist -= centroidsCoord[i][j][3]
+                dist -= centroidsCoord[i][j][4]
+
             if dist > maxClustDist:
                 maxClustDist = dist
                 maxClust = j + 1
         goodClusters.append(maxClust)
     #whole week
+    if test_name == "ctr_viewrate":
+        maxClustDist = 0
+    if test_name == "ctr_cvr_cpc_cpm_cpa":
+        maxClustDist = -100000
     for j in xrange(numbClusters):  # for all weekdays
         dist = 0
-        for iFeature in xrange(numbFeaturesInDay * (numbDays - 1)):
-            dist += centroidsCoord[7][j][iFeature] ** 2
-        dist = math.sqrt(dist)
+        if test_name == "ctr_viewrate":
+            for iFeature in xrange(numbFeaturesInDay * (numbDays - 1)):
+                dist += centroidsCoord[7][j][iFeature] ** 2
+            dist = math.sqrt(dist)
+
+        if test_name == "ctr_cvr_cpc_cpm_cpa":
+            dist = centroidsCoord[7][j][0]
+            dist += centroidsCoord[7][j][1]
+            dist -= centroidsCoord[7][j][2]
+            dist -= centroidsCoord[7][j][3]
+            dist -= centroidsCoord[7][j][4]
         if dist > maxClustDist:
             maxClustDist = dist
             maxClust = j + 1
     goodClusters.append(maxClust)
     return goodClusters
 
-#def mlPredictOnePlacement(placement_id, numbClusters, numbFeaturesInDay):
 def mlPredictOnePlacement(placement_id, numbClusters, test_name = "ctr_viewrate"):
     numbDays = 8
     numbFeaturesInDay = 0
@@ -560,11 +617,28 @@ def mlPredictOnePlacement(placement_id, numbClusters, test_name = "ctr_viewrate"
             print "Can't save recognition info. Error: " + str(e)
         print "Prediction completed " + str(placement_id)
 
-def makeCsv():#making csv file from recognized database
-    goodClusters = mlGetGoodClusters()#getting array of good clusters for every k-means space
-    queryResults = MLPlacementsClustersKmeans.objects.all().order_by('placement_id', 'day')
+def mlmakeCsv(test_name = "ctr_viewrate"):#making csv file from recognized database
+    test_number = 0
+    if test_name == "ctr_viewrate":
+        numbFeaturesInDay = 2
+        test_number = 1
+    if test_name == "ctr_cvr_cpc_cpm_cpa":
+        numbFeaturesInDay = 5
+        test_number = 2
 
-    with open('ml_placements_prediction_ctr_viewrate.csv', 'w') as csvfile:
+    if test_number == 0:
+        print "Wrong test name"
+        return -1
+
+    goodClusters = mlGetGoodClusters(test_name)#getting array of good clusters for every k-means space
+    queryResults = MLPlacementsClustersKmeans.objects.filter(test_number=test_number).order_by('placement_id', 'day')
+
+    fileName = ""
+    if test_number == 1:
+        fileName = "ml_placements_prediction_ctr_viewrate.csv"
+    if test_number == 2:
+        fileName = "ml_placements_prediction_ctr_cvr_cpc_cpm_cpa.csv"
+    with open(fileName, 'w') as csvfile:
         fieldnames = ['placement_id', 'day', 'predict', 'distance to good', 'distance to bad', 'distance difference']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         writer.writeheader()

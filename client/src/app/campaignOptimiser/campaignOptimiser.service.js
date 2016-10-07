@@ -111,9 +111,9 @@
             res.data.data[item].view_measurement_rate= parseFloat((res.data.data[item].view_measurement_rate || 0).toFixed(1)),
             res.data.data[item].view_rate= parseFloat((res.data.data[item].view_rate || 0).toFixed(1)),
             res.data.data[item].state= {
-              blackList: res.data.data[item].state.blackList,
-              suspended: res.data.data[item].state.suspended,
-              whiteList: res.data.data[item].state.whiteList
+              blackList: true, //res.data.data[item].state.blackList,
+              suspended: false, //res.data.data[item].state.suspended,
+              whiteList: false //res.data.data[item].state.whiteList
             }
         }
 

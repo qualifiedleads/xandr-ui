@@ -22,29 +22,78 @@
       vm.popUpIf = false;
     };
 
+    vm.typeOfLogic = function (rule) {
+      if (rule.type === 'logic') {
+        return true
+      } else {
+        return false;
+      }
+    };
 
-    vm.array = [{
-      "if": [
-        {
-          "target": "placement",
-          "compare": "<",
-          "cpa": "2"
-        },
-        "or",
-        [
-          {
-            "target": "placement",
+    vm.typeOfObject = function (rule) {
+      if (typeof(rule) == 'object' && Array.isArray(rule) == false) {
+        return true
+      } else {
+        return false;
+      }
+    };
+
+    vm.typeOfArray = function (rule) {
+      if (Array.isArray(rule) == true ) {
+        return true
+      } else {
+        return false;
+      }
+    };
+
+
+
+
+
+    vm.array = [
+      { "id": "rule",
+        "if": [
+          { "type": "condition",
+            "target": "Carrier",
             "compare": "<",
             "cpa": "2"
           },
-          "and",
           {
-
-          }
-        ]
-      ],
-      "then": "black"
-    }];
+            "type": "logic",
+            "logicOrAnd": true
+          },
+          {
+            "type": "condition",
+            "target": "Device",
+            "compare": "<",
+            "cpa": "2"
+          }/*,
+          {
+            "type": "logic",
+            "logicOrAnd": false,
+          },
+          [
+            {
+              "type": "condition",
+              "target": "placement",
+              "compare": "<",
+              "cpa": "2"
+            },
+            {
+              "type": "logic",
+              "or": false,
+              "and": true
+            },
+            {
+              "type": "condition",
+              "target": "placement",
+              "compare": "<",
+              "cpa": "2"
+            }
+          ]*/
+        ],
+        "then": "black"
+      }];
 
 
     //region DATE PIKER

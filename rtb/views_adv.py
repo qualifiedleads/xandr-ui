@@ -215,11 +215,38 @@ def get_campaign_placement(campaign_id, from_date, to_date):
     key = '_'.join(('rtb_campaign_placement', str(campaign_id), from_date.strftime('%Y-%m-%d'),
                     to_date.strftime('%Y-%m-%d'),))
     wholeWeekInd = 7
-    """
     res = cache.get(key)
 
     if res:
         for x in res:
+            if PlacementState.objects.filter(campaign_id=campaign_id, placement_id=x['placement']):
+                state = list(PlacementState.objects.filter(campaign_id=campaign_id, placement_id=x['placement']))[0]
+                if state.state == 'white':
+                    x['state'] = {
+                        "whiteList": True,
+                        "blackList": False,
+                        "suspended": False
+                    }
+                elif state.state == 'black':
+                    x['state'] = {
+                        "whiteList": False,
+                        "blackList": True,
+                        "suspended": False
+                    }
+                elif state.state == 'suspend':
+                    x['state'] = {
+                        "whiteList": False,
+                        "blackList": False,
+                        "suspended": True,
+                        "suspendTime": state.suspend or None
+                    }
+            else:
+                x['state'] = {
+                    "whiteList": False,
+                    "blackList": False,
+                    "suspended": False
+                }
+
             mlAnswer = mlGetPlacementInfoKmeans(x['placement'], False)
 
             if mlAnswer == -1 or mlAnswer == -2:
@@ -243,7 +270,6 @@ def get_campaign_placement(campaign_id, from_date, to_date):
                     "checked": mlAnswer[str(wholeWeekInd)]['checked']
                 })
         return res
-    """
     # no cache hit
     from_date = datetime.datetime(from_date.year, from_date.month, from_date.day, tzinfo=utc)
     to_date = datetime.datetime(to_date.year, to_date.month, to_date.day, 23, tzinfo=utc)
@@ -273,7 +299,6 @@ def get_campaign_placement(campaign_id, from_date, to_date):
     )
     res = list(q)
     for x in res:
-
         if PlacementState.objects.filter(campaign_id=campaign_id, placement_id=x['placement']):
             state = list(PlacementState.objects.filter(campaign_id=campaign_id, placement_id=x['placement']))[0]
             if state.state == 'white':
@@ -295,7 +320,12 @@ def get_campaign_placement(campaign_id, from_date, to_date):
                     "suspended": True,
                     "suspendTime": state.suspend or None
                 }
-
+        else:
+            x['state'] = {
+                "whiteList": False,
+                "blackList": False,
+                "suspended": False
+            }
         mlAnswer = mlGetPlacementInfoKmeans(x['placement'], False)
         if mlAnswer == -1 or mlAnswer == -2:
             x['analitics'] = ({#for one object
@@ -682,7 +712,7 @@ def mlApiSaveExpertDecision(request):
     return Response(res)
 
 @api_view(['POST'])
-# @check_user_advertiser_permissions(campaign_id_num=0)
+@check_user_advertiser_permissions(campaign_id_num=0)
 def changeState(request, campaignId):
     """
     POST single campaign details by domains

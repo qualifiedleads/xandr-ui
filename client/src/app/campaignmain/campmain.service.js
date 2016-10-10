@@ -140,9 +140,9 @@
             view_measurement_rate: parseFloat((item.view_measurement_rate || 0).toFixed(1)),
             view_rate: parseFloat((item.view_rate || 0).toFixed(1)),
             state: {
-              blackList: item.state.blackList,
-              suspended: item.state.suspended,
-              whiteList: item.state.whiteList
+              blackList: false, //item.state.blackList,
+              suspended: false, //item.state.suspended,
+              whiteList: false //item.state.whiteList
             }
           };
         });

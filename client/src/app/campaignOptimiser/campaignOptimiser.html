@@ -48,6 +48,60 @@
 
     <h3 class="titleRules" translate="CO.RULES">Rules for All Domains:</h3>
 
+  <!--  <fieldset data-ng-repeat="rules in CO.array" class="container-fluid rule">
+      <div class="all-if-rule">
+
+        <div class="if-rule" data-ng-repeat="rule in rules.if">
+          <div class="logic-rule" ng-if="CO.typeOfLogic(rule)">
+            <label><input type="radio" data-ng-model="rule.logicOrAnd" ng-click="CO.ChoiceB(rule)" ng-value="true" ng-checked="rule.logicOrAnd" > or </label>
+            <br>
+            <label><input type="radio" data-ng-model="rule.logicOrAnd" ng-value="false" ng-checked="rule.logicOrAnd" > and </label>
+          </div>
+          <div ng-if="CO.typeOfObject(rule)">
+            <select data-ng-model="rule.target">
+              <option   ng-selected="rule.target == 'Placement/App'">Placement/App</option>
+              <option   ng-selected="rule.target == 'Carrier'">Carrier</option>
+              <option   ng-selected="rule.target == 'Device'">Device</option>
+              <option   ng-selected="rule.target == 'OS'">OS</option>
+              <option   ng-selected="rule.target == 'Ad exchange'">Ad exchange</option>
+            </select>
+    &lt;!&ndash;    <select >
+              <option data-ng-value="item.name" data-ng-repeat="(key,x) in rule.target " ng-model="x.checked " id={{x.checked}}  >{{ x.name }}
+              </option>
+            </select>&ndash;&gt;
+            <p>obj - {{rule.target}}</p>
+          </div>
+
+          <div ng-if="CO.typeOfArray(rule)">
+
+            <p>array - {{rule}}</p>
+          </div>
+        </div>
+
+        <div class="add-rule">
+          <button class="btn btn-success addfields" ng-click="CO.addNewChoiceB(rule)">+</button>
+        </div>
+
+      </div>
+
+      <div class="then-rule">
+      </div>
+
+      <div class="content">
+        {{CO.array}}
+      </div>
+    </fieldset>
+    <button class="btn btn-primary" ng-click="CO.addNewRule()">Add rule</button>-->
+
+
+
+
+
+
+
+
+    <br><br>
+    <br><br>
     <br><br>
     <hr class="lineMiddle">
     <span class="optimizerTitle">{{ 'CO.OPTIMIZER' | translate }}</span>

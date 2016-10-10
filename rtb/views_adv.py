@@ -1,7 +1,6 @@
 from rest_framework.decorators import api_view, parser_classes
 from rest_framework.response import Response
 from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
 from utils import parse_get_params, make_sum, check_user_advertiser_permissions
 from models import SiteDomainPerformanceReport, Campaign, GeoAnaliticsReport, NetworkAnalyticsReport_ByPlacement, \
     Placement, NetworkCarrierReport_Simple, NetworkDeviceReport_Simple
@@ -13,7 +12,6 @@ import itertools
 import datetime
 from pytz import utc
 import filter_func
-
 from models.ml_kmeans_model import MLPlacementDailyFeatures, MLClustersCentroidsKmeans, MLPlacementsClustersKmeans
 from rtb.ml_learn_kmeans import mlPredictKmeans,mlGetPlacementInfoKmeans
 from models.placement_state import PlacementState
@@ -221,31 +219,9 @@ def get_campaign_placement(campaign_id, from_date, to_date):
         for x in res:
             if PlacementState.objects.filter(campaign_id=campaign_id, placement_id=x['placement']):
                 state = list(PlacementState.objects.filter(campaign_id=campaign_id, placement_id=x['placement']))[0]
-                if state.state == 'white':
-                    x['state'] = {
-                        "whiteList": True,
-                        "blackList": False,
-                        "suspended": False
-                    }
-                elif state.state == 'black':
-                    x['state'] = {
-                        "whiteList": False,
-                        "blackList": True,
-                        "suspended": False
-                    }
-                elif state.state == 'suspend':
-                    x['state'] = {
-                        "whiteList": False,
-                        "blackList": False,
-                        "suspended": True,
-                        "suspendTime": state.suspend or None
-                    }
+                x['state'] = state.state
             else:
-                x['state'] = {
-                    "whiteList": False,
-                    "blackList": False,
-                    "suspended": False
-                }
+                x['state'] = 0
 
             mlAnswer = mlGetPlacementInfoKmeans(x['placement'], False)
 
@@ -301,31 +277,9 @@ def get_campaign_placement(campaign_id, from_date, to_date):
     for x in res:
         if PlacementState.objects.filter(campaign_id=campaign_id, placement_id=x['placement']):
             state = list(PlacementState.objects.filter(campaign_id=campaign_id, placement_id=x['placement']))[0]
-            if state.state == 'white':
-                x['state'] = {
-                    "whiteList": True,
-                    "blackList": False,
-                    "suspended": False
-                }
-            elif state.state == 'black':
-                x['state'] = {
-                    "whiteList": False,
-                    "blackList": True,
-                    "suspended": False
-                }
-            elif state.state == 'suspend':
-                x['state'] = {
-                    "whiteList": False,
-                    "blackList": False,
-                    "suspended": True,
-                    "suspendTime": state.suspend or None
-                }
+            x['state'] = state.state
         else:
-            x['state'] = {
-                "whiteList": False,
-                "blackList": False,
-                "suspended": False
-            }
+            x['state'] = 0
         mlAnswer = mlGetPlacementInfoKmeans(x['placement'], False)
         if mlAnswer == -1 or mlAnswer == -2:
             x['analitics'] = ({#for one object
@@ -712,7 +666,7 @@ def mlApiSaveExpertDecision(request):
     return Response(res)
 
 @api_view(['POST'])
-@check_user_advertiser_permissions(campaign_id_num=0)
+@check_user_advertiser_permissions()
 def changeState(request, campaignId):
     """
     POST single campaign details by domains
@@ -726,31 +680,27 @@ def changeState(request, campaignId):
         + date - suspend date
 
     """
-    if request.POST.get("placement") is None or not request.POST.get("placement").isdigit():
-        return Response({'error': 'Placement id not found'}, status=status.HTTP_400_BAD_REQUEST)
-    else:
-        placementId = int(request.POST.get("placement"))
+    placementId = request.data.get("placement")
+    activeState = request.data.get("activeState")   # 4 - white / 2 - black / 1 - suspend
 
-    if request.POST.get("activeState") == 'black' or request.POST.get("activeState") == 'white' or request.POST.get("activeState") == 'suspend':
-        activeState = request.POST.get("activeState")
-    else:
-        return Response({'error': 'ActiveState not found'}, status=status.HTTP_400_BAD_REQUEST)
-
-    if request.POST.get("activeState") == 'suspend' and request.POST.get("date") is not None:
-        date = datetime.date.fromtimestamp(int(request.POST.get("date")))
+    if request.data.get("activeState") == 'suspend' and request.data.get("suspendTimes") is not None:
+        date = datetime.date.fromtimestamp(int(request.data.get("suspendTimes")))
     else:
         date = None
 
-    obj, created = PlacementState.objects.update_or_create(campaign_id=campaignId,
-                                                           placement_id=placementId,
-                                                           defaults=dict(
-                                                               state=activeState,
-                                                               suspend=date
-                                                           ))
+    listObj = []
+    for i, placement in enumerate(placementId):
+        obj, created = PlacementState.objects.update_or_create(campaign_id=campaignId,
+                                                               placement_id=placement,
+                                                               defaults=dict(
+                                                                   state=activeState,
+                                                                   suspend=date
+                                                               ))
+        listObj.append({
+            'placementId': obj.placement_id,
+            'campaign_id': obj.campaign_id,
+            'suspend': obj.suspend,
+            'state': obj.state
+        })
 
-    return Response({
-        'placementId': obj.placement_id,
-        'campaign_id': obj.campaign_id,
-        'suspend': obj.suspend,
-        'state': obj.state
-    })
+    return Response(listObj)

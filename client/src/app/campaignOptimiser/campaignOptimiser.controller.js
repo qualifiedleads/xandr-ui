@@ -657,13 +657,13 @@
             headerFilter: {
               dataSource: [{
                 text: "White",
-                value: [4]
+                value: ["state", "=", 4]
               }, {
                 text: "Black",
-                value: [2]
+                value: ["state", "=", 2]
               }, {
                 text: "Suspended",
-                value: [1]
+                value: ["state", "=", 1]
               }]
             },
             cellTemplate: function (container, options) {

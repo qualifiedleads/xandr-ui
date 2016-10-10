@@ -19,7 +19,7 @@ exports.paths = {
   lib: 'lib'
 };
 
-exports.appName = 'client/dist';
+exports.appName = 'client/';
 
 /**
  *  Wiredep is the lib which inject bower dependencies in your project

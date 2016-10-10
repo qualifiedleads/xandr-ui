@@ -666,7 +666,7 @@ def mlApiSaveExpertDecision(request):
     return Response(res)
 
 @api_view(['POST'])
-@check_user_advertiser_permissions()
+@check_user_advertiser_permissions(campaign_id_num=0)
 def changeState(request, campaignId):
     """
     POST single campaign details by domains

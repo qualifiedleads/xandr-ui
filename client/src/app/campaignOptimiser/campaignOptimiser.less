@@ -25,6 +25,38 @@
   .camp-content1 {
     margin-top: 3em;
 
+    .all-if-rule {
+
+      .if-rule {
+        position: relative;
+        display: inline-block;
+        float: left;
+        height: 100px;
+        width: 400px;
+        background-color: #1e6b8b;
+
+        .remove{
+          background-color: #BA2121;
+          position: absolute;
+          top: 0;
+          right: 0;
+        }
+      }
+      .add-rule {
+        float: left;
+        display: inline-block;
+        height: 100px;
+        .addfields {
+
+          width: 40px;
+          height:100px;
+        }
+      }
+
+    }
+
+
+
     .transformable {
       -webkit-transition: height 100ms linear;
       -moz-transition: height 100ms linear;
@@ -78,44 +110,43 @@
       .buttonLeft {
         float: left;
       }
-
-      .active-white {
-        .white-list {
-          background-color: rgba(0, 210, 212, 0.63);
-        }
-      }
-
-      .active-black {
-        .black-list {
-          background-color: rgba(0, 210, 212, 0.63);
-        }
-      }
-
-      .active-suspended {
-        .suspended {
-          background-color: rgba(0, 210, 212, 0.63);
-        }
-      }
-
-      .unactive-white {
-        .white-list {
-          background-color: #F5F5F5;
-        }
-      }
-
-      .unactive-black {
-        .black-list {
-          background-color: #F5F5F5;
-        }
-      }
-
-      .unactive-suspended {
-        .suspended {
-          background-color: #F5F5F5;
-        }
-      }
     }
+  }
 
+  .active {
+    .dx-button-content {
+      background-color: rgba(0, 210, 212, 0.63);
+    }
+  }
+
+  .active-black {
+    .dx-button-content {
+      background-color: rgba(0, 210, 212, 0.63);
+    }
+  }
+
+  .active-suspended {
+    .dx-button-content {
+      background-color: rgba(0, 210, 212, 0.63);
+    }
+  }
+
+  .unactive-white {
+    .white-list {
+      background-color: #F5F5F5;
+    }
+  }
+
+  .unactive-black {
+    .black-list {
+      background-color: #F5F5F5;
+    }
+  }
+
+  .unactive-suspended {
+    .suspended {
+      background-color: #F5F5F5;
+    }
   }
 
   .lineMiddle {
@@ -125,7 +156,6 @@
     height: 2px; /* Толщина линии */
   }
 
-
   .dx-button {
     margin: 2px;
     font-size: 14px;
@@ -133,9 +163,212 @@
     color: black;
   }
 
-
-
-
 }
 
 
+.b-popup{
+  z-index: 999999999;
+  width:100%;
+  min-height:100%;
+  background-color: rgba(0,0,0,0.5);
+  overflow:hidden;
+  position:fixed;
+  left: 0px;
+  top:0px;
+
+  .analiticCO {
+    width: 280px;
+    height: 38px;
+    position: relative;
+
+    .diagramCO {
+      width: 200px;
+      height: 20px;
+      position: relative;
+
+      .badDiagramCO {
+        float: left;
+        height: 20px;
+        background-color: green;
+        border-radius: 0px 0 0 0px;
+        opacity:1.0;
+      }
+
+      .textBadDiagramCO {
+        top: 1px;
+        position: absolute;
+        text-align: left;
+        margin-left: 3px;
+        opacity:1.0;
+        color:black;
+      }
+
+      .goodDiagramCO{
+        float:right;
+        height: 20px;
+        background-color: red;
+        border-radius: 0 0px 0px 0;
+        color: #fff;
+      }
+
+      .textGoodDiagramCO {
+        top: 1px;
+        right: 0;
+        position: absolute;
+        text-align: right;
+        margin-right: 3px;
+        opacity:1.0;
+        color:black;
+      }
+    }
+
+    .active-white {
+      background-color: rgba(0, 210, 212, 0.63);
+    }
+
+    .dx-button {
+      height: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      color: black;
+      width: 95px;
+    }
+
+    .dx-button-text {
+      display: inline-block;
+      line-height: inherit;
+    }
+  }
+
+  .b-popup-content {
+    position: relative;
+    margin:5% auto 0px auto;
+    vertical-align: 40%;
+    width:340px;
+    height: 480px;
+    padding:10px;
+    background-color: #ffffff;
+    border-radius:5px;
+    box-shadow: 0px 0px 10px #000;
+
+    table {
+      width: 330px;
+      tr {
+        td {
+          border-top: none;
+          text-align: center;
+          width: 110px;
+        }
+      }
+    }
+
+    .title {
+      font-weight: 600;
+      text-align: center;
+    }
+
+    .btn-close {
+      background: url(../../assets/images/btn-close.png) no-repeat;
+      height: 17px;
+      left: 310px;
+      position: absolute;
+      top: 13px;
+      width: 16px;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      -o-user-select: none;
+      user-select: none;
+    }
+  }
+}
+
+
+
+
+.counter-popup-group {
+
+  .title {
+    text-align: center;
+    font-weight: 600;
+  }
+
+  .button {
+    margin-top: 10px;
+  }
+}
+
+
+.analiticCO {
+  width: 300px;
+  height: 32px;
+  position: relative;
+
+  .diagramCO {
+    width: 100px;
+    height: 20px;
+    position: relative;
+
+    .badDiagramCO {
+      float: left;
+      height: 20px;
+      background-color: green;
+      border-radius: 0px 0 0 0px;
+      opacity:1.0;
+    }
+
+    .textBadDiagramCO {
+      top: 1px;
+      position: absolute;
+      text-align: left;
+      margin-left: 3px;
+      opacity:1.0;
+      color:black;
+    }
+
+    .goodDiagramCO{
+      float:right;
+      height: 20px;
+      background-color:red;
+      border-radius: 0 0px 0px 0;
+      color: #fff;
+    }
+
+    .textGoodDiagramCO {
+      top: 1px;
+      right: 0;
+      position: absolute;
+      text-align: right;
+      margin-right: 3px;
+      opacity:1.0;
+      color:black;
+    }
+  }
+
+  .active-white {
+    background-color: rgba(0, 210, 212, 0.63);
+  }
+
+  .dx-button {
+    height: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    color: black;
+    width: 45px;
+
+
+  }
+  .dx-button-has-text .dx-button-content {
+    padding: 0;
+  }
+
+  .dx-button-text {
+    display: inline-block;
+    line-height: inherit;
+  }
+}
+
+
+/*div.dx-overlay-wrapper {
+  display: none;
+}*/

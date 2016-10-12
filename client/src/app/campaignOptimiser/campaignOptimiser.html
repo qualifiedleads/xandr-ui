@@ -14,26 +14,26 @@
       <table class="table table-bordered">
         <tr>
           <td class="col-md-3">
-            <h5>Domain Lists & Domains</h5>
+            <h5> {{ 'CO.DOMAIN-LISTS' | translate }} & {{ 'CO.DOMAINS' | translate}} </h5>
             <p ng-repeat="domain in CO.object.domains">
-              {{domain}} - Domain
+              {{domain}} - {{ 'CO.DOMAIN' | translate }}
             </p>
           </td>
           <td class="col-md-2">
-            <h5>Geo</h5>
+            <h5> {{ 'CO.GEO' | translate }}</h5>
             <p ng-repeat="geo in CO.object.geo">
               {{geo}}
             </p>
           </td>
           <td class="col-md-5">
             <div class="col-md-6">
-              <h5>Device and Supply Type</h5>
+              <h5>{{ 'CO.DEVICE-AND-SUPPLY-TYPE' | translate }}</h5>
               <p ng-repeat="device in CO.object.device">
                 {{device}}
               </p>
             </div>
             <div class="col-md-6">
-              <h5>Blocking</h5>
+              <h5>{{ 'CO.BLOCKING' | translate }}</h5>
               <p ng-repeat="block in CO.object.block">
                 {{block}}
               </p>
@@ -48,9 +48,63 @@
 
     <h3 class="titleRules" translate="CO.RULES">Rules for All Domains:</h3>
 
+  <!--  <fieldset data-ng-repeat="rules in CO.array" class="container-fluid rule">
+      <div class="all-if-rule">
+
+        <div class="if-rule" data-ng-repeat="rule in rules.if">
+          <div class="logic-rule" ng-if="CO.typeOfLogic(rule)">
+            <label><input type="radio" data-ng-model="rule.logicOrAnd" ng-click="CO.ChoiceB(rule)" ng-value="true" ng-checked="rule.logicOrAnd" > or </label>
+            <br>
+            <label><input type="radio" data-ng-model="rule.logicOrAnd" ng-value="false" ng-checked="rule.logicOrAnd" > and </label>
+          </div>
+          <div ng-if="CO.typeOfObject(rule)">
+            <select data-ng-model="rule.target">
+              <option   ng-selected="rule.target == 'Placement/App'">Placement/App</option>
+              <option   ng-selected="rule.target == 'Carrier'">Carrier</option>
+              <option   ng-selected="rule.target == 'Device'">Device</option>
+              <option   ng-selected="rule.target == 'OS'">OS</option>
+              <option   ng-selected="rule.target == 'Ad exchange'">Ad exchange</option>
+            </select>
+    &lt;!&ndash;    <select >
+              <option data-ng-value="item.name" data-ng-repeat="(key,x) in rule.target " ng-model="x.checked " id={{x.checked}}  >{{ x.name }}
+              </option>
+            </select>&ndash;&gt;
+            <p>obj - {{rule.target}}</p>
+          </div>
+
+          <div ng-if="CO.typeOfArray(rule)">
+
+            <p>array - {{rule}}</p>
+          </div>
+        </div>
+
+        <div class="add-rule">
+          <button class="btn btn-success addfields" ng-click="CO.addNewChoiceB(rule)">+</button>
+        </div>
+
+      </div>
+
+      <div class="then-rule">
+      </div>
+
+      <div class="content">
+        {{CO.array}}
+      </div>
+    </fieldset>
+    <button class="btn btn-primary" ng-click="CO.addNewRule()">Add rule</button>-->
+
+
+
+
+
+
+
+
+    <br><br>
+    <br><br>
     <br><br>
     <hr class="lineMiddle">
-    <span class="optimizerTitle">Optimizer</span>
+    <span class="optimizerTitle">{{ 'CO.OPTIMIZER' | translate }}</span>
     <div dx-button="CO.UI.showGridWhiteList"></div>
     <div dx-button="CO.UI.showGridBlackList"></div>
     <div dx-button="CO.UI.showGridTempSuspendList"></div>
@@ -59,6 +113,47 @@
     <div ng-if="CO.grindIf == 3" class="gridContainer2" dx-data-grid="CO.UI.dataGridOptionsCampaign"></div>
 
 
+    <div class="counter-popup-group" dx-popup="CO.UI.confirmPopup" >
+      <div class="title" >{{ 'CO.SUSPEND' | translate }}</div>
+
+      <div id="radioGroupMain" dx-radio-group="CO.UI.radioGroupMain" ></div>
+      <div id="dateFormatPop" style="margin-left: 35px; " dx-date-box="CO.UI.dateFormatPop"></div>
+      <br>
+      <div id="radioGroupSend" dx-radio-group="CO.UI.radioGroupSend" ></div>
+
+      <div class="button" id="buttonOk" dx-button="CO.UI.confirmPopupOk"></div>
+      <div class="button" dx-button="CO.UI.confirmPopupCancel"></div>
+
+    </div>
+
+    <div class="b-popup" id="popup1"  ng-if="CO.popUpIf==true">
+      <div class="b-popup-content">
+        <div id="btn-close" class="btn-close" ng-click="CO.popUpHide()"  title="Закрыть"></div>
+        <h4 class="title">Prediction 1</h4>
+        <table class="table">
+          <tr ng-repeat="item in CO.arraytoPopup track by $index" class="repitDiagram" style="display: block; position: relative; ">
+            <td ng-if="item">{{item.day}}</td>
+            <td ng-if="item">
+              <div class="analiticCO" style="text-align: center;">
+                <div class="diagramCO">
+                  <div class="badDiagramCO" style="width:{{item.badDiagram}}; opacity: {{item.badOpasity}};"></div>
+                  <div class="goodDiagramCO" style="width:{{item.goodDiagram}};opacity:{{item.goodOpasity}};"></div>
+                  <p class="textBadDiagramCO" >{{ item.k.toFixed(1)}}%</p>
+                  <p class="textGoodDiagramCO">{{(100-item.k).toFixed(1)}}%</p>
+                </div>
+                <div class="buttonAnaliticCO">
+                  <div class="trueButtonAnaliticCO"></div>
+                  <div class="falseButtonAnaliticCO"></div>
+                </div>
+              </div>
+            </td>
+
+          </tr>
+        </table>
+      </div>
+    </div>
   </div>
+
 </div>
+
 </div>

@@ -12,9 +12,9 @@ import itertools
 import datetime
 from pytz import utc
 import filter_func
-
 from models.ml_kmeans_model import MLPlacementDailyFeatures, MLClustersCentroidsKmeans, MLPlacementsClustersKmeans
 from rtb.ml_learn_kmeans import mlPredictKmeans,mlGetPlacementInfoKmeans
+from models.placement_state import PlacementState
 from rest_framework import status
 
 import bisect
@@ -212,8 +212,40 @@ Get single campaign cpa report for given period to create boxplots
 def get_campaign_placement(campaign_id, from_date, to_date):
     key = '_'.join(('rtb_campaign_placement', str(campaign_id), from_date.strftime('%Y-%m-%d'),
                     to_date.strftime('%Y-%m-%d'),))
+    wholeWeekInd = 7
     res = cache.get(key)
-    if res: return res
+
+    if res:
+        for x in res:
+            if PlacementState.objects.filter(campaign_id=campaign_id, placement_id=x['placement']):
+                state = list(PlacementState.objects.filter(campaign_id=campaign_id, placement_id=x['placement']))[0]
+                x['state'] = state.state
+            else:
+                x['state'] = 0
+
+            mlAnswer = mlGetPlacementInfoKmeans(x['placement'], False)
+
+            if mlAnswer == -1 or mlAnswer == -2:
+                x['analitics'] = ({  # for one object
+                    "good": mlAnswer,
+                    "bad": mlAnswer,
+                    "checked": mlAnswer
+                })
+                continue
+
+            if str(wholeWeekInd) not in mlAnswer:  # for one object
+                x['analitics'] = ({
+                    "good": -3,
+                    "bad": -3,
+                    "checked": -3
+                })
+            else:
+                x['analitics'] = ({
+                    "good": mlAnswer[str(wholeWeekInd)]['good'],
+                    "bad": mlAnswer[str(wholeWeekInd)]['bad'],
+                    "checked": mlAnswer[str(wholeWeekInd)]['checked']
+                })
+        return res
     # no cache hit
     from_date = datetime.datetime(from_date.year, from_date.month, from_date.day, tzinfo=utc)
     to_date = datetime.datetime(to_date.year, to_date.month, to_date.day, 23, tzinfo=utc)
@@ -243,14 +275,12 @@ def get_campaign_placement(campaign_id, from_date, to_date):
     )
     res = list(q)
     for x in res:
-        x['state'] = {
-            "whiteList": True,
-            "blackList": False,
-            "suspended": x['placementState'] == 'inactive'
-        }
-
+        if PlacementState.objects.filter(campaign_id=campaign_id, placement_id=x['placement']):
+            state = list(PlacementState.objects.filter(campaign_id=campaign_id, placement_id=x['placement']))[0]
+            x['state'] = state.state
+        else:
+            x['state'] = 0
         mlAnswer = mlGetPlacementInfoKmeans(x['placement'], False)
-        wholeWeekInd = 7
         if mlAnswer == -1 or mlAnswer == -2:
             x['analitics'] = ({#for one object
                 "good": mlAnswer,
@@ -268,8 +298,8 @@ def get_campaign_placement(campaign_id, from_date, to_date):
             })
         else:
             x['analitics'] = ({
-                "good": mlAnswer[str(wholeWeekInd)]['good'],  # mlAnswer[str(weekday)]['good']
-                "bad": mlAnswer[str(wholeWeekInd)]['bad'],  # mlAnswer[str(weekday)]['bad']
+                "good": mlAnswer[str(wholeWeekInd)]['good'],
+                "bad": mlAnswer[str(wholeWeekInd)]['bad'],
                 "checked": mlAnswer[str(wholeWeekInd)]['checked']
             })
         x.pop('placementState', None)
@@ -535,8 +565,8 @@ Get single campaign details for given period
     return Response(res)
 
 @api_view(['GET', 'POST'])
-@check_user_advertiser_permissions()
-def mlApiAnalitics(request,id):
+@check_user_advertiser_permissions(campaign_id_num=0)
+def mlApiAnalitics(request, id):
     """
 Post: commends the decision taken by the machine
 
@@ -634,3 +664,43 @@ def mlApiSaveExpertDecision(request):
             "checked": mlAnswer[str(wholeWeekInd)]['checked']
         })
     return Response(res)
+
+@api_view(['POST'])
+@check_user_advertiser_permissions(campaign_id_num=0)
+def changeState(request, campaignId):
+    """
+    POST single campaign details by domains
+
+    ## Url format: /api/v1/campaigns/:id/changestate
+
+    + Parameters
+        + id (Number) - id for putting information about company
+        + placement (Number) - placement id
+        + activeState (string) - Change state (white, black, suspend)
+        + date - suspend date
+
+    """
+    placementId = request.data.get("placement")
+    activeState = request.data.get("activeState")   # 4 - white / 2 - black / 1 - suspend
+
+    if request.data.get("activeState") == 'suspend' and request.data.get("suspendTimes") is not None:
+        date = datetime.date.fromtimestamp(int(request.data.get("suspendTimes")))
+    else:
+        date = None
+
+    listObj = []
+    for i, placement in enumerate(placementId):
+        obj, created = PlacementState.objects.update_or_create(campaign_id=campaignId,
+                                                               placement_id=placement,
+                                                               defaults=dict(
+                                                                   state=activeState,
+                                                                   suspend=date
+                                                               ))
+        listObj.append({
+            'placementId': obj.placement_id,
+            'campaign_id': obj.campaign_id,
+            'suspend': obj.suspend,
+            'state': obj.state
+        })
+
+    return Response(listObj)

@@ -6,10 +6,22 @@
   .service('AdminService', AdminService);
 
   /** @ngInject */
-  function AdminService($http, $cookies) {
+  function AdminService($http, $cookies, $window) {
     var _this = this;
+    var _totalCount = 0;
 
-    function appNexusUser() {
+    function selectNexusUsersStore() {
+      return new $window.DevExpress.data.CustomStore({
+        totalCount: function () {
+          return _totalCount;
+        },
+        load: function () {
+          return _appNexusUser();
+        }
+      });
+    }
+
+    function _appNexusUser() {
       return $http({
         method: 'GET',
         headers: { 'Authorization': 'Token ' + $cookies.get('token') },
@@ -17,10 +29,30 @@
       })
       .then(function (res) {
         return res.data;
+      })
+      .catch(function (err) {
+        $window.DevExpress.ui.notify(err.data.detail, "error", 4000);
       });
     }
 
-    function usersList() {
+    function usersStore() {
+      return new $window.DevExpress.data.CustomStore({
+        totalCount: function () {
+          return 0;
+        },
+        load: function () {
+          return _usersList()
+          .then(function (result) {
+            return result;
+          });
+        },
+        remove: function (user) {
+          return _usersRemove(user.id);
+        }
+      });
+    }
+
+    function _usersList() {
       return $http({
         method: 'GET',
         headers: { 'Authorization': 'Token ' + $cookies.get('token') },
@@ -28,6 +60,23 @@
       })
       .then(function (res) {
         return res.data;
+      })
+      .catch(function (err) {
+        $window.DevExpress.ui.notify(err.data.detail, "error", 4000);
+      });
+    }
+
+    function _usersRemove(id) {
+      return $http({
+        method: 'DELETE',
+        url: '/api/v1/user/' + id,
+        headers: { 'Authorization': 'Token ' + $cookies.get('token') }
+      })
+      .then(function (response) {
+        return response.data;
+      })
+      .catch(function (err) {
+        $window.DevExpress.ui.notify(err.data.detail, "error", 4000);
       });
     }
 
@@ -40,27 +89,14 @@
       })
       .then(function (res) {
         return res.data;
+      })
+      .catch(function (err) {
+        $window.DevExpress.ui.notify(err.data.detail, "error", 4000);
       });
     }
 
-    function usersRemove(id) {
-      return $http({
-        method: 'DELETE',
-        url: '/api/v1/user/' + id,
-        headers: { 'Authorization': 'Token ' + $cookies.get('token') }
-      })
-      .then(function (response) {
-        return response.data;
-      })
-      .catch(function () {
-        //ErrorMessages.process(response);
-        return [];
-      });
-    }
-
-    _this.usersRemove = usersRemove;
+    _this.selectNexusUsersStore = selectNexusUsersStore;
+    _this.usersStore = usersStore;
     _this.addUser = addUser;
-    _this.appNexusUser = appNexusUser;
-    _this.usersList = usersList;
   }
 })();

@@ -2,17 +2,90 @@
   'use strict';
 
   angular
-  .module('pjtLayout')
-  .controller('CampaignOptimiserController', CampaignOptimiserController);
+    .module('pjtLayout')
+    .controller('CampaignOptimiserController', CampaignOptimiserController);
 
   /** @ngInject */
-  function CampaignOptimiserController($window, $state, $localStorage, $scope, $translate, Campaign, CampaignOptimiser) {
+  function CampaignOptimiserController($window, $state, $localStorage, $scope, $translate, $compile, Campaign, CampaignOptimiser) {
     var vm = this;
     vm.campName = Campaign.campaign;
     vm.campId = Campaign.id;
     var LC = $translate.instant;
-    vm.object = CampaignOptimiser.campaignTargeting(1,1,1);
+    vm.object = CampaignOptimiser.campaignTargeting(1, 1, 1);
     vm.grindIf = 1;
+    vm.popUpIf = false;
+    var dataSuspend = null;
+    var tempSespendRow = {};
+    vm.arrayDiagram = [];
+
+    vm.popUpHide = function () {
+      vm.popUpIf = false;
+    };
+
+    vm.typeOfLogic = function (rule) {
+      if (rule.type === 'logic') {
+        return true
+      } else {
+        return false;
+      }
+    };
+
+    vm.typeOfObject = function (rule) {
+      if (typeof(rule) == 'object' && Array.isArray(rule) == false) {
+        return true
+      } else {
+        return false;
+      }
+    };
+
+    vm.typeOfArray = function (rule) {
+      if (Array.isArray(rule) == true) {
+        return true
+      } else {
+        return false;
+      }
+    };
+
+
+    vm.array = [
+      {
+        "id": "1",
+        "if": [
+          {
+            id_rule: 'NewRule1',
+            "type": "condition",
+            "target": "Carrier",
+            "payment": "CPA",
+            "compare": "Greater then",
+            "value": ""
+          },
+          {
+            "type": "logic",
+            "logicOrAnd": true
+          }
+        ],
+        "then": "black"
+      },
+      {
+        "id": "3",
+        "if": [
+          {
+            id_rule: 'NewRule1',
+            "type": "condition",
+            "target": "Carrier",
+            "payment": "CPA",
+            "compare": "Greater then",
+            "value": ""
+          },
+          {
+            "type": "logic",
+            "logicOrAnd": true
+          }
+        ],
+        "then": "black"
+      }
+    ];
+
 
     //region DATE PIKER
     /** DATE PIKER **/
@@ -39,28 +112,28 @@
       {
         ID: 0,
         Name: LC('MAIN.DATE_PICKER.YESTERDAY'),
-        dataStart: $window.moment({ hour: '00' }).subtract(1, 'day').unix() ,
-        dataEnd: $window.moment({ hour: '00' }).subtract(1, 'day').endOf('day').unix()
+        dataStart: $window.moment({hour: '00'}).subtract(1, 'day').unix(),
+        dataEnd: $window.moment({hour: '00'}).subtract(1, 'day').endOf('day').unix()
       }, {
         ID: 1,
         Name: LC('MAIN.DATE_PICKER.LAST_3_DAYS'),
-        dataStart:  $window.moment({ hour: '00' }).subtract(3, 'day').unix(),
-        dataEnd: $window.moment({ hour: '00' }).unix()
+        dataStart: $window.moment({hour: '00'}).subtract(3, 'day').unix(),
+        dataEnd: $window.moment({hour: '00'}).unix()
       }, {
         ID: 2,
         Name: LC('MAIN.DATE_PICKER.LAST_7_DAYS'),
-        dataStart:  $window.moment({ hour: '00' }).subtract(7, 'day').unix(),
-        dataEnd: $window.moment({ hour: '00' }).unix()
+        dataStart: $window.moment({hour: '00'}).subtract(7, 'day').unix(),
+        dataEnd: $window.moment({hour: '00'}).unix()
       }, {
         ID: 3,
         Name: LC('MAIN.DATE_PICKER.LAST_14_DAYS'),
-        dataStart:  $window.moment({ hour: '00' }).subtract(14, 'day').unix(),
-        dataEnd: $window.moment({ hour: '00' }).unix()
+        dataStart: $window.moment({hour: '00'}).subtract(14, 'day').unix(),
+        dataEnd: $window.moment({hour: '00'}).unix()
       }, {
         ID: 4,
         Name: LC('MAIN.DATE_PICKER.LAST_21_DAYS'),
-        dataStart:  $window.moment({ hour: '00' }).subtract(21, 'day').unix(),
-        dataEnd: $window.moment({ hour: '00' }).unix()
+        dataStart: $window.moment({hour: '00'}).subtract(21, 'day').unix(),
+        dataEnd: $window.moment({hour: '00'}).unix()
       }, {
         ID: 5,
         Name: LC('MAIN.DATE_PICKER.CURRENT_MONTH'),
@@ -74,7 +147,7 @@
       }, {
         ID: 7,
         Name: LC('MAIN.DATE_PICKER.LAST_90_DAYS'),
-        dataStart: $window.moment({ hour: '00' }).subtract(90, 'day').unix(),
+        dataStart: $window.moment({hour: '00'}).subtract(90, 'day').unix(),
         dataEnd: $window.moment().unix()
       }, {
         ID: 8,
@@ -88,38 +161,10 @@
     //region MULTIPLE
     vm.selectedItems = [];
     vm.state = '';
-/*    vm.selectCell = {
-      dataSource: [
-        {
-          'name': 'White List',
-          'state': 'whiteList'
-        },
-        {
-          'name': 'Black List',
-          'state': 'blackList'
-        },
-        {
-          'name': 'Suspended',
-          'state': 'suspended'
-        }
-      ],
-      disabled: true,
-      placeholder: 'Select a state',
-      displayExpr: 'name',
-      valueExpr: vm.state,
-      onSelectionChanged: function () {
-        var selectedRows = $window.$('.gridContainerWhite')[0].querySelectorAll('[aria-selected="true"]');
-        if (selectedRows[0]) {
-          var selectedArr = [];
-          for (var i = 0; i < selectedRows.length; i++) {
-            selectedArr.push(selectedRows[i].firstChild.innerText);
-          }
-        }
-      }
-    };*/
+
 
     function headerFilterColumn(source, dataField) {
-      return source.dataSource.postProcess = function(data) {
+      return source.dataSource.postProcess = function (data) {
         var list = $window._.uniqBy(data, dataField);
         return list.map(function (item) {
           return {
@@ -129,40 +174,158 @@
         });
       };
     }
+
     //endregion
 
     //region STORE
     vm.gridStore = CampaignOptimiser.getGridCampaignStore(vm.campId, vm.dataStart, vm.dataEnd);
-
     //endregion
 
+    var startDate = new Date(1981, 3, 27),
+      now = new Date();
 
     vm.UI = {
       showGridWhiteList: {
-        text: 'Whitelist',
+        text: LC('CO.WHITELIST'),
         onClick: function (e) {
           vm.grindIf = 1;
           $scope.$apply();
         }
       },
       showGridBlackList: {
-        text: 'Blacklisted',
+        text: LC('CO.BLACKLISTED'),
         onClick: function (e) {
           vm.grindIf = 2;
           $scope.$apply();
         }
       },
       showGridTempSuspendList: {
-        text: 'Temp. Suspend',
+        text: LC('CO.TEMP-SUSPEND'),
         onClick: function (e) {
           vm.grindIf = 3;
+          $scope.$apply();
+        }
+      },
+      dateFormatPop: {
+        disabled: true,
+        type: "date",
+        value: now,
+        onValueChanged: function (e) {
+          dataSuspend = e.value;
+        }
+      },
+      radioGroupMain: {
+        items: [LC('CO.24-HRS'), LC('CO.3-DAYS'), LC('CO.7-DAYS'), LC('CO.SPECIFIC-DATE')],
+        value: LC('CO.24-HRS'),
+        onValueChanged: function (e) {
+          var radioGroupSend = $('#radioGroupSend')
+            .dxRadioGroup('instance');
+          if (!e.value) return;
+          radioGroupSend.option('value', false);
+
+          if (e.value == LC('CO.SPECIFIC-DATE')) {
+            //e;
+            var datePik = $('#dateFormatPop')
+              .dxDateBox('instance');
+            datePik.option('disabled', false);
+          } else {
+            var datePik = $('#dateFormatPop')
+              .dxDateBox('instance');
+            datePik.option('disabled', true);
+            dataSuspend = null;
+          }
+        }
+      },
+      radioGroupSend: {
+        items: [LC('CO.SEND-TO-SUSPEND-LIST')],
+        onValueChanged: function (e) {
+          dataSuspend = null;
+          var datePik = $('#dateFormatPop')
+            .dxDateBox('instance');
+          datePik.option('disabled', true);
+
+          var radioGroupMain = $('#radioGroupMain')
+            .dxRadioGroup('instance');
+          if (!e.value) return;
+          radioGroupMain.option('value', false);
+        }
+      },
+      confirmPopup: {
+        onInitialized: function (data) {
+          vm.confirmPopup = data.component;
+        },
+        bindingOptions: {
+          visible: 'crc.confirmPopupVisible'
+        },
+        showTitle: false,
+        width: 320,
+        height: 300
+      },
+      confirmPopupOk: {
+        width: 110,
+        text: 'OK',
+        disabled: false,
+        onClick: function () {
+          var suspendPlacement;
+          var radioGroupMain = $('#radioGroupMain').dxRadioGroup('instance');
+          var radioGroupSend = $('#radioGroupSend').dxRadioGroup('instance');
+
+          if (radioGroupMain._options.value !== false) {
+            if (radioGroupMain._options.value == LC('CO.24-HRS')) {
+              suspendPlacement = $window.moment().add(1, 'day').unix();
+            }
+
+            if (radioGroupMain._options.value == LC('CO.3-DAYS')) {
+              suspendPlacement = $window.moment().add(3, 'day').unix();
+            }
+
+            if (radioGroupMain._options.value == LC('CO.7-DAYS')) {
+              suspendPlacement = $window.moment().add(7, 'day').unix();
+            }
+
+          }
+
+          if (radioGroupSend._options.value !== false) {
+            suspendPlacement = "unlimited";
+          }
+
+          if (dataSuspend !== null) {
+            suspendPlacement = $window.moment(dataSuspend).unix();
+          }
+
+          if ((radioGroupSend._options.value == null) && (radioGroupMain._options.value == LC('CO.24-HRS'))) {
+            suspendPlacement = $window.moment().add(1, 'day').unix();
+          }
+
+          CampaignOptimiser.editCampaignDomains(vm.campId, tempSespendRow.placement, 1, suspendPlacement)
+            .then(function () {
+              for (var i =0; i<tempSespendRow.placement.length; i++) {
+                $window.$('div.state-black'+ tempSespendRow.placement[i]).removeClass('active');
+                $window.$('div.state-white'+ tempSespendRow.placement[i]).removeClass('active');
+                $window.$('div.state-suspended'+ tempSespendRow.placement[i]).addClass('active');
+              }
+            });
+
+          vm.confirmPopupVisible = false;
+          vm.confirmPopup.option('visible', false);
+          $scope.$apply();
+        }
+      },
+      confirmPopupCancel: {
+        width: 120,
+        text: LC('COMMON.CANCEL'),
+        onClick: function () {
+          /*          tempSespendRow = null;
+           dataSuspend = null;*/
+          //vm.confirmPopupVisible = false;
+          vm.confirmPopup.option('visible', false);
           $scope.$apply();
         }
       },
       navCamp: {
         text: LC('CO.CAMPAIGN-HOME'),
         onClick: function () {
-          $state.go('home.campaign.details',{"id":vm.campId});
+          $state.go('home.campaign.details', {"id": vm.campId});
         }
       },
       datePiker: {
@@ -217,7 +380,7 @@
             dataType: 'number',
             allowEditing: false,
             headerFilter: {
-              dataSource: function(source) {
+              dataSource: function (source) {
                 return headerFilterColumn(source, 'placement');
               }
             }
@@ -229,7 +392,7 @@
             dataType: 'string',
             allowEditing: false,
             headerFilter: {
-              dataSource: function(source) {
+              dataSource: function (source) {
                 return headerFilterColumn(source, 'NetworkPublisher');
               }
             }
@@ -324,6 +487,7 @@
             dataField: 'cvr',
             alignment: 'center',
             dataType: 'number',
+            allowEditing: false,
             headerFilter: {
               dataSource: function (source) {
                 return headerFilterColumn(source, 'cvr');
@@ -335,6 +499,7 @@
             dataField: 'ctr',
             alignment: 'center',
             dataType: 'number',
+            allowEditing: false,
             headerFilter: {
               dataSource: function (source) {
                 return headerFilterColumn(source, 'ctr');
@@ -348,7 +513,6 @@
             visible: false,
             width: 80,
             dataType: 'number',
-
             allowEditing: false,
             headerFilter: {
               dataSource: function (source) {
@@ -363,7 +527,6 @@
             visible: false,
             width: 100,
             dataType: 'number',
-            allowEditing: false,
             headerFilter: {
               dataSource: function (source) {
                 return headerFilterColumn(source, 'view_measured_imps');
@@ -377,7 +540,6 @@
             visible: false,
             width: 120,
             dataType: 'number',
-            allowEditing: false,
             headerFilter: {
               dataSource: function (source) {
                 return headerFilterColumn(source, 'view_measurement_rate');
@@ -391,10 +553,98 @@
             visible: false,
             width: 80,
             dataType: 'number',
-            allowEditing: false,
             headerFilter: {
               dataSource: function (source) {
                 return headerFilterColumn(source, 'view_rate');
+              }
+            }
+          },
+          {
+            caption: 'Prediction 1',
+            width: 115,
+            columnIndex: 16,
+            dataField: 'analytics',
+            allowEditing: false,
+            cellTemplate: function (container, options) {
+              vm.arrayDiagram.push(options.data);
+              if (options.data.analitics === null) {
+                /*                var tpl = $compile(
+                 '<div class="analiticCO">'+
+                 '</div>;')( $scope );
+                 tpl.appendTo(container);*/
+              } else {
+                var bad = options.data.analitics.bad;
+                var good = options.data.analitics.good;
+                var badOpasity = options.data.analitics.badOpasity;
+                var goodOpasity = options.data.analitics.goodOpasity;
+                var k = options.data.analitics.k;
+                var goodDiagram = options.data.analitics.goodDiagram;
+                var badDiagram = options.data.analitics.badDiagram;
+                var tpl = $compile(
+                  '<div class="analiticCO">' +
+                  '<div class="diagramCO" ng-click="CO.showAllDiagram(' + options.data.placement + ')">' +
+                  '<div class="badDiagramCO" style="width:' + badDiagram + ';opacity:' + badOpasity + ';"></div>' +
+                  '<div class="goodDiagramCO" style="width:' + goodDiagram + ';opacity:' + goodOpasity + ';"></div>' +
+                  '<p class="textBadDiagramCO" >' + k.toFixed(1) + '%</p>' +
+                  '<p class="textGoodDiagramCO">' + (100 - k).toFixed(1) + '%</p>' +
+                  '</div>' +
+                  '<div class="buttonAnaliticCO' + options.data.placement + '">' +
+                  '<div class="trueButtonAnaliticCO' + options.data.placement + '"></div>' +
+                  '<div class="falseButtonAnaliticCO' + options.data.placement + '"></div>' +
+                  '</div>' +
+                  '</div>;')($scope);
+                tpl.appendTo(container);
+
+                var trueButton = $window.$(".trueButtonAnaliticCO" + options.data.placement).dxButton({
+                  text: 'True',
+                  disabled: false,
+                  onClick: function () {
+                    $window.$(".falseButtonAnaliticCO" + options.data.placement).removeClass('active-white');
+                    $window.$(".trueButtonAnaliticCO" + options.data.placement).addClass('active-white');
+                    CampaignOptimiser.decisionML(vm.campId, options.data.placement, true)
+                      .then(function (res) {
+                        return res;
+                      });
+                  }
+                });
+
+                var falseButton = $window.$(".falseButtonAnaliticCO" + options.data.placement).dxButton({
+                  text: 'False',
+                  disabled: false,
+                  onClick: function () {
+                    $window.$(".falseButtonAnaliticCO" + options.data.placement).addClass('active-white');
+                    $window.$(".trueButtonAnaliticCO" + options.data.placement).removeClass('active-white');
+                    CampaignOptimiser.decisionML(vm.campId, options.data.placement, false)
+                      .then(function (res) {
+                        return res;
+                      });
+                  }
+                });
+
+                if (options.data.analitics.checked == true) {
+                  trueButton.addClass('active-white').append();
+                } else {
+                  trueButton.append();
+                }
+
+                if (options.data.analitics.checked == false) {
+                  falseButton.addClass('active-white').append();
+                } else {
+                  falseButton.append();
+                }
+
+                vm.showAllDiagram = function (item) {
+                  vm.popUpIf = true;
+                  CampaignOptimiser.showAllMLDiagram(vm.campId, item)
+                    .then(function (res) {
+                      vm.arraytoPopup = res;
+                    });
+
+                  /*                  vm.arraytoPopup = CampaignOptimiser.showAllMLDiagram(vm.campId, item)
+                   vm.arraytoPopup;*/
+                };
+
+
               }
             }
           },
@@ -403,115 +653,106 @@
             width: 300,
             columnIndex: 16,
             dataField: 'state',
-            //headerCellTemplate: 'headerCellTemplate',
+            allowEditing: false,
             headerFilter: {
-              dataSource: [ {
+              dataSource: [{
                 text: "White",
-                value: ["white"]
+                value: ["state", "=", 4]
               }, {
                 text: "Black",
-                value: ["black"]
+                value: ["state", "=", 2]
               }, {
                 text: "Suspended",
-                value: ["suspend"]
+                value: ["state", "=", 1]
               }]
             },
             cellTemplate: function (container, options) {
-              $window.$("<div />").dxButton({
+              options;
+              var white = $window.$("<div />").dxButton({
                 text: 'white',
                 height: 30,
                 width: 89,
                 disabled: false,
                 onClick: function (e) {
-
-                  vm.Camp.editCampaignDomains(vm.campId,options.data.placement,'white')
-                  .then(function (res) {
-                    return res;
-                  })
-                  .catch(function (err) {
-                    return err;
-                  });
-                  var parentWhiteBtn = e.element[0].parentNode;
-                  if (parentWhiteBtn.classList.contains('active-white')) {
-                    parentWhiteBtn.classList.remove('active-white');
-                    parentWhiteBtn.classList.add('unactive-white');
-                    options.data.state.whiteList = 'false';
-                  } else if (!parentWhiteBtn.classList.contains('active-white')) {
-                    parentWhiteBtn.classList.remove('unactive-white');
-                    parentWhiteBtn.classList.add('active-white');
-                    options.data.state.whiteList = 'true';
-                    options.data.state.suspended = 'false';
-                    options.data.state.blackList = 'false';
-                    parentWhiteBtn.classList.remove('active-black');
-                    parentWhiteBtn.classList.remove('active-suspended');
-                  }
-
+                  CampaignOptimiser.editCampaignDomains(vm.campId, [options.data.placement], 4)
+                    .then(function (res) {
+                      $window.$('div.state-white'+ options.data.placement).addClass('active');
+                      $window.$('div.state-black'+ options.data.placement).removeClass('active');
+                      $window.$('div.state-suspended'+ options.data.placement).removeClass('active');
+                      return res;
+                    })
+                    .catch(function (err) {
+                      return err;
+                    });
                 }
-              }).addClass('white-list').appendTo(container);
+              });
 
-              $window.$("<div />").dxButton({
+              if (options.data.state.whiteList == 4) {
+                white.addClass('state-white'+ options.data.placement).addClass('active').appendTo(container);
+              } else {
+                white.addClass('state-white'+ options.data.placement).appendTo(container);
+              }
+
+
+              var black = $window.$("<div />").dxButton({
                 text: 'black',
                 height: 30,
                 width: 89,
                 disabled: false,
                 onClick: function (e) {
+                  CampaignOptimiser.editCampaignDomains(vm.campId, [options.data.placement], 2)
+                    .then(function (res) {
+                      $window.$('div.state-black'+ options.data.placement).addClass('active');
+                      $window.$('div.state-white'+ options.data.placement).removeClass('active');
+                      $window.$('div.state-suspended'+ options.data.placement).removeClass('active');
 
-                  vm.Camp.editCampaignDomains(vm.campId,options.data.placement,'black')
-                  .then(function (res) {
-                    return res;
-                  })
-                  .catch(function (err) {
-                    return err;
-                  });
-                  var parentWhiteBtn = e.element[0].parentNode;
-                  if (parentWhiteBtn.classList.contains('active-black')) {
-                    parentWhiteBtn.classList.remove('active-black');
-                    parentWhiteBtn.classList.add('unactive-black');
-                    options.data.state.blackList = 'false';
-                  } else if (!parentWhiteBtn.classList.contains('active-black')) {
-                    parentWhiteBtn.classList.remove('unactive-black');
-                    parentWhiteBtn.classList.add('active-black');
-                    options.data.state.blackList = 'true';
-                    options.data.state.suspended = 'false';
-                    options.data.state.whiteList = 'false';
-                    parentWhiteBtn.classList.remove('active-white');
-                    parentWhiteBtn.classList.remove('active-suspended');
-                  }
-
+                      return res;
+                    })
+                    .catch(function (err) {
+                      return err;
+                    });
                 }
-              }).addClass('black-list').appendTo(container);
+              });
 
-              $window.$("<div />").dxButton({
+              if (options.data.state.blackList == 2) {
+                black.addClass('state-black'+ options.data.placement).addClass('active').appendTo(container);
+              } else {
+                black.addClass('state-black'+ options.data.placement).appendTo(container);
+              }
+
+
+              var suspended = $window.$("<div />").dxButton({
                 text: 'suspend',
                 height: 30,
                 width: 95,
                 disabled: false,
                 onClick: function (e) {
-                  vm.Camp.editCampaignDomains(vm.campId,options.data.placement,'suspend')
-                  .then(function (res) {
-                    return res;
-                  })
-                  .catch(function (err) {
-                    return err;
-                  });
-                  var parentWhiteBtn = e.element[0].parentNode;
-                  if (parentWhiteBtn.classList.contains('active-suspended')) {
-                    parentWhiteBtn.classList.remove('active-suspended');
-                    parentWhiteBtn.classList.add('unactive-suspended');
-                    options.data.state.suspended = 'false';
-                  } else if (!parentWhiteBtn.classList.contains('active-suspended')) {
-                    parentWhiteBtn.classList.remove('unactive-suspended');
-                    parentWhiteBtn.classList.add('active-suspended');
-                    options.data.state.suspended = 'true';
-                    options.data.state.whiteList = 'false';
-                    options.data.state.blackList = 'false';
-                    parentWhiteBtn.classList.remove('active-white');
-                    parentWhiteBtn.classList.remove('active-black');
+                  /*                  var parentWhiteBtn = e.element[0].parentNode;
+                   if (parentWhiteBtn.classList.contains('active-suspended')) {
+                   parentWhiteBtn.classList.remove('active-suspended');
+                   parentWhiteBtn.classList.add('unactive-suspended');
+                   } else if (!parentWhiteBtn.classList.contains('active-suspended')) {
+                   parentWhiteBtn.classList.remove('unactive-suspended');
+                   parentWhiteBtn.classList.add('active-suspended');
+                   options.data.state = 1;
+                   parentWhiteBtn.classList.remove('active-white');
+                   parentWhiteBtn.classList.remove('active-black');
+                   }*/
 
-                  }
+                  tempSespendRow.placement = [options.data.placement];
+                  tempSespendRow.suspend = 1;
 
+                  //vm.confirmPopupVisible = true;
+                  vm.confirmPopup.option('visible', true);
                 }
-              }).addClass('suspended').appendTo(container);
+              });
+
+              if (options.data.state.suspended == 1) {
+                suspended.addClass('state-suspended'+ options.data.placement).addClass('active').appendTo(container);
+              } else {
+                suspended.addClass('state-suspended'+ options.data.placement).appendTo(container);
+              }
+
             }
           }
         ],
@@ -618,36 +859,37 @@
           vm.dataGridOptionsMultipleFunc._controllers.columns._commandColumns[1].width = 35;
         },
         onRowPrepared: function (data) {
-          vm.objectData = data;
-          if (vm.objectData.rowType == 'data') {
-            var allRowBtns = data.rowElement[0].childNodes[11];
-            var state = data.data.state;
-            if (state.whiteList == "true") {
-              allRowBtns.classList.add('active-white');
-            }
-            if (state.blackList == "true") {
-              allRowBtns.classList.add('active-black');
-            }
-            if (state.suspended == "true") {
-              allRowBtns.classList.add('active-suspended');
-            }
-          }
+          /*          vm.objectData = data;
+           if (vm.objectData.rowType == 'data') {
+           var allRowBtns = data.rowElement[0].childNodes[12];
+           var state = data.data.state;
+           if (state.whiteList == true) {
+           allRowBtns.classList.add('active-white');
+           }
+           if (state.blackList == true) {
+           allRowBtns.classList.add('active-black');
+           allRowBtns.classList.add('active-suspended');
+           }
+           if (state.suspended == true) {
+           allRowBtns.classList.add('active-suspended');
+           }
+           }*/
         },
         onEditorPreparing: function (info) {
-          if ((info.parentType == 'filterRow') && (info.caption=='State')) {
+          if ((info.parentType == 'filterRow') && (info.caption == 'State')) {
             info.editorElement.dxSelectBox({
               dataSource: [
                 {
                   'name': 'White List',
-                  'state': 'whiteList'
+                  'state': 4
                 },
                 {
                   'name': 'Black List',
-                  'state': 'blackList'
+                  'state': 2
                 },
                 {
                   'name': 'Suspended',
-                  'state': 'suspended'
+                  'state': 1
                 }
               ],
               placeholder: 'Select a state',
@@ -660,11 +902,26 @@
                   for (var i = 0; i < selectedRows.length; i++) {
                     selectedArr.push(selectedRows[i].firstChild.innerText);
                   }
-                  if (selectedArr != []){
 
+                  //e;
+                  if (e.selectedItem.state == 1) {
+                    if (selectedArr != '[]') {
+                      tempSespendRow.placement = selectedArr;
+                      tempSespendRow.suspend = 'suspend';
+                      vm.confirmPopupVisible = true;
+                      vm.confirmPopup.option('visible', true);
+                    }
+                  } else {
+                    if (selectedArr != '[]') {
+                      CampaignOptimiser.editCampaignDomains(vm.campId, selectedArr, e.selectedItem.state).then(function (res) {
+                        $('.gridContainerWhite').dxDataGrid('instance').refresh();
+                      }).catch(function () {
+                        $('.gridContainerWhite').dxDataGrid('instance').refresh();
+                      });
+                    }
                   }
-                  e;
-                  selectedArr;
+                } else {
+                  $window.DevExpress.ui.notify(LC('CO.NO-ITEMS-CHOSEN'), "warning", 4000);
                 }
               }
             });
@@ -677,18 +934,6 @@
         }
       }
     };
-
-
-
-
-
-
-
-
-
-
-
-
 
 
   }

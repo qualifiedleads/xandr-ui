@@ -61,11 +61,6 @@
         .then(function (res) {
           for (var item in res.data.data) {
             var itemArray = [];
-            /*          res.data.data[item].analitics = {
-             "good": 1,
-             "bad": 0.5,
-             "checked": true,
-             };*/
             if (res.data.data[item].analitics.good == -1 || res.data.data[item].analitics.good == -2 || res.data.data[item].analitics.good == -3) {
               itemArray = null;
             } else {
@@ -279,60 +274,6 @@
         .catch(function (err) {
           $window.DevExpress.ui.notify(err.statusText, "error", 4000);
         });
-      /*var res = {
-       data: [
-       {
-       "day": 0,
-       "good": 0.8,
-       "bad": 0.5,
-       "checked": true,
-       },
-       {
-       "day": 1,
-       "good": 1,
-       "bad": 1.5,
-       "checked": true,
-       },
-       {
-       "day": 2,
-       "good": 5,
-       "bad": 0.5,
-       "checked": true,
-       },
-       {
-       "day": 3,
-       "good": 0.1,
-       "bad": 0.5,
-       "checked": true,
-       },
-       {
-       "day": 4,
-       "good": 1,
-       "bad": 0.8,
-       "checked": true,
-       },
-       {
-       "day": 5,
-       "good": 0.78,
-       "bad": 1.5,
-       "checked": true,
-       },
-       {
-       "day": 6,
-       "good": 1,
-       "bad": 1.1,
-       "checked": true,
-       },
-       {
-       "day": 7,
-       "good": 1,
-       "bad": 0.5,
-       "checked": true,
-       }]
-       };*/
-
-
-
     }
 
     _this.showAllMLDiagram = showAllMLDiagram;

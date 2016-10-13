@@ -24,21 +24,6 @@
       });
     }
 
-    function editCampaignDomains(id,placement,activeState) {
-      return $http({
-        method: 'PUT',
-        url: '/api/v1/campaigns/' + encodeURI(id) + '/domains',
-        headers: {'Authorization': 'Token ' + $cookies.get('token')},
-        params: {
-          placement: placement,
-          activeState: activeState,
-        }
-      })
-      .then(function (res) {
-        return res.data;
-      });
-    }
-
     function _graphInfo(id, from, to, by) {
       return $http({
         method: 'GET',
@@ -140,9 +125,9 @@
             view_measurement_rate: parseFloat((item.view_measurement_rate || 0).toFixed(1)),
             view_rate: parseFloat((item.view_rate || 0).toFixed(1)),
             state: {
-              blackList: false, //item.state.blackList,
-              suspended: false, //item.state.suspended,
-              whiteList: false //item.state.whiteList
+              blackList: item.state & 2,
+              suspended: item.state & 1,
+              whiteList: item.state & 4
             }
           };
         });
@@ -155,6 +140,25 @@
       .catch(function (err) {
         return err;
       });
+    }
+
+    function editCampaignDomains(id,placement,activeState, time) {
+      return $http({
+        method: 'POST',
+        url: '/api/v1/campaigns/' + encodeURI(id) + '/changestate',
+        headers: {'Authorization': 'Token ' + $cookies.get('token')},
+        data: {
+          placement: placement,
+          activeState: activeState,
+          suspendTimes: time
+        }
+      })
+        .then(function (res) {
+          return res.data;
+        })
+        .catch(function (err) {
+          $window.DevExpress.ui.notify(err.data.detail, "error", 4000);
+        });
     }
 
     function getChartStore(campId, dataStart, dataEnd, by) {

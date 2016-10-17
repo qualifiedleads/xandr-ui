@@ -667,7 +667,6 @@
               }]
             },
             cellTemplate: function (container, options) {
-              options;
               var white = $window.$("<div />").dxButton({
                 text: 'white',
                 height: 30,
@@ -726,23 +725,9 @@
                 height: 30,
                 width: 95,
                 disabled: false,
-                onClick: function (e) {
-                  /*                  var parentWhiteBtn = e.element[0].parentNode;
-                   if (parentWhiteBtn.classList.contains('active-suspended')) {
-                   parentWhiteBtn.classList.remove('active-suspended');
-                   parentWhiteBtn.classList.add('unactive-suspended');
-                   } else if (!parentWhiteBtn.classList.contains('active-suspended')) {
-                   parentWhiteBtn.classList.remove('unactive-suspended');
-                   parentWhiteBtn.classList.add('active-suspended');
-                   options.data.state = 1;
-                   parentWhiteBtn.classList.remove('active-white');
-                   parentWhiteBtn.classList.remove('active-black');
-                   }*/
-
+                onClick: function () {
                   tempSespendRow.placement = [options.data.placement];
                   tempSespendRow.suspend = 1;
-
-                  //vm.confirmPopupVisible = true;
                   vm.confirmPopup.option('visible', true);
                 }
               });
@@ -857,23 +842,6 @@
           vm.dataGridOptionsMultipleFunc = data.component;
           vm.dataGridOptionsMultipleFunc._controllers.columns._commandColumns[1].visibleIndex = 9;
           vm.dataGridOptionsMultipleFunc._controllers.columns._commandColumns[1].width = 35;
-        },
-        onRowPrepared: function (data) {
-          /*          vm.objectData = data;
-           if (vm.objectData.rowType == 'data') {
-           var allRowBtns = data.rowElement[0].childNodes[12];
-           var state = data.data.state;
-           if (state.whiteList == true) {
-           allRowBtns.classList.add('active-white');
-           }
-           if (state.blackList == true) {
-           allRowBtns.classList.add('active-black');
-           allRowBtns.classList.add('active-suspended');
-           }
-           if (state.suspended == true) {
-           allRowBtns.classList.add('active-suspended');
-           }
-           }*/
         },
         onEditorPreparing: function (info) {
           if ((info.parentType == 'filterRow') && (info.caption == 'State')) {

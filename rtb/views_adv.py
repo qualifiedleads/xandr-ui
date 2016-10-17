@@ -665,6 +665,7 @@ def mlApiSaveExpertDecision(request):
         })
     return Response(res)
 
+
 @api_view(['POST'])
 @check_user_advertiser_permissions(campaign_id_num=0)
 def changeState(request, campaignId):
@@ -683,7 +684,7 @@ def changeState(request, campaignId):
     placementId = request.data.get("placement")
     activeState = request.data.get("activeState")   # 4 - white / 2 - black / 1 - suspend
 
-    if request.data.get("activeState") == 'suspend' and request.data.get("suspendTimes") is not None:
+    if request.data.get("activeState") == 1 and request.data.get("suspendTimes") is not None and request.data.get("suspendTimes") != "unlimited":
         date = datetime.date.fromtimestamp(int(request.data.get("suspendTimes")))
     else:
         date = None

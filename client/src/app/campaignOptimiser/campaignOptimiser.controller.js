@@ -639,12 +639,7 @@
                     .then(function (res) {
                       vm.arraytoPopup = res;
                     });
-
-                  /*                  vm.arraytoPopup = CampaignOptimiser.showAllMLDiagram(vm.campId, item)
-                   vm.arraytoPopup;*/
                 };
-
-
               }
             }
           },

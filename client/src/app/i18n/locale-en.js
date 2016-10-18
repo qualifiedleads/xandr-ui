@@ -60,7 +60,8 @@
         'HOME':"Home",
         'CAMPAIGN':"Campaign",
         'BILLING':"Billing",
-        'OPTIMIZER':"Optimizer"
+        'OPTIMIZER':"Optimizer",
+        'EXPERT':"Valuation by expert"
       }
     },
     'MAIN': {
@@ -177,6 +178,10 @@
       'RULES': 'Rules for All Domains:',
       'OPTIMISER-FOR':'Optimiser for',
       'CAMPAIGN-HOME': 'back to Campaign Home'
+    },
+    'VBE':{
+      'PAGE-NAME': 'Valuation by expert',
+      'CALCULATE-AUC': 'CalculateAUC'
     }
   })
 })();

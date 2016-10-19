@@ -48,70 +48,55 @@
 
     <h3 class="titleRules" translate="CO.RULES">Rules for All Domains:</h3>
 
-  <!--  <fieldset data-ng-repeat="rules in CO.array" class="container-fluid rule">
+    <fieldset data-ng-repeat="(Index,rules) in CO.rulesArray"  class="container-fluid-rule rule">
       <div class="all-if-rule">
-
-        <div class="if-rule" data-ng-repeat="rule in rules.if">
-          <div class="logic-rule" ng-if="CO.typeOfLogic(rule)">
-            <label><input type="radio" data-ng-model="rule.logicOrAnd" ng-click="CO.ChoiceB(rule)" ng-value="true" ng-checked="rule.logicOrAnd" > or </label>
-            <br>
-            <label><input type="radio" data-ng-model="rule.logicOrAnd" ng-value="false" ng-checked="rule.logicOrAnd" > and </label>
-          </div>
-          <div ng-if="CO.typeOfObject(rule)">
-            <select data-ng-model="rule.target">
-              <option   ng-selected="rule.target == 'Placement/App'">Placement/App</option>
-              <option   ng-selected="rule.target == 'Carrier'">Carrier</option>
-              <option   ng-selected="rule.target == 'Device'">Device</option>
-              <option   ng-selected="rule.target == 'OS'">OS</option>
-              <option   ng-selected="rule.target == 'Ad exchange'">Ad exchange</option>
-            </select>
-    &lt;!&ndash;    <select >
-              <option data-ng-value="item.name" data-ng-repeat="(key,x) in rule.target " ng-model="x.checked " id={{x.checked}}  >{{ x.name }}
-              </option>
-            </select>&ndash;&gt;
-            <p>obj - {{rule.target}}</p>
-          </div>
-
-          <div ng-if="CO.typeOfArray(rule)">
-
-            <p>array - {{rule}}</p>
+        <div class="chek">
+          <p class="onoff">
+            <input class="onoff2" type="checkbox" ng-model="hideRules" id="checkboxID1"  value="1">
+            <label for="checkboxID1"></label>
+          </p>
+          <div class="DeleteRule">
+            <button class="btn btn-danger " ng-click="CO.deleteRule(Index)">RULE DELETE</button>
           </div>
         </div>
 
-        <div class="add-rule">
-          <button class="btn btn-success addfields" ng-click="CO.addNewChoiceB(rule)">+</button>
+        <div class="if-rule" data-ng-repeat="(IndexF,rule) in rules.if"  ng-include="'app/campaignOptimiser/rule.html'" >
+        </div>
+        <div class="then"ng-hide="hideRules"  >
+          <div class="thentext">Then:</div>
+
+          <input type="radio" class="r-optionc" ng-model="rules.then" id="r-option" value="Blacklist" ng-click="CO.checkTime(Index, rules)">
+          <label class="lr-option" for="r-option"> Blacklist</label>
+
+          <input type="radio"  class="r1-optionc" ng-model="rules.then" id="r1-option" value="Whitelist" ng-click="CO.checkTime(Index, rules)">
+          <label class="lr1-option" for="r1-option"> Whitelist</label>
+
+          <input type="radio"class="r2-optionc" id="r2-option" ng-model="rules.then" value="Suspend for review" ng-click="CO.checkTime(Index, rules)" >
+          <label class="lr2-option" for="r2-option"> Suspend for review</label>
         </div>
 
+        <div class="then-little" ng-show="hideRules" >
+          <div class="thentext-little">Then:</div>
+
+          <input type="radio" class="r-optionc-little" ng-model="rules.then" id="r-option-little" value="Blacklist" ng-click="CO.checkTime(Index, rules)">
+          <label class="lr-option-little" for="r-option-little"> Blacklist</label>
+
+          <input type="radio"  class="r1-optionc-little" ng-model="rules.then" id="r1-option-little" value="Whitelist" ng-click="CO.checkTime(Index, rules)">
+          <label class="lr1-option-little" for="r1-option-little"> Whitelist</label>
+
+          <input  type="radio" class="r2-optionc-little" ng-model="rules.then"  id="r2-option-little" value="Suspend for review" ng-click="CO.checkTime(Index, rules)">
+          <label class="lr2-option-little" for="r2-option-little"> Suspend for review</label>
+        </div>
       </div>
 
-      <div class="then-rule">
-      </div>
-
-      <div class="content">
-        {{CO.array}}
-      </div>
     </fieldset>
-    <button class="btn btn-primary" ng-click="CO.addNewRule()">Add rule</button>-->
+    <button class="btn btn-primary" ng-click="CO.addNewRule()">Add rule</button>
+    <button class="btn btn-success" ng-click="CO.saveRules()">Save rule</button>
 
-
-
-
-
-
-
-
-    <br><br>
-    <br><br>
-    <br><br>
     <hr class="lineMiddle">
     <span class="optimizerTitle">{{ 'CO.OPTIMIZER' | translate }}</span>
-    <div dx-button="CO.UI.showGridWhiteList"></div>
-    <div dx-button="CO.UI.showGridBlackList"></div>
-    <div dx-button="CO.UI.showGridTempSuspendList"></div>
-    <div ng-if="CO.grindIf == 1" class="gridContainerWhite" dx-data-grid="CO.UI.dataGridOptionsCampaign"></div>
-    <div ng-if="CO.grindIf == 2" class="gridContainer2" dx-data-grid="CO.UI.dataGridOptionsCampaign"></div>
-    <div ng-if="CO.grindIf == 3" class="gridContainer2" dx-data-grid="CO.UI.dataGridOptionsCampaign"></div>
 
+    <div class="gridContainerWhite" dx-data-grid="CO.UI.dataGridOptionsCampaign"></div>
 
     <div class="counter-popup-group" dx-popup="CO.UI.confirmPopup" >
       <div class="title" >{{ 'CO.SUSPEND' | translate }}</div>

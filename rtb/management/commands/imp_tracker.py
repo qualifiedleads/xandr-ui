@@ -1,5 +1,5 @@
 from django.core.management import BaseCommand
-from rtb.models.rtb_impression_tracker import RtbImpressionTracker
+from rtb.models.rtb_impression_tracker import RtbImpressionTracker, RtbImpressionTrackerPlacement
 from django.conf import settings
 import socket
 import zlib
@@ -12,7 +12,7 @@ def convert_date(s):
     return datetime.datetime.strptime(s,'%Y-%m-%d')
 
 def issetValue (s):
-    if re.match(r'\$', s) or s == ' ':
+    if re.match(r'\$', s) or s == '':
         return ' '
     else:
         return s
@@ -42,7 +42,7 @@ class Command(BaseCommand):
             if start is None or end is None:
                 message = 'empty'
             else:
-                message = 'start=' + start + '&end=' + end
+                message = 'start=' + start + ' 00:00&end=' + end + ' 00:01'
 
             print >> sys.stderr, 'sending "%s"' % message
             sock.sendall(message)
@@ -60,7 +60,7 @@ class Command(BaseCommand):
             sock.close()
 
         print decompressed_data
-"""
+
         bulkITAll = []
         bulkITP = []
         for item in decompressed_data:
@@ -128,41 +128,13 @@ class Command(BaseCommand):
         print bulkITP
 
         RtbImpressionTracker.objects.bulk_create(bulkITAll)
-        #tet = []
-        #tet.append(RtbImpressionTracker())
+        for item in bulkITP:
+            obj, created = RtbImpressionTrackerPlacement.objects.update_or_create(
+                placement=int(item['placement']),
+                domain=str(item['domain'])
+            )
+            print (obj, item, created)
 
 
 
 
-
-a = [{"Time": "2016-10-19 22:18:11.058450594 +0000 UTC",
-      "Data": {
-          "LocationsOrigins": ["http://240.mhoy.user.nym2.adnexus.net:4000", "http://240.mhoy.user.nym2.adnexus.net:4000"],
-          "UserAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.143 Safari/537.36",
-          "XForwardedFor": "207.237.150.246",
-          "XRealIp": "207.237.150.246",
-          "PlacementId": "${TAG_ID}",
-          "UserId": "${USER_ID}",
-          "UserCity": "${USER_CITY}",
-          "UserCountry": "${USER_COUNTRY}",
-          "UserState": "${USER_STATE}",
-          "SessionFreq": "${SESSION_FREQ}",
-          "RemUser": "${REM_USER}",
-          "SegIds": "${SEG_IDS}",
-          "SeqCodes": "${SEG_CODES}",
-          "PricePaid": "${PRICE_PAID}",
-          "ReservePrice": "${RESERVE_PRICE}",
-          "Ecp": "${ECP}",
-          "CustomModelId": "${CUSTOM_MODEL_ID}",
-          "CustomModelLastModified": "${CUSTOM_MODEL_LAST_MODIFIED}",
-          "CustomModelLeafName": "${CUSTOM_MODEL_LEAF_NAME}",
-          "CpId": "${CP_ID}",
-          "CpgId": "${CPG_ID}",
-          "CacheBuster": "${CACHEBUSTER}",
-          "BidPrice": "${BID_PRICE}",
-          "AuctionId": "${AUCTION_ID}",
-          "Age": "${AGE}",
-          "AdvFreq": "${ADV_FREQ}"}
-      }
-     ]
-"""

@@ -294,7 +294,7 @@
     function getRules(id) {
       return $http({
         method: 'GET',
-        url: '/api/v1/campaigns1/' + id + '/rules',
+        url: '/api/v1/campaigns/' + id + '/rules',
         headers: {'Authorization': 'Token ' + $cookies.get('token')},
       })
         .then(function (res) {
@@ -314,10 +314,26 @@
               ],
               "then": "Blacklist"
             }
-          ];;
+          ];
         })
         .catch(function (err) {
           $window.DevExpress.ui.notify(err.statusText, "error", 4000);
+          return [
+            {
+              "id": "rule",
+              "if": [
+                {
+                  id_rule: 'NewRule1',
+                  "type": "condition",
+                  "target": "Placement/App",
+                  "payment": "CPA",
+                  "compare": ">",
+                  "value": 0
+                }
+              ],
+              "then": "Blacklist"
+            }
+          ];
         });
     }
 

@@ -36,14 +36,19 @@ ML commands
 1. Create test set for learning
 python manage.py mlcreatetestset
 2. Learn k-means model
-python manage.py mllearnsavemodel <test_name>
+python manage.py mllearnsavemodel <test_type> <test_name>
+valid test types:
+  1) kmeans
+  2) log - logistic regression
 valid test names:
-  1) ctr_viewrate
-  2) ctr_cvr_cpc_cpm_cpa
+  1) ctr_viewrate (kmeans)
+  2) ctr_cvr_cpc_cpm_cpa (kmeans, log)
 3. Predict placement and save to database
-python manage.py mlpredictkmeans <placement_id> <test_name>
-Example for one placement: python manage.py mlpredictkmeans 3898 ctr_cvr_cpc_cpm_cpa
-Example for all placements: python manage.py mlpredictkmeans -1 ctr_cvr_cpc_cpm_cpa
+python manage.py mlpredictkmeans <placement_id> <test_type> <test_name>
+Example for one placement: python manage.py mlpredictkmeans 3898 kmeans ctr_cvr_cpc_cpm_cpa
+Example for all placements: python manage.py mlpredictkmeans -1 log ctr_cvr_cpc_cpm_cpa
 4. Create csv-file with prediction results
-python manage.py mlcreatecsvresult <test_name>
+python manage.py mlcreatecsvresult
+5. Check if placement good or bad
+python manage.py mlcheckplacement <placement_id> <test_type> <test_name>
 ````

@@ -1,6 +1,5 @@
 from django.core.management import BaseCommand
 from rtb.models.rtb_impression_tracker import RtbImpressionTracker, RtbImpressionTrackerPlacement
-from django.conf import settings
 import socket
 import zlib
 import json
@@ -8,23 +7,24 @@ import sys
 import datetime
 import re
 
-def convert_date(s):
-    return datetime.datetime.strptime(s,'%Y-%m-%d')
 
-def issetValue (s):
+def convert_date(s):
+    return datetime.datetime.strptime(s, '%Y-%m-%d')
+
+
+def issetValue(s):
     if re.match(r'\$', s) or s == '':
         return ' '
     else:
         return s
 
+#   python manage.py imp_tracker '2016-10-19 22:00' '2016-10-19 23:00'
 class Command(BaseCommand):
-
     def add_arguments(self, parser):
         parser.add_argument('start', nargs='?')
         parser.add_argument('end', nargs='?')
 
     def handle(self, **options):
-
         start = options.get('start')
         end = options.get('end')
         print (start, end)
@@ -37,12 +37,10 @@ class Command(BaseCommand):
         sock.connect(server_address)
 
         try:
-            #   message = 'empty'
-            #   start=2016-09-29 17:04&end=2016-09-29 17:06
-            if start is None or end is None:
+            if options.get('start') is None or options.get('end') is None:
                 message = 'empty'
             else:
-                message = 'start=' + start + ' 00:00&end=' + end + ' 00:01'
+                message = 'start=' + start + '&end=' + end
 
             print >> sys.stderr, 'sending "%s"' % message
             sock.sendall(message)
@@ -58,8 +56,6 @@ class Command(BaseCommand):
         finally:
             print >> sys.stderr, 'closing socket'
             sock.close()
-
-        print decompressed_data
 
         bulkITAll = []
         bulkITP = []
@@ -95,46 +91,49 @@ class Command(BaseCommand):
             tempJson['Date'] = item['Time']
             bulkITP.append({'placement': tempJson['PlacementId'], 'domain': tempJson['LocationsOrigins']})
             bulkITAll.append(RtbImpressionTracker(
-                LocationsOrigins = str(issetValue(item['Data']['LocationsOrigins'][0])),
-                UserCountry = issetValue(item['Data']['UserCountry']),
-                SessionFreq = issetValue(item['Data']['SessionFreq']),
-                PricePaid = issetValue(item['Data']['PricePaid']),
-                AdvFreq = issetValue(item['Data']['AdvFreq']),
-                UserState = issetValue(item['Data']['UserState']),
-                CpgId = issetValue(item['Data']['CpgId']),
-                CustomModelLastModified = issetValue(item['Data']['CustomModelLastModified']),
-                UserId = issetValue(item['Data']['UserId']),
-                XRealIp = issetValue(item['Data']['XRealIp']),
-                BidPrice = issetValue(item['Data']['BidPrice']),
-                SegIds = issetValue(item['Data']['SegIds']),
-                UserAgent = issetValue(item['Data']['UserAgent']),
-                AuctionId = issetValue(issetValue(item['Data']['AuctionId'])),
-                RemUser = issetValue(item['Data']['RemUser']),
-                CpId = issetValue(item['Data']['CpId']),
-                UserCity = issetValue(item['Data']['UserCity']),
-                Age = issetValue(item['Data']['Age']),
-                ReservePrice = issetValue(item['Data']['ReservePrice']),
-                CacheBuster = issetValue(item['Data']['CacheBuster']),
-                Ecp = issetValue(item['Data']['Ecp']),
-                CustomModelId = issetValue(item['Data']['CustomModelId']),
-                PlacementId = issetValue(item['Data']['PlacementId']),
-                SeqCodes = issetValue(item['Data']['SeqCodes']),
-                CustomModelLeafName = issetValue(item['Data']['CustomModelLeafName']),
-                XForwardedFor = issetValue(item['Data']['XForwardedFor']),
-                Date = datetime.datetime.strptime(re.sub('\..*', '',item['Time']), "%Y-%m-%d %H:%M:%S")
+                LocationsOrigins=issetValue(item['Data']['LocationsOrigins'][0]),
+                UserCountry=issetValue(item['Data']['UserCountry']),
+                SessionFreq=issetValue(item['Data']['SessionFreq']),
+                PricePaid=issetValue(item['Data']['PricePaid']),
+                AdvFreq=issetValue(item['Data']['AdvFreq']),
+                UserState=issetValue(item['Data']['UserState']),
+                CpgId=issetValue(item['Data']['CpgId']),
+                CustomModelLastModified=issetValue(item['Data']['CustomModelLastModified']),
+                UserId=issetValue(item['Data']['UserId']),
+                XRealIp=issetValue(item['Data']['XRealIp']),
+                BidPrice=issetValue(item['Data']['BidPrice']),
+                SegIds=issetValue(item['Data']['SegIds']),
+                UserAgent=issetValue(item['Data']['UserAgent']),
+                AuctionId=issetValue(issetValue(item['Data']['AuctionId'])),
+                RemUser=issetValue(item['Data']['RemUser']),
+                CpId=issetValue(item['Data']['CpId']),
+                UserCity=issetValue(item['Data']['UserCity']),
+                Age=issetValue(item['Data']['Age']),
+                ReservePrice=issetValue(item['Data']['ReservePrice']),
+                CacheBuster=issetValue(item['Data']['CacheBuster']),
+                Ecp=issetValue(item['Data']['Ecp']),
+                CustomModelId=issetValue(item['Data']['CustomModelId']),
+                PlacementId=issetValue(item['Data']['PlacementId']),
+                SeqCodes=issetValue(item['Data']['SeqCodes']),
+                CustomModelLeafName=issetValue(item['Data']['CustomModelLeafName']),
+                XForwardedFor=issetValue(item['Data']['XForwardedFor']),
+                Date=datetime.datetime.strptime(re.sub('\..*', '', item['Time']), "%Y-%m-%d %H:%M:%S")
             ))
-        print bulkITAll
-        print '-----'
-        print bulkITP
 
-        RtbImpressionTracker.objects.bulk_create(bulkITAll)
+        try:
+            RtbImpressionTracker.objects.bulk_create(bulkITAll)
+        except ValueError:
+            print ValueError
+
         for item in bulkITP:
-            obj, created = RtbImpressionTrackerPlacement.objects.update_or_create(
-                placement=int(item['placement']),
-                domain=str(item['domain'])
-            )
-            print (obj, item, created)
+            if len(item['placement']) > 1:
+                try:
+                    obj, created = RtbImpressionTrackerPlacement.objects.update_or_create(
+                        placement=int(item['placement']),
+                        domain=str(item['domain'])
+                    )
+                    print (obj, item, created)
+                except ValueError:
+                    print ValueError
 
-
-
-
+        print 'Happy End'

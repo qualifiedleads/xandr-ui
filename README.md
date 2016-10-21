@@ -46,4 +46,11 @@ Example for one placement: python manage.py mlpredictkmeans 3898 ctr_cvr_cpc_cpm
 Example for all placements: python manage.py mlpredictkmeans -1 ctr_cvr_cpc_cpm_cpa
 4. Create csv-file with prediction results
 python manage.py mlcreatecsvresult <test_name>
+======================================
+imp_tracker
+1. Add new shedule jobs
+python manage.py crontab add
+python manage.py crontab show
+2. To get the data manually
+python manage.py imp_tracker '2016-10-10 22:00' '2016-10-21 23:00'
 ````

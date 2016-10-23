@@ -695,7 +695,8 @@ def changeState(request, campaignId):
                                                                placement_id=placement,
                                                                defaults=dict(
                                                                    state=activeState,
-                                                                   suspend=date
+                                                                   suspend=date,
+                                                                   change=True
                                                                ))
         listObj.append({
             'placementId': obj.placement_id,

@@ -1,7 +1,5 @@
 #!/bin/env python
-from django.core.management import BaseCommand
 from rtb.models.rtb_impression_tracker import RtbImpressionTracker, RtbImpressionTrackerPlacement
-from django.conf import settings
 from datetime import timedelta
 from pytz import utc
 import socket

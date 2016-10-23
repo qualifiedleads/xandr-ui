@@ -63,8 +63,10 @@ def get():
     bulkITP = []
     for item in decompressed_data:
         tempJson = {}
-        tempITP = {}
-        tempJson['LocationsOrigins'] = issetValue(item['Data']['LocationsOrigins'][0])
+        if item['Data']['LocationsOrigins'] is None:
+            tempJson['LocationsOrigins'] = ' '
+        else:
+            tempJson['LocationsOrigins'] = issetValue(item['Data']['LocationsOrigins'][0])
         tempJson['UserCountry'] = issetValue(item['Data']['UserCountry'])
         tempJson['SessionFreq'] = issetValue(item['Data']['SessionFreq'])
         tempJson['PricePaid'] = issetValue(item['Data']['PricePaid'])
@@ -96,32 +98,32 @@ def get():
         tempJson['Date'] = item['Time']
         bulkITP.append({'placement': tempJson['PlacementId'], 'domain': tempJson['LocationsOrigins']})
         bulkITAll.append(RtbImpressionTracker(
-            LocationsOrigins=issetValue(item['Data']['LocationsOrigins'][0]),
-            UserCountry=issetValue(item['Data']['UserCountry']),
-            SessionFreq=issetValue(item['Data']['SessionFreq']),
-            PricePaid=issetValue(item['Data']['PricePaid']),
-            AdvFreq=issetValue(item['Data']['AdvFreq']),
-            UserState=issetValue(item['Data']['UserState']),
-            CpgId=issetValue(item['Data']['CpgId']),
-            CustomModelLastModified=issetValue(item['Data']['CustomModelLastModified']),
-            UserId=issetValue(item['Data']['UserId']),
-            XRealIp=issetValue(item['Data']['XRealIp']),
-            BidPrice=issetValue(item['Data']['BidPrice']),
-            SegIds=issetValue(item['Data']['SegIds']),
-            UserAgent=issetValue(item['Data']['UserAgent']),
-            AuctionId=issetValue(issetValue(item['Data']['AuctionId'])),
-            RemUser=issetValue(item['Data']['RemUser']),
-            CpId=issetValue(item['Data']['CpId']),
-            UserCity=issetValue(item['Data']['UserCity']),
-            Age=issetValue(item['Data']['Age']),
-            ReservePrice=issetValue(item['Data']['ReservePrice']),
-            CacheBuster=issetValue(item['Data']['CacheBuster']),
-            Ecp=issetValue(item['Data']['Ecp']),
-            CustomModelId=issetValue(item['Data']['CustomModelId']),
-            PlacementId=issetValue(item['Data']['PlacementId']),
-            SeqCodes=issetValue(item['Data']['SeqCodes']),
-            CustomModelLeafName=issetValue(item['Data']['CustomModelLeafName']),
-            XForwardedFor=issetValue(item['Data']['XForwardedFor']),
+            LocationsOrigins=tempJson['LocationsOrigins'],
+            UserCountry=tempJson['UserCountry'],
+            SessionFreq=tempJson['SessionFreq'],
+            PricePaid=tempJson['PricePaid'],
+            AdvFreq=tempJson['AdvFreq'],
+            UserState=tempJson['UserState'],
+            CpgId=tempJson['CpgId'],
+            CustomModelLastModified=tempJson['CustomModelLastModified'],
+            UserId=tempJson['UserId'],
+            XRealIp=tempJson['XRealIp'],
+            BidPrice=tempJson['BidPrice'],
+            SegIds=tempJson['SegIds'],
+            UserAgent=tempJson['UserAgent'],
+            AuctionId=tempJson['AuctionId'],
+            RemUser=tempJson['RemUser'],
+            CpId=tempJson['CpId'],
+            UserCity=tempJson['UserCity'],
+            Age=tempJson['Age'],
+            ReservePrice=tempJson['ReservePrice'],
+            CacheBuster=tempJson['CacheBuster'],
+            Ecp=tempJson['Ecp'],
+            CustomModelId=tempJson['CustomModelId'],
+            PlacementId=tempJson['PlacementId'],
+            SeqCodes=tempJson['SeqCodes'],
+            CustomModelLeafName=tempJson['CustomModelLeafName'],
+            XForwardedFor=tempJson['XForwardedFor'],
             Date=datetime.datetime.strptime(re.sub('\..*', '', item['Time']), "%Y-%m-%d %H:%M:%S")
         ))
 

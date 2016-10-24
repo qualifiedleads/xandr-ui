@@ -51,4 +51,11 @@ Example for all placements: python manage.py mlpredictkmeans -1 log ctr_cvr_cpc_
 python manage.py mlcreatecsvresult
 5. Check if placement good or bad
 python manage.py mlcheckplacement <placement_id> <test_type> <test_name>
+======================================
+imp_tracker
+1. Add new shedule jobs
+python manage.py crontab add
+python manage.py crontab show
+2. To get the data manually
+python manage.py imp_tracker '2016-10-10 22:00' '2016-10-21 23:00'
 ````

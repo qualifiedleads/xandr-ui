@@ -3,46 +3,25 @@
 
   angular
     .module('pjtLayout')
-    .service('CampaignOptimiser', CampaignOptimiser);
+    .service('valuationByExpertS', valuationByExpertS);
 
   /** @ngInject */
-  function CampaignOptimiser($http, $cookies, $window) {
+  function valuationByExpertS($http, $cookies, $window) {
     var _this = this;
     var _totalCountCampaign = 0;
 
     function getGridCampaignStore(campId, dataStart, dataEnd) {
       return new $window.DevExpress.data.CustomStore({
         totalCount: function () {
-          return _totalCountCampaign;
+          return 0;
         },
-        load: function (loadOptions) {
-          if (loadOptions.searchOperation && loadOptions.dataField) {
-            loadOptions.take = 999999;
-          }
-          return _campaignDomains(campId, dataStart, dataEnd, loadOptions.skip, loadOptions.take, loadOptions.sort, loadOptions.order, loadOptions.filter, loadOptions.totalSummary);
+        load: function () {
+          return _campaignDomains(campId, dataStart, dataEnd);
         }
       });
     }
 
-    function _campaignDomains(id, from, to, skip, take, sort, order, filter, totalSummary) {
-      if (sort) {
-        if (sort[0].desc === true) {
-          order = 'desc'
-        } else {
-          order = 'asc'
-        }
-        sort = sort[0].selector;
-      } else {
-        sort = 'placement';
-        order = 'DESC';
-      }
-      if (take == null) {
-        take = 10;
-      }
-      if (skip == null) {
-        skip = 0;
-      }
-
+    function _campaignDomains(id, from, to) {
       return $http({
         method: 'GET',
         url: '/api/v1/campaigns/' + encodeURI(id) + '/domains',
@@ -50,12 +29,7 @@
         params: {
           from_date: from,
           to_date: to,
-          skip: skip,
-          take: take,
-          sort: sort,
-          order: order,
-          filter: filter,
-          totalSummary: totalSummary
+          take: 999999,
         }
       })
         .then(function (res) {
@@ -122,53 +96,6 @@
         });
     }
 
-
-    function campaignTargeting(id, from, to) {
-      return {
-        domains: [
-          "about.com",
-          "celebritytoob.com",
-          "lotto.pch.com",
-          "verywell.com",
-        ],
-        geo: [
-          "US",
-          "UK",
-          "NZ"
-        ],
-        device: [
-          "Desktops & Laptops",
-          "AND",
-          "Web"
-        ],
-        block: [
-          "Phones",
-          "Tablets",
-          "Mobile web",
-          "Apps"
-        ]
-      };
-    }
-
-    function editCampaignDomains(id,placement,activeState, time) {
-      return $http({
-        method: 'POST',
-        url: '/api/v1/campaigns/' + encodeURI(id) + '/changestate',
-        headers: {'Authorization': 'Token ' + $cookies.get('token')},
-        data: {
-          placement: placement,
-          activeState: activeState,
-          suspendTimes: time
-        }
-      })
-        .then(function (res) {
-          return res.data;
-        })
-        .catch(function (err) {
-          $window.DevExpress.ui.notify(err.data.detail, "error", 4000);
-        });
-    }
-
     function decisionML(id, placementId, checked) {
       return $http({
         method: 'POST',
@@ -183,7 +110,6 @@
           $window.DevExpress.ui.notify(err.statusText, "error", 4000);
         });
     }
-
     function showAllMLDiagram(id, placementId) {
       return $http({
         method: 'GET',
@@ -276,74 +202,8 @@
         });
     }
 
-    function saveRules(id, ruleObj) {
-      return $http({
-        method: 'POST',
-        url: '/api/v1/campaigns/' + id + '/rules',
-        headers: {'Authorization': 'Token ' + $cookies.get('token')},
-        data: {ruleObj: ruleObj}
-      })
-        .then(function (res) {
-          return res.data;
-        })
-        .catch(function (err) {
-          $window.DevExpress.ui.notify(err.statusText, "error", 4000);
-        });
-    }
-
-    function getRules(id) {
-      return $http({
-        method: 'GET',
-        url: '/api/v1/campaigns/' + id + '/rules',
-        headers: {'Authorization': 'Token ' + $cookies.get('token')},
-      })
-        .then(function (res) {
-          //return res.data;
-          return [
-            {
-              "id": "rule",
-              "if": [
-                {
-                  id_rule: 'NewRule1',
-                  "type": "condition",
-                  "target": "Placement/App",
-                  "payment": "CPA",
-                  "compare": ">",
-                  "value": 0
-                }
-              ],
-              "then": "Blacklist"
-            }
-          ];
-        })
-        .catch(function (err) {
-          $window.DevExpress.ui.notify(err.statusText, "error", 4000);
-          return [
-            {
-              "id": "rule",
-              "if": [
-                {
-                  id_rule: 'NewRule1',
-                  "type": "condition",
-                  "target": "Placement/App",
-                  "payment": "CPA",
-                  "compare": ">",
-                  "value": 0
-                }
-              ],
-              "then": "Blacklist"
-            }
-          ];
-        });
-    }
-
     _this.showAllMLDiagram = showAllMLDiagram;
-    _this.decisionML = decisionML;
-    _this.saveRules = saveRules;
-    _this.getRules = getRules;
-    _this.campaignTargeting = campaignTargeting;
-    _this.editCampaignDomains = editCampaignDomains;
     _this.getGridCampaignStore = getGridCampaignStore;
-
+    _this.decisionML = decisionML;
   }
 })();

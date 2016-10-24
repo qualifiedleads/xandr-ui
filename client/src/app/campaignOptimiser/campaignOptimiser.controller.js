@@ -8,31 +8,168 @@
   /** @ngInject */
   function CampaignOptimiserController($window, $state, $localStorage, $scope, $translate, $compile, Campaign, CampaignOptimiser) {
     var vm = this;
-    vm.campName = Campaign.campaign;
-    vm.campId = Campaign.id;
     var LC = $translate.instant;
-    vm.object = CampaignOptimiser.campaignTargeting(1, 1, 1);
-    vm.grindIf = 1;
-    vm.popUpIf = false;
     var dataSuspend = null;
     var tempSespendRow = {};
+    var ruleSuspend = false;
+    var ruleTimePopUp = '';
+    var ruleIndexPopUp = '';
+
+    vm.campName = Campaign.campaign;
+    vm.campId = Campaign.id;
+    vm.object = CampaignOptimiser.campaignTargeting(1, 1, 1);
+    vm.popUpIf = false;
     vm.arrayDiagram = [];
 
-    vm.popUpHide = function () {
+    vm.saveRules = saveRules;
+    vm.popUpHide = popUpHide;
+    vm.checkTime = checkTime;
+
+    function popUpHide () {
       vm.popUpIf = false;
+    }
+
+
+    //region Rules
+
+    function checkTime(index, rules) { //CO.checkTime(Index)
+      if (rules.then == 'Suspend for review') {
+        ruleSuspend = true;
+        ruleIndexPopUp = index;
+        vm.confirmPopup.option('visible', true);
+      } else {
+        delete rules.time;
+      }
+    }
+
+    function saveRules() {
+      CampaignOptimiser.saveRules(Campaign.id, vm.rulesArray);
+    }
+
+    CampaignOptimiser
+      .getRules(Campaign.id)
+      .then(function (rule) {
+        if (rule){
+          vm.rulesArray = rule;
+        }
+
+      });
+
+    vm.addField = function (rule) {
+      if (rule.$parent.$parent.$parent.$parent.rule) {
+        var newItemNo = vm.rulesArray.length + 1;
+        rule.$parent.$parent.$parent.$parent.rule.push(
+          {"id_logic": "NewRule" + newItemNo, "type": "logic", "logicOrAnd": true},
+          {"id_rule": "NewRule" + newItemNo,
+            "type": "condition",
+            "target": "Placement/App",
+            "payment": "CPA",
+            "compare": ">",
+            "value": 0
+          }
+        );
+
+      } else {
+        var newItemNo = vm.rulesArray.length + 1;
+        rule.$parent.$parent.rules.if.push(
+          {"id_logic": "NewRule" + newItemNo, "type": "logic", "logicOrAnd": true},
+          {"id_rule": "NewRule" + newItemNo,
+            "type": "condition",
+            "target": "Placement/App",
+            "payment": "CPA",
+            "compare": ">",
+            "value": 0
+          }
+        );
+      }
+    };
+
+    vm.addGroup = function (rule, ind) {
+      if (rule.$parent.$parent.$parent.rule) {
+        var newItemNo = vm.rulesArray.length + 1;
+        rule.$parent.$parent.$parent.rule.push({
+            "id_logic": "NewRule" + newItemNo,
+            "type": "logic",
+            "logicOrAnd": true
+          },
+          [
+            {
+              id_rule: 'NewGroup' + newItemNo,
+              "type": "condition",
+              "target": "Placement/App",
+              "payment": "CPA",
+              "compare": ">",
+              "value": 0
+            }
+          ]
+        );
+      } else {
+        var newItemNo = vm.rulesArray.length + 1;
+        rule.$parent.rules.if.push({"id_logic": "NewRule" + newItemNo, "type": "logic", "logicOrAnd": true},
+          [
+            {
+              id_rule: 'NewGroup' + newItemNo,
+              "type": "condition",
+              "target": "Placement/App",
+              "payment": "CPA",
+              "compare": ">",
+              "value": 0
+            }
+          ]
+        );
+      }
+    };
+
+    vm.addNewRule = function () {
+      var newItemNo = vm.rulesArray.length + 1;
+      vm.rulesArray.push(
+        {
+          "id": "rule" + newItemNo,
+          "if": [
+            {"id_rule": "NewRule" + newItemNo,
+              "type": "condition",
+              "target": "Placement/App",
+              "payment": "CPA",
+              "compare": ">",
+              "value": 0
+            }
+          ],
+          "then": "Blacklist"
+        }
+      );
+    };
+
+    vm.deleteRule = function (ind) {
+      vm.rulesArray.splice(ind, 1);
+    };
+
+    vm.deleteFilds = function (rule, ind) {
+      if (rule.$parent.$parent.$parent.$parent.rule) {
+        rule.$parent.$parent.$parent.$parent.rule.splice(ind, 2);
+      } else {
+        rule.$parent.$parent.rules.if.splice(ind, 2);
+      }
     };
 
     vm.typeOfLogic = function (rule) {
       if (rule.type === 'logic') {
-        return true
+        return true;
+      } else {
+        return false;
+      }
+    };
+
+    vm.typeOfThen = function (rules) {
+      if (rules.then === 'Blacklist') {
+        return true;
       } else {
         return false;
       }
     };
 
     vm.typeOfObject = function (rule) {
-      if (typeof(rule) == 'object' && Array.isArray(rule) == false) {
-        return true
+      if (rule.type == 'condition') {
+        return true;
       } else {
         return false;
       }
@@ -40,52 +177,12 @@
 
     vm.typeOfArray = function (rule) {
       if (Array.isArray(rule) == true) {
-        return true
+        return true;
       } else {
         return false;
       }
     };
-
-
-    vm.array = [
-      {
-        "id": "1",
-        "if": [
-          {
-            id_rule: 'NewRule1',
-            "type": "condition",
-            "target": "Carrier",
-            "payment": "CPA",
-            "compare": "Greater then",
-            "value": ""
-          },
-          {
-            "type": "logic",
-            "logicOrAnd": true
-          }
-        ],
-        "then": "black"
-      },
-      {
-        "id": "3",
-        "if": [
-          {
-            id_rule: 'NewRule1',
-            "type": "condition",
-            "target": "Carrier",
-            "payment": "CPA",
-            "compare": "Greater then",
-            "value": ""
-          },
-          {
-            "type": "logic",
-            "logicOrAnd": true
-          }
-        ],
-        "then": "black"
-      }
-    ];
-
+    //endregion
 
     //region DATE PIKER
     /** DATE PIKER **/
@@ -266,6 +363,45 @@
         text: 'OK',
         disabled: false,
         onClick: function () {
+          if (ruleSuspend == true) {
+            var radioGroupMain = $('#radioGroupMain').dxRadioGroup('instance');
+            var radioGroupSend = $('#radioGroupSend').dxRadioGroup('instance');
+
+            if (radioGroupMain._options.value !== false) {
+              if (radioGroupMain._options.value == LC('CO.24-HRS')) {
+                ruleTimePopUp = $window.moment().add(1, 'day').unix();
+              }
+
+              if (radioGroupMain._options.value == LC('CO.3-DAYS')) {
+                ruleTimePopUp = $window.moment().add(3, 'day').unix();
+              }
+
+              if (radioGroupMain._options.value == LC('CO.7-DAYS')) {
+                ruleTimePopUp = $window.moment().add(7, 'day').unix();
+              }
+
+            }
+
+            if (radioGroupSend._options.value !== false) {
+              ruleTimePopUp = "unlimited";
+            }
+
+            if (dataSuspend !== null) {
+              ruleTimePopUp = $window.moment(dataSuspend).unix();
+            }
+
+            if ((radioGroupSend._options.value == null) && (radioGroupMain._options.value == LC('CO.24-HRS'))) {
+              ruleTimePopUp = $window.moment().add(1, 'day').unix();
+            }
+
+            vm.rulesArray[ruleIndexPopUp].time = ruleTimePopUp;
+
+            ruleSuspend = false;
+            vm.confirmPopupVisible = false;
+            vm.confirmPopup.option('visible', false);
+            $scope.$apply();
+            return 0
+          }
           var suspendPlacement;
           var radioGroupMain = $('#radioGroupMain').dxRadioGroup('instance');
           var radioGroupSend = $('#radioGroupSend').dxRadioGroup('instance');
@@ -639,12 +775,7 @@
                     .then(function (res) {
                       vm.arraytoPopup = res;
                     });
-
-                  /*                  vm.arraytoPopup = CampaignOptimiser.showAllMLDiagram(vm.campId, item)
-                   vm.arraytoPopup;*/
                 };
-
-
               }
             }
           },
@@ -667,7 +798,6 @@
               }]
             },
             cellTemplate: function (container, options) {
-              options;
               var white = $window.$("<div />").dxButton({
                 text: 'white',
                 height: 30,
@@ -726,23 +856,9 @@
                 height: 30,
                 width: 95,
                 disabled: false,
-                onClick: function (e) {
-                  /*                  var parentWhiteBtn = e.element[0].parentNode;
-                   if (parentWhiteBtn.classList.contains('active-suspended')) {
-                   parentWhiteBtn.classList.remove('active-suspended');
-                   parentWhiteBtn.classList.add('unactive-suspended');
-                   } else if (!parentWhiteBtn.classList.contains('active-suspended')) {
-                   parentWhiteBtn.classList.remove('unactive-suspended');
-                   parentWhiteBtn.classList.add('active-suspended');
-                   options.data.state = 1;
-                   parentWhiteBtn.classList.remove('active-white');
-                   parentWhiteBtn.classList.remove('active-black');
-                   }*/
-
+                onClick: function () {
                   tempSespendRow.placement = [options.data.placement];
                   tempSespendRow.suspend = 1;
-
-                  //vm.confirmPopupVisible = true;
                   vm.confirmPopup.option('visible', true);
                 }
               });
@@ -857,23 +973,6 @@
           vm.dataGridOptionsMultipleFunc = data.component;
           vm.dataGridOptionsMultipleFunc._controllers.columns._commandColumns[1].visibleIndex = 9;
           vm.dataGridOptionsMultipleFunc._controllers.columns._commandColumns[1].width = 35;
-        },
-        onRowPrepared: function (data) {
-          /*          vm.objectData = data;
-           if (vm.objectData.rowType == 'data') {
-           var allRowBtns = data.rowElement[0].childNodes[12];
-           var state = data.data.state;
-           if (state.whiteList == true) {
-           allRowBtns.classList.add('active-white');
-           }
-           if (state.blackList == true) {
-           allRowBtns.classList.add('active-black');
-           allRowBtns.classList.add('active-suspended');
-           }
-           if (state.suspended == true) {
-           allRowBtns.classList.add('active-suspended');
-           }
-           }*/
         },
         onEditorPreparing: function (info) {
           if ((info.parentType == 'filterRow') && (info.caption == 'State')) {

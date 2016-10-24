@@ -15,6 +15,7 @@ import filter_func
 from models.ml_kmeans_model import MLPlacementDailyFeatures, MLClustersCentroidsKmeans, MLPlacementsClustersKmeans
 from rtb.ml_learn_kmeans import mlPredictKmeans,mlGetPlacementInfoKmeans
 from models.placement_state import PlacementState
+from rtb.placement_state import PlacementState as PlacementStateClass
 from rest_framework import status
 
 import bisect
@@ -698,11 +699,15 @@ def changeState(request, campaignId):
                                                                    suspend=date,
                                                                    change=True
                                                                ))
+
         listObj.append({
             'placementId': obj.placement_id,
             'campaign_id': obj.campaign_id,
             'suspend': obj.suspend,
             'state': obj.state
         })
+    state = PlacementStateClass(campaignId, placementId)  # , 7043341
+    result = state.change_state_placement()
+    print (campaignId, placementId, result)
 
     return Response(listObj)

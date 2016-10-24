@@ -54,75 +54,41 @@ class PlacementState:
     # 4 - white / 2 - black / 1 - suspend
     def update_profile_by_id(self, platform_placement_targets, placement_id, profile_id, advertiser_id):
         if platform_placement_targets is None:
-            try:
-                url = self.__appnexus_url + 'profile?id={0}&advertiser_id={1}'.format(profile_id, advertiser_id)
-                headers = {"Authorization": self.get_token(), 'Content-Type': 'application/json'}
-                for one_placement in placement_id:
-                    localState = ModelPlacementState.objects.get(placement_id=one_placement)
-                    if localState.state == 1 or localState.state == 2:
-                        state = "exclude"
-                    elif localState.state == 4:
-                        state = "include"
-                    platform_placement_targets = []
-                    platform_placement_targets.append({
-                        "id": one_placement,
-                        "action": state,
-                        "deleted": False
-                    })
+            platform_placement_targets = []
+        try:
+            url = self.__appnexus_url + 'profile?id={0}&advertiser_id={1}'.format(profile_id, advertiser_id)
+            headers = {"Authorization": self.get_token(), 'Content-Type': 'application/json'}
+            for one_placement in placement_id:
+                localState = ModelPlacementState.objects.get(placement_id=one_placement)
+                if localState.state == 1 or localState.state == 2:
+                    state = "exclude"
+                elif localState.state == 4:
+                    state = "include"
+                platform_placement_targets.append({
+                    "id": one_placement,
+                    "action": state,
+                    "deleted": False
+                })
 
-                data = json.dumps({
-                    "profile":
-                        {
-                            "platform_placement_targets": platform_placement_targets
-                        }
-                })
-                try:
-                    changeState = json.loads(requests.put(url, data=data, headers=headers).content)
-                except:
-                    return None
-                try:
-                    for one_placement in placement_id:
-                        ModelPlacementState.objects.filter(placement_id=one_placement).update(change=False)
-                except:
-                    return None
-                print changeState['response']['status']
-                return changeState['response']['status']
-            except:
-                return None
-        else:
+            data = json.dumps({
+                "profile":
+                    {
+                        "platform_placement_targets": platform_placement_targets
+                    }
+            })
             try:
-                url = self.__appnexus_url + 'profile?id={0}&advertiser_id={1}'.format(profile_id, advertiser_id)
-                headers = {"Authorization": self.get_token(), 'Content-Type': 'application/json'}
-                for one_placement in placement_id:
-                    localState = ModelPlacementState.objects.get(placement_id=one_placement)
-                    if localState.state == 1 or localState.state == 2:
-                        state = "exclude"
-                    elif localState.state == 4:
-                        state = "include"
-                    platform_placement_targets.append({
-                        "id": one_placement,
-                        "action": state,
-                        "deleted": False
-                    })
-                data = json.dumps({
-                    "profile":
-                        {
-                            "platform_placement_targets": platform_placement_targets
-                        }
-                })
-                try:
-                    changeState = json.loads(requests.put(url, data=data, headers=headers).content)
-                except:
-                    return None
-                try:
-                    for one_placement in placement_id:
-                        ModelPlacementState.objects.filter(placement_id=one_placement).update(change=False)
-                except:
-                    return None
-                print changeState['response']['status']
-                return changeState['response']['status']
+                changeState = json.loads(requests.put(url, data=data, headers=headers).content)
             except:
                 return None
+            try:
+                for one_placement in placement_id:
+                    ModelPlacementState.objects.filter(placement_id=one_placement).update(change=False)
+            except:
+                return None
+            print changeState['response']['status']
+            return changeState['response']['status']
+        except:
+            return None
 
 
     def change_state_placement(self):

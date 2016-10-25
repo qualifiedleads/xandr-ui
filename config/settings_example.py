@@ -139,6 +139,8 @@ REST_FRAMEWORK = {
 }
 # Periodic jobs
 CRONJOBS = [
+    ('0 */4 * * *', 'rtb.crons.placement_state_cron.suspend_state_middleware_cron'),
+    ('0 */4 * * *', 'rtb.imp_tracker_cron.get'),
     ('5 0 * * *', 'rtb.cron.dayly_task')
 ]
 NEXUS_AUTH_DATA= {

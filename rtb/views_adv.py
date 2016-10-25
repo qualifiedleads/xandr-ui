@@ -12,9 +12,10 @@ import itertools
 import datetime
 from pytz import utc
 import filter_func
-
 from models.ml_kmeans_model import MLPlacementDailyFeatures, MLClustersCentroidsKmeans, MLPlacementsClustersKmeans
 from rtb.ml_learn_kmeans import mlPredictKmeans,mlGetPlacementInfoKmeans
+from models.placement_state import PlacementState
+from rtb.placement_state import PlacementState as PlacementStateClass
 from rest_framework import status
 
 import bisect
@@ -212,10 +213,17 @@ Get single campaign cpa report for given period to create boxplots
 def get_campaign_placement(campaign_id, from_date, to_date):
     key = '_'.join(('rtb_campaign_placement', str(campaign_id), from_date.strftime('%Y-%m-%d'),
                     to_date.strftime('%Y-%m-%d'),))
-    res = cache.get(key)
     wholeWeekInd = 7
+    res = cache.get(key)
+
     if res:
         for x in res:
+            if PlacementState.objects.filter(campaign_id=campaign_id, placement_id=x['placement']):
+                state = list(PlacementState.objects.filter(campaign_id=campaign_id, placement_id=x['placement']))[0]
+                x['state'] = state.state
+            else:
+                x['state'] = 0
+
             mlAnswer = mlGetPlacementInfoKmeans(x['placement'], False)
 
             if mlAnswer == -1 or mlAnswer == -2:
@@ -268,12 +276,11 @@ def get_campaign_placement(campaign_id, from_date, to_date):
     )
     res = list(q)
     for x in res:
-        x['state'] = {
-            "whiteList": True,
-            "blackList": False,
-            "suspended": x['placementState'] == 'inactive'
-        }
-
+        if PlacementState.objects.filter(campaign_id=campaign_id, placement_id=x['placement']):
+            state = list(PlacementState.objects.filter(campaign_id=campaign_id, placement_id=x['placement']))[0]
+            x['state'] = state.state
+        else:
+            x['state'] = 0
         mlAnswer = mlGetPlacementInfoKmeans(x['placement'], False)
         if mlAnswer == -1 or mlAnswer == -2:
             x['analitics'] = ({#for one object
@@ -560,7 +567,7 @@ Get single campaign details for given period
 
 @api_view(['GET', 'POST'])
 @check_user_advertiser_permissions(campaign_id_num=0)
-def mlApiAnalitics(request,id):
+def mlApiAnalitics(request, id):
     """
 Post: commends the decision taken by the machine
 
@@ -658,3 +665,49 @@ def mlApiSaveExpertDecision(request):
             "checked": mlAnswer[str(wholeWeekInd)]['checked']
         })
     return Response(res)
+
+
+@api_view(['POST'])
+@check_user_advertiser_permissions(campaign_id_num=0)
+def changeState(request, campaignId):
+    """
+    POST single campaign details by domains
+
+    ## Url format: /api/v1/campaigns/:id/changestate
+
+    + Parameters
+        + id (Number) - id for putting information about company
+        + placement (Number) - placement id
+        + activeState (string) - Change state (white, black, suspend)
+        + date - suspend date
+
+    """
+    placementId = request.data.get("placement")
+    activeState = request.data.get("activeState")   # 4 - white / 2 - black / 1 - suspend
+
+    if request.data.get("activeState") == 1 and request.data.get("suspendTimes") is not None and request.data.get("suspendTimes") != "unlimited":
+        date = datetime.date.fromtimestamp(int(request.data.get("suspendTimes")))
+    else:
+        date = None
+
+    listObj = []
+    for i, placement in enumerate(placementId):
+        obj, created = PlacementState.objects.update_or_create(campaign_id=campaignId,
+                                                               placement_id=placement,
+                                                               defaults=dict(
+                                                                   state=activeState,
+                                                                   suspend=date,
+                                                                   change=True
+                                                               ))
+
+        listObj.append({
+            'placementId': obj.placement_id,
+            'campaign_id': obj.campaign_id,
+            'suspend': obj.suspend,
+            'state': obj.state
+        })
+    state = PlacementStateClass(campaignId, placementId)  # , 7043341
+    result = state.change_state_placement()
+    print (campaignId, placementId, result)
+
+    return Response(listObj)

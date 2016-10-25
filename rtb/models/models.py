@@ -2448,7 +2448,7 @@ class ClickTrackerPlacement(models.Model):
 
 
 class ImpressionTracker(models.Model):
-    #https://wiki.appnexus.com/display/api/Impression+Tracker+Service
+    #   https://wiki.appnexus.com/display/api/Impression+Tracker+Service
     member = models.ForeignKey("Member", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     advertiser = models.ForeignKey("Advertiser", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     name = models.TextField(null=True, blank=True, db_index=True)
@@ -2457,7 +2457,7 @@ class ImpressionTracker(models.Model):
         choices=STATE_CHOICES,
         null=True, blank=True)
     publisher = models.ForeignKey("Publisher", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
-    #tag = array - see model ImpressionTrackerPlacement below
+    #   tag = array - see model ImpressionTrackerPlacement below
     payment_rule = models.ForeignKey("PaymentRule", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     line_item = models.ForeignKey("LineItem", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     last_modified = models.DateTimeField(default=now_tz) 

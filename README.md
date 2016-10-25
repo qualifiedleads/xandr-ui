@@ -31,20 +31,31 @@ python manage.py createcachetable rtb_cache_table
 
 7. For create superuser, run
 python manage.py createsuperuser
-
-=============================
+======================================
 ML commands
------------------------------
-1. Create features test set for placements on weekdays
+1. Create test set for learning
 python manage.py mlcreatetestset
-
-2. Learn and save k-means model (create centroids for good/bad placements clusters)
-python manage.py mllearnsavemodel
-
-3. Predict clusters for all placements 
-python manage.py mlpredictkmeans -1 
-
-4. Predict clusters for one placement 
-python manage.py mlpredictkmeans [placement_id] 
-
+2. Learn k-means model
+python manage.py mllearnsavemodel <test_type> <test_name>
+valid test types:
+  1) kmeans
+  2) log - logistic regression
+valid test names:
+  1) ctr_viewrate (kmeans)
+  2) ctr_cvr_cpc_cpm_cpa (kmeans, log)
+3. Predict placement and save to database
+python manage.py mlpredictkmeans <placement_id> <test_type> <test_name>
+Example for one placement: python manage.py mlpredictkmeans 3898 kmeans ctr_cvr_cpc_cpm_cpa
+Example for all placements: python manage.py mlpredictkmeans -1 log ctr_cvr_cpc_cpm_cpa
+4. Create csv-file with prediction results
+python manage.py mlcreatecsvresult
+5. Check if placement good or bad
+python manage.py mlcheckplacement <placement_id> <test_type> <test_name>
+======================================
+imp_tracker
+1. Add new shedule jobs
+python manage.py crontab add
+python manage.py crontab show
+2. To get the data manually
+python manage.py imp_tracker '2016-10-10 22:00' '2016-10-21 23:00'
 ````

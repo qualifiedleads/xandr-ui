@@ -10,9 +10,11 @@ class Command(BaseCommand):
     """
 
     def add_arguments(self, parser):
-        parser.add_argument('placement_id', type=int)
+        parser.add_argument("placement_id", type=int)
+        parser.add_argument("test_name", type=str)
 
     def handle(self, *args, **options):
-        self.stdout.write('mlpredictkmeans called')
-        placement_id = options.get('placement_id')
-        mlPredictKmeans(placement_id)
+        self.stdout.write("mlpredictkmeans called")
+        placement_id = options.get("placement_id")
+        test_name = options.get("test_name")
+        mlPredictKmeans(placement_id, test_name)

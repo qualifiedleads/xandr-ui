@@ -346,14 +346,14 @@ def analize_csv(filename, modelClass, metadata={}):
 
 # load data, needed for filling SiteDomainPerformanceReport
 # Data saved to local DB
-def load_depending_data(token):
+def load_depending_data(token, force_update=False, daily_load=True):
     # nexus_get_objects\(.*?'(https://api.appnexus.com/[\w-]+)',\s*\{[^\}]*\},\s*(\w+)
     try:
         cd = get_current_time()
         with transaction.atomic():
             advertisers = nexus_get_objects(token,
                                             {"id__gt": 0},
-                                            Advertiser, False, {})
+                                            Advertiser, force_update, {})
             print 'There is %d advertisers' % len(advertisers)
 
             for adv in advertisers:
@@ -361,7 +361,7 @@ def load_depending_data(token):
                 profiles = nexus_get_objects(token,
 
                                              {'advertiser_id': adv.id},
-                                             Profile, False)
+                                             Profile, force_update)
                 print 'There is %d profiles' % len(profiles)
             # adv = Advertiser.objects.values_list('id', 'name','profile_id')
             foreign_ids = {i.profile_id: i.id for i in advertisers}
@@ -379,235 +379,236 @@ def load_depending_data(token):
                 p.save()
                 print 'Created profile "%s"' % p.name
 
-        developers = nexus_get_objects(token,
-                                       {},
-                                       Developer, False)
-        print 'There is %d developers ' % len(developers)
-        buyer_groups = nexus_get_objects(token,
-                                         {},
-                                         BuyerGroup, False)
-        print 'There is %d buyer groups ' % len(buyer_groups)
+        if daily_load:
+            developers = nexus_get_objects(token,
+                                           {},
+                                           Developer, False)
+            print 'There is %d developers ' % len(developers)
+            buyer_groups = nexus_get_objects(token,
+                                             {},
+                                             BuyerGroup, False)
+            print 'There is %d buyer groups ' % len(buyer_groups)
 
-        # There is mutual dependence
-        #with transaction.atomic():
-        ad_profiles = nexus_get_objects(token,
-                                        {},
-                                        AdProfile, False)
-        print 'There is %d adware profiles ' % len(ad_profiles)
-        members = nexus_get_objects(token,
-                                    {},
-                                    Member, False)
-        print 'There is %d members ' % len(members)
-        #end transaction
-
-        # Get all operating system families:
-        operating_systems_families = nexus_get_objects(token,
-                                                       {},
-                                                       OSFamily, False)
-        print 'There is %d operating system families' % len(operating_systems_families)
-
-        # Get all operating systems:
-        operating_systems = nexus_get_objects(token,
-                                              {},
-                                              OperatingSystemExtended, False)
-        print 'There is %d operating systems ' % len(operating_systems)
-
-        #with transaction.atomic():
-        date_in_db = ContentCategory.objects.aggregate(
-            m=Max('fetch_date'))['m']
-        if cd - date_in_db > settings.INVALIDATE_TIME:
-            o1 = nexus_get_objects(token,
-                                   {},  # {'type':'universal'}
-                                   ContentCategory, True,
-                                   {'category_type': 'universal'})
-            o2 = nexus_get_objects(token,
-                                   {},
-                                   ContentCategory, True)
-        # end transaction
-        print 'There is %d content categories ' % ContentCategory.objects.count()
-
-        # Get all optimisation zones:
-        optimisation_zones = nexus_get_objects(token,
-                                               {},
-                                               OptimizationZone, False)
-        print 'There is %d optimisation zones ' % len(optimisation_zones)
-
-        # Get all mobile app instances:
-        mobile_app_instances = nexus_get_objects(token,
-                                                 {},
-                                                 MobileAppInstance, False)
-        print 'There is %d mobile app instances ' % len(mobile_app_instances)
-
-        # with transaction.atomic():
-        # Get all sites:
-        sites = nexus_get_objects(token,
-                                  {},
-                                  Site, False)
-        print 'There is %d sites ' % len(sites)
-        # Get all publishers:
-        publishers = nexus_get_objects(token,
-                                       {"id__gt":0},
-                                       Publisher, False,{})
-        print 'There is %d publishers ' % len(publishers)
-        # Get all yield management profiles:
-        # loop ?
-        yield_management_profiles = nexus_get_objects(token,
-                                                      {},
-                                                      YieldManagementProfile, False)
-        print 'There is %d yield management profiles ' % len(yield_management_profiles)
-        payment_rules_to_load=Publisher.objects.filter(base_payment_rule_id__gt=0)\
-            .values_list('base_payment_rule_id','id').distinct()
-        print payment_rules_to_load
-        for x in payment_rules_to_load:
-            payment_rule = nexus_get_objects(token,
-                                              {'id': x[0]},
-                                              PaymentRule,
-                                              True,
-                                              {'publisher_id': x[1], 'id': x[0]}
-                                            )
-            print payment_rule
-        #end transaction
-        companies = nexus_get_objects(token,
-                                      {},
-                                      Company, False)
-        print 'There is %d companies ' % len(companies)
-
-        categories = nexus_get_objects(token,
-                                       {},
-                                       Category, False)
-        print 'There is %d categories ' % len(categories)
-
-        media_types = nexus_get_objects(token,
-                                        {},
-                                        MediaType, False)
-        print 'There is %d creative media types' % len(media_types)
-
-        media_sub_types = nexus_get_objects(token,
+            # There is mutual dependence
+            #with transaction.atomic():
+            ad_profiles = nexus_get_objects(token,
                                             {},
-                                            MediaSubType, False)
-        print 'There is %d creative media sub types' % len(media_sub_types)
+                                            AdProfile, False)
+            print 'There is %d adware profiles ' % len(ad_profiles)
+            members = nexus_get_objects(token,
+                                        {},
+                                        Member, False)
+            print 'There is %d members ' % len(members)
+            #end transaction
 
-        # https://api.appnexus.com/creative-format
-        creative_formats = nexus_get_objects(token,
-                                             {},
-                                             CreativeFormat, False)
-        print 'There is %d creative media sub types' % len(creative_formats)
+            # Get all operating system families:
+            operating_systems_families = nexus_get_objects(token,
+                                                           {},
+                                                           OSFamily, False)
+            print 'There is %d operating system families' % len(operating_systems_families)
 
-        creative_templates = nexus_get_objects(token,
-                                               {},
-                                               CreativeTemplate, False)
-        print 'There is %d creative templates' % len(creative_templates)
+            # Get all operating systems:
+            operating_systems = nexus_get_objects(token,
+                                                  {},
+                                                  OperatingSystemExtended, False)
+            print 'There is %d operating systems ' % len(operating_systems)
 
-        for adv in advertisers:
-            advertiser_id = adv.id
-            # Get all creative folders
-            creative_folders = nexus_get_objects(
-                token, {'advertiser_id': advertiser_id}, CreativeFolder, False)
-            print 'There is %d  creative folders' % len(creative_folders)
+            #with transaction.atomic():
+            date_in_db = ContentCategory.objects.aggregate(
+                m=Max('fetch_date'))['m']
+            if cd - date_in_db > settings.INVALIDATE_TIME:
+                o1 = nexus_get_objects(token,
+                                       {},  # {'type':'universal'}
+                                       ContentCategory, True,
+                                       {'category_type': 'universal'})
+                o2 = nexus_get_objects(token,
+                                       {},
+                                       ContentCategory, True)
+            # end transaction
+            print 'There is %d content categories ' % ContentCategory.objects.count()
 
-        languages = nexus_get_objects(token,
+            # Get all optimisation zones:
+            optimisation_zones = nexus_get_objects(token,
+                                                   {},
+                                                   OptimizationZone, False)
+            print 'There is %d optimisation zones ' % len(optimisation_zones)
+
+            # Get all mobile app instances:
+            mobile_app_instances = nexus_get_objects(token,
+                                                     {},
+                                                     MobileAppInstance, False)
+            print 'There is %d mobile app instances ' % len(mobile_app_instances)
+
+            # with transaction.atomic():
+            # Get all sites:
+            sites = nexus_get_objects(token,
                                       {},
-                                      Language, False)
-        print 'There is %d languages ' % len(languages)
+                                      Site, False)
+            print 'There is %d sites ' % len(sites)
+            # Get all publishers:
+            publishers = nexus_get_objects(token,
+                                           {"id__gt":0},
+                                           Publisher, False,{})
+            print 'There is %d publishers ' % len(publishers)
+            # Get all yield management profiles:
+            # loop ?
+            yield_management_profiles = nexus_get_objects(token,
+                                                          {},
+                                                          YieldManagementProfile, False)
+            print 'There is %d yield management profiles ' % len(yield_management_profiles)
+            payment_rules_to_load=Publisher.objects.filter(base_payment_rule_id__gt=0)\
+                .values_list('base_payment_rule_id','id').distinct()
+            print payment_rules_to_load
+            for x in payment_rules_to_load:
+                payment_rule = nexus_get_objects(token,
+                                                  {'id': x[0]},
+                                                  PaymentRule,
+                                                  True,
+                                                  {'publisher_id': x[1], 'id': x[0]}
+                                                )
+                print payment_rule
+            #end transaction
+            companies = nexus_get_objects(token,
+                                          {},
+                                          Company, False)
+            print 'There is %d companies ' % len(companies)
 
-        # with transaction.atomic():
-        nexus_get_objects(token,
-                          {},
-                          Creative, False)
-        brand_ids = set(Creative.objects.filter(brand_id__isnull=False) \
-                           .values_list('brand', flat=True).distinct())
-        exiting_brands = set(Brand.objects.values_list('id', flat=True))
+            categories = nexus_get_objects(token,
+                                           {},
+                                           Category, False)
+            print 'There is %d categories ' % len(categories)
 
-        print 'Creatives loaded'
-        ids_list = map(str,brand_ids-exiting_brands)
-        print 'Brand ids:', ids_list
-        brands = nexus_get_objects(token,
-                                   {},
-                                   Brand, True,
-                                   {'id':','.join(ids_list), 'simple':'true'})
-        print 'There is %d brands ' % len(brands)
-        profiles_ids = set(Creative.objects.filter(profile_id__isnull=False) \
-                           .values_list('profile', flat=True).distinct())
-        exiting_profiles = set(Profile.objects.values_list('id', flat=True))
-        profiles = nexus_get_objects(token,
-                                     {},
-                                     Profile, True,
-                                     {'id':','.join(map(str,profiles_ids-exiting_profiles))})
-        print 'There is %d new profiles'%len(profiles)
-        # end transaction
-        # Get all payment rules:
-        for pub in []:  # publishers: There is too many publishers, disable loading depended objects
-            payment_rules = nexus_get_objects(token,
-                                              {'publisher': pub},
-                                              PaymentRule, True,
-                                              {'publisher_id': pub.pk})
-            print 'There is %d payment rules for publisher %s' % (len(payment_rules), pub.name)
-            print 'Ids:', ','.join(str(x.pk) for x in payment_rules)
-            quality_rules = nexus_get_objects(token,
-                                              {'publisher': pub},
-                                              AdQualityRule, True,
-                                              {'publisher_id': pub.pk})
-            print 'There is %d quality rules for publisher %s' % (len(payment_rules), pub.name)
-            # Placement
-            # https://api.appnexus.com/placement?publisher_id=PUBLISHER_ID
-            placements = nexus_get_objects(token,
-                                           {'publisher': pub},
-                                           Placement, True,
-                                           {'publisher_id': pub.pk})
-            print 'There is %d placements for publisher %s' % (len(placements), pub.name)
+            media_types = nexus_get_objects(token,
+                                            {},
+                                            MediaType, False)
+            print 'There is %d creative media types' % len(media_types)
 
-        # Get all users:
-        users = nexus_get_objects(token,
-                                  {},
-                                  User, False)
-        print 'There is %d users ' % len(users)
-        # Get all platform members:
-        platform_members = nexus_get_objects(token,
-                                             {},
-                                             PlatformMember, False)
-        print 'There is %d platform members ' % len(platform_members)
-        # Get all deals:
-        deals = nexus_get_objects(token,
-                                  {},
-                                  Deal, False)
-        print 'There is %d deals ' % len(deals)
-        # Get all demographic areas:
-        demographic_areas = nexus_get_objects(token,
-                                              {},
-                                              DemographicArea, False)
-        print 'There is %d  demographic areas' % len(demographic_areas)
-        # Get all countries:
-        countries = nexus_get_objects(token,
+            media_sub_types = nexus_get_objects(token,
+                                                {},
+                                                MediaSubType, False)
+            print 'There is %d creative media sub types' % len(media_sub_types)
+
+            # https://api.appnexus.com/creative-format
+            creative_formats = nexus_get_objects(token,
+                                                 {},
+                                                 CreativeFormat, False)
+            print 'There is %d creative media sub types' % len(creative_formats)
+
+            creative_templates = nexus_get_objects(token,
+                                                   {},
+                                                   CreativeTemplate, False)
+            print 'There is %d creative templates' % len(creative_templates)
+
+            for adv in advertisers:
+                advertiser_id = adv.id
+                # Get all creative folders
+                creative_folders = nexus_get_objects(
+                    token, {'advertiser_id': advertiser_id}, CreativeFolder, False)
+                print 'There is %d  creative folders' % len(creative_folders)
+
+            languages = nexus_get_objects(token,
+                                          {},
+                                          Language, False)
+            print 'There is %d languages ' % len(languages)
+
+            # with transaction.atomic():
+            nexus_get_objects(token,
+                              {},
+                              Creative, False)
+            brand_ids = set(Creative.objects.filter(brand_id__isnull=False) \
+                               .values_list('brand', flat=True).distinct())
+            exiting_brands = set(Brand.objects.values_list('id', flat=True))
+
+            print 'Creatives loaded'
+            ids_list = map(str,brand_ids-exiting_brands)
+            print 'Brand ids:', ids_list
+            brands = nexus_get_objects(token,
+                                       {},
+                                       Brand, True,
+                                       {'id':','.join(ids_list), 'simple':'true'})
+            print 'There is %d brands ' % len(brands)
+            profiles_ids = set(Creative.objects.filter(profile_id__isnull=False) \
+                               .values_list('profile', flat=True).distinct())
+            exiting_profiles = set(Profile.objects.values_list('id', flat=True))
+            profiles = nexus_get_objects(token,
+                                         {},
+                                         Profile, True,
+                                         {'id':','.join(map(str,profiles_ids-exiting_profiles))})
+            print 'There is %d new profiles'%len(profiles)
+            # end transaction
+            # Get all payment rules:
+            for pub in []:  # publishers: There is too many publishers, disable loading depended objects
+                payment_rules = nexus_get_objects(token,
+                                                  {'publisher': pub},
+                                                  PaymentRule, True,
+                                                  {'publisher_id': pub.pk})
+                print 'There is %d payment rules for publisher %s' % (len(payment_rules), pub.name)
+                print 'Ids:', ','.join(str(x.pk) for x in payment_rules)
+                quality_rules = nexus_get_objects(token,
+                                                  {'publisher': pub},
+                                                  AdQualityRule, True,
+                                                  {'publisher_id': pub.pk})
+                print 'There is %d quality rules for publisher %s' % (len(payment_rules), pub.name)
+                # Placement
+                # https://api.appnexus.com/placement?publisher_id=PUBLISHER_ID
+                placements = nexus_get_objects(token,
+                                               {'publisher': pub},
+                                               Placement, True,
+                                               {'publisher_id': pub.pk})
+                print 'There is %d placements for publisher %s' % (len(placements), pub.name)
+
+            # Get all users:
+            users = nexus_get_objects(token,
                                       {},
-                                      Country, False)
-        print 'There is %d  countries' % len(countries)
-        # Get all regions:
-        regions = nexus_get_objects(token,
-                                    {},
-                                    Region, False)
-        print 'There is %d  regions' % len(regions)
+                                      User, False)
+            print 'There is %d users ' % len(users)
+            # Get all platform members:
+            platform_members = nexus_get_objects(token,
+                                                 {},
+                                                 PlatformMember, False)
+            print 'There is %d platform members ' % len(platform_members)
+            # Get all deals:
+            deals = nexus_get_objects(token,
+                                      {},
+                                      Deal, False)
+            print 'There is %d deals ' % len(deals)
+            # Get all demographic areas:
+            demographic_areas = nexus_get_objects(token,
+                                                  {},
+                                                  DemographicArea, False)
+            print 'There is %d  demographic areas' % len(demographic_areas)
+            # Get all countries:
+            countries = nexus_get_objects(token,
+                                          {},
+                                          Country, False)
+            print 'There is %d  countries' % len(countries)
+            # Get all regions:
+            regions = nexus_get_objects(token,
+                                        {},
+                                        Region, False)
+            print 'There is %d  regions' % len(regions)
 
-        for adv in advertisers:
-            advertiser_id = adv.id
-            # Get all conversion pixels:
-            conversion_pixels = nexus_get_objects(
-                token, {'advertiser_id': advertiser_id}, ConversionPixel, False)
-            print 'There is %d  conversion pixels' % len(conversion_pixels)
-            # Get all of the insertion orders for one of your advertisers:
-            insert_order = nexus_get_objects(token,
-                                             {'advertiser_id': advertiser_id},
-                                             InsertionOrder, False)
-            print 'There is %d  insertion orders' % len(insert_order)
+            for adv in advertisers:
+                advertiser_id = adv.id
+                # Get all conversion pixels:
+                conversion_pixels = nexus_get_objects(
+                    token, {'advertiser_id': advertiser_id}, ConversionPixel, False)
+                print 'There is %d  conversion pixels' % len(conversion_pixels)
+                # Get all of the insertion orders for one of your advertisers:
+                insert_order = nexus_get_objects(token,
+                                                 {'advertiser_id': advertiser_id},
+                                                 InsertionOrder, False)
+                print 'There is %d  insertion orders' % len(insert_order)
 
-            # Get all of an advertiser's line items:
-            line_items = nexus_get_objects(token,
-                                           {'advertiser_id': advertiser_id},
-                                           LineItem, False)
-            print 'There is %d  line items' % len(line_items)
-            campaigns = nexus_get_objects(token,
-                                          {'advertiser_id': advertiser_id},
-                                          Campaign, False)
-            print 'There is %d campaigns ' % len(campaigns)
+                # Get all of an advertiser's line items:
+                line_items = nexus_get_objects(token,
+                                               {'advertiser_id': advertiser_id},
+                                               LineItem, False)
+                print 'There is %d  line items' % len(line_items)
+                campaigns = nexus_get_objects(token,
+                                              {'advertiser_id': advertiser_id},
+                                              Campaign, False)
+                print 'There is %d campaigns ' % len(campaigns)
 
     except Exception as e:
         print "There is error in load_depending_data:", e

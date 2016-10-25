@@ -1,9 +1,14 @@
 from models.placement_state import PlacementState as ModelPlacementState
 from django.conf import settings
+from datetime import datetime as datetimeS
+from rtb.cron import load_depending_data
 import json
 import requests
 import datetime
+from pytz import utc
+import pytz
 import utils
+import time
 
 
 class PlacementState:
@@ -90,7 +95,6 @@ class PlacementState:
         except:
             return None
 
-
     def change_state_placement(self):
         try:
             headers = {"Authorization": self.get_token(), 'Content-Type': 'application/json'}
@@ -104,3 +108,32 @@ class PlacementState:
             return updated_profile
         except:
             return None
+
+    # 4 - white / 2 - black / 1 - suspend
+    def suspend_state_middleware(self):
+        suspendState = ModelPlacementState.objects.filter(state=1)
+        if len(suspendState) < 1:
+            return None
+        toWhitelist = []
+        for oneState in suspendState:
+            now = datetime.datetime.now(pytz.timezone('UTC'))
+            if oneState.suspend < now:
+                oneState.state = 4
+                oneState.save()
+                headers = {"Authorization": self.get_token(), 'Content-Type': 'application/json'}
+                profile_id, advertiser_id = self.get_campaign_by_id(oneState.campaign_id)
+                platform_placement_targets = self.get_profile_by_id(profile_id)
+                if platform_placement_targets is None:
+                    updated_profile = self.update_profile_by_id(None, [oneState.placement_id], profile_id, advertiser_id)
+                else:
+                    updated_profile = self.update_profile_by_id(platform_placement_targets, [oneState.placement_id],
+                                                                profile_id, advertiser_id)
+                toWhitelist.append(str(oneState.placement_id) + ' to white ' + updated_profile)
+                print str(oneState.placement_id) + ' to white ' + updated_profile
+            else:
+                continue
+        return toWhitelist
+
+    def placement_targets_list(self):
+        load_depending_data(self.get_token(), True, False)
+        print "ssss"

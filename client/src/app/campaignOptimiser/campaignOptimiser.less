@@ -971,6 +971,7 @@ input {
   }
   label {
     position: absolute;
+    z-index: 1;
     padding-bottom: 2px;
 
   }
@@ -1018,22 +1019,38 @@ input {
 }
 
 .option1 {
-  width: 20px;
+  position: absolute;
+  top: 24px;
+  width: 80px;
+  height: 20px;
+  left: 2px;
 
 }
 
 .option2 {
-  width: 20px;
+  position: absolute;
+  top: 52px;
+  width: 80px;
+  height: 20px;
+  left: 2px;
 
 }
 
 .option3 {
-  width: 20px;
+  position: absolute;
+  top: 24px;
+  width: 80px;
+  height: 20px;
+  left: 83px;
 
 }
 
 .option4 {
-  width: 20px;
+  position: absolute;
+  top: 52px;
+  width: 80px;
+  height: 20px;
+  left: 83px;
 
 }
 
@@ -1059,20 +1076,57 @@ label {
 }
 
 }
-.RadioTime2 {
 
-  input {
-  opacity: 0;
-  z-index: 3;
-  cursor: pointer;
+.RadioTime1  .option1:checked + .lr-option-time {
+  box-shadow: 0 0 1px rgb(0, 0, 0), inset 1px 1px 1px #101010;
+  background-color: rgba(0, 210, 212, 0.63);
+  transform: scale(0.92);
+}
+.RadioTime1  .option2:checked + .lr1-option-time {
+  box-shadow: 0 0 1px rgb(0, 0, 0), inset 1px 1px 1px #101010;
+  background-color: rgba(0, 210, 212, 0.63);
+  transform: scale(0.92);
+}
+.RadioTime1  .option3:checked + .lr2-option-time {
+   box-shadow: 0 0 1px rgb(0, 0, 0), inset 1px 1px 1px #101010;
+   background-color: rgba(0, 210, 212, 0.63);
+   transform: scale(0.92);
+ }
+.RadioTime1  .option4:checked + .lr3-option-time {
+  box-shadow: 0 0 1px rgb(0, 0, 0), inset 1px 1px 1px #101010;
+  background-color: rgba(0, 210, 212, 0.63);
+  transform: scale(0.92);
 }
 
-label {
-  position: absolute;
-  padding-bottom: 2px;
-
+.RadioTime1  .option1:active + .lr-option-time {
+  box-shadow: 0 0 1px rgb(0, 0, 0), inset 1px 1px 1px #101010;
+  background-color: rgba(0, 210, 212, 0.63);
+  transform: scale(0.92);
+}
+.RadioTime1  .option2:active + .lr1-option-time {
+  box-shadow: 0 0 1px rgb(0, 0, 0), inset 1px 1px 1px #101010;
+  background-color: rgba(0, 210, 212, 0.63);
+  transform: scale(0.92);
+}
+.RadioTime1  .option3:active + .lr2-option-time {
+  box-shadow: 0 0 1px rgb(0, 0, 0), inset 1px 1px 1px #101010;
+  background-color: rgba(0, 210, 212, 0.63);
+  transform: scale(0.92);
+}
+.RadioTime1  .option4:active + .lr3-option-time {
+  box-shadow: 0 0 1px rgb(0, 0, 0), inset 1px 1px 1px #101010;
+  background-color: rgba(0, 210, 212, 0.63);
+  transform: scale(0.92);
 }
 
+.RadioTime2 .option_4:checked +.lr3-option-time_4{
+  background-color: rgba(0, 210, 212, 0.63);
+}
+
+.RadioTime2 .option_1:active +.lr-option-time_1{
+  box-shadow: 0 0 1px rgb(0, 0, 0), inset 1px 1px 1px #101010;
+  background-color: rgba(0, 210, 212, 0.63);
+  transform: scale(0.92);
 }
 
 .lr-option-time {
@@ -1114,6 +1168,137 @@ label {
   left: 85px;
   top: 55px;
 }
+.RadioTime2 {
+position: absolute;
+  width: 160px;
+  height: 80px;
+
+  input {
+    opacity: 0;
+    z-index: 3;
+    cursor: pointer;
+  }
+
+  label {
+    position: absolute;
+    padding-bottom: 2px;
+    z-index: 1;
+  }
+
+}
+.RadioTime2 .option_1:checked +.lr-option-time_1{
+  box-shadow: 0 0 1px rgb(0, 0, 0), inset 1px 1px 1px #101010;
+  background-color: rgba(0, 210, 212, 0.63);
+  transform: scale(0.92);
+}
+.RadioTime2 .option_2:checked +.lr1-option-time_2{
+  box-shadow: 0 0 1px rgb(0, 0, 0), inset 1px 1px 1px #101010;
+  background-color: rgba(0, 210, 212, 0.63);
+  transform: scale(0.92);
+}
+.RadioTime2 .option_3:checked +.lr2-option-time_3{
+  box-shadow: 0 0 1px rgb(0, 0, 0), inset 1px 1px 1px #101010;
+  background-color: rgba(0, 210, 212, 0.63);
+  transform: scale(0.92);
+}
+.RadioTime2 .option_4:checked +.lr3-option-time_4{
+  box-shadow: 0 0 1px rgb(0, 0, 0), inset 1px 1px 1px #101010;
+  background-color: rgba(0, 210, 212, 0.63);
+  transform: scale(0.92);
+}
+
+.RadioTime2 .option_1:active +.lr-option-time_1{
+  box-shadow: 0 0 1px rgb(0, 0, 0), inset 1px 1px 1px #101010;
+  background-color: rgba(0, 210, 212, 0.63);
+  transform: scale(0.92);
+}
+.RadioTime2 .option_2:active +.lr1-option-time_2{
+  box-shadow: 0 0 1px rgb(0, 0, 0), inset 1px 1px 1px #101010;
+  background-color: rgba(0, 210, 212, 0.63);
+  transform: scale(0.92);
+}
+.RadioTime2 .option_3:active +.lr2-option-time_3{
+  box-shadow: 0 0 1px rgb(0, 0, 0), inset 1px 1px 1px #101010;
+  background-color: rgba(0, 210, 212, 0.63);
+  transform: scale(0.92);
+}
+.RadioTime2 .option_4:active +.lr3-option-time_4{
+  box-shadow: 0 0 1px rgb(0, 0, 0), inset 1px 1px 1px #101010;
+  background-color: rgba(0, 210, 212, 0.63);
+  transform: scale(0.92);
+}
+.option_1{
+  position: absolute;
+  top: 28px;
+  width: 80px;
+  height: 20px;
+  left: 1px;
+}
+.option_2{
+  position: absolute;
+  top: 52px;
+  width: 80px;
+  height: 20px;
+  left: 1px;
+}
+.option_3{
+  position: absolute;
+  top: 28px;
+  width: 80px;
+  height: 20px;
+  left: 83px;
+}
+.option_4{
+  position: absolute;
+  top: 52px;
+  width: 80px;
+  height: 20px;
+  left: 83px;
+}
+.lr-option-time_1 {
+
+  border-radius: 5px;
+  position: absolute;
+  top: 30px;
+  height: 20px;
+  border: solid #858585 1px;
+  width: 80px;
+
+  left: 2px;
+
+}
+.lr1-option-time_2 {
+  border-radius: 5px;
+  position: absolute;
+  top: 55px;
+  width: 80px;
+  height: 20px;
+  border: solid #858585 1px;
+
+  left: 2px;
+}
+.lr2-option-time_3 {
+
+  border-radius: 5px;
+  position: absolute;
+  top:30px;
+  width: 80px;
+  height: 20px;
+  border: solid #858585 1px;
+
+  left: 83px;
+}
+.lr3-option-time_4 {
+
+  border-radius: 5px;
+  position: absolute;
+  top: 55px;
+  width: 80px;
+  height: 20px;
+  border: solid #858585 1px;
+
+  left: 83px;
+}
 
 .then .r-optionc:checked + .lr-option {
 
@@ -1122,12 +1307,16 @@ label {
 
 .then .r1-optionc:checked + .lr1-option {
 
+  box-shadow: 0 0 1px rgb(0, 0, 0), inset 1px 1px 1px #101010;
   background-color: rgba(0, 210, 212, 0.63);
+  transform: scale(0.92);
 }
 
 .then .r2-optionc:checked + .lr2-option {
 
+  box-shadow: 0 0 1px rgb(0, 0, 0), inset 1px 1px 1px #101010;
   background-color: rgba(0, 210, 212, 0.63);
+  transform: scale(0.92);
 }
 
 .then .r-optionc:active + .lr-option {
@@ -1241,29 +1430,23 @@ label {
 
 }
 
-.r2-optionc-little {
-  position: absolute;
-  width: 141px;
-  left: 12px;
-  top: 28px;
-  height: 31px;
 
-}
 
 .then-little .r-optionc-little:checked + .lr-option-little {
 
+  box-shadow: 0 0 1px rgb(0, 0, 0), inset 1px 1px 1px #101010;
   background-color: rgba(0, 210, 212, 0.63);
+  transform: scale(0.92);background-color: rgba(0, 210, 212, 0.63);
 }
 
 .then-little .r1-optionc-little:checked + .lr1-option-little {
 
+  box-shadow: 0 0 1px rgb(0, 0, 0), inset 1px 1px 1px #101010;
   background-color: rgba(0, 210, 212, 0.63);
+  transform: scale(0.92);
 }
 
-.then-little .r2-optionc-little:checked + .lr2-option-little {
 
-  background-color: rgba(0, 210, 212, 0.63);
-}
 
 .then-little .r-optionc-little:active + .lr-option-little {
 
@@ -1279,12 +1462,7 @@ label {
   transform: scale(0.85);
 }
 
-.then-little .r2-optionc-little:active + .lr2-option-little {
 
-  box-shadow: 0 0 1px rgb(0, 0, 0), inset 1px 1px 1px #101010;
-  background-color: rgba(0, 210, 212, 0.63);
-  transform: scale(0.92);
-}
 
 .DeleteRule {
   background-color: #d9534f;

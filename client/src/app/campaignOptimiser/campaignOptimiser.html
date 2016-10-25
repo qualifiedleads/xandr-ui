@@ -73,22 +73,22 @@
 
 
 
-          <div class="RadioTime1"   >Suspend:
-              <label class="lr-option-time" for="r2-option1">
-            <input type="radio"class="option1" id="r2-option1" ng-model="rules.then" value="1" ng-click="CO.checkTime(Index, rules)" >
-            24 hrs</label>
+          <div class="RadioTime1"  >   Suspend:
 
-            <label class="lr1-option-time" for="r2-option2">
-            <input type="radio"class="option2" id="r2-option2" ng-model="rules.then" value="2" ng-click="CO.checkTime(Index, rules)" >
-            3 days</label>
+            <input type="radio"class="option1" id="option1" ng-model="rules.then" value="1" ng-click="CO.checkTime(Index, rules)" >
+            <label class="lr-option-time" for="option1">24 hrs</label>
 
-            <label class="lr2-option-time" for="r2-option3">
-            <input type="radio"class="option3" id="r2-option3" ng-model="rules.then" value="3" ng-click="CO.checkTime(Index, rules)" >
-            7 days</label>
 
-            <label class="lr3-option-time" for="r2-option4">
-            <input type="radio"class="option4" id="r2-option4" ng-model="rules.then" value="4" ng-click="CO.checkTime(Index, rules)" >
-            Send </label>
+            <input type="radio"class="option2" id="option2" ng-model="rules.then" value="2" ng-click="CO.checkTime(Index, rules)" >
+            <label class="lr1-option-time" for="option2">3 days</label>
+
+
+            <input type="radio"class="option3" id="option3" ng-model="rules.then" value="3" ng-click="CO.checkTime(Index, rules)" >
+            <label class="lr2-option-time" for="option3">7 days</label>
+
+
+            <input type="radio"class="option4" id="option4" ng-model="rules.then" value="4" ng-click="CO.checkTime(Index, rules)" >
+            <label class="lr3-option-time" for="option4">manual </label>
 
             </div>
           <p class="TimeRule" ng-if="rules.time">Time:{{rules.time}}</p>
@@ -96,35 +96,35 @@
 
         <div class="then-little" ng-show="hideRules" >
 
-
           <input type="radio" class="r-optionc-little" ng-model="rules.then" id="r-option-little" value="Blacklist" ng-click="CO.checkTime(Index, rules)">
           <label class="lr-option-little" for="r-option-little"> Blacklist</label>
 
           <input type="radio"  class="r1-optionc-little" ng-model="rules.then" id="r1-option-little" value="Whitelist" ng-click="CO.checkTime(Index, rules)">
           <label class="lr1-option-little" for="r1-option-little"> Whitelist</label>
 
-<div class="RadioTime2">
-
- <label class="lr-option-time" for="r2-option1">
-            <input type="radio"class="option_1" id="r2-option_1" ng-model="rules.then" value="1" ng-click="CO.checkTime(Index, rules)" >
-            24 hrs</label>
-
-   <label class="lr1-option-time" for="r2-option2">
-             <input type="radio"class="option_2" id="r2-option_2" ng-model="rules.then" value="2 review" ng-click="CO.checkTime(Index, rules)" >
-            3 days</label>
-
-            <label class="lr2-option-time" for="r2-option_3">
-            <input type="radio"class="option_3" id="r2-option_3" ng-model="rules.then" value="3" ng-click="CO.checkTime(Index, rules)" >
-            7 days</label>
-
-            <label class="lr3-option-time" for="r2-option_4">
-             <input type="radio"class="option_4" id="r2-option_4" ng-model="rules.then" value="3" ng-click="CO.checkTime(Index, rules)" >
-            Send </label>
+          <div class="RadioTime2">
 
 
+              <input type="radio" class="option_1" id="r2-option_1" ng-model="rules.then" value="1"
+                     ng-click="CO.checkTime(Index, rules)">
+            <label class="lr-option-time_1" for="r2-option_1">24 hrs</label>
 
 
-  </div>
+              <input type="radio" class="option_2" id="r2-option_2" ng-model="rules.then" value="2 review"
+                     ng-click="CO.checkTime(Index, rules)">
+            <label class="lr1-option-time_2" for="r2-option_2"> 3 days</label>
+
+
+              <input type="radio" class="option_3" id="r2-option_3" ng-model="rules.then" value="3"
+                     ng-click="CO.checkTime(Index, rules)">
+            <label class="lr2-option-time_3" for="r2-option_3">7 days</label>
+
+
+              <input type="radio" class="option_4" id="r2-option_4" ng-model="rules.then" value="4"
+                     ng-click="CO.checkTime(Index, rules)">
+            <label class="lr3-option-time_4" for="r2-option_4"> manual </label>
+
+          </div>
 
           <p class="TimeRule1" ng-if="rules.time">Time:{{rules.time}}</p>
 

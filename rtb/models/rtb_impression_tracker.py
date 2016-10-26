@@ -38,9 +38,18 @@ class RtbImpressionTracker(models.Model):
 class RtbImpressionTrackerPlacement(models.Model):
 
     id = models.AutoField(primary_key=True)
-    placement = models.IntegerField(null=True, blank=True)
-    domain = models.TextField(null=True, blank=True)
+    placement = models.ForeignKey("Placement", db_constraint=False, on_delete = models.DO_NOTHING)
+    domain = models.TextField(null=True, blank=True, db_index=True)
 
     class Meta:
         db_table = "rtb_impression_tracker_placement"
+        unique_together = (('placement', 'domain'),)
 
+class RtbImpressionTrackerPlacementDomain(models.Model):
+
+    id = models.AutoField(primary_key=True)
+    placement = models.ForeignKey("Placement", db_constraint=False, on_delete = models.DO_NOTHING, unique=True)
+    domain = models.TextField(null=True, blank=True, db_index=True)
+
+    class Meta:
+        db_table = "rtb_impression_tracker_placement_domain"

@@ -1,14 +1,12 @@
 from models.placement_state import PlacementState as ModelPlacementState
 from django.conf import settings
-from datetime import datetime as datetimeS
+from models.models import Campaign, Profile
 from rtb.cron import load_depending_data
 import json
 import requests
 import datetime
-from pytz import utc
 import pytz
 import utils
-import time
 
 
 class PlacementState:
@@ -134,6 +132,47 @@ class PlacementState:
                 continue
         return toWhitelist
 
+    def remove_placement_from_targets_list(self):
+        try:
+            headers = {"Authorization": self.get_token(), 'Content-Type': 'application/json'}
+            profile_id, advertiser_id = self.get_campaign_by_id(self.campaign_id)
+            platform_placement_targets = self.get_profile_by_id(profile_id)
+            if platform_placement_targets is None:
+                return None
+            else:
+                for target in platform_placement_targets:
+                    if target['id'] == self.placement_id[0]:
+                        platform_placement_targets.remove(target)
+                        print 'target.id'
+                url = self.__appnexus_url + 'profile?id={0}&advertiser_id={1}'.format(profile_id, advertiser_id)
+                headers = {"Authorization": self.get_token(), 'Content-Type': 'application/json'}
+                data = json.dumps({
+                    "profile":
+                        {
+                            "platform_placement_targets": platform_placement_targets
+                        }
+                })
+                try:
+                    changeState = json.loads(requests.put(url, data=data, headers=headers).content)
+                except:
+                    return None
+                if changeState['response']['status'] == 'OK':
+                    ModelPlacementState.objects.filter(placement_id=self.placement_id[0]).delete()
+                else:
+                    return None
+            if changeState['response']['status'] == 'OK':
+                print changeState['response']['status']
+            return changeState['response']['status']
+        except:
+            return None
+
+
     def placement_targets_list(self):
-        load_depending_data(self.get_token(), True, False)
-        print "ssss"
+        # if load_depending_data(self.get_token(), True, False):
+        #     print "ssss"
+        #
+        # else:
+        #     return None
+        allProfile = Campaign.objects.filter(state='active').select_related('Profile')
+        for profile in allProfile:
+            print allProfile[0]

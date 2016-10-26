@@ -12,11 +12,14 @@ import itertools
 import datetime
 from pytz import utc
 import filter_func
-from models.ml_kmeans_model import MLPlacementDailyFeatures, MLClustersCentroidsKmeans, MLPlacementsClustersKmeans
-from rtb.ml_learn_kmeans import mlPredictKmeans,mlGetPlacementInfoKmeans
+from models.ml_kmeans_model import MLPlacementDailyFeatures, MLClustersCentroidsKmeans, MLPlacementsClustersKmeans, \
+MLExpertsPlacementsMarks
+from rtb.ml_learn_kmeans import mlGetPlacementInfoKmeans, mlGetGoodClusters, mlGetTestNumber
 from models.placement_state import PlacementState
 from rtb.placement_state import PlacementState as PlacementStateClass
 from rest_framework import status
+import time
+from models.rtb_impression_tracker import RtbImpressionTrackerPlacement, RtbImpressionTrackerPlacementDomain
 
 import bisect
 from django.contrib.auth.decorators import login_required, user_passes_test
@@ -223,29 +226,11 @@ def get_campaign_placement(campaign_id, from_date, to_date):
                 x['state'] = state.state
             else:
                 x['state'] = 0
-
-            mlAnswer = mlGetPlacementInfoKmeans(x['placement'], False)
-
-            if mlAnswer == -1 or mlAnswer == -2:
-                x['analitics'] = ({  # for one object
-                    "good": mlAnswer,
-                    "bad": mlAnswer,
-                    "checked": mlAnswer
-                })
-                continue
-
-            if str(wholeWeekInd) not in mlAnswer:  # for one object
-                x['analitics'] = ({
-                    "good": -3,
-                    "bad": -3,
-                    "checked": -3
-                })
-            else:
-                x['analitics'] = ({
-                    "good": mlAnswer[str(wholeWeekInd)]['good'],
-                    "bad": mlAnswer[str(wholeWeekInd)]['bad'],
-                    "checked": mlAnswer[str(wholeWeekInd)]['checked']
-                })
+            #x["analitics"] = []
+            #x["analitics"].append(mlFillPredictionAnswer(x["placement"], False, "kmeans", "ctr_cvr_cpc_cpm_cpa"))
+            x["analitics"] = mlFillPredictionAnswer(x["placement"], False, "kmeans", "ctr_cvr_cpc_cpm_cpa")
+            #x["analitics1"] = mlFillPredictionAnswer(x["placement"], False, "log" , "ctr_cvr_cpc_cpm_cpa")
+            x["allDomains"], x["domain"] = getPlacementDomain(x["placement"])
         return res
     # no cache hit
     from_date = datetime.datetime(from_date.year, from_date.month, from_date.day, tzinfo=utc)
@@ -281,28 +266,11 @@ def get_campaign_placement(campaign_id, from_date, to_date):
             x['state'] = state.state
         else:
             x['state'] = 0
-        mlAnswer = mlGetPlacementInfoKmeans(x['placement'], False)
-        if mlAnswer == -1 or mlAnswer == -2:
-            x['analitics'] = ({#for one object
-                "good": mlAnswer,
-                "bad": mlAnswer,
-                "checked": mlAnswer
-            })
-            x.pop('placementState', None)
-            continue
-
-        if str(wholeWeekInd) not in mlAnswer:  #for one object
-            x['analitics'] = ({
-                "good": -3,
-                "bad": -3,
-                "checked": -3
-            })
-        else:
-            x['analitics'] = ({
-                "good": mlAnswer[str(wholeWeekInd)]['good'],
-                "bad": mlAnswer[str(wholeWeekInd)]['bad'],
-                "checked": mlAnswer[str(wholeWeekInd)]['checked']
-            })
+        #x["analitics"] = []
+        #x["analitics"].append(mlFillPredictionAnswer(x["placement"], False, "kmeans", "ctr_cvr_cpc_cpm_cpa"))
+        x["analitics"] = mlFillPredictionAnswer(x["placement"], False, "kmeans", "ctr_cvr_cpc_cpm_cpa")
+        #x["analitics1"] = mlFillPredictionAnswer(x["placement"], False, "log", "ctr_cvr_cpc_cpm_cpa")
+        x["allDomains"], x["domain"] = getPlacementDomain(x["placement"])
         x.pop('placementState', None)
 
 
@@ -603,68 +571,161 @@ GET: diagramms for week for a placement
 
 def mlApiWeeklyPlacementRecignition(request):
     placement_id = request.GET.get("placementId")
-    mlAnswer = mlGetPlacementInfoKmeans(placement_id, True)#get data from recognition database
-    res = {}
-    res['analitics'] = []
-    if mlAnswer == -1 or mlAnswer == -2:#error with data in database
-        for weekday in xrange(8):  # for all week, 8 - quantity of weekdays+whole week in mlAnswer
-            res['analitics'].append({
-                "day": weekday,
+    test_name = request.GET.get("test_name")
+    test_type = request.GET.get("test_type")
+    res = mlFillPredictionAnswer(placement_id, True, test_type, test_name)
+    return Response(res)
+
+def mlApiSaveExpertDecision(request):
+    placement_id = request.GET.get("placementId")
+    checked = request.GET.get("checked")
+    test_type = request.GET.get("test_type")
+    test_name = request.GET.get("test_name")
+    day = request.GET.get("day")
+
+    goodClusters = mlGetGoodClusters(test_name)
+
+    test_number = mlGetTestNumber(test_type, test_name)
+    if test_type == "kmeans":
+        placementInfo = MLPlacementsClustersKmeans.objects.filter(
+            placement_id=placement_id,
+            day=day
+        )
+        if test_type == "log":
+            pass #get info about
+
+    decision = None
+    if placementInfo.cluster == goodClusters[day]:
+        if checked == True:
+            decision = "good"
+        else:
+            decision = "bad"
+    else:
+        if checked == True:
+            decision = "bad"
+        else:
+            decision = "good"
+    expertMarkRecord = MLExpertsPlacementsMarks(
+        placement_id=placement_id,
+        day=day,
+        expert_decision=decision,
+        date=time.strftime("%Y-%m-%d")
+    )
+    try:
+        tempQuery = MLExpertsPlacementsMarks.objects.filter(
+            placement_id=placement_id,
+            day=day
+        )
+        if not tempQuery:
+            expertMarkRecord.save()
+        else:
+            tempQuery.update(
+                expert_decision=decision,
+                date=time.strftime("%Y-%m-%d")
+            )
+    except Exception, e:
+        print "Can't save expert mark. Error: " + str(e)
+
+    try:
+        placementInfo.update(expert_decision=checked)
+    except Exception, e:
+        print "Can't save expert decision. Error: " + str(e)
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+
+    res = mlFillPredictionAnswer(placement_id, False, test_type, test_name)#RETURN ONE DAYWEEK?
+    return Response(res)
+
+def mlFillPredictionAnswer(placement_id = 1, flagAllWeek = False, test_type = "kmeans", test_name = "ctr_viewrate"):
+    mlAnswer = mlGetPlacementInfoKmeans(placement_id, flagAllWeek, test_type, test_name)
+
+    if flagAllWeek == False:
+        wholeWeekInd = 7
+        if mlAnswer == -1 or mlAnswer == -2:
+            res = ({  # for one object
                 "good": mlAnswer,
                 "bad": mlAnswer,
                 "checked": mlAnswer
             })
-        return Response(res)
+            return res
 
-    for weekday in xrange(8):  # 8 - quantity of weekdays+whole week in mlAnswer
-        if str(weekday) not in mlAnswer:  # for array
-            res['analitics'].append({
-                "day": weekday,
+        if str(wholeWeekInd) not in mlAnswer:  # for one object
+            res = ({
                 "good": -3,
                 "bad": -3,
                 "checked": -3
             })
         else:
-            res['analitics'].append({
-                "day": weekday,
-                "good": mlAnswer[str(weekday)]['good'],  # mlAnswer[str(weekday)]['good']
-                "bad": mlAnswer[str(weekday)]['bad'],  # mlAnswer[str(weekday)]['bad']
-                "checked": mlAnswer[str(weekday)]['checked']
+            res = ({
+                "good": mlAnswer[str(wholeWeekInd)]['good'],
+                "bad": mlAnswer[str(wholeWeekInd)]['bad'],
+                "checked": mlAnswer[str(wholeWeekInd)]['checked']
             })
-    return Response(res)
-
-def mlApiSaveExpertDecision(request):
-    placement_id = request.data.get("placementId")
-    checked = request.data.get("checked")
-    try:
-        MLPlacementsClustersKmeans.objects.filter(placement_id=placement_id).update(expert_decision=checked)
-    except Exception, e:
-        print "Can't save expert decision. Error: " + str(e)
-        return Response(status=status.HTTP_400_BAD_REQUEST)
-
-    mlAnswer = mlGetPlacementInfoKmeans(placement_id, False)
-    wholeWeekInd = 7
-    res = {}
-    if mlAnswer == -1 or mlAnswer == -2:
-        res['analitics'] = ({  # for one object
-            "good": mlAnswer,
-            "bad": mlAnswer,
-            "checked": mlAnswer
-        })
-
-    if str(wholeWeekInd) not in mlAnswer:  # for one object
-        res['analitics'] = ({
-            "good": -3,
-            "bad": -3,
-            "checked": -3
-        })
+        return res
     else:
-        res['analitics'] = ({
-            "good": mlAnswer[str(wholeWeekInd)]['good'],  # mlAnswer[str(weekday)]['good']
-            "bad": mlAnswer[str(wholeWeekInd)]['bad'],  # mlAnswer[str(weekday)]['bad']
-            "checked": mlAnswer[str(wholeWeekInd)]['checked']
-        })
+        mlAnswer = mlGetPlacementInfoKmeans(placement_id, True, test_type, test_name)  # get data from recognition database
+        res = []
+        if mlAnswer == -1 or mlAnswer == -2:  # error with data in database
+            for weekday in xrange(8):  # for all week, 8 - quantity of weekdays+whole week in mlAnswer
+                res.append({
+                    "day": weekday,
+                    "good": mlAnswer,
+                    "bad": mlAnswer,
+                    "checked": mlAnswer
+                })
+            return res
+
+        for weekday in xrange(8):  # 8 - quantity of weekdays+whole week in mlAnswer
+            if str(weekday) not in mlAnswer:  # for array
+                res.append({
+                    "day": weekday,
+                    "good": -3,
+                    "bad": -3,
+                    "checked": -3
+                })
+            else:
+                res.append({
+                    "day": weekday,
+                    "good": mlAnswer[str(weekday)]['good'],
+                    "bad": mlAnswer[str(weekday)]['bad'],
+                    "checked": mlAnswer[str(weekday)]['checked']
+                })
+    return res
+
+@api_view(["GET"])
+@check_user_advertiser_permissions(campaign_id_num=0)
+def mlApiSendRandomTestSet(request):
+    res = {}
+    res["wtf"] = 3
     return Response(res)
+    # getting test samples for model testing
+    pass
+
+@api_view(["GET"])
+@check_user_advertiser_permissions(campaign_id_num=0)
+def mlApiSaveExpertPlacementMark(request):
+    placement_id = request.data.get("placementId")
+    day = request.data.get("day")
+    decision = request.data.get("decision")
+    expertMarkRecord = MLExpertsPlacementsMarks(
+        placement_id=placement_id,
+        day=day,
+        expert_decision=decision,
+        date=time.strftime("%Y-%m-%d")#GET MARK DATE
+    )
+    try:
+        tempQuery = MLExpertsPlacementsMarks.objects.filter(
+            placement_id=placement_id,
+            day=day
+        )
+        if not tempQuery:
+            expertMarkRecord.save()
+        else:
+            tempQuery.update(
+                expert_decision=decision,
+                date=time.strftime("%Y-%m-%d")# GET MARK DATE
+            )
+    except Exception, e:
+        print "Can't save expert mark. Error: " + str(e)
 
 
 @api_view(['POST'])
@@ -691,6 +752,20 @@ def changeState(request, campaignId):
         date = None
 
     listObj = []
+
+    if len(placementId) == 1:
+        try:
+            state_obj = PlacementState.objects.get(placement_id=placementId[0])
+            state = state_obj.state
+        except:
+            state = 0
+
+        if state == activeState:
+            state = PlacementStateClass(campaignId, placementId)  # , 7043341
+            result = state.remove_placement_from_targets_list()
+            print (campaignId, placementId, result)
+            return Response('Unactive')
+
     for i, placement in enumerate(placementId):
         obj, created = PlacementState.objects.update_or_create(campaign_id=campaignId,
                                                                placement_id=placement,
@@ -711,3 +786,28 @@ def changeState(request, campaignId):
     print (campaignId, placementId, result)
 
     return Response(listObj)
+
+def getPlacementDomain(placementId):
+    domains = RtbImpressionTrackerPlacement.objects.filter(placement_id=placementId)
+    if not domains:
+        return "", ""
+    allDomains = ""
+    for row in domains:
+        if row.domain != "null":
+            allDomains += (str(row.domain) + "; ")
+    if allDomains != "":
+        allDomains = allDomains[:-2]
+    domain = RtbImpressionTrackerPlacementDomain.objects.filter(placement_id=placementId)
+    domain = domain[0].domain
+    return allDomains, domain
+
+#@api_view(["GET"])
+#@check_user_advertiser_permissions(campaign_id_num=0)
+# def mlCalcAUC(request):
+#     placementsIds = request.data.get("placementIds")
+#     test_type = request.data.get("test_type")
+#     test_name = request.data.get("test_name")
+#     rocSensetivities, rocFalsePositivesRates = mlBuildROC(placementsIds, test_type, test_name)
+#
+#     for i in xrange(len(rocFalsePositivesRates)):
+#         pass

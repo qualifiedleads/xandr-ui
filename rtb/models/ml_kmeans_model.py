@@ -66,3 +66,13 @@ class MLNormalizationData(models.Model):
     class Meta:
         db_table = "ml_normalization_data"
         unique_together = (('test_number', 'day'),)
+
+class MLExpertsPlacementsMarks(models.Model):
+    id = models.AutoField(primary_key=True)
+    placement = models.ForeignKey("Placement", db_constraint=False, on_delete = models.DO_NOTHING)
+    day = models.IntegerField(db_index=True)
+    expert_decision = models.TextField(db_index=True)
+    date = models.DateField()
+
+    class Meta:
+        db_table = "ml_experts_placements_marks"

@@ -14,6 +14,7 @@
     var ruleSuspend = false;
     var ruleTimePopUp = '';
     var ruleIndexPopUp = '';
+    var oneSuspend = false;
 
     vm.campName = Campaign.campaign;
     vm.campId = Campaign.id;
@@ -364,6 +365,8 @@
         text: 'OK',
         disabled: false,
         onClick: function () {
+          oneSuspend=true;
+
           var suspendPlacement;
           var radioGroupMain = $('#radioGroupMain').dxRadioGroup('instance');
           var radioGroupSend = $('#radioGroupSend').dxRadioGroup('instance');
@@ -407,7 +410,7 @@
             s.removeClass('active');
           }
           CampaignOptimiser.editCampaignDomains(vm.campId, tempSespendRow.placement, 1, suspendPlacement)
-            .then(function () {
+            .then(function (res) {
               for (var i =0; i<tempSespendRow.placement.length; i++) {
                 var b = $window.$('div.state-black'+ tempSespendRow.placement[i]);
                 var w =$window.$('div.state-white'+ tempSespendRow.placement[i]);
@@ -415,7 +418,10 @@
                 w.dxButton('instance').option('disabled',false);
                 b.dxButton('instance').option('disabled',false);
                 s.dxButton('instance').option('disabled',false);
-                s.addClass('active');
+                if (res !== 'Unactive') {
+                  s.addClass('active');
+                }
+                oneSuspend=false;
               }
             });
 
@@ -428,9 +434,7 @@
         width: 120,
         text: LC('COMMON.CANCEL'),
         onClick: function () {
-          /*          tempSespendRow = null;
-           dataSuspend = null;*/
-          //vm.confirmPopupVisible = false;
+          oneSuspend=false;
           vm.confirmPopup.option('visible', false);
           $scope.$apply();
         }
@@ -795,7 +799,9 @@
                       w.dxButton('instance').option('disabled',false);
                       b.dxButton('instance').option('disabled',false);
                       s.dxButton('instance').option('disabled',false);
-                      w.addClass('active');
+                      if (res !== 'Unactive') {
+                        w.addClass('active');
+                      }
                       return res;
                     })
                     .catch(function (err) {
@@ -831,7 +837,10 @@
                       w.dxButton('instance').option('disabled',false);
                       b.dxButton('instance').option('disabled',false);
                       s.dxButton('instance').option('disabled',false);
-                      b.addClass('active');
+                      if (res !== 'Unactive') {
+                        b.addClass('active');
+                      }
+
                       return res;
                     })
                     .catch(function (err) {
@@ -853,6 +862,10 @@
                 width: 95,
                 disabled: false,
                 onClick: function () {
+                  if (oneSuspend==true) {
+                    $window.DevExpress.ui.notify("Wait please", "warning", 4000);
+                    return 0;
+                  }
                   tempSespendRow.placement = [options.data.placement];
                   tempSespendRow.suspend = 1;
                   vm.confirmPopup.option('visible', true);

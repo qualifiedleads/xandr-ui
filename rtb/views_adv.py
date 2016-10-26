@@ -221,6 +221,11 @@ def get_campaign_placement(campaign_id, from_date, to_date):
 
     if res:
         for x in res:
+            if PlacementState.objects.filter(campaign_id=campaign_id, placement_id=x['placement']):
+                state = list(PlacementState.objects.filter(campaign_id=campaign_id, placement_id=x['placement']))[0]
+                x['state'] = state.state
+            else:
+                x['state'] = 0
             #x["analitics"] = []
             #x["analitics"].append(mlFillPredictionAnswer(x["placement"], False, "kmeans", "ctr_cvr_cpc_cpm_cpa"))
             x["analitics"] = mlFillPredictionAnswer(x["placement"], False, "kmeans", "ctr_cvr_cpc_cpm_cpa")
@@ -747,6 +752,20 @@ def changeState(request, campaignId):
         date = None
 
     listObj = []
+
+    if len(placementId) == 1:
+        try:
+            state_obj = PlacementState.objects.get(placement_id=placementId[0])
+            state = state_obj.state
+        except:
+            state = 0
+
+        if state == activeState:
+            state = PlacementStateClass(campaignId, placementId)  # , 7043341
+            result = state.remove_placement_from_targets_list()
+            print (campaignId, placementId, result)
+            return Response('Unactive')
+
     for i, placement in enumerate(placementId):
         obj, created = PlacementState.objects.update_or_create(campaign_id=campaignId,
                                                                placement_id=placement,

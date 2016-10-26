@@ -4,7 +4,7 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from rest_framework import routers
 
-from . import views, views_rest, views_adv, views_user, ml_auc
+from . import views, views_rest, views_adv, views_user
 
 
 router = routers.DefaultRouter()
@@ -31,7 +31,7 @@ urlpatterns = [
     url(r'^campaigns/(\d+)/MLPlacement', views_adv.mlApiAnalitics),
     url(r'^MLRandomTestSet', views_adv.mlApiSendRandomTestSet),
     url(r'^MLExpertMark', views_adv.mlApiSaveExpertPlacementMark),
-    url(r'^MLGetAUC', views_adv.mlCalcAUC),
+    #url(r'^MLGetAUC', views_adv.mlCalcAUC),
     url(r'^campaigns/(\d+)/changestate', views_adv.changeState),
     url(r'^campaigns/(\d+)$', views_adv.singleCampaign),
     url(r'^campaigns', views.campaigns),

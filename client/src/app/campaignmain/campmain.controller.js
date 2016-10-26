@@ -770,12 +770,28 @@
             suspendPlacement = $window.moment().add(1, 'day').unix();
           }
 
+          for (var i =0; i<tempSespendRow.placement.length; i++) {
+            var w = $window.$('div.state-white'+ tempSespendRow.placement[i]);
+            var b = $window.$('div.state-black'+ tempSespendRow.placement[i]);
+            var s = $window.$('div.state-suspended'+ tempSespendRow.placement[i]);
+            w.dxButton('instance').option('disabled',true);
+            b.dxButton('instance').option('disabled',true);
+            s.dxButton('instance').option('disabled',true);
+            w.removeClass('active');
+            b.removeClass('active');
+            s.removeClass('active');
+          }
+
           CampMain.editCampaignDomains(vm.campId, tempSespendRow.placement, 1, suspendPlacement)
             .then(function () {
               for (var i =0; i<tempSespendRow.placement.length; i++) {
-                $window.$('div.state-black'+ tempSespendRow.placement[i]).removeClass('active');
-                $window.$('div.state-white'+ tempSespendRow.placement[i]).removeClass('active');
-                $window.$('div.state-suspended'+ tempSespendRow.placement[i]).addClass('active');
+                var b = $window.$('div.state-black'+ tempSespendRow.placement[i]);
+                var w =$window.$('div.state-white'+ tempSespendRow.placement[i]);
+                var s = $window.$('div.state-suspended'+ tempSespendRow.placement[i]);
+                w.dxButton('instance').option('disabled',false);
+                b.dxButton('instance').option('disabled',false);
+                s.dxButton('instance').option('disabled',false);
+                s.addClass('active');
               }
             });
 
@@ -1047,11 +1063,21 @@
               width: 89,
               disabled: false,
               onClick: function (e) {
+                var w = $window.$('div.state-white'+ options.data.placement);
+                var b = $window.$('div.state-black'+ options.data.placement);
+                var s = $window.$('div.state-suspended'+ options.data.placement);
+                w.dxButton('instance').option('disabled',true);
+                b.dxButton('instance').option('disabled',true);
+                s.dxButton('instance').option('disabled',true);
+                w.removeClass('active');
+                b.removeClass('active');
+                s.removeClass('active');
                 CampMain.editCampaignDomains(vm.campId, [options.data.placement], 4)
                   .then(function (res) {
-                    $window.$('div.state-white'+ options.data.placement).addClass('active');
-                    $window.$('div.state-black'+ options.data.placement).removeClass('active');
-                    $window.$('div.state-suspended'+ options.data.placement).removeClass('active');
+                      w.dxButton('instance').option('disabled',false);
+                      b.dxButton('instance').option('disabled',false);
+                      s.dxButton('instance').option('disabled',false);
+                      w.addClass('active');
                     return res;
                   })
                   .catch(function (err) {
@@ -1073,12 +1099,21 @@
               width: 89,
               disabled: false,
               onClick: function (e) {
+                var w = $window.$('div.state-white'+ options.data.placement);
+                var b = $window.$('div.state-black'+ options.data.placement);
+                var s = $window.$('div.state-suspended'+ options.data.placement);
+                w.dxButton('instance').option('disabled',true);
+                b.dxButton('instance').option('disabled',true);
+                s.dxButton('instance').option('disabled',true);
+                w.removeClass('active');
+                b.removeClass('active');
+                s.removeClass('active');
                 CampMain.editCampaignDomains(vm.campId, [options.data.placement], 2)
                   .then(function (res) {
-                    $window.$('div.state-black'+ options.data.placement).addClass('active');
-                    $window.$('div.state-white'+ options.data.placement).removeClass('active');
-                    $window.$('div.state-suspended'+ options.data.placement).removeClass('active');
-
+                    w.dxButton('instance').option('disabled',false);
+                    b.dxButton('instance').option('disabled',false);
+                    s.dxButton('instance').option('disabled',false);
+                    b.addClass('active');
                     return res;
                   })
                   .catch(function (err) {

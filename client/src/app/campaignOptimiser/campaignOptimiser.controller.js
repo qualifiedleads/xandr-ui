@@ -14,6 +14,7 @@
     var ruleSuspend = false;
     var ruleTimePopUp = '';
     var ruleIndexPopUp = '';
+    var oneSuspend = false;
 
     vm.campName = Campaign.campaign;
     vm.campId = Campaign.id;
@@ -39,6 +40,7 @@
         vm.confirmPopup.option('visible', true);
       } else {
         delete rules.time;
+        delete rules.timeString;
       }
     }
 
@@ -363,45 +365,8 @@
         text: 'OK',
         disabled: false,
         onClick: function () {
-          if (ruleSuspend == true) {
-            var radioGroupMain = $('#radioGroupMain').dxRadioGroup('instance');
-            var radioGroupSend = $('#radioGroupSend').dxRadioGroup('instance');
+          oneSuspend=true;
 
-            if (radioGroupMain._options.value !== false) {
-              if (radioGroupMain._options.value == LC('CO.24-HRS')) {
-                ruleTimePopUp = $window.moment().add(1, 'day').unix();
-              }
-
-              if (radioGroupMain._options.value == LC('CO.3-DAYS')) {
-                ruleTimePopUp = $window.moment().add(3, 'day').unix();
-              }
-
-              if (radioGroupMain._options.value == LC('CO.7-DAYS')) {
-                ruleTimePopUp = $window.moment().add(7, 'day').unix();
-              }
-
-            }
-
-            if (radioGroupSend._options.value !== false) {
-              ruleTimePopUp = "unlimited";
-            }
-
-            if (dataSuspend !== null) {
-              ruleTimePopUp = $window.moment(dataSuspend).unix();
-            }
-
-            if ((radioGroupSend._options.value == null) && (radioGroupMain._options.value == LC('CO.24-HRS'))) {
-              ruleTimePopUp = $window.moment().add(1, 'day').unix();
-            }
-
-            vm.rulesArray[ruleIndexPopUp].time = ruleTimePopUp;
-
-            ruleSuspend = false;
-            vm.confirmPopupVisible = false;
-            vm.confirmPopup.option('visible', false);
-            $scope.$apply();
-            return 0
-          }
           var suspendPlacement;
           var radioGroupMain = $('#radioGroupMain').dxRadioGroup('instance');
           var radioGroupSend = $('#radioGroupSend').dxRadioGroup('instance');
@@ -433,12 +398,30 @@
             suspendPlacement = $window.moment().add(1, 'day').unix();
           }
 
+          for (var i =0; i<tempSespendRow.placement.length; i++) {
+            var w = $window.$('div.state-white'+ tempSespendRow.placement[i]);
+            var b = $window.$('div.state-black'+ tempSespendRow.placement[i]);
+            var s = $window.$('div.state-suspended'+ tempSespendRow.placement[i]);
+            w.dxButton('instance').option('disabled',true);
+            b.dxButton('instance').option('disabled',true);
+            s.dxButton('instance').option('disabled',true);
+            w.removeClass('active');
+            b.removeClass('active');
+            s.removeClass('active');
+          }
           CampaignOptimiser.editCampaignDomains(vm.campId, tempSespendRow.placement, 1, suspendPlacement)
-            .then(function () {
+            .then(function (res) {
               for (var i =0; i<tempSespendRow.placement.length; i++) {
-                $window.$('div.state-black'+ tempSespendRow.placement[i]).removeClass('active');
-                $window.$('div.state-white'+ tempSespendRow.placement[i]).removeClass('active');
-                $window.$('div.state-suspended'+ tempSespendRow.placement[i]).addClass('active');
+                var b = $window.$('div.state-black'+ tempSespendRow.placement[i]);
+                var w =$window.$('div.state-white'+ tempSespendRow.placement[i]);
+                var s = $window.$('div.state-suspended'+ tempSespendRow.placement[i]);
+                w.dxButton('instance').option('disabled',false);
+                b.dxButton('instance').option('disabled',false);
+                s.dxButton('instance').option('disabled',false);
+                if (res !== 'Unactive') {
+                  s.addClass('active');
+                }
+                oneSuspend=false;
               }
             });
 
@@ -451,9 +434,7 @@
         width: 120,
         text: LC('COMMON.CANCEL'),
         onClick: function () {
-          /*          tempSespendRow = null;
-           dataSuspend = null;*/
-          //vm.confirmPopupVisible = false;
+          oneSuspend=false;
           vm.confirmPopup.option('visible', false);
           $scope.$apply();
         }
@@ -804,11 +785,23 @@
                 width: 89,
                 disabled: false,
                 onClick: function (e) {
+                  var w = $window.$('div.state-white'+ options.data.placement);
+                  var b = $window.$('div.state-black'+ options.data.placement);
+                  var s = $window.$('div.state-suspended'+ options.data.placement);
+                  w.dxButton('instance').option('disabled',true);
+                  b.dxButton('instance').option('disabled',true);
+                  s.dxButton('instance').option('disabled',true);
+                  w.removeClass('active');
+                  b.removeClass('active');
+                  s.removeClass('active');
                   CampaignOptimiser.editCampaignDomains(vm.campId, [options.data.placement], 4)
                     .then(function (res) {
-                      $window.$('div.state-white'+ options.data.placement).addClass('active');
-                      $window.$('div.state-black'+ options.data.placement).removeClass('active');
-                      $window.$('div.state-suspended'+ options.data.placement).removeClass('active');
+                      w.dxButton('instance').option('disabled',false);
+                      b.dxButton('instance').option('disabled',false);
+                      s.dxButton('instance').option('disabled',false);
+                      if (res !== 'Unactive') {
+                        w.addClass('active');
+                      }
                       return res;
                     })
                     .catch(function (err) {
@@ -830,11 +823,23 @@
                 width: 89,
                 disabled: false,
                 onClick: function (e) {
+                  var w = $window.$('div.state-white'+ options.data.placement);
+                  var b = $window.$('div.state-black'+ options.data.placement);
+                  var s = $window.$('div.state-suspended'+ options.data.placement);
+                  w.dxButton('instance').option('disabled',true);
+                  b.dxButton('instance').option('disabled',true);
+                  s.dxButton('instance').option('disabled',true);
+                  w.removeClass('active');
+                  b.removeClass('active');
+                  s.removeClass('active');
                   CampaignOptimiser.editCampaignDomains(vm.campId, [options.data.placement], 2)
                     .then(function (res) {
-                      $window.$('div.state-black'+ options.data.placement).addClass('active');
-                      $window.$('div.state-white'+ options.data.placement).removeClass('active');
-                      $window.$('div.state-suspended'+ options.data.placement).removeClass('active');
+                      w.dxButton('instance').option('disabled',false);
+                      b.dxButton('instance').option('disabled',false);
+                      s.dxButton('instance').option('disabled',false);
+                      if (res !== 'Unactive') {
+                        b.addClass('active');
+                      }
 
                       return res;
                     })
@@ -857,6 +862,10 @@
                 width: 95,
                 disabled: false,
                 onClick: function () {
+                  if (oneSuspend==true) {
+                    $window.DevExpress.ui.notify("Wait please", "warning", 4000);
+                    return 0;
+                  }
                   tempSespendRow.placement = [options.data.placement];
                   tempSespendRow.suspend = 1;
                   vm.confirmPopup.option('visible', true);
@@ -1012,7 +1021,33 @@
                     }
                   } else {
                     if (selectedArr != '[]') {
+                      for (var i =0; i<selectedArr.length; i++) {
+                        var w = $window.$('div.state-white'+ selectedArr[i]);
+                        var b = $window.$('div.state-black'+ selectedArr[i]);
+                        var s = $window.$('div.state-suspended'+ selectedArr[i]);
+                        w.dxButton('instance').option('disabled',true);
+                        b.dxButton('instance').option('disabled',true);
+                        s.dxButton('instance').option('disabled',true);
+                        w.removeClass('active');
+                        b.removeClass('active');
+                        s.removeClass('active');
+                      }
+
                       CampaignOptimiser.editCampaignDomains(vm.campId, selectedArr, e.selectedItem.state).then(function (res) {
+                        for (var i =0; i<selectedArr.length; i++) {
+                          var b = $window.$('div.state-black'+ selectedArr[i]);
+                          var w =$window.$('div.state-white'+ selectedArr[i]);
+                          var s = $window.$('div.state-suspended'+ selectedArr[i]);
+                          w.dxButton('instance').option('disabled',false);
+                          b.dxButton('instance').option('disabled',false);
+                          s.dxButton('instance').option('disabled',false);
+                          if (e.selectedItem.state == 2) {
+                            b.addClass('active');
+                          }
+                          if (e.selectedItem.state == 4) {
+                            w.addClass('active');
+                          }
+                        }
                         $('.gridContainerWhite').dxDataGrid('instance').refresh();
                       }).catch(function () {
                         $('.gridContainerWhite').dxDataGrid('instance').refresh();

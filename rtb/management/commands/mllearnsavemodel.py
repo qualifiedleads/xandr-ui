@@ -1,6 +1,6 @@
 from django.core.management import BaseCommand
 from rtb.ml_learn_kmeans import mlLearnKmeans
-from rtb.ml_logistic_regression import mlLearnLogisticRegression
+#from rtb.ml_logistic_regression import mlLearnLogisticRegression
 
 class Command(BaseCommand):
     help = """
@@ -19,5 +19,5 @@ class Command(BaseCommand):
         test_name = options.get("test_name")
         if test_type == "kmeans":
             mlLearnKmeans(test_name)
-        if test_type == "log":
-            mlLearnLogisticRegression(test_name)
+        #if test_type == "log":
+            #mlLearnLogisticRegression(test_name)

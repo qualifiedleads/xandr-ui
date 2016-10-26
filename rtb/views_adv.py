@@ -16,10 +16,10 @@ from models.ml_kmeans_model import MLPlacementDailyFeatures, MLClustersCentroids
 MLExpertsPlacementsMarks
 from rtb.ml_learn_kmeans import mlGetPlacementInfoKmeans, mlGetGoodClusters, mlGetTestNumber
 from models.placement_state import PlacementState
+from rtb.placement_state import PlacementState as PlacementStateClass
 from rest_framework import status
 import time
 from models.rtb_impression_tracker import RtbImpressionTrackerPlacement, RtbImpressionTrackerPlacementDomain
-from ml_auc import mlBuildROC
 
 import bisect
 from django.contrib.auth.decorators import login_required, user_passes_test
@@ -221,6 +221,11 @@ def get_campaign_placement(campaign_id, from_date, to_date):
 
     if res:
         for x in res:
+            if PlacementState.objects.filter(campaign_id=campaign_id, placement_id=x['placement']):
+                state = list(PlacementState.objects.filter(campaign_id=campaign_id, placement_id=x['placement']))[0]
+                x['state'] = state.state
+            else:
+                x['state'] = 0
             #x["analitics"] = []
             #x["analitics"].append(mlFillPredictionAnswer(x["placement"], False, "kmeans", "ctr_cvr_cpc_cpm_cpa"))
             x["analitics"] = mlFillPredictionAnswer(x["placement"], False, "kmeans", "ctr_cvr_cpc_cpm_cpa")
@@ -566,17 +571,17 @@ GET: diagramms for week for a placement
 
 def mlApiWeeklyPlacementRecignition(request):
     placement_id = request.GET.get("placementId")
-    test_type = request.data.get("test_type")
-    test_name = request.data.get("test_name")
+    test_name = request.GET.get("test_name")
+    test_type = request.GET.get("test_type")
     res = mlFillPredictionAnswer(placement_id, True, test_type, test_name)
     return Response(res)
 
 def mlApiSaveExpertDecision(request):
-    placement_id = request.data.get("placementId")
-    checked = request.data.get("checked")
-    test_type = request.data.get("test_type")
-    test_name = request.data.get("test_name")
-    day = request.data.get("day")
+    placement_id = request.GET.get("placementId")
+    checked = request.GET.get("checked")
+    test_type = request.GET.get("test_type")
+    test_name = request.GET.get("test_name")
+    day = request.GET.get("day")
 
     goodClusters = mlGetGoodClusters(test_name)
 
@@ -747,6 +752,20 @@ def changeState(request, campaignId):
         date = None
 
     listObj = []
+
+    if len(placementId) == 1:
+        try:
+            state_obj = PlacementState.objects.get(placement_id=placementId[0])
+            state = state_obj.state
+        except:
+            state = 0
+
+        if state == activeState:
+            state = PlacementStateClass(campaignId, placementId)  # , 7043341
+            result = state.remove_placement_from_targets_list()
+            print (campaignId, placementId, result)
+            return Response('Unactive')
+
     for i, placement in enumerate(placementId):
         obj, created = PlacementState.objects.update_or_create(campaign_id=campaignId,
                                                                placement_id=placement,
@@ -755,12 +774,16 @@ def changeState(request, campaignId):
                                                                    suspend=date,
                                                                    change=True
                                                                ))
+
         listObj.append({
             'placementId': obj.placement_id,
             'campaign_id': obj.campaign_id,
             'suspend': obj.suspend,
             'state': obj.state
         })
+    state = PlacementStateClass(campaignId, placementId)  # , 7043341
+    result = state.change_state_placement()
+    print (campaignId, placementId, result)
 
     return Response(listObj)
 
@@ -778,13 +801,13 @@ def getPlacementDomain(placementId):
     domain = domain[0].domain
     return allDomains, domain
 
-@api_view(["GET"])
-@check_user_advertiser_permissions(campaign_id_num=0)
-def mlCalcAUC(request):
-    placementsIds = request.data.get("placementIds")
-    test_type = request.data.get("test_type")
-    test_name = request.data.get("test_name")
-    rocSensetivities, rocFalsePositivesRates = mlBuildROC(placementsIds, test_type, test_name)
-
-    for i in xrange(len(rocFalsePositivesRates)):
-        pass
+#@api_view(["GET"])
+#@check_user_advertiser_permissions(campaign_id_num=0)
+# def mlCalcAUC(request):
+#     placementsIds = request.data.get("placementIds")
+#     test_type = request.data.get("test_type")
+#     test_name = request.data.get("test_name")
+#     rocSensetivities, rocFalsePositivesRates = mlBuildROC(placementsIds, test_type, test_name)
+#
+#     for i in xrange(len(rocFalsePositivesRates)):
+#         pass

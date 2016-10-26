@@ -191,41 +191,43 @@
         headers: {'Authorization': 'Token ' + $cookies.get('token')},
         params: {
           placementId: placementId,
+          test_type: 'kmeans',
+          test_name: 'ctr_cvr_cpc_cpm_cpa'
         }
       })
         .then(function (res) {
           var itemArray = [];
-          for (var item in res.data.analitics) {
-            if (res.data.analitics[item].good == -1) {
+          for (var item in res.data) {
+            if (res.data[item].good == -1) {
               itemArray[item] = false;
             } else {
-              if (res.data.analitics[item].day == '0') {
-                res.data.analitics[item].day = 'Sunday';
+              if (res.data[item].day == '0') {
+                res.data[item].day = 'Sunday';
               }
-              if (res.data.analitics[item].day == '1') {
-                res.data.analitics[item].day = 'Monday';
+              if (res.data[item].day == '1') {
+                res.data[item].day = 'Monday';
               }
-              if (res.data.analitics[item].day == '2') {
-                res.data.analitics[item].day = 'Tuesday';
+              if (res.data[item].day == '2') {
+                res.data[item].day = 'Tuesday';
               }
-              if (res.data.analitics[item].day == '3') {
-                res.data.analitics[item].day = 'Wednesday';
+              if (res.data[item].day == '3') {
+                res.data[item].day = 'Wednesday';
               }
-              if (res.data.analitics[item].day == '4') {
-                res.data.analitics[item].day = 'Thursday';
+              if (res.data[item].day == '4') {
+                res.data[item].day = 'Thursday';
               }
-              if (res.data.analitics[item].day == '5') {
-                res.data.analitics[item].day = 'Friday';
+              if (res.data[item].day == '5') {
+                res.data[item].day = 'Friday';
               }
-              if (res.data.analitics[item].day == '6') {
-                res.data.analitics[item].day = 'Saturday';
+              if (res.data[item].day == '6') {
+                res.data[item].day = 'Saturday';
               }
-              if (res.data.analitics[item].day == '7') {
-                res.data.analitics[item].day = 'All week';
+              if (res.data[item].day == '7') {
+                res.data[item].day = 'All week';
               }
 
-              var bad = res.data.analitics[item].bad;
-              var good = res.data.analitics[item].good;
+              var bad = res.data[item].bad;
+              var good = res.data[item].good;
               var badOpasity = 1;
               var goodOpasity = 1;
               var k = +((bad * 100) / (bad + good));
@@ -257,10 +259,10 @@
               var badDiagram = k + '%';
 
               itemArray.push({
-                "day": res.data.analitics[item].day,
-                "good": res.data.analitics[item].good,
-                "bad": res.data.analitics[item].bad,
-                "checked": res.data.analitics[item].checked,
+                "day": res.data[item].day,
+                "good": res.data[item].good,
+                "bad": res.data[item].bad,
+                "checked": res.data[item].checked,
                 "badDiagram": badDiagram,
                 "goodDiagram": goodDiagram,
                 "badOpasity": badOpasity,

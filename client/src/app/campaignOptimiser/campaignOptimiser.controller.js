@@ -364,46 +364,6 @@
         text: 'OK',
         disabled: false,
         onClick: function () {
-          if (ruleSuspend == true) {
-            var radioGroupMain = $('#radioGroupMain').dxRadioGroup('instance');
-            var radioGroupSend = $('#radioGroupSend').dxRadioGroup('instance');
-
-            if (radioGroupMain._options.value !== false) {
-              if (radioGroupMain._options.value == LC('CO.24-HRS')) {
-                ruleTimePopUp = $window.moment().add(1, 'day').unix();
-              }
-
-              if (radioGroupMain._options.value == LC('CO.3-DAYS')) {
-                ruleTimePopUp = $window.moment().add(3, 'day').unix();
-              }
-
-              if (radioGroupMain._options.value == LC('CO.7-DAYS')) {
-                ruleTimePopUp = $window.moment().add(7, 'day').unix();
-              }
-
-            }
-
-            if (radioGroupSend._options.value !== false) {
-              ruleTimePopUp = "unlimited";
-            }
-
-            if (dataSuspend !== null) {
-              ruleTimePopUp = $window.moment(dataSuspend).unix();
-            }
-
-            if ((radioGroupSend._options.value == null) && (radioGroupMain._options.value == LC('CO.24-HRS'))) {
-              ruleTimePopUp = $window.moment().add(1, 'day').unix();
-            }
-
-            vm.rulesArray[ruleIndexPopUp].time = ruleTimePopUp;
-            vm.rulesArray[ruleIndexPopUp].timeString = ruleTimePopUp;
-
-            ruleSuspend = false;
-            vm.confirmPopupVisible = false;
-            vm.confirmPopup.option('visible', false);
-            $scope.$apply();
-            return 0
-          }
           var suspendPlacement;
           var radioGroupMain = $('#radioGroupMain').dxRadioGroup('instance');
           var radioGroupSend = $('#radioGroupSend').dxRadioGroup('instance');

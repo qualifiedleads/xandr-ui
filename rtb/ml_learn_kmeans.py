@@ -350,6 +350,7 @@ def mlGetPlacementInfoKmeans(placement_id = 1, flagAllWeek = False, test_type = 
 
 def mlGetGoodClusters(test_name = "ctr_viewrate"):#get array of "good" clusters for every k-means space
     numbFeaturesInDay = 0
+    test_number = mlGetTestNumber("kmeans", test_name)
     if test_name == "ctr_viewrate":
         numbFeaturesInDay = 2
     if test_name == "ctr_cvr_cpc_cpm_cpa":
@@ -362,8 +363,8 @@ def mlGetGoodClusters(test_name = "ctr_viewrate"):#get array of "good" clusters 
     numbClusters = 2
     numbDays = 8
 
-    queryResults = MLClustersCentroidsKmeans.objects.all()#get info from database about clusters centroids
-
+    #queryResults = MLClustersCentroidsKmeans.objects.all()#get info from database about clusters centroids
+    queryResults = MLClustersCentroidsKmeans.objects.filter(test_number=test_number)
     if not queryResults:
         return -1
 

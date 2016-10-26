@@ -20,7 +20,6 @@ from rtb.placement_state import PlacementState as PlacementStateClass
 from rest_framework import status
 import time
 from models.rtb_impression_tracker import RtbImpressionTrackerPlacement, RtbImpressionTrackerPlacementDomain
-from ml_auc import mlBuildROC
 
 import bisect
 from django.contrib.auth.decorators import login_required, user_passes_test
@@ -567,17 +566,17 @@ GET: diagramms for week for a placement
 
 def mlApiWeeklyPlacementRecignition(request):
     placement_id = request.GET.get("placementId")
-    test_type = request.data.get("test_type")
-    test_name = request.data.get("test_name")
+    test_name = request.GET.get("test_name")
+    test_type = request.GET.get("test_type")
     res = mlFillPredictionAnswer(placement_id, True, test_type, test_name)
     return Response(res)
 
 def mlApiSaveExpertDecision(request):
-    placement_id = request.data.get("placementId")
-    checked = request.data.get("checked")
-    test_type = request.data.get("test_type")
-    test_name = request.data.get("test_name")
-    day = request.data.get("day")
+    placement_id = request.GET.get("placementId")
+    checked = request.GET.get("checked")
+    test_type = request.GET.get("test_type")
+    test_name = request.GET.get("test_name")
+    day = request.GET.get("day")
 
     goodClusters = mlGetGoodClusters(test_name)
 
@@ -783,13 +782,13 @@ def getPlacementDomain(placementId):
     domain = domain[0].domain
     return allDomains, domain
 
-@api_view(["GET"])
-@check_user_advertiser_permissions(campaign_id_num=0)
-def mlCalcAUC(request):
-    placementsIds = request.data.get("placementIds")
-    test_type = request.data.get("test_type")
-    test_name = request.data.get("test_name")
-    rocSensetivities, rocFalsePositivesRates = mlBuildROC(placementsIds, test_type, test_name)
-
-    for i in xrange(len(rocFalsePositivesRates)):
-        pass
+#@api_view(["GET"])
+#@check_user_advertiser_permissions(campaign_id_num=0)
+# def mlCalcAUC(request):
+#     placementsIds = request.data.get("placementIds")
+#     test_type = request.data.get("test_type")
+#     test_name = request.data.get("test_name")
+#     rocSensetivities, rocFalsePositivesRates = mlBuildROC(placementsIds, test_type, test_name)
+#
+#     for i in xrange(len(rocFalsePositivesRates)):
+#         pass

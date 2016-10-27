@@ -8,6 +8,8 @@ import datetime
 import pytz
 import utils
 
+_last_token = None
+_last_token_time = None
 
 class PlacementState:
     def __init__(self, campaign_id, placement_id):
@@ -15,57 +17,86 @@ class PlacementState:
         self.campaign_id = campaign_id
         self.placement_id = placement_id
 
+
     __appnexus_url = 'https://api.appnexus.com/'
     __last_token = None
     __last_token_time = None
     __two_hours = datetime.timedelta(hours=1, minutes=55)
 
     def get_token(self):
-        if self.__last_token and utils.get_current_time() - self.__last_token_time < self.__two_hours:
-            return self.__last_token
+        global _last_token, _last_token_time
+        _two_hours = datetime.timedelta(hours=1, minutes=55)
+        if _last_token and utils.get_current_time() - _last_token_time < _two_hours:
+            return _last_token
         try:
             auth_url = self.__appnexus_url + "auth"
             data = {"auth": settings.NEXUS_AUTH_DATA}
             auth_request = requests.post(auth_url, data=json.dumps(data))
             response = json.loads(auth_request.content)
-            self.__last_token = response['response']['token']
-            self.__last_token_time = utils.get_current_time()
-            return self.__last_token
+            try:
+                response['response']['error']
+                print "get campaign by id - " + response['response']['error']
+            except:
+                pass
+            _last_token = response['response']['token']
+            _last_token_time = utils.get_current_time()
+            return _last_token
         except:
-            return None
+            print "get token - " + response['response']['error']
+            return 503
 
-    def get_campaign_by_id(self,camp_id):
+    def get_campaign_by_id(self, camp_id):
         url = self.__appnexus_url+'campaign?id={0}'.format(camp_id)
         headers = {"Authorization": self.get_token(), 'Content-Type': 'application/json'}
         try:
             campaign = json.loads(requests.get(url, headers=headers).content)
+            try:
+                campaign['response']['error']
+                print "get campaign by id - " + campaign['response']['error']
+                return 404
+            except:
+                pass
             print 'Campaign_id = '+str(campaign['response']['campaign']['profile_id'])
             return campaign['response']['campaign']['profile_id'], campaign['response']['campaign']['advertiser_id']
         except:
-            print None
+            print "get campaign by id - Not connect to appnexus server "
+            return 503
 
     def get_profile_by_id(self, profile_id):
         url = self.__appnexus_url+'profile?id={0}'.format(profile_id)
         headers = {"Authorization": self.get_token(), 'Content-Type': 'application/json'}
         try:
             profile = json.loads(requests.get(url, headers=headers).content)
+            try:
+                profile['response']['error']
+                print "get profile by id - " + profile['response']['error']
+                return 404
+            except:
+                pass
             print 'platform_placement_targets = '+str(profile['response']['profile']['platform_placement_targets'])
             return profile['response']['profile']['platform_placement_targets']
         except:
-            print None
+            print "get profile by id - Not connect to appnexus server "
+            return 503
 
     # 4 - white / 2 - black / 1 - suspend
-    def update_profile_by_id(self, platform_placement_targets, placement_id, profile_id, advertiser_id):
+    def update_profile_by_id(self, platform_placement_targets, placement_id, profile_id, advertiser_id, stateRtb):
         if platform_placement_targets is None:
             platform_placement_targets = []
         try:
             url = self.__appnexus_url + 'profile?id={0}&advertiser_id={1}'.format(profile_id, advertiser_id)
             headers = {"Authorization": self.get_token(), 'Content-Type': 'application/json'}
             for one_placement in placement_id:
-                localState = ModelPlacementState.objects.get(placement_id=one_placement)
-                if localState.state == 1 or localState.state == 2:
+                # localState = ModelPlacementState.objects.get(placement_id=one_placement)
+                # try:
+                #     localState['response']['error']
+                #     print "get profile by id - " + localState['response']['error']
+                #     return 404
+                # except:
+                #     pass
+                if stateRtb == 1 or stateRtb == 2:
                     state = "exclude"
-                elif localState.state == 4:
+                elif stateRtb == 4:
                     state = "include"
                 platform_placement_targets.append({
                     "id": one_placement,
@@ -79,33 +110,40 @@ class PlacementState:
                         "platform_placement_targets": platform_placement_targets
                     }
             })
+
+            changeState = json.loads(requests.put(url, data=data, headers=headers).content)
             try:
-                changeState = json.loads(requests.put(url, data=data, headers=headers).content)
+                changeState['response']['error']
+                print "get profile by id - " + changeState['response']['error']
+                return 404
             except:
-                return None
-            try:
-                for one_placement in placement_id:
-                    ModelPlacementState.objects.filter(placement_id=one_placement).update(change=False)
-            except:
-                return None
-            print changeState['response']['status']
+                pass
+            # try:
+            #     for one_placement in placement_id:
+            #         ModelPlacementState.objects.filter(placement_id=one_placement).update(change=False)
+            # except:
+            #     print "update_profile_by_id - Error db"
+            #     return 404
+            print 'update_profile_by_id - ' + changeState['response']['status']
             return changeState['response']['status']
         except:
-            return None
+            print "update_profile_by_id - Not connect to appnexus server "
+            return 503
 
-    def change_state_placement(self):
+    def change_state_placement(self, state):
         try:
             headers = {"Authorization": self.get_token(), 'Content-Type': 'application/json'}
             profile_id, advertiser_id = self.get_campaign_by_id(self.campaign_id)
             platform_placement_targets = self.get_profile_by_id(profile_id)
             if platform_placement_targets is None:
-                updated_profile = self.update_profile_by_id(None, self.placement_id, profile_id, advertiser_id)
+                updated_profile = self.update_profile_by_id(None, self.placement_id, profile_id, advertiser_id, state)
             else:
-                updated_profile = self.update_profile_by_id(platform_placement_targets, self.placement_id, profile_id, advertiser_id)
+                updated_profile = self.update_profile_by_id(platform_placement_targets, self.placement_id, profile_id, advertiser_id, state)
             print updated_profile
             return updated_profile
         except:
-            return None
+            print "change state placement - Not connect to appnexus server "
+            return 503
 
     # 4 - white / 2 - black / 1 - suspend
     def suspend_state_middleware(self):
@@ -122,10 +160,11 @@ class PlacementState:
                 profile_id, advertiser_id = self.get_campaign_by_id(oneState.campaign_id)
                 platform_placement_targets = self.get_profile_by_id(profile_id)
                 if platform_placement_targets is None:
-                    updated_profile = self.update_profile_by_id(None, [oneState.placement_id], profile_id, advertiser_id)
+                    updated_profile = self.update_profile_by_id(None, [oneState.placement_id],
+                                                                profile_id, advertiser_id, 4)
                 else:
                     updated_profile = self.update_profile_by_id(platform_placement_targets, [oneState.placement_id],
-                                                                profile_id, advertiser_id)
+                                                                profile_id, advertiser_id, 4)
                 toWhitelist.append(str(oneState.placement_id) + ' to white ' + updated_profile)
                 print str(oneState.placement_id) + ' to white ' + updated_profile
             else:
@@ -138,12 +177,12 @@ class PlacementState:
             profile_id, advertiser_id = self.get_campaign_by_id(self.campaign_id)
             platform_placement_targets = self.get_profile_by_id(profile_id)
             if platform_placement_targets is None:
-                return None
+                print "remove_placement_from_targets_list - Not found target list "
+                return 'OK'
             else:
                 for target in platform_placement_targets:
                     if target['id'] == self.placement_id[0]:
                         platform_placement_targets.remove(target)
-                        print 'target.id'
                 url = self.__appnexus_url + 'profile?id={0}&advertiser_id={1}'.format(profile_id, advertiser_id)
                 headers = {"Authorization": self.get_token(), 'Content-Type': 'application/json'}
                 data = json.dumps({
@@ -152,19 +191,25 @@ class PlacementState:
                             "platform_placement_targets": platform_placement_targets
                         }
                 })
+                changeState = json.loads(requests.put(url, data=data, headers=headers).content)
                 try:
-                    changeState = json.loads(requests.put(url, data=data, headers=headers).content)
+                    changeState['response']['error']
+                    print "get profile by id - " + changeState['response']['error']
+                    return 404
                 except:
-                    return None
+                    pass
                 if changeState['response']['status'] == 'OK':
                     ModelPlacementState.objects.filter(placement_id=self.placement_id[0]).delete()
                 else:
-                    return None
+                    print "remove_placement_from_targets_list - Error db"
+                    return 404
             if changeState['response']['status'] == 'OK':
-                print changeState['response']['status']
-            return changeState['response']['status']
+                return changeState['response']['status']
+            else:
+                return 404
         except:
-            return None
+            print "remove_placement_from_targets_list - Not connect to appnexus server "
+            return 503
 
 
     def placement_targets_list(self):
@@ -173,6 +218,10 @@ class PlacementState:
         #
         # else:
         #     return None
-        allProfile = Campaign.objects.filter(state='active').select_related('Profile')
+        allProfile = Campaign.objects.select_related("profile").filter(state='active', profile__platform_placement_targets__isnull=False).values('id', 'profile_id', 'profile__platform_placement_targets')
         for profile in allProfile:
-            print allProfile[0]
+            string = profile['profile__platform_placement_targets']
+            #k = json.loads('{'+profile['profile__platform_placement_targets']+'}')
+            print string.decode('utf-8', 'ignore')
+            print string
+

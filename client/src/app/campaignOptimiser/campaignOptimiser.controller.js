@@ -418,11 +418,21 @@
                 w.dxButton('instance').option('disabled',false);
                 b.dxButton('instance').option('disabled',false);
                 s.dxButton('instance').option('disabled',false);
+                if (res == 404) {
+                  $window.DevExpress.ui.notify("Not found", "warning", 4000);
+                  $window.$('.gridContainerWhite').dxDataGrid('instance').refresh();
+                  return res;
+                }
+                if (res == 503) {
+                  $window.DevExpress.ui.notify("Not connect to appnexus server, please try again later", "warning", 4000);
+                  $window.$('.gridContainerWhite').dxDataGrid('instance').refresh();
+                  return res;
+                }
                 if (res !== 'Unactive') {
                   s.addClass('active');
                 }
-                oneSuspend=false;
               }
+              oneSuspend=false;
             });
 
           vm.confirmPopupVisible = false;
@@ -799,6 +809,16 @@
                       w.dxButton('instance').option('disabled',false);
                       b.dxButton('instance').option('disabled',false);
                       s.dxButton('instance').option('disabled',false);
+                      if (res == 404) {
+                        $window.DevExpress.ui.notify("Not found", "warning", 4000);
+                        $('#gridContainerWhite').dxDataGrid('instance').refresh();
+                        return res;
+                      }
+                      if (res == 503) {
+                        $window.DevExpress.ui.notify("Not connect to appnexus server, please try again later", "warning", 4000);
+                        $window.$('.gridContainerWhite').dxDataGrid('instance').refresh();
+                        return res;
+                      }
                       if (res !== 'Unactive') {
                         w.addClass('active');
                       }
@@ -837,10 +857,19 @@
                       w.dxButton('instance').option('disabled',false);
                       b.dxButton('instance').option('disabled',false);
                       s.dxButton('instance').option('disabled',false);
+                      if (res == 404) {
+                        $window.DevExpress.ui.notify("Not found", "warning", 4000);
+                        $window.$('.gridContainerWhite').dxDataGrid('instance').refresh();
+                        return res;
+                      }
+                      if (res == 503) {
+                        $window.DevExpress.ui.notify("Not connect to appnexus server, please try again later", "warning", 4000);
+                        $window.$('.gridContainerWhite').dxDataGrid('instance').refresh();
+                        return res;
+                      }
                       if (res !== 'Unactive') {
                         b.addClass('active');
                       }
-
                       return res;
                     })
                     .catch(function (err) {
@@ -1041,6 +1070,16 @@
                           w.dxButton('instance').option('disabled',false);
                           b.dxButton('instance').option('disabled',false);
                           s.dxButton('instance').option('disabled',false);
+                          if (res == 404) {
+                            $window.DevExpress.ui.notify("Not found", "warning", 4000);
+                            $window.$('.gridContainerWhite').dxDataGrid('instance').refresh();
+                            return res;
+                          }
+                          if (res == 503) {
+                            $window.DevExpress.ui.notify("Not connect to appnexus server, please try again later", "warning", 4000);
+                            $window.$('.gridContainerWhite').dxDataGrid('instance').refresh();
+                            return res;
+                          }
                           if (e.selectedItem.state == 2) {
                             b.addClass('active');
                           }

@@ -9,6 +9,7 @@ import sys
 import datetime
 import re
 from django.utils import timezone
+from django.db.models import Sum, Min, Max, Avg, Value, When, Case, F, Q, Func, FloatField, Count
 
 
 def convert_date(s):
@@ -41,7 +42,11 @@ def impTracker(timeStart = None, timeFinish = None):
         #   message = 'empty'
         #   start=2016-09-29 17:04&end=2016-09-29 17:06
         if timeStart is None or timeFinish is None:
-            start = (datetime.datetime.now(utc) - timedelta(hours=4)).strftime('%Y-%m-%d %H:%M')
+            start_ = RtbImpressionTracker.objects.aggregate(Max("Date"))["Date__max"]
+            if not start_ == '':
+                start = (datetime.datetime.now(utc) - timedelta(hours=4)).strftime('%Y-%m-%d %H:%M')
+            else:
+                start = start_.strftime('%Y-%m-%d %H:%M')
             end = datetime.datetime.now(utc).strftime('%Y-%m-%d %H:%M')
         else:
             start = timeStart
@@ -164,9 +169,10 @@ def impTracker(timeStart = None, timeFinish = None):
                             if i == j or allDomainsQuery[i].domain == "null":
                                 continue
 
-                            if len(allDomainsQuery[i].domain) < position:
+                            if len(allDomainsQuery[i].domain) < position or len(allDomainsQuery[j].domain) < position:
                                 finish = True
                                 break
+                            print str(i) + ':' + str(j) + ':' + str(position) + ':' + str(len(allDomainsQuery[i].domain)) + ':' + str(len(allDomainsQuery[j].domain))
                             if allDomainsQuery[i].domain[-position] != allDomainsQuery[j].domain[-position]:
                                 finish = True
                                 break

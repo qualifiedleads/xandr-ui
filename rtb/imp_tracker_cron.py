@@ -180,11 +180,11 @@ def impTracker(timeStart = None, timeFinish = None):
             while position != 0:
                 ans += allDomainsQuery[0].domain[-position]
                 position -= 1
-        domainRecord = RtbImpressionTrackerPlacementDomain(
-            placement_id=item["placement"],
-            domain=ans
-        )
         try:
+            domainRecord = RtbImpressionTrackerPlacementDomain(
+                placement_id=item["placement"],
+                domain=ans
+            )
             tempQuery = RtbImpressionTrackerPlacementDomain.objects.filter(placement_id=item["placement"])
             if not tempQuery:
                 domainRecord.save()

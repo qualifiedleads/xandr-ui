@@ -138,19 +138,19 @@ def impTracker(timeStart = None, timeFinish = None):
     except ValueError:
         print ValueError
 
-    for item in bulkITP:
-        if len(item['placement']) > 1:
-            try:
-                obj, created = RtbImpressionTrackerPlacement.objects.update_or_create(
-                    placement=int(item['placement']),
-                    domain=str(item['domain'])
-                )
-                print (obj, item, created)
-            except ValueError:
-                print ValueError
-        #CODE FOR ADDING TO RtbImpressionTrackerPlacementDomain clear domain
-
     if item["placement"] != '':
+        for item in bulkITP:
+            if len(item['placement']) > 1:
+                try:
+                    obj, created = RtbImpressionTrackerPlacement.objects.update_or_create(
+                        placement=int(item['placement']),
+                        domain=str(item['domain'])
+                    )
+                    print (obj, item, created)
+                except ValueError:
+                    print ValueError
+            #CODE FOR ADDING TO RtbImpressionTrackerPlacementDomain clear domain
+
         for item in bulkITP:
             allDomainsQuery = RtbImpressionTrackerPlacement.objects.filter(placement_id=item["placement"])
             if not allDomainsQuery:

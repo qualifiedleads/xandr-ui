@@ -139,60 +139,62 @@ def impTracker(timeStart = None, timeFinish = None):
         print ValueError
 
     for item in bulkITP:
-        if len(item['placement']) > 1:
-            try:
-                obj, created = RtbImpressionTrackerPlacement.objects.update_or_create(
-                    placement=int(item['placement']),
-                    domain=str(item['domain'])
-                )
-                print (obj, item, created)
-            except ValueError:
-                print ValueError
-        #CODE FOR ADDING TO RtbImpressionTrackerPlacementDomain clear domain
+        if item["placement"] != '':
+            if len(item['placement']) > 1:
+                try:
+                    obj, created = RtbImpressionTrackerPlacement.objects.update_or_create(
+                        placement=int(item['placement']),
+                        domain=str(item['domain'])
+                    )
+                    print (obj, item, created)
+                except ValueError:
+                    print ValueError
+                     #CODE FOR ADDING TO RtbImpressionTrackerPlacementDomain clear domain
 
     for item in bulkITP:
-        allDomainsQuery = RtbImpressionTrackerPlacement.objects.filter(placement_id=item["placement"])
-        if not allDomainsQuery:
-            continue
-        if len(allDomainsQuery) == 1:
-            ans = allDomainsQuery[0].domain
-        else:
-            position = 1
-            finish = False
-            while True:
-                for i in xrange(len(allDomainsQuery)):
-                    for j in xrange(len(allDomainsQuery)):
-                        if i == j or allDomainsQuery[i].domain == "null":
-                            continue
-
-                        if len(allDomainsQuery[i].domain) < position:
-                            finish = True
-                            break
-                        if allDomainsQuery[i].domain[-position] != allDomainsQuery[j].domain[-position]:
-                            finish = True
-                            break
-                if finish == True:
-                    break
-                position += 1
-                print position
-            ans = "*"
-            position -= 1
-            while position != 0:
-                ans += allDomainsQuery[0].domain[-position]
-                position -= 1
-        domainRecord = RtbImpressionTrackerPlacementDomain(
-            placement_id=item["placement"],
-            domain=ans
-        )
-        try:
-            tempQuery = RtbImpressionTrackerPlacementDomain.objects.filter(placement_id=item["placement"])
-            if not tempQuery:
-                domainRecord.save()
+        if item["placement"] != '':
+            allDomainsQuery = RtbImpressionTrackerPlacement.objects.filter(placement_id=item["placement"])
+            if not allDomainsQuery:
+                continue
+            if len(allDomainsQuery) == 1:
+                ans = allDomainsQuery[0].domain
             else:
-                tempQuery.update(
+                position = 1
+                finish = False
+                while True:
+                    for i in xrange(len(allDomainsQuery)):
+                        for j in xrange(len(allDomainsQuery)):
+                            if i == j or allDomainsQuery[i].domain == "null":
+                                continue
+
+                            if len(allDomainsQuery[i].domain) < position:
+                                finish = True
+                                break
+                            if allDomainsQuery[i].domain[-position] != allDomainsQuery[j].domain[-position]:
+                                finish = True
+                                break
+                    if finish == True:
+                        break
+                    position += 1
+                    print position
+                ans = "*"
+                position -= 1
+                while position != 0:
+                    ans += allDomainsQuery[0].domain[-position]
+                    position -= 1
+            try:
+                domainRecord = RtbImpressionTrackerPlacementDomain(
+                    placement_id=item["placement"],
                     domain=ans
                 )
-        except Exception, e:
-            print "Can't save domain. Error: " + str(e)
+                tempQuery = RtbImpressionTrackerPlacementDomain.objects.filter(placement_id=item["placement"])
+                if not tempQuery:
+                    domainRecord.save()
+                else:
+                    tempQuery.update(
+                        domain=ans
+                    )
+            except Exception, e:
+                print "Can't save domain. Error: " + str(e)
 
     print 'Happy End'

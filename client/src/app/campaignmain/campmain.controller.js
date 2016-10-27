@@ -13,6 +13,7 @@
     var tempSespendRow = {};
     vm.Camp = CampMain;
     var now = new Date();
+    var oneSuspend = false;
 
     vm.checkChart = [];
     vm.by = 'imp,cvr,cpc,clicks,spend,conv,ctr';
@@ -739,6 +740,7 @@
         text: 'OK',
         disabled: false,
         onClick: function () {
+          oneSuspend=true;
           var suspendPlacement;
           var radioGroupMain = $('#radioGroupMain').dxRadioGroup('instance');
           var radioGroupSend = $('#radioGroupSend').dxRadioGroup('instance');
@@ -783,7 +785,7 @@
           }
 
           CampMain.editCampaignDomains(vm.campId, tempSespendRow.placement, 1, suspendPlacement)
-            .then(function () {
+            .then(function (res) {
               for (var i =0; i<tempSespendRow.placement.length; i++) {
                 var b = $window.$('div.state-black'+ tempSespendRow.placement[i]);
                 var w =$window.$('div.state-white'+ tempSespendRow.placement[i]);
@@ -791,8 +793,21 @@
                 w.dxButton('instance').option('disabled',false);
                 b.dxButton('instance').option('disabled',false);
                 s.dxButton('instance').option('disabled',false);
-                s.addClass('active');
+                if (res == 404) {
+                  $window.DevExpress.ui.notify("Not found", "warning", 4000);
+                  $window.$('#gridContainer2').dxDataGrid('instance').refresh();
+                  return res;
+                }
+                if (res == 503) {
+                  $window.DevExpress.ui.notify("Not connect to appnexus server, please try again later", "warning", 4000);
+                  $window.$('#gridContainer2').dxDataGrid('instance').refresh();
+                  return res;
+                }
+                if (res !== 'Unactive') {
+                  s.addClass('active');
+                }
               }
+              oneSuspend=false;
             });
 
           vm.confirmPopupVisible = false;
@@ -1077,7 +1092,19 @@
                       w.dxButton('instance').option('disabled',false);
                       b.dxButton('instance').option('disabled',false);
                       s.dxButton('instance').option('disabled',false);
-                      w.addClass('active');
+                      if (res == 404) {
+                        $window.DevExpress.ui.notify("Not found", "warning", 4000);
+                        $('#gridContainerWhite').dxDataGrid('instance').refresh();
+                        return res;
+                      }
+                      if (res == 503) {
+                        $window.DevExpress.ui.notify("Not connect to appnexus server, please try again later", "warning", 4000);
+                        $window.$('#gridContainer2').dxDataGrid('instance').refresh();
+                        return res;
+                      }
+                      if (res !== 'Unactive') {
+                        w.addClass('active');
+                      }
                     return res;
                   })
                   .catch(function (err) {
@@ -1113,7 +1140,19 @@
                     w.dxButton('instance').option('disabled',false);
                     b.dxButton('instance').option('disabled',false);
                     s.dxButton('instance').option('disabled',false);
-                    b.addClass('active');
+                    if (res == 404) {
+                      $window.DevExpress.ui.notify("Not found", "warning", 4000);
+                      $window.$('#gridContainer2').dxDataGrid('instance').refresh();
+                      return res;
+                    }
+                    if (res == 503) {
+                      $window.DevExpress.ui.notify("Not connect to appnexus server, please try again later", "warning", 4000);
+                      $window.$('#gridContainer2').dxDataGrid('instance').refresh();
+                      return res;
+                    }
+                    if (res !== 'Unactive') {
+                      b.addClass('active');
+                    }
                     return res;
                   })
                   .catch(function (err) {
@@ -1135,6 +1174,10 @@
               width: 95,
               disabled: false,
               onClick: function () {
+                if (oneSuspend==true) {
+                  $window.DevExpress.ui.notify("Wait please", "warning", 4000);
+                  return 0;
+                }
                 tempSespendRow.placement = [options.data.placement];
                 tempSespendRow.suspend = 1;
                 vm.confirmPopup.option('visible', true);
@@ -1284,6 +1327,49 @@
                     vm.confirmPopup.option('visible', true);
                   }
                 } else {
+                  if (selectedArr != '[]') {
+                      for (var i =0; i<selectedArr.length; i++) {
+                        var w = $window.$('div.state-white'+ selectedArr[i]);
+                        var b = $window.$('div.state-black'+ selectedArr[i]);
+                        var s = $window.$('div.state-suspended'+ selectedArr[i]);
+                        w.dxButton('instance').option('disabled',true);
+                        b.dxButton('instance').option('disabled',true);
+                        s.dxButton('instance').option('disabled',true);
+                        w.removeClass('active');
+                        b.removeClass('active');
+                        s.removeClass('active');
+                      }
+
+                      CampMain.editCampaignDomains(vm.campId, selectedArr, e.selectedItem.state).then(function (res) {
+                        for (var i =0; i<selectedArr.length; i++) {
+                          var b = $window.$('div.state-black'+ selectedArr[i]);
+                          var w =$window.$('div.state-white'+ selectedArr[i]);
+                          var s = $window.$('div.state-suspended'+ selectedArr[i]);
+                          w.dxButton('instance').option('disabled',false);
+                          b.dxButton('instance').option('disabled',false);
+                          s.dxButton('instance').option('disabled',false);
+                          if (res == 404) {
+                            $window.DevExpress.ui.notify("Not found", "warning", 4000);
+                            $window.$('#gridContainer2').dxDataGrid('instance').refresh();
+                            return res;
+                          }
+                          if (res == 503) {
+                            $window.DevExpress.ui.notify("Not connect to appnexus server, please try again later", "warning", 4000);
+                            $window.$('#gridContainer2').dxDataGrid('instance').refresh();
+                            return res;
+                          }
+                          if (e.selectedItem.state == 2) {
+                            b.addClass('active');
+                          }
+                          if (e.selectedItem.state == 4) {
+                            w.addClass('active');
+                          }
+                        }
+                        $('#gridContainer2').dxDataGrid('instance').refresh();
+                      }).catch(function () {
+                        $('#gridContainer2').dxDataGrid('instance').refresh();
+                      });
+                    }
                   if (selectedArr != '[]') {
                     CampMain.editCampaignDomains(vm.campId, selectedArr, e.selectedItem.state).then(function (res) {
                       $('#gridContainer2').dxDataGrid('instance').refresh();

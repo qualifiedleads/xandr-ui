@@ -8,6 +8,7 @@ import json
 import sys
 import datetime
 import re
+from django.utils import timezone
 
 
 def convert_date(s):
@@ -94,9 +95,6 @@ def impTracker(timeStart = None, timeFinish = None):
         tempJson['CacheBuster'] = issetValue(item['Data']['CacheBuster'])
         tempJson['Ecp'] = issetValue(item['Data']['Ecp'])
         tempJson['CustomModelId'] = issetValue(item['Data']['CustomModelId'])
-        if item['Data']['PlacementId'] == '':
-            print item['Data']['PlacementId']
-
         tempJson['PlacementId'] = issetValue(item['Data']['PlacementId'])
         tempJson['SeqCodes'] = issetValue(item['Data']['SeqCodes'])
         tempJson['CustomModelLeafName'] = issetValue(item['Data']['CustomModelLeafName'])
@@ -130,29 +128,28 @@ def impTracker(timeStart = None, timeFinish = None):
             SeqCodes=tempJson['SeqCodes'],
             CustomModelLeafName=tempJson['CustomModelLeafName'],
             XForwardedFor=tempJson['XForwardedFor'],
-            Date=datetime.datetime.strptime(re.sub('\..*', '', item['Time']), "%Y-%m-%d %H:%M:%S")
+            Date=timezone.make_aware(datetime.datetime.strptime(re.sub('\..*', '', item['Time']), "%Y-%m-%d %H:%M:%S"), timezone.get_default_timezone())
         ))
 
     try:
         RtbImpressionTracker.objects.bulk_create(bulkITAll)
-    except ValueError:
-        print ValueError
+    except ValueError, e:
+        print "Can't save domain. Error: " + str(e)
 
     for item in bulkITP:
-        if item["placement"] != '':
+        if item["placement"].strip() != '':
             if len(item['placement']) > 1:
                 try:
                     obj, created = RtbImpressionTrackerPlacement.objects.update_or_create(
-                        placement=int(item['placement']),
+                        placement_id=int(item['placement']),
                         domain=str(item['domain'])
                     )
-                    print (obj, item, created)
-                except ValueError:
-                    print ValueError
+                except ValueError, e:
+                    print "Can't save domain. Error: " + str(e)
                      #CODE FOR ADDING TO RtbImpressionTrackerPlacementDomain clear domain
 
     for item in bulkITP:
-        if item["placement"] != '':
+        if item["placement"].strip() != '':
             allDomainsQuery = RtbImpressionTrackerPlacement.objects.filter(placement_id=item["placement"])
             if not allDomainsQuery:
                 continue
@@ -176,7 +173,6 @@ def impTracker(timeStart = None, timeFinish = None):
                     if finish == True:
                         break
                     position += 1
-                    print position
                 ans = "*"
                 position -= 1
                 while position != 0:

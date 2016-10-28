@@ -8,6 +8,8 @@ import json
 import sys
 import datetime
 import re
+from django.utils import timezone
+from django.db.models import Sum, Min, Max, Avg, Value, When, Case, F, Q, Func, FloatField, Count
 
 
 def convert_date(s):
@@ -40,7 +42,11 @@ def impTracker(timeStart = None, timeFinish = None):
         #   message = 'empty'
         #   start=2016-09-29 17:04&end=2016-09-29 17:06
         if timeStart is None or timeFinish is None:
-            start = (datetime.datetime.now(utc) - timedelta(hours=4)).strftime('%Y-%m-%d %H:%M')
+            start_ = RtbImpressionTracker.objects.aggregate(Max("Date"))["Date__max"]
+            if not start_ == '':
+                start = (datetime.datetime.now(utc) - timedelta(hours=4)).strftime('%Y-%m-%d %H:%M')
+            else:
+                start = start_.strftime('%Y-%m-%d %H:%M')
             end = datetime.datetime.now(utc).strftime('%Y-%m-%d %H:%M')
         else:
             start = timeStart
@@ -94,9 +100,6 @@ def impTracker(timeStart = None, timeFinish = None):
         tempJson['CacheBuster'] = issetValue(item['Data']['CacheBuster'])
         tempJson['Ecp'] = issetValue(item['Data']['Ecp'])
         tempJson['CustomModelId'] = issetValue(item['Data']['CustomModelId'])
-        if item['Data']['PlacementId'] == '':
-            print item['Data']['PlacementId']
-
         tempJson['PlacementId'] = issetValue(item['Data']['PlacementId'])
         tempJson['SeqCodes'] = issetValue(item['Data']['SeqCodes'])
         tempJson['CustomModelLeafName'] = issetValue(item['Data']['CustomModelLeafName'])
@@ -130,30 +133,29 @@ def impTracker(timeStart = None, timeFinish = None):
             SeqCodes=tempJson['SeqCodes'],
             CustomModelLeafName=tempJson['CustomModelLeafName'],
             XForwardedFor=tempJson['XForwardedFor'],
-            Date=datetime.datetime.strptime(re.sub('\..*', '', item['Time']), "%Y-%m-%d %H:%M:%S")
+            Date=timezone.make_aware(datetime.datetime.strptime(re.sub('\..*', '', item['Time']), "%Y-%m-%d %H:%M:%S"), timezone.get_default_timezone())
         ))
 
     try:
         RtbImpressionTracker.objects.bulk_create(bulkITAll)
-    except ValueError:
-        print ValueError
+    except ValueError, e:
+        print "Can't save domain. Error: " + str(e)
 
     for item in bulkITP:
-        if item["placement"] != '':
-            if len(item['placement']) > 1:
+        if item["placement"].strip() != '':
+            if len(item['placement']) > 1 and item['domain'].strip() != '':
                 try:
                     obj, created = RtbImpressionTrackerPlacement.objects.update_or_create(
-                        placement=int(item['placement']),
-                        domain=str(item['domain'])
+                        placement_id=int(item['placement']),
+                        domain=str(item['domain'].strip())
                     )
-                    print (obj, item, created)
-                except ValueError:
-                    print ValueError
+                except ValueError, e:
+                    print "Can't save domain. Error: " + str(e)
                      #CODE FOR ADDING TO RtbImpressionTrackerPlacementDomain clear domain
 
     for item in bulkITP:
-        if item["placement"] != '':
-            allDomainsQuery = RtbImpressionTrackerPlacement.objects.filter(placement_id=item["placement"])
+        if item["placement"].strip() != '':
+            allDomainsQuery = RtbImpressionTrackerPlacement.objects.filter(placement_id=item["placement"]).distinct()
             if not allDomainsQuery:
                 continue
             if len(allDomainsQuery) == 1:
@@ -167,7 +169,7 @@ def impTracker(timeStart = None, timeFinish = None):
                             if i == j or allDomainsQuery[i].domain == "null":
                                 continue
 
-                            if len(allDomainsQuery[i].domain) < position:
+                            if len(allDomainsQuery[i].domain) < position or len(allDomainsQuery[j].domain) < position:
                                 finish = True
                                 break
                             if allDomainsQuery[i].domain[-position] != allDomainsQuery[j].domain[-position]:
@@ -176,7 +178,6 @@ def impTracker(timeStart = None, timeFinish = None):
                     if finish == True:
                         break
                     position += 1
-                    print position
                 ans = "*"
                 position -= 1
                 while position != 0:

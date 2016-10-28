@@ -2361,6 +2361,7 @@ meta = {"network_analytics": {"time_granularity": "hourly",
                                                  "type": "int"},
                                                 {"column": "mobile_application_name",
                                                  "type": "string"},
+                                                #these columns are no longer available
                                                 #{"column": "mobile_application",
                                                 # "type": "string"},
                                                 {"column": "imps_viewed", "type": "int"},

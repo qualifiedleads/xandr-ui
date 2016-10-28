@@ -138,6 +138,7 @@
         'COLUMNS':{
           "CAMPAIGN":"Campaign",
           "PLACEMENT": "Placement",
+          'DOMAIN' : 'Domain',
           "NETWORK":"Network + Seller",
           "SPENT":"Spent",
           "CONV":"Conv",

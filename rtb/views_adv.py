@@ -755,6 +755,9 @@ def changeState(request, campaignId):
         + activeState (string) - Change state (white, black, suspend)
         + date - suspend date
 
+    503 - Not connect to appnexus server
+    404 - Not found
+
     """
     placementId = request.data.get("placement")
     activeState = request.data.get("activeState")   # 4 - white / 2 - black / 1 - suspend
@@ -766,39 +769,48 @@ def changeState(request, campaignId):
 
     listObj = []
 
+    print 'len: ' + str(len(placementId))
     if len(placementId) == 1:
         try:
             state_obj = PlacementState.objects.get(placement_id=placementId[0])
             state = state_obj.state
+            print 'state try: ' + str(state)
         except:
             state = 0
 
+        print 'state: ' + str(state)
         if state == activeState:
             state = PlacementStateClass(campaignId, placementId)  # , 7043341
             result = state.remove_placement_from_targets_list()
             print (campaignId, placementId, result)
-            return Response('Unactive')
+            if result == 'OK':
+                return Response('Unactive')
+            return Response(str(result))
 
-    for i, placement in enumerate(placementId):
-        obj, created = PlacementState.objects.update_or_create(campaign_id=campaignId,
-                                                               placement_id=placement,
-                                                               defaults=dict(
-                                                                   state=activeState,
-                                                                   suspend=date,
-                                                                   change=True
-                                                               ))
 
-        listObj.append({
-            'placementId': obj.placement_id,
-            'campaign_id': obj.campaign_id,
-            'suspend': obj.suspend,
-            'state': obj.state
-        })
     state = PlacementStateClass(campaignId, placementId)  # , 7043341
-    result = state.change_state_placement()
+    result = state.change_state_placement(activeState)
     print (campaignId, placementId, result)
+    if result == 'OK':
+        for i, placement in enumerate(placementId):
+            obj, created = PlacementState.objects.update_or_create(campaign_id=campaignId,
+                                                                   placement_id=placement,
+                                                                   defaults=dict(
+                                                                       state=activeState,
+                                                                       suspend=date,
+                                                                       change=False
+                                                                   ))
 
-    return Response(listObj)
+            listObj.append({
+                'placementId': obj.placement_id,
+                'campaign_id': obj.campaign_id,
+                'suspend': obj.suspend,
+                'state': obj.state
+            })
+        return Response(listObj)
+    else:
+        return Response(str(result))
+
 
 def getPlacementDomain(placementId):
     domains = RtbImpressionTrackerPlacement.objects.filter(placement_id=placementId)
@@ -811,6 +823,8 @@ def getPlacementDomain(placementId):
     if allDomains != "":
         allDomains = allDomains[:-2]
     domain = RtbImpressionTrackerPlacementDomain.objects.filter(placement_id=placementId)
+    if not domain:
+        return allDomains, ""
     domain = domain[0].domain
     return allDomains, domain
 

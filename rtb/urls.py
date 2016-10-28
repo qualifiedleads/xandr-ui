@@ -31,7 +31,7 @@ urlpatterns = [
     url(r'^campaigns/(\d+)/MLPlacement', views_adv.mlApiAnalitics),
     url(r'^MLRandomTestSet', views_adv.mlApiSendRandomTestSet),
     url(r'^MLExpertMark', views_adv.mlApiSaveExpertPlacementMark),
-    #url(r'^MLGetAUC', views_adv.mlCalcAUC),
+    #url(r'^MLGetAUC', views_adv.mlApiCalcAUC),
     url(r'^campaigns/(\d+)/changestate', views_adv.changeState),
     url(r'^campaigns/(\d+)$', views_adv.singleCampaign),
     url(r'^campaigns', views.campaigns),

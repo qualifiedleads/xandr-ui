@@ -24,6 +24,7 @@ from models.rtb_impression_tracker import RtbImpressionTrackerPlacement, RtbImpr
 import bisect
 from django.contrib.auth.decorators import login_required, user_passes_test
 import json
+#from ml_auc import mlCalcAuc
 
 @api_view()
 @check_user_advertiser_permissions(campaign_id_num=0)
@@ -226,10 +227,8 @@ def get_campaign_placement(campaign_id, from_date, to_date):
                 x['state'] = state.state
             else:
                 x['state'] = 0
-            #x["analitics"] = []
-            #x["analitics"].append(mlFillPredictionAnswer(x["placement"], False, "kmeans", "ctr_cvr_cpc_cpm_cpa"))
             x["analitics"] = mlFillPredictionAnswer(x["placement"], False, "kmeans", "ctr_cvr_cpc_cpm_cpa")
-            #x["analitics1"] = mlFillPredictionAnswer(x["placement"], False, "log" , "ctr_cvr_cpc_cpm_cpa")
+            x["analitics1"] = mlFillPredictionAnswer(x["placement"], False, "log" , "ctr_cvr_cpc_cpm_cpa")
             x["allDomains"], x["domain"] = getPlacementDomain(x["placement"])
         return res
     # no cache hit
@@ -266,10 +265,8 @@ def get_campaign_placement(campaign_id, from_date, to_date):
             x['state'] = state.state
         else:
             x['state'] = 0
-        #x["analitics"] = []
-        #x["analitics"].append(mlFillPredictionAnswer(x["placement"], False, "kmeans", "ctr_cvr_cpc_cpm_cpa"))
         x["analitics"] = mlFillPredictionAnswer(x["placement"], False, "kmeans", "ctr_cvr_cpc_cpm_cpa")
-        #x["analitics1"] = mlFillPredictionAnswer(x["placement"], False, "log", "ctr_cvr_cpc_cpm_cpa")
+        x["analitics1"] = mlFillPredictionAnswer(x["placement"], False, "log", "ctr_cvr_cpc_cpm_cpa")
         x["allDomains"], x["domain"] = getPlacementDomain(x["placement"])
         x.pop('placementState', None)
 
@@ -569,6 +566,7 @@ GET: diagramms for week for a placement
     return res
 
 
+    
 def mlApiWeeklyPlacementRecignition(request):
     placement_id = request.GET.get("placementId")
     test_name = request.GET.get("test_name")
@@ -589,7 +587,8 @@ def mlApiSaveExpertDecision(request):
     if test_type == "kmeans":
         placementInfo = MLPlacementsClustersKmeans.objects.filter(
             placement_id=placement_id,
-            day=day
+            day=day,
+            test_number=test_number
         )
         if test_type == "log":
             pass #get info about
@@ -636,66 +635,80 @@ def mlApiSaveExpertDecision(request):
     return Response(res)
 
 def mlFillPredictionAnswer(placement_id = 1, flagAllWeek = False, test_type = "kmeans", test_name = "ctr_viewrate"):
-    mlAnswer = mlGetPlacementInfoKmeans(placement_id, flagAllWeek, test_type, test_name)
-
-    if flagAllWeek == False:
-        wholeWeekInd = 7
-        if mlAnswer == -1 or mlAnswer == -2:
-            res = ({  # for one object
-                "good": mlAnswer,
-                "bad": mlAnswer,
-                "checked": mlAnswer
-            })
-            return res
-
-        if str(wholeWeekInd) not in mlAnswer:  # for one object
-            res = ({
-                "good": -3,
-                "bad": -3,
-                "checked": -3
-            })
-        else:
-            res = ({
-                "good": mlAnswer[str(wholeWeekInd)]['good'],
-                "bad": mlAnswer[str(wholeWeekInd)]['bad'],
-                "checked": mlAnswer[str(wholeWeekInd)]['checked']
-            })
-        return res
-    else:
-        mlAnswer = mlGetPlacementInfoKmeans(placement_id, True, test_type, test_name)  # get data from recognition database
-        res = []
-        if mlAnswer == -1 or mlAnswer == -2:  # error with data in database
-            for weekday in xrange(8):  # for all week, 8 - quantity of weekdays+whole week in mlAnswer
-                res.append({
-                    "day": weekday,
+    if test_type == "kmeans":
+        mlAnswer = mlGetPlacementInfoKmeans(placement_id, flagAllWeek, test_type, test_name)
+        if flagAllWeek == False:
+            wholeWeekInd = 7
+            if mlAnswer == -1 or mlAnswer == -2:
+                res = ({  # for one object
                     "good": mlAnswer,
                     "bad": mlAnswer,
                     "checked": mlAnswer
                 })
-            return res
+                return res
 
-        for weekday in xrange(8):  # 8 - quantity of weekdays+whole week in mlAnswer
-            if str(weekday) not in mlAnswer:  # for array
-                res.append({
-                    "day": weekday,
+            if str(wholeWeekInd) not in mlAnswer:  # for one object
+                res = ({
                     "good": -3,
                     "bad": -3,
                     "checked": -3
                 })
             else:
-                res.append({
-                    "day": weekday,
-                    "good": mlAnswer[str(weekday)]['good'],
-                    "bad": mlAnswer[str(weekday)]['bad'],
-                    "checked": mlAnswer[str(weekday)]['checked']
+                res = ({
+                    "good": mlAnswer[str(wholeWeekInd)]['good'],
+                    "bad": mlAnswer[str(wholeWeekInd)]['bad'],
+                    "checked": mlAnswer[str(wholeWeekInd)]['checked']
                 })
+            return res
+        else:
+            mlAnswer = mlGetPlacementInfoKmeans(placement_id, True, test_type, test_name)  # get data from recognition database
+            res = []
+            if mlAnswer == -1 or mlAnswer == -2:  # error with data in database
+                for weekday in xrange(8):  # for all week, 8 - quantity of weekdays+whole week in mlAnswer
+                    res.append({
+                        "day": weekday,
+                        "good": mlAnswer,
+                        "bad": mlAnswer,
+                        "checked": mlAnswer
+                    })
+                return res
+
+            for weekday in xrange(8):  # 8 - quantity of weekdays+whole week in mlAnswer
+                if str(weekday) not in mlAnswer:  # for array
+                    res.append({
+                        "day": weekday,
+                        "good": -3,
+                        "bad": -3,
+                        "checked": -3
+                    })
+                else:
+                    res.append({
+                        "day": weekday,
+                        "good": mlAnswer[str(weekday)]['good'],
+                        "bad": mlAnswer[str(weekday)]['bad'],
+                        "checked": mlAnswer[str(weekday)]['checked']
+                    })
+        return res
+    #TODO getting results for logistic regression
+    if test_type == "log":
+        res = ({
+            "good": -1,
+            "bad": -1,
+            "checked": -1
+        })
+        return res
+    res = ({  # if wrong test type
+        "good": -1,
+        "bad": -1,
+        "checked": -1
+    })
     return res
 
 @api_view(["GET"])
 @check_user_advertiser_permissions(campaign_id_num=0)
 def mlApiSendRandomTestSet(request):
     res = {}
-    res["wtf"] = 3
+
     return Response(res)
     # getting test samples for model testing
     pass
@@ -710,7 +723,7 @@ def mlApiSaveExpertPlacementMark(request):
         placement_id=placement_id,
         day=day,
         expert_decision=decision,
-        date=time.strftime("%Y-%m-%d")#GET MARK DATE
+        date=time.strftime("%Y-%m-%d")
     )
     try:
         tempQuery = MLExpertsPlacementsMarks.objects.filter(
@@ -722,7 +735,7 @@ def mlApiSaveExpertPlacementMark(request):
         else:
             tempQuery.update(
                 expert_decision=decision,
-                date=time.strftime("%Y-%m-%d")# GET MARK DATE
+                date=time.strftime("%Y-%m-%d")
             )
     except Exception, e:
         print "Can't save expert mark. Error: " + str(e)
@@ -815,13 +828,11 @@ def getPlacementDomain(placementId):
     domain = domain[0].domain
     return allDomains, domain
 
-#@api_view(["GET"])
-#@check_user_advertiser_permissions(campaign_id_num=0)
-# def mlCalcAUC(request):
+# @api_view(["GET"])
+# @check_user_advertiser_permissions(campaign_id_num=0)
+# def mlApiCalcAUC(request):
 #     placementsIds = request.data.get("placementIds")
 #     test_type = request.data.get("test_type")
 #     test_name = request.data.get("test_name")
-#     rocSensetivities, rocFalsePositivesRates = mlBuildROC(placementsIds, test_type, test_name)
-#
-#     for i in xrange(len(rocFalsePositivesRates)):
-#         pass
+#     res = mlCalcAuc(placementsIds, test_type, test_name)
+#     return Response(res)

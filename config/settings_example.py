@@ -141,7 +141,8 @@ REST_FRAMEWORK = {
 CRONJOBS = [
     ('* * * * *', 'rtb.crons.placement_state_cron.suspend_state_middleware_cron'),
     ('0 */4 * * *', 'rtb.imp_tracker_cron.get'),
-    ('5 0 * * *', 'rtb.cron.dayly_task')
+    ('5 0 * * *', 'rtb.cron.dayly_task'),
+    ('0 */1 * * *'), 'rtb.crons.ml_predict_new_placements_cron.mlPredictNewPlacementsCron'
 ]
 NEXUS_AUTH_DATA= {
     "username": "stats_api", 

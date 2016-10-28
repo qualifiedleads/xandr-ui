@@ -87,13 +87,6 @@ class PlacementState:
             url = self.__appnexus_url + 'profile?id={0}&advertiser_id={1}'.format(profile_id, advertiser_id)
             headers = {"Authorization": self.get_token(), 'Content-Type': 'application/json'}
             for one_placement in placement_id:
-                # localState = ModelPlacementState.objects.get(placement_id=one_placement)
-                # try:
-                #     localState['response']['error']
-                #     print "get profile by id - " + localState['response']['error']
-                #     return 404
-                # except:
-                #     pass
                 if stateRtb == 1 or stateRtb == 2:
                     state = "exclude"
                 elif stateRtb == 4:
@@ -118,12 +111,6 @@ class PlacementState:
                 return 404
             except:
                 pass
-            # try:
-            #     for one_placement in placement_id:
-            #         ModelPlacementState.objects.filter(placement_id=one_placement).update(change=False)
-            # except:
-            #     print "update_profile_by_id - Error db"
-            #     return 404
             print 'update_profile_by_id - ' + changeState['response']['status']
             return changeState['response']['status']
         except:

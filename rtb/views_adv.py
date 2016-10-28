@@ -756,13 +756,16 @@ def changeState(request, campaignId):
 
     listObj = []
 
+    print 'len: ' + str(len(placementId))
     if len(placementId) == 1:
         try:
             state_obj = PlacementState.objects.get(placement_id=placementId[0])
             state = state_obj.state
+            print 'state try: ' + str(state)
         except:
             state = 0
 
+        print 'state: ' + str(state)
         if state == activeState:
             state = PlacementStateClass(campaignId, placementId)  # , 7043341
             result = state.remove_placement_from_targets_list()

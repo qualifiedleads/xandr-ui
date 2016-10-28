@@ -172,7 +172,6 @@ def impTracker(timeStart = None, timeFinish = None):
                             if len(allDomainsQuery[i].domain) < position or len(allDomainsQuery[j].domain) < position:
                                 finish = True
                                 break
-                            print str(i) + ':' + str(j) + ':' + str(position) + ':' + str(len(allDomainsQuery[i].domain)) + ':' + str(len(allDomainsQuery[j].domain))
                             if allDomainsQuery[i].domain[-position] != allDomainsQuery[j].domain[-position]:
                                 finish = True
                                 break

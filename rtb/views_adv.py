@@ -810,6 +810,8 @@ def getPlacementDomain(placementId):
     if allDomains != "":
         allDomains = allDomains[:-2]
     domain = RtbImpressionTrackerPlacementDomain.objects.filter(placement_id=placementId)
+    if not domain:
+        return allDomains, ""
     domain = domain[0].domain
     return allDomains, domain
 

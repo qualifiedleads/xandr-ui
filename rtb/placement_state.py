@@ -1,9 +1,11 @@
-from models.placement_state import PlacementState as ModelPlacementState
+from models.placement_state import PlacementState as ModelPlacementState, LastModified
 from django.conf import settings
 from models.models import Campaign, Profile
+from django.db.models import Max
 from rtb.cron import load_depending_data
 from pytz import utc
 from django.utils import timezone
+from django.db.models import F
 from datetime import timedelta
 import unicodedata
 import re
@@ -205,18 +207,24 @@ class PlacementState:
             return 503
 
     def placement_targets_list(self):
-        minutesAgo = datetime.datetime.now() - timedelta(minutes=15)
-        now = datetime.datetime.now()
-        # try:
-        #     load_depending_data(self.get_token(), True, False)
-        # except ValueError, e:
-        #     print "Failed to load profile platform placement targets. Error: " + str(e)
-        #     return False
+        lasmoModified = LastModified.objects.filter(type='profile')
+        if lasmoModified:
+            minutesAgo = LastModified.objects.filter(type='profile')[0].date
+        else:
+            minutesAgo = Profile.objects.all().values('last_modified').order_by('last_modified')[0]['last_modified']
+        now = timezone.make_aware(datetime.datetime.now(), timezone.get_default_timezone())
+        print 'from: {0} to {1}'.format(minutesAgo, now)
+        try:
+            load_depending_data(self.get_token(), True, False)
+        except ValueError, e:
+            print "Failed to load profile platform placement targets. Error: " + str(e)
+            return False
         allProfile = Campaign.objects.select_related("profile")\
             .filter(
                 state='active',
                 profile__platform_placement_targets__isnull=False,
-                profile__last_modified__range=[minutesAgo, now])\
+                profile__last_modified__range=[minutesAgo, now]
+            )\
             .values('id', 'profile_id', 'profile__platform_placement_targets', 'profile__last_modified')
         for profile in allProfile:
             string = profile['profile__platform_placement_targets']
@@ -251,6 +259,7 @@ class PlacementState:
                             suspend=None,
                             change=False
                         ).save()
+                        print 'Added placement {0} and campaign {1}'.format(placement['id'], profile['id'])
                     except ValueError, e:
                         print "Can't save placement state. Error: " + str(e)
                 else:
@@ -268,7 +277,13 @@ class PlacementState:
                         print (obj, created)
                     except ValueError, e:
                         print "Can't update placement state. Error: " + str(e)
-        print "Happy end"
+        if not lasmoModified:
+            LastModified(type='profile', date=now).save()
+        else:
+            lastminutesAgo = Profile.objects.latest('last_modified').last_modified
+            print 'Last modified profile: {0} '.format(lastminutesAgo)
+            LastModified.objects.filter(type='profile').update(date=lastminutesAgo)
+        print "End platform placement targets"
 
 
 

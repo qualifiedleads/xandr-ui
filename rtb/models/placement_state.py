@@ -20,3 +20,11 @@ class CampaignRules(models.Model):
 
     class Meta:
         db_table = "campaign_rules"
+
+class LastModified(models.Model):
+    id = models.AutoField(primary_key=True)
+    type = models.TextField(null=True, blank=True)
+    date = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        db_table = "last_modified"

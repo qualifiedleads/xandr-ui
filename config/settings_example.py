@@ -186,3 +186,7 @@ LOGGING = {
         },
     },
 }
+
+SILENCED_SYSTEM_CHECKS = [
+    'fields.W342',
+]

@@ -2,8 +2,8 @@
   'use strict';
 
   angular
-  .module('pjtLayout')
-  .controller('CampaignMainController', CampaignMainController);
+    .module('pjtLayout')
+    .controller('CampaignMainController', CampaignMainController);
 
   /** @ngInject */
   function CampaignMainController($window, $state, $localStorage, $translate, $timeout, CampMain, Campaign, $scope) {
@@ -680,7 +680,7 @@
     }
 
     vm.UI = {
-       dateFormatPop: {
+      dateFormatPop: {
         disabled: true,
         type: "date",
         value: now,
@@ -891,6 +891,18 @@
           }
         },
         {
+          caption: LC('CAMP.CAMPAIGN.COLUMNS.DOMAIN'),
+          dataField: 'domain',
+          alignment: 'center',
+          dataType: 'string',
+          allowEditing: false,
+          headerFilter: {
+            dataSource: function (source) {
+              return headerFilterColumn(source, 'domain');
+            }
+          }
+        },
+        {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.NETWORK'),
           dataField: 'NetworkPublisher',
           alignment: 'center',
@@ -1089,22 +1101,22 @@
                 s.removeClass('active');
                 CampMain.editCampaignDomains(vm.campId, [options.data.placement], 4)
                   .then(function (res) {
-                      w.dxButton('instance').option('disabled',false);
-                      b.dxButton('instance').option('disabled',false);
-                      s.dxButton('instance').option('disabled',false);
-                      if (res == 404) {
-                        $window.DevExpress.ui.notify("Not found", "warning", 4000);
-                        $('#gridContainerWhite').dxDataGrid('instance').refresh();
-                        return res;
-                      }
-                      if (res == 503) {
-                        $window.DevExpress.ui.notify("Not connect to appnexus server, please try again later", "warning", 4000);
-                        $window.$('#gridContainer2').dxDataGrid('instance').refresh();
-                        return res;
-                      }
-                      if (res !== 'Unactive') {
-                        w.addClass('active');
-                      }
+                    w.dxButton('instance').option('disabled',false);
+                    b.dxButton('instance').option('disabled',false);
+                    s.dxButton('instance').option('disabled',false);
+                    if (res == 404) {
+                      $window.DevExpress.ui.notify("Not found", "warning", 4000);
+                      $('#gridContainerWhite').dxDataGrid('instance').refresh();
+                      return res;
+                    }
+                    if (res == 503) {
+                      $window.DevExpress.ui.notify("Not connect to appnexus server, please try again later", "warning", 4000);
+                      $window.$('#gridContainer2').dxDataGrid('instance').refresh();
+                      return res;
+                    }
+                    if (res !== 'Unactive') {
+                      w.addClass('active');
+                    }
                     return res;
                   })
                   .catch(function (err) {
@@ -1328,48 +1340,48 @@
                   }
                 } else {
                   if (selectedArr != '[]') {
-                      for (var i =0; i<selectedArr.length; i++) {
-                        var w = $window.$('div.state-white'+ selectedArr[i]);
-                        var b = $window.$('div.state-black'+ selectedArr[i]);
-                        var s = $window.$('div.state-suspended'+ selectedArr[i]);
-                        w.dxButton('instance').option('disabled',true);
-                        b.dxButton('instance').option('disabled',true);
-                        s.dxButton('instance').option('disabled',true);
-                        w.removeClass('active');
-                        b.removeClass('active');
-                        s.removeClass('active');
-                      }
-
-                      CampMain.editCampaignDomains(vm.campId, selectedArr, e.selectedItem.state).then(function (res) {
-                        for (var i =0; i<selectedArr.length; i++) {
-                          var b = $window.$('div.state-black'+ selectedArr[i]);
-                          var w =$window.$('div.state-white'+ selectedArr[i]);
-                          var s = $window.$('div.state-suspended'+ selectedArr[i]);
-                          w.dxButton('instance').option('disabled',false);
-                          b.dxButton('instance').option('disabled',false);
-                          s.dxButton('instance').option('disabled',false);
-                          if (res == 404) {
-                            $window.DevExpress.ui.notify("Not found", "warning", 4000);
-                            $window.$('#gridContainer2').dxDataGrid('instance').refresh();
-                            return res;
-                          }
-                          if (res == 503) {
-                            $window.DevExpress.ui.notify("Not connect to appnexus server, please try again later", "warning", 4000);
-                            $window.$('#gridContainer2').dxDataGrid('instance').refresh();
-                            return res;
-                          }
-                          if (e.selectedItem.state == 2) {
-                            b.addClass('active');
-                          }
-                          if (e.selectedItem.state == 4) {
-                            w.addClass('active');
-                          }
-                        }
-                        $('#gridContainer2').dxDataGrid('instance').refresh();
-                      }).catch(function () {
-                        $('#gridContainer2').dxDataGrid('instance').refresh();
-                      });
+                    for (var i =0; i<selectedArr.length; i++) {
+                      var w = $window.$('div.state-white'+ selectedArr[i]);
+                      var b = $window.$('div.state-black'+ selectedArr[i]);
+                      var s = $window.$('div.state-suspended'+ selectedArr[i]);
+                      w.dxButton('instance').option('disabled',true);
+                      b.dxButton('instance').option('disabled',true);
+                      s.dxButton('instance').option('disabled',true);
+                      w.removeClass('active');
+                      b.removeClass('active');
+                      s.removeClass('active');
                     }
+
+                    CampMain.editCampaignDomains(vm.campId, selectedArr, e.selectedItem.state).then(function (res) {
+                      for (var i =0; i<selectedArr.length; i++) {
+                        var b = $window.$('div.state-black'+ selectedArr[i]);
+                        var w =$window.$('div.state-white'+ selectedArr[i]);
+                        var s = $window.$('div.state-suspended'+ selectedArr[i]);
+                        w.dxButton('instance').option('disabled',false);
+                        b.dxButton('instance').option('disabled',false);
+                        s.dxButton('instance').option('disabled',false);
+                        if (res == 404) {
+                          $window.DevExpress.ui.notify("Not found", "warning", 4000);
+                          $window.$('#gridContainer2').dxDataGrid('instance').refresh();
+                          return res;
+                        }
+                        if (res == 503) {
+                          $window.DevExpress.ui.notify("Not connect to appnexus server, please try again later", "warning", 4000);
+                          $window.$('#gridContainer2').dxDataGrid('instance').refresh();
+                          return res;
+                        }
+                        if (e.selectedItem.state == 2) {
+                          b.addClass('active');
+                        }
+                        if (e.selectedItem.state == 4) {
+                          w.addClass('active');
+                        }
+                      }
+                      $('#gridContainer2').dxDataGrid('instance').refresh();
+                    }).catch(function () {
+                      $('#gridContainer2').dxDataGrid('instance').refresh();
+                    });
+                  }
                   if (selectedArr != '[]') {
                     CampMain.editCampaignDomains(vm.campId, selectedArr, e.selectedItem.state).then(function (res) {
                       $('#gridContainer2').dxDataGrid('instance').refresh();

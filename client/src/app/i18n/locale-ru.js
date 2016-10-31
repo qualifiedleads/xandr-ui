@@ -138,6 +138,7 @@
         'COLUMNS':{
           "CAMPAIGN":"Кампания",
           "PLACEMENT":"Размещение",
+          'DOMAIN' : 'Домен',
           "NETWORK":"Сеть_Издатель",
           "SPENT":"Потрачено",
           "CONV":"Конв",

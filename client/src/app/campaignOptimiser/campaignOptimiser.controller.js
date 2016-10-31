@@ -511,6 +511,17 @@
                 return headerFilterColumn(source, 'placement');
               }
             }
+          },{
+            caption: LC('CAMP.CAMPAIGN.COLUMNS.DOMAIN'),
+            dataField: 'domain',
+            alignment: 'center',
+            dataType: 'string',
+            allowEditing: false,
+            headerFilter: {
+              dataSource: function (source) {
+                return headerFilterColumn(source, 'domain');
+              }
+            }
           },
           {
             caption: LC('CAMP.CAMPAIGN.COLUMNS.NETWORK'),

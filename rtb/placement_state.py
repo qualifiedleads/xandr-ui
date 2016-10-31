@@ -2,6 +2,9 @@ from models.placement_state import PlacementState as ModelPlacementState
 from django.conf import settings
 from models.models import Campaign, Profile
 from rtb.cron import load_depending_data
+from pytz import utc
+from django.utils import timezone
+from datetime import timedelta
 import unicodedata
 import re
 import json
@@ -9,6 +12,7 @@ import requests
 import datetime
 import pytz
 import utils
+
 
 _last_token = None
 _last_token_time = None
@@ -200,68 +204,72 @@ class PlacementState:
             print "remove_placement_from_targets_list - Not connect to appnexus server "
             return 503
 
-
     def placement_targets_list(self):
-        if load_depending_data(self.get_token(), True, False):
-            allProfile = Campaign.objects.select_related("profile").filter(state='active',
-                                                                           profile__platform_placement_targets__isnull=False).values(
-                'id', 'profile_id', 'profile__platform_placement_targets')
-            for profile in allProfile:
-                string = profile['profile__platform_placement_targets']
-                placementTargets = unicodedata.normalize('NFKD', string).encode('utf-8', 'ignore')
-                placementTargets = re.sub('\'', '"', placementTargets)
-                placementTargets = re.sub('u"', '"', placementTargets)
-                placementTargets = placementTargets[2:-2]
-                placementTargets = placementTargets.split('}, {')
-                placeTarget = []
-                for items in placementTargets:
-                    items = items.split(', ')
-                    tempDictionary = {}
-                    for item in items:
-                        item = item.split(': ')
-                        item[0] = re.sub('\"', '', item[0])
-                        item[1] = re.sub('\"', '', item[1])
-                        tempDictionary[item[0]] = item[1]
-                    placeTarget.append(tempDictionary)
-
-                for placement in placeTarget:
-
-                    dbPlacement = ModelPlacementState.objects.filter(placement_id=int(placement['id']),
-                                                                     campaign_id=profile['id'])
-                    if not dbPlacement:
+        minutesAgo = datetime.datetime.now() - timedelta(minutes=15)
+        now = datetime.datetime.now()
+        # try:
+        #     load_depending_data(self.get_token(), True, False)
+        # except ValueError, e:
+        #     print "Failed to load profile platform placement targets. Error: " + str(e)
+        #     return False
+        allProfile = Campaign.objects.select_related("profile")\
+            .filter(
+                state='active',
+                profile__platform_placement_targets__isnull=False,
+                profile__last_modified__range=[minutesAgo, now])\
+            .values('id', 'profile_id', 'profile__platform_placement_targets', 'profile__last_modified')
+        for profile in allProfile:
+            string = profile['profile__platform_placement_targets']
+            placementTargets = unicodedata.normalize('NFKD', string).encode('utf-8', 'ignore')
+            placementTargets = re.sub('\'', '"', placementTargets)
+            placementTargets = re.sub('u"', '"', placementTargets)
+            placementTargets = placementTargets[2:-2]
+            placementTargets = placementTargets.split('}, {')
+            placeTarget = []
+            for items in placementTargets:
+                items = items.split(', ')
+                tempDictionary = {}
+                for item in items:
+                    item = item.split(': ')
+                    item[0] = re.sub('\"', '', item[0])
+                    item[1] = re.sub('\"', '', item[1])
+                    tempDictionary[item[0]] = item[1]
+                placeTarget.append(tempDictionary)
+            for placement in placeTarget:
+                dbPlacement = ModelPlacementState.objects\
+                    .filter(placement_id=int(placement['id']), campaign_id=profile['id'])
+                if not dbPlacement:
+                    if placement['action'] == 'exclude':
+                        state = 2
+                    else:
+                        state = 4
+                    try:
+                        ModelPlacementState(
+                            placement_id=int(placement['id']),
+                            campaign_id=profile['id'],
+                            state=state,
+                            suspend=None,
+                            change=False
+                        ).save()
+                    except ValueError, e:
+                        print "Can't save placement state. Error: " + str(e)
+                else:
+                    try:
+                        if dbPlacement[0].state == 1 and placement['action'] == 'exclude':
+                            continue
                         if placement['action'] == 'exclude':
                             state = 2
                         else:
                             state = 4
-                        try:
-                            ModelPlacementState(
-                                placement_id=int(placement['id']),
-                                campaign_id=profile['id'],
-                                state=state,
-                                suspend=None,
-                                change=False
-                            ).save()
-                        except ValueError, e:
-                            print "Can't save domain. Error: " + str(e)
-                    else:
-                        try:
-                            if dbPlacement[0].state == 1 and placement['action'] == 'exclude':
-                                continue
-                            if placement['action'] == 'exclude':
-                                state = 2
-                            else:
-                                state = 4
-                            obj, created = ModelPlacementState.objects.update_or_create(
-                                placement_id=int(placement['id']),
-                                campaign_id=profile['id'],
-                                defaults={"state": state, "suspend": None, "change": False})
-                            print (obj, created)
-                        except ValueError, e:
-                            print "Can't save domain. Error: " + str(e)
-            print "Happy end"
+                        obj, created = ModelPlacementState.objects.update_or_create(
+                            placement_id=int(placement['id']),
+                            campaign_id=profile['id'],
+                            defaults={"state": state, "suspend": None, "change": False})
+                        print (obj, created)
+                    except ValueError, e:
+                        print "Can't update placement state. Error: " + str(e)
+        print "Happy end"
 
-        else:
-            print "Failed to load profile__platform_placement_targets"
-            return None
+
 
 

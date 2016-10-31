@@ -4,7 +4,7 @@ import json
 import datetime
 import time
 import requests
-import os
+import os,sys
 import utils
 from django.conf import settings
 import django.db.models as django_types
@@ -366,7 +366,7 @@ def nexus_get_objects(
                         print 'Nulling field %s on object %s (was %s)'%(fk.name, object_db, val)
                 except Exception as e:
                     print "Error by saving ", e
-                    print type(e)
+                    print sys.exc_info()
                     print i
                     break
         if settings.DEBUG and len(objects_by_api) > 0:

@@ -17,4 +17,4 @@ pympler
 requests
 NumPy
 SciPy
--U scikit-learn
+scikit-learn

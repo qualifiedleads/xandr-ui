@@ -300,42 +300,10 @@
         headers: {'Authorization': 'Token ' + $cookies.get('token')},
       })
         .then(function (res) {
-          //return res.data;
-          return [
-            {
-              "id": "rule",
-              "if": [
-                {
-                  id_rule: 'NewRule1',
-                  "type": "condition",
-                  "target": "Placement/App",
-                  "payment": "CPA",
-                  "compare": ">",
-                  "value": 0
-                }
-              ],
-              "then": "Blacklist"
-            }
-          ];
+          return res.data;
         })
         .catch(function (err) {
           $window.DevExpress.ui.notify(err.statusText, "error", 4000);
-          return [
-            {
-              "id": "rule",
-              "if": [
-                {
-                  id_rule: 'NewRule1',
-                  "type": "condition",
-                  "target": "Placement/App",
-                  "payment": "CPA",
-                  "compare": ">",
-                  "value": 0
-                }
-              ],
-              "then": "Blacklist"
-            }
-          ];
         });
     }
 

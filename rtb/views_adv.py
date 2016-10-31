@@ -15,7 +15,7 @@ import filter_func
 from models.ml_kmeans_model import MLPlacementDailyFeatures, MLClustersCentroidsKmeans, MLPlacementsClustersKmeans, \
 MLExpertsPlacementsMarks
 from rtb.ml_learn_kmeans import mlGetPlacementInfoKmeans, mlGetGoodClusters, mlGetTestNumber
-from models.placement_state import PlacementState
+from models.placement_state import PlacementState, CampaignRules
 from rtb.placement_state import PlacementState as PlacementStateClass
 from rest_framework import status
 import time
@@ -836,3 +836,35 @@ def getPlacementDomain(placementId):
 #     test_name = request.data.get("test_name")
 #     res = mlCalcAuc(placementsIds, test_type, test_name)
 #     return Response(res)
+
+@api_view(['GET', 'POST'])
+@check_user_advertiser_permissions(campaign_id_num=0)
+def ApiCampaignRules(request, id):#return/save campaign's rules
+    if request.method == "GET":
+        res = getCampaignRules(request, id)#return
+    if request.method == "POST":
+        res = saveCampaignRules(request, id)#save
+    return res
+
+def getCampaignRules(request, id):
+    try:
+        rules = CampaignRules.objects.get(campaign_id=id)
+    except Exception, e:
+        res = []
+        return Response(res)
+    res = rules.rules
+    return Response(res)
+
+def saveCampaignRules(request, id):
+    rule = request.data.get("ruleObj")
+    try:
+        CampaignRules.objects.update_or_create(
+            campaign_id=id,
+            defaults={"rules":rule})
+    except Exception, e:
+        print "Error in inserting/updating campaign rules: ", str(e)
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+    res = {}
+    res["campaign_id"] = id
+    res["rule"] = rule
+    return Response(res)

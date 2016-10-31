@@ -29,6 +29,7 @@ urlpatterns = [
     url(r'^campaigns/(\d+)/domains', views_adv.campaignDomains),
     url(r'^campaigns/(\d+)/details', views_adv.campaignDetails),
     url(r'^campaigns/(\d+)/MLPlacement', views_adv.mlApiAnalitics),
+    url(r'^campaigns/(\d+)/rules', views_adv.ApiCampaignRules),
     url(r'^MLRandomTestSet', views_adv.mlApiSendRandomTestSet),
     url(r'^MLExpertMark', views_adv.mlApiSaveExpertPlacementMark),
     #url(r'^MLGetAUC', views_adv.mlApiCalcAUC),

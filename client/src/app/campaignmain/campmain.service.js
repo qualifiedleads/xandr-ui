@@ -111,6 +111,7 @@
             NetworkPublisher: item.NetworkPublisher,
             placement: item.placement,
             placement_name: item.placement_name,
+            placement__rtbimpressiontrackerplacementdomain__domain: item.placement__rtbimpressiontrackerplacementdomain__domain,
             cvr: parseFloat((item.cvr || 0).toFixed(4)),
             ctr: parseFloat((item.ctr || 0).toFixed(4)),
             cpc: parseFloat((item.cpc || 0).toFixed(4)),

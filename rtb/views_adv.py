@@ -229,9 +229,9 @@ def get_campaign_placement(campaign_id, from_date, to_date):
                 x['state'] = 0
             x["analitics"] = mlFillPredictionAnswer(x["placement"], False, "kmeans", "ctr_cvr_cpc_cpm_cpa")
             x["analitics1"] = mlFillPredictionAnswer(x["placement"], False, "log" , "ctr_cvr_cpc_cpm_cpa")
-            x["allDomains"], x["domain"] = getPlacementDomain(x["placement"])
         return res
     # no cache hit
+
     from_date = datetime.datetime(from_date.year, from_date.month, from_date.day, tzinfo=utc)
     to_date = datetime.datetime(to_date.year, to_date.month, to_date.day, 23, tzinfo=utc)
     q = NetworkAnalyticsReport_ByPlacement.objects.filter(
@@ -239,7 +239,12 @@ def get_campaign_placement(campaign_id, from_date, to_date):
         campaign_id=campaign_id,
         hour__gte=from_date,
         hour__lte=to_date,
-    ).values('placement').annotate(
+    ).select_related(
+        "Placement"
+    ).values(
+        'placement',
+        'placement__rtbimpressiontrackerplacementdomain__domain'
+    ).annotate(
         placement_name=F('placement_name'), #placement__name
         NetworkPublisher=Concat(F('publisher_name'),Value("/"), F('seller_member_name')),
         placementState=F('placement__state'),
@@ -267,7 +272,6 @@ def get_campaign_placement(campaign_id, from_date, to_date):
             x['state'] = 0
         x["analitics"] = mlFillPredictionAnswer(x["placement"], False, "kmeans", "ctr_cvr_cpc_cpm_cpa")
         x["analitics1"] = mlFillPredictionAnswer(x["placement"], False, "log", "ctr_cvr_cpc_cpm_cpa")
-        x["allDomains"], x["domain"] = getPlacementDomain(x["placement"])
         x.pop('placementState', None)
 
 

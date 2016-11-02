@@ -784,25 +784,33 @@ def changeState(request, campaignId):
 
         print 'state: ' + str(state)
         if state == activeState:
-            state = PlacementStateClass(campaignId, placementId)  # , 7043341
-            result = state.remove_placement_from_targets_list()
-            print (campaignId, placementId, result)
-            if result == 'OK':
-                return Response('Unactive')
-            return Response(str(result))
+            obj, created = PlacementState.objects.update_or_create(campaign_id=campaignId,
+                                                                   placement_id=placementId[0],
+                                                                   defaults=dict(
+                                                                       state=0,
+                                                                       suspend=date,
+                                                                       change=True
+                                                                   ))
 
+            # state = PlacementStateClass(campaignId, placementId)  # , 7043341
+            # result = state.remove_placement_from_targets_list()
+            # print (campaignId, placementId, result)
+            # if result == 'OK':
+            return Response('Unactive')
+            # return Response(str(result))
 
-    state = PlacementStateClass(campaignId, placementId)  # , 7043341
-    result = state.change_state_placement(activeState)
-    print (campaignId, placementId, result)
-    if result == 'OK':
+    # state = PlacementStateClass(campaignId, placementId)  # , 7043341
+    # result = state.change_state_placement(activeState)
+    # print (campaignId, placementId, result)
+    # if result == 'OK':
+    try:
         for i, placement in enumerate(placementId):
             obj, created = PlacementState.objects.update_or_create(campaign_id=campaignId,
                                                                    placement_id=placement,
                                                                    defaults=dict(
                                                                        state=activeState,
                                                                        suspend=date,
-                                                                       change=False
+                                                                       change=True
                                                                    ))
 
             listObj.append({
@@ -812,8 +820,8 @@ def changeState(request, campaignId):
                 'state': obj.state
             })
         return Response(listObj)
-    else:
-        return Response(str(result))
+    except ValueError, e:
+        return Response(str(e))
 
 
 def getPlacementDomain(placementId):

@@ -1,11 +1,10 @@
 from models.placement_state import PlacementState as ModelPlacementState, LastModified
 from django.conf import settings
 from models.models import Campaign, Profile
-from django.db.models import Max
+from django.db.models import Max, Q, F
 from rtb.cron import load_depending_data
 from pytz import utc
 from django.utils import timezone
-from django.db.models import F
 from datetime import timedelta
 import unicodedata
 import re
@@ -21,7 +20,6 @@ _last_token_time = None
 
 class PlacementState:
     def __init__(self, campaign_id, placement_id):
-        self.__last_token =self.get_token()
         self.campaign_id = campaign_id
         self.placement_id = placement_id
 
@@ -281,10 +279,173 @@ class PlacementState:
             LastModified(type='profile', date=now).save()
         else:
             lastminutesAgo = Profile.objects.latest('last_modified').last_modified
-            print 'Last modified profile: {0} '.format(lastminutesAgo)
             LastModified.objects.filter(type='profile').update(date=lastminutesAgo)
+            print 'Last modified profile: {0} '.format(lastminutesAgo)
         print "End platform placement targets"
 
+    def change_state_by_state(self, stateGet):
+        try:
+            whiteBlackState = ModelPlacementState.objects.filter(Q(state=stateGet) & Q(change=True))
+            if len(whiteBlackState) < 1:
+                return None
+            tempCompId = []
+            for i in whiteBlackState:
+                tempCompId.append(i.campaign_id)
+            tempCompId = set(tempCompId)
 
+            campaignAndPlacement = []
+            for comp in tempCompId:
+                nextPlacement = []
+                for oneState in whiteBlackState:
+                    if comp == oneState.campaign_id:
+                        nextPlacement.append(oneState.placement_id)
+                campaignAndPlacement.append({'campaign_id': comp, 'placement_id': nextPlacement})
+
+            for campaign in campaignAndPlacement:
+                campaign_id = campaign['campaign_id']
+                placement_id = campaign['placement_id']
+                profile_id, advertiser_id = self.get_campaign_by_id(campaign_id)
+                platform_placement_targets = self.get_profile_by_id(profile_id)
+                if platform_placement_targets is None:
+                    updated_profile = self.update_profile_by_id(None, placement_id, profile_id, advertiser_id, 4)
+                    if updated_profile == 'OK':
+                        for placement in placement_id:
+                            obj, created = ModelPlacementState.objects.update_or_create(
+                                placement_id=int(placement),
+                                campaign_id=int(campaign_id),
+                                defaults={"state": stateGet, "suspend": None, "change": False})
+                    print 'List for '+str(placement_id) + ' to platform placement targets, profile: ' + updated_profile
+                else:
+                    updated_profile = self.update_profile_by_id(platform_placement_targets, placement_id,
+                                                                profile_id, advertiser_id, stateGet)
+                    if updated_profile == 'OK':
+                        for placement in placement_id:
+                            obj, created = ModelPlacementState.objects.update_or_create(
+                                placement_id=int(placement),
+                                campaign_id=int(campaign_id),
+                                defaults={"state": stateGet, "suspend": None, "change": False})
+                    print 'List for ' + str(placement_id) + ' to platform placement targets, profile: ' + updated_profile
+            print "Sync white list to platform placement targets."
+            return True
+        except:
+            print "Fail sync white list to platform placement targets."
+            return False
+
+    def remove_placement_from_targets_list_by_cron(self, stateGet):
+        try:
+            whiteBlackState = ModelPlacementState.objects.filter(Q(state=stateGet) & Q(change=True))
+            if len(whiteBlackState) < 1:
+                return None
+            tempCompId = []
+            for i in whiteBlackState:
+                tempCompId.append(i.campaign_id)
+            tempCompId = set(tempCompId)
+
+            campaignAndPlacement = []
+            for comp in tempCompId:
+                nextPlacement = []
+                for oneState in whiteBlackState:
+                    if comp == oneState.campaign_id:
+                        nextPlacement.append(oneState.placement_id)
+                campaignAndPlacement.append({'campaign_id': comp, 'placement_id': nextPlacement})
+
+            for campaign in campaignAndPlacement:
+                campaign_id = campaign['campaign_id']
+                placement_id = campaign['placement_id']
+                profile_id, advertiser_id = self.get_campaign_by_id(campaign_id)
+                platform_placement_targets = self.get_profile_by_id(profile_id)
+
+                if platform_placement_targets is None:
+                    print "remove_placement_from_targets_list - Not found target list "
+                else:
+                    for placement in placement_id:
+                        for target in platform_placement_targets:
+                            if target['id'] == placement:
+                                platform_placement_targets.remove(target)
+                    url = self.__appnexus_url + 'profile?id={0}&advertiser_id={1}'.format(profile_id, advertiser_id)
+                    headers = {"Authorization": self.get_token(), 'Content-Type': 'application/json'}
+                    data = json.dumps({
+                        "profile":
+                            {
+                                "platform_placement_targets": platform_placement_targets
+                            }
+                    })
+                    changeState = json.loads(requests.put(url, data=data, headers=headers).content)
+                    try:
+                        changeState['response']['error']
+                        print "get profile by id - " + changeState['response']['error']
+                        return 404
+                    except:
+                        pass
+                    if changeState['response']['status'] == 'OK':
+                        ModelPlacementState.objects.filter(placement_id__in=placement_id).delete()
+                    else:
+                        print "remove_placement_from_targets_list - Error db"
+                        return 404
+                    print 'List for ' + str(placement_id) + ' to platform placement targets, profile: ' + changeState['response']['status']
+            print "Sync white list to platform placement targets."
+            return True
+        except:
+            print "Fail sync white list to platform placement targets."
+            return False
+    
+    def update_plasement_state_in_our_table(self, campaign_id, arrayFromAppexus):
+        campaign_id = 14574547
+        arrayFromAppexus = [
+                   {'action': 'exclude', 'deleted': False, 'id': 5988182},
+                   {'action': 'exclude', 'deleted': False, 'id': 7043081},
+                   {'action': 'exclude', 'deleted': False, 'id': 7043210},
+                   {'action': 'include', 'deleted': False, 'id': 7043341},
+                   {'action': 'include', 'deleted': False, 'id': 7043352},
+                   {'action': 'exclude', 'deleted': False, 'id': 7043429},
+                   {'action': 'include', 'deleted': False, 'id': 7043440},
+                   {'action': 'include', 'deleted': False, 'id': 9293941}]
+        for placement in arrayFromAppexus:
+            dbPlacement = ModelPlacementState.objects \
+                .filter(placement_id=int(placement['id']), campaign_id=campaign_id, change=False)
+            if not dbPlacement:
+                if placement['action'] == 'exclude':
+                    state = 2
+                else:
+                    state = 4
+                try:
+                    ModelPlacementState(
+                        placement_id=int(placement['id']),
+                        campaign_id=campaign_id,
+                        state=state,
+                        suspend=None,
+                        change=False
+                    ).save()
+                    print 'Added placement {0} and campaign {1}'.format(placement['id'], campaign_id)
+                except ValueError, e:
+                    print "Can't save placement state. Error: " + str(e)
+            else:
+                try:
+                    if dbPlacement[0].state == 1 and placement['action'] == 'exclude':
+                        continue
+                    if placement['action'] == 'exclude':
+                        state = 2
+                    else:
+                        state = 4
+                    obj, created = ModelPlacementState.objects.update_or_create(
+                        placement_id=int(placement['id']),
+                        campaign_id=campaign_id,
+                        defaults={"state": state, "suspend": None, "change": False})
+                    print (obj, created)
+                except ValueError, e:
+                    print "Can't update placement state. Error: " + str(e)
+        
+        pass
+
+    def change_state_placement_by_cron(self):
+        try:
+            #self.update_plasement_state_in_our_table(None, None)
+            unactive = self.remove_placement_from_targets_list_by_cron(0)
+            white = self.change_state_by_state(4)
+            black = self.change_state_by_state(2)
+            print "Sync: white - {0}, black - {1}, Unactive - {2}".format(white, black, unactive)
+        except ValueError, e:
+            print 'Error: ' + str(e)
+            return 503
 
 

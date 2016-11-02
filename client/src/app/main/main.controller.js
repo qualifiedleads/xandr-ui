@@ -231,7 +231,6 @@
 
     vm.chartStore = Main.chartStore(vm.advertiser.id, vm.dataStart, vm.dataEnd, vm.by);
     vm.multipleStore = Main.multipleStore(vm.advertiser.id, vm.dataStart, vm.dataEnd, vm.by);
-
     vm.UI = {
       datePiker: {
         items: products,
@@ -256,6 +255,14 @@
         onInitialized: function (data) {
           vm.dataGridOptionsMultipleFunc = data.component;
           /*vm.dataGridOptionsMultipleFunc._controllers.columns._commandColumns[1].visibleIndex = 15;*/
+        },
+        loadPanel:{
+          shadingColor: "rgba(0,0,0,0.4)",
+
+          position: { at: 'center' },
+          height:100,
+
+          cssClass: 'Loading'
         },
         alignment: 'left',
         headerFilter: {
@@ -306,7 +313,7 @@
             caption: LC('MAIN.CAMPAIGN.COLUMNS.SPENT')+ ' ,$',
             dataField: 'spend',
             alignment: 'center',
-            dataType: 'number'
+            dataType: 'number'+ '$'
           },
           {
             caption: LC('MAIN.CAMPAIGN.COLUMNS.CONV'),
@@ -414,7 +421,13 @@
                     grid: {visible: false}
                   },
                   valueAxis: [
-                    {name: 'imp'},
+                    {name: 'imp',
+                      label: {
+                        visible: true,
+                        customizeText: function () {
+                          return this.value + 'ml' ;
+                        }
+                      }},
                     {name: 'cvr'},
                     {name: 'cpc'},
                     {name: 'clicks'},
@@ -425,6 +438,7 @@
                   argumentAxis: {
                     valueMarginsEnabled: false,
                     discreteAxisDivisionMode: 'crossLabels',
+                    NumericFormat:Number,
                     grid: {
                       visible: false
                     },
@@ -559,12 +573,57 @@
               size: 5
             }
           }
-        }, crosshair: {
+        },
+        tooltip: {
+          enabled: true,
+          customizeTooltip: function (arg) {
+            //console.log(arg);
+            if (arg.seriesName == 'Cost' || arg.seriesName == 'CPC') {
+              return {
+                text: '$'+arg.valueText,
+
+              };
+            }
+            if ( (arg.seriesName == 'CTR') || (arg.seriesName == 'CVR') ){
+              return {
+                text: arg.valueText+'%'
+              };
+            }
+            return {
+              text: arg.valueText
+            };
+          },
+
+
+        },
+        crosshair: {
+
           enabled: true,
           color: 'deepskyblue',
-          label: {
-            visible: true
-          }
+          visible: true,
+
+          horizontalLine:{
+            label: {
+              visible: true,
+
+            format: 'fixedPoint',
+
+            customizeText: function (arg) {
+              //console.log(arg);
+              if (arg.point.series.name == 'Cost' || arg.point.series.name == 'CPC') {
+                return  '$'+this.value ;
+              }
+              if ( (arg.point.series.name == 'CTR') || (arg.point.series.name == 'CVR') ){
+                return this.value + '%' ;
+              }
+
+            },
+          }},
+          verticalLine:{
+            label: {
+              visible: true}
+            }
+
         },
         commonAxisSettings: {
           valueMarginsEnabled: true
@@ -582,7 +641,15 @@
         valueAxis: [
           {
             name: 'imp',
-            position: 'left'
+            position: 'left',
+            label: {
+              visible: true,
+              customizeText: function () {
+              return this.value + 'ml' ;
+              }
+            }
+
+          /*  text: '$'+arg.valueText,*/
           },
           {
             name: 'cvr',
@@ -590,7 +657,8 @@
           },
           {
             name: 'cpc',
-            position: 'left'
+            position: 'left',
+
           },
           {
             name: 'clicks',
@@ -614,25 +682,7 @@
           horizontalAlignment: 'center',
           itemTextPosition: 'bottom'
         },
-        tooltip: {
-          enabled: true,
-          customizeTooltip: function (arg) {
-            //console.log(arg);
-            if (arg.seriesName == 'Cost' || arg.seriesName == 'CPC') {
-              return {
-                text: '$'+arg.valueText
-              };
-            }
-            if (arg.seriesName == 'CTR') {
-              return {
-                text: arg.valueText+'%'
-              };
-            }
-            return {
-              text: arg.valueText
-            };
-          }
-        }
+
       },
       impressions: {
         text: LC('MAIN.CHECKBOX.IMPRESSIONS'),
@@ -740,7 +790,7 @@
           name: 'areas',
           dataSource: $window.DevExpress.viz.map.sources.world,
           palette: 'blue',
-          colorGroups: [0, 100, 1000, 10000,100000, 10000000],
+          colorGroups: [ 0,100, 10000000],
           colorGroupingField: 'clicks',
           label: {
             enabled: true,

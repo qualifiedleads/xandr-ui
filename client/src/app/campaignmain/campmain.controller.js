@@ -204,11 +204,36 @@
         }
       },
       crosshair: {
+
         enabled: true,
         color: 'deepskyblue',
-        label: {
-          visible: true
+        visible: true,
+
+        horizontalLine:{
+          label: {
+            visible: true,
+
+            format: 'fixedPoint',
+
+            customizeText: function (arg) {
+              //console.log(arg);
+              if (arg.point.series.name == 'Cost' || arg.point.series.name == 'CPC') {
+                return  '$'+this.value ;
+              }
+              if (arg.point.series.name == 'Impressions') {
+
+              }
+              if ( (arg.point.series.name == 'CTR') || (arg.point.series.name == 'CVR') ){
+                return this.value + '%' ;
+              }
+
+            },
+          }},
+        verticalLine:{
+          label: {
+            visible: true}
         }
+
       },
       legend: {
         verticalAlignment: 'top',
@@ -892,7 +917,7 @@
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.DOMAIN'),
-          dataField: 'domain',
+          dataField: 'placement__rtbimpressiontrackerplacementdomain__domain',
           alignment: 'center',
           dataType: 'string',
           allowEditing: false,

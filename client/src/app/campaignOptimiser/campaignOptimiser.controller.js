@@ -513,7 +513,7 @@
             }
           },{
             caption: LC('CAMP.CAMPAIGN.COLUMNS.DOMAIN'),
-            dataField: 'domain',
+            dataField: 'placement__rtbimpressiontrackerplacementdomain__domain',
             alignment: 'center',
             dataType: 'string',
             allowEditing: false,

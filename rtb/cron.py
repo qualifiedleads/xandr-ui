@@ -607,7 +607,7 @@ def load_depending_data(token, force_update=False, daily_load=True):
                 print 'There is %d  line items' % len(line_items)
                 campaigns = nexus_get_objects(token,
                                               {'advertiser_id': advertiser_id},
-                                              Campaign, False)
+                                              Campaign, force_update)
                 print 'There is %d campaigns ' % len(campaigns)
 
     except Exception as e:
@@ -664,7 +664,7 @@ def dayly_task(day=None, load_objects_from_services=True, output=None):
     try:
         token = get_auth_token()
         if load_objects_from_services:
-            load_depending_data(token)
+            load_depending_data(token, True)
         while day<=last_day:
             load_report(token, day, NetworkCarrierReport_Simple)
             load_report(token, day, NetworkDeviceReport_Simple)

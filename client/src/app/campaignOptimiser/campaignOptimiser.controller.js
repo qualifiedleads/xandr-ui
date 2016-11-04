@@ -472,6 +472,14 @@
           mode: "batch",
           allowUpdating: true
         },
+        loadPanel: {
+          shadingColor: "rgba(0,0,0,0.4)",
+
+          position: {at: 'center'},
+          height: 100,
+
+          cssClass: 'Loading'
+        },
         alignment: 'left',
         headerFilter: {
           visible: true
@@ -552,6 +560,7 @@
             dataField: 'imp',
             dataType: 'number',
             sortOrder: 'desc',
+            format:'fixedPoint',
             alignment: 'center',
             allowEditing: false,
             headerFilter: {
@@ -565,6 +574,8 @@
             dataField: 'cpa',
             dataType: 'number',
             alignment: 'center',
+               format:'currency',
+            precision:4,
             allowEditing: false,
             headerFilter: {
               dataSource: function (source) {
@@ -576,6 +587,8 @@
             caption: LC('CAMP.CAMPAIGN.COLUMNS.COST') + ' ,$',
             dataField: 'cost',
             alignment: 'center',
+          format:'currency',
+            precision:2,
             dataType: 'number',
             allowEditing: false,
             headerFilter: {
@@ -601,6 +614,8 @@
             dataField: 'cpc',
             alignment: 'center',
             dataType: 'number',
+          format:'currency',
+            precision:4,
             allowEditing: false,
             headerFilter: {
               dataSource: function (source) {
@@ -613,6 +628,8 @@
             dataField: 'cpm',
             alignment: 'center',
             dataType: 'number',
+            format:'currency',
+            precision:4,
             allowEditing: false,
             headerFilter: {
               dataSource: function (source) {
@@ -625,6 +642,8 @@
             dataField: 'cvr',
             alignment: 'center',
             dataType: 'number',
+            format:'percent',
+            precision:2,
             allowEditing: false,
             headerFilter: {
               dataSource: function (source) {
@@ -637,6 +656,8 @@
             dataField: 'ctr',
             alignment: 'center',
             dataType: 'number',
+            format:'percent',
+            precision:2,
             allowEditing: false,
             headerFilter: {
               dataSource: function (source) {
@@ -650,6 +671,7 @@
             alignment: 'center',
             visible: false,
             width: 80,
+            format:'fixedPoint',
             dataType: 'number',
             allowEditing: false,
             headerFilter: {
@@ -662,6 +684,7 @@
             caption: LC('CAMP.CAMPAIGN.COLUMNS.VIEW_MEASURED_IMPS'),
             dataField: 'view_measured_imps',
             alignment: 'center',
+            format:'fixedPoint',
             visible: false,
             width: 100,
             dataType: 'number',
@@ -675,6 +698,8 @@
             caption: LC('CAMP.CAMPAIGN.COLUMNS.VIEW_MEASUREMENT_RATE') + ' ,%',
             dataField: 'view_measurement_rate',
             alignment: 'center',
+            format:'percent',
+            precision:1,
             visible: false,
             width: 120,
             dataType: 'number',
@@ -688,6 +713,8 @@
             caption: LC('CAMP.CAMPAIGN.COLUMNS.VIEW_RATE') + ' ,%',
             dataField: 'view_rate',
             alignment: 'center',
+            format:'percent',
+            precision:1,
             visible: false,
             width: 80,
             dataType: 'number',
@@ -943,7 +970,7 @@
               column: "imp",
               summaryType: "sum",
               customizeText: function (data) {
-                data.valueText = 'Imp: ' + CampaignOptimiser.totalSummary.imp;
+                data.valueText = 'Imp: ' + CampaignOptimiser.totalSummary.imp.toString().split(/(?=(?:\d{3})+(?!\d))/).join();
                 return data.valueText;
               }
             },
@@ -993,7 +1020,7 @@
               column: "cvr",
               summaryType: "sum",
               customizeText: function (data) {
-                data.valueText = 'CVR: ' + CampaignOptimiser.totalSummary.cvr.toFixed(4);
+                data.valueText = 'CVR: %' + CampaignOptimiser.totalSummary.cvr.toFixed(4);
                 return data.valueText;
               }
             },
@@ -1001,7 +1028,7 @@
               column: "ctr",
               summaryType: "sum",
               customizeText: function (data) {
-                data.valueText = 'CTR: ' + CampaignOptimiser.totalSummary.ctr.toFixed(4);
+                data.valueText = 'CTR: %' + CampaignOptimiser.totalSummary.ctr.toFixed(4);
                 return data.valueText;
               }
             }

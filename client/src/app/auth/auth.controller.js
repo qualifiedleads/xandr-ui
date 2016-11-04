@@ -78,7 +78,9 @@
         }
       },
       selectAdvertisers: {
+
         bindingOptions: {
+
           dataSource: 'auth.selectAdvertisersStore',
           value: 'auth.selectedService'
         },

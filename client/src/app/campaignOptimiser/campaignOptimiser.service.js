@@ -109,8 +109,8 @@
               };
             }
 
-            res.data.data[item].cvr = parseFloat((res.data.data[item].cvr || 0).toFixed(4)),
-              res.data.data[item].ctr = parseFloat((res.data.data[item].ctr || 0).toFixed(4)),
+            res.data.data[item].cvr = parseFloat((res.data.data[item].cvr || 0).toFixed(2)/100),
+              res.data.data[item].ctr = parseFloat((res.data.data[item].ctr || 0).toFixed(2)/100),
               res.data.data[item].cpc = parseFloat((res.data.data[item].cpc || 0).toFixed(4)),
               res.data.data[item].cpm = parseFloat((res.data.data[item].cpm || 0).toFixed(4)),
               res.data.data[item].imp = parseFloat((res.data.data[item].imp || 0).toFixed(4)),
@@ -121,8 +121,8 @@
               res.data.data[item].analitics = itemArray,
               res.data.data[item].imps_viewed = parseFloat((res.data.data[item].imps_viewed || 0).toFixed(4)),
               res.data.data[item].view_measured_imps = parseFloat((res.data.data[item].view_measured_imps || 0).toFixed(4)),
-              res.data.data[item].view_measurement_rate = parseFloat((res.data.data[item].view_measurement_rate || 0).toFixed(1)),
-              res.data.data[item].view_rate = parseFloat((res.data.data[item].view_rate || 0).toFixed(1)),
+              res.data.data[item].view_measurement_rate = parseFloat((res.data.data[item].view_measurement_rate || 0).toFixed(1)/100),
+              res.data.data[item].view_rate = parseFloat((res.data.data[item].view_rate || 0).toFixed(1)/100),
               res.data.data[item].state = {
                 blackList: res.data.data[item].state & 2,
                 suspended: res.data.data[item].state & 1,

@@ -23,7 +23,7 @@ class CampaignRules(models.Model):
 
 class LastModified(models.Model):
     id = models.AutoField(primary_key=True)
-    type = models.TextField(null=True, blank=True)
+    type = models.TextField(null=True, blank=True, unique=True)
     date = models.DateTimeField(null=True, blank=True)
 
     class Meta:

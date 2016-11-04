@@ -149,22 +149,14 @@ class PlacementState:
         for oneState in suspendState:
             now = datetime.datetime.now(pytz.timezone('UTC'))
             if oneState.suspend < now:
-                oneState.state = 4
+                oneState.state = 0
+                oneState.change = True
+                oneState.suspend = None
                 oneState.save()
-                headers = {"Authorization": self.get_token(), 'Content-Type': 'application/json'}
-                profile_id, advertiser_id = self.get_campaign_by_id(oneState.campaign_id)
-                platform_placement_targets = self.get_profile_by_id(profile_id)
-                if platform_placement_targets is None:
-                    updated_profile = self.update_profile_by_id(None, [oneState.placement_id],
-                                                                profile_id, advertiser_id, 4)
-                else:
-                    updated_profile = self.update_profile_by_id(platform_placement_targets, [oneState.placement_id],
-                                                                profile_id, advertiser_id, 4)
-                toWhitelist.append(str(oneState.placement_id) + ' to white ' + updated_profile)
-                print str(oneState.placement_id) + ' to white ' + updated_profile
+                toWhitelist.append(str(oneState.placement_id) + ' - update')
             else:
                 continue
-        return toWhitelist
+        print 'Suspend state middleware: ' + str(toWhitelist)
 
     def remove_placement_from_targets_list(self):
         try:

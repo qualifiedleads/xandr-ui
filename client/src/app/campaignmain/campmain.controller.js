@@ -154,23 +154,38 @@
                   if (this.value == maxMajor) {
                     switch (item.name) {
                       case 'impression':
-                        return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('CAMP.CHECKBOX.IMPRESSIONS') + '</span><br>' + this.value;
+                        return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('MAIN.CHECKBOX.IMPRESSIONS') +'</span><br>' + this.value.toString().split(/(?=(?:\d{3})+(?!\d))/).join();
                       case 'cpa':
-                        return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('CAMP.CHECKBOX.CPA') + '</span><br>' + this.value;
+                        return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' +'$'+ LC('CAMP.CHECKBOX.CPA') + '</span><br>' + '$'+this.value;
                       case 'cpc':
-                        return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('CAMP.CHECKBOX.CPC') + '</span><br>' + this.value;
+                        return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + '$'+LC('CAMP.CHECKBOX.CPC') + '</span><br>' + '$'+this.value;
                       case 'clicks':
                         return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('CAMP.CHECKBOX.CLICKS') + '</span><br>' + this.value;
                       case 'cost':
-                        return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('CAMP.CHECKBOX.COST') + '</span><br>' + this.value;
+                        return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('CAMP.CHECKBOX.COST') + '</span><br>' + '$'+this.value;
                       case 'conversions':
                         return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('CAMP.CHECKBOX.CONVERSIONS') + '</span><br>' + this.value;
                       case 'ctr':
-                        return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('CAMP.CHECKBOX.CTR') + '</span><br>' + this.value;
+                        return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('CAMP.CHECKBOX.CTR') +'%'+ '</span><br>' + this.value+'%';
                       default:
                         return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + item.name + '</span><br>' + this.value;
                     }
-                  }
+                  }else {
+                    switch (item.name) {
+                      case 'impression':
+                        return this.value.toString().split(/(?=(?:\d{3})+(?!\d))/).join();
+                      case 'cpa':
+                        return '$'+this.value;
+                      case 'cpc':
+                        return '$'+this.value;
+                      case 'cost':
+                        return '$'+this.value;
+                      case 'spend':
+                        return '$' + this.value;
+                      case 'ctr':
+                        return  this.value+'%';
+                    }}
+
                   return this.value;
                 }
               }
@@ -208,27 +223,23 @@
         enabled: true,
         color: 'deepskyblue',
         visible: true,
-
-        horizontalLine:{
+        horizontalLine: {
           label: {
             visible: true,
-
-            format: 'fixedPoint',
-
             customizeText: function (arg) {
               //console.log(arg);
-              if (arg.point.series.name == 'Cost' || arg.point.series.name == 'CPC') {
-                return  '$'+this.value ;
+              if (arg.point.series.name == 'Cost' || arg.point.series.name == 'CPC'|| arg.point.series.name == 'CPA') {
+                return '$' + this.value;
               }
               if (arg.point.series.name == 'Impressions') {
-
+                return  this.value.toString().split(/(?=(?:\d{3})+(?!\d))/).join();
               }
-              if ( (arg.point.series.name == 'CTR') || (arg.point.series.name == 'CVR') ){
-                return this.value + '%' ;
+              if ((arg.point.series.name == 'CTR') || (arg.point.series.name == 'CVR')) {
+                return this.value + '%';
               }
-
             },
-          }},
+          }
+        },
         verticalLine:{
           label: {
             visible: true}
@@ -884,6 +895,14 @@
         visible: true,
         applyFilter: "auto"
       },
+      loadPanel: {
+        shadingColor: "rgba(0,0,0,0.4)",
+
+        position: {at: 'center'},
+        height: 100,
+
+        cssClass: 'Loading'
+      },
       bindingOptions: {
         dataSource: 'campmain.gridStore'
       },
@@ -954,6 +973,7 @@
           dataField: 'imp',
           dataType: 'number',
           sortOrder: 'desc',
+          format:'fixedPoint',
           alignment: 'center',
           headerFilter: {
             dataSource: function (source) {
@@ -965,6 +985,8 @@
           caption: LC('CAMP.CAMPAIGN.COLUMNS.CPA') + ' ,$',
           dataField: 'cpa',
           dataType: 'number',
+          format:'currency',
+          precision:4,
           alignment: 'center',
           headerFilter: {
             dataSource: function (source) {
@@ -976,6 +998,8 @@
           caption: LC('CAMP.CAMPAIGN.COLUMNS.COST') + ' ,$',
           dataField: 'cost',
           alignment: 'center',
+          format:'currency',
+          precision:2,
           dataType: 'number',
           headerFilter: {
             dataSource: function (source) {
@@ -998,6 +1022,8 @@
           caption: LC('CAMP.CAMPAIGN.COLUMNS.CPC') + ' ,$',
           dataField: 'cpc',
           alignment: 'center',
+          format:'currency',
+          precision:4,
           dataType: 'number',
           headerFilter: {
             dataSource: function (source) {
@@ -1009,6 +1035,8 @@
           caption: LC('CAMP.CAMPAIGN.COLUMNS.CPM') + ' ,$',
           dataField: 'cpm',
           alignment: 'center',
+          format:'currency',
+          precision:4,
           dataType: 'number',
           headerFilter: {
             dataSource: function (source) {
@@ -1020,6 +1048,8 @@
           caption: LC('CAMP.CAMPAIGN.COLUMNS.CVR') + ' ,%',
           dataField: 'cvr',
           alignment: 'center',
+          format:'percent',
+          precision:2,
           dataType: 'number',
           headerFilter: {
             dataSource: function (source) {
@@ -1031,6 +1061,8 @@
           caption: LC('CAMP.CAMPAIGN.COLUMNS.CTR') + ' ,%',
           dataField: 'ctr',
           alignment: 'center',
+          format:'percent',
+          precision:2,
           dataType: 'number',
           headerFilter: {
             dataSource: function (source) {
@@ -1045,6 +1077,7 @@
           visible: false,
           width: 80,
           dataType: 'number',
+          format:'fixedPoint',
           headerFilter: {
             dataSource: function (source) {
               return headerFilterColumn(source, 'imps_viewed');
@@ -1058,6 +1091,7 @@
           visible: false,
           width: 100,
           dataType: 'number',
+          format:'fixedPoint',
           headerFilter: {
             dataSource: function (source) {
               return headerFilterColumn(source, 'view_measured_imps');
@@ -1070,6 +1104,8 @@
           alignment: 'center',
           visible: false,
           width: 120,
+          format:'percent',
+          precision:1,
           dataType: 'number',
           headerFilter: {
             dataSource: function (source) {
@@ -1083,6 +1119,8 @@
           alignment: 'center',
           visible: false,
           width: 80,
+          format:'percent',
+          precision:1,
           dataType: 'number',
           headerFilter: {
             dataSource: function (source) {
@@ -1235,6 +1273,7 @@
           {
             column: "placement",
             summaryType: "count",
+
             customizeText: function (data) {
               data.valueText = 'Count: ' + vm.dataGridOptionsMultipleFunc.totalCount();
               return data.valueText;
@@ -1252,12 +1291,13 @@
             column: "imp",
             summaryType: "sum",
             customizeText: function (data) {
-              data.valueText = 'Imp: ' + vm.Camp.totalSummary.imp;
+              data.valueText = 'Imp: ' + vm.Camp.totalSummary.imp.toString().split(/(?=(?:\d{3})+(?!\d))/).join();
               return data.valueText;
             }
           },
           {
             column: "cpa",
+
             summaryType: "sum",
             valueFormat: "currency",
             customizeText: function (data) {
@@ -1301,16 +1341,18 @@
           {
             column: "cvr",
             summaryType: "sum",
+
             customizeText: function (data) {
-              data.valueText = 'CVR: ' + vm.Camp.totalSummary.cvr.toFixed(4);
+              data.valueText = 'CVR: %' + vm.Camp.totalSummary.cvr.toFixed(4);
               return data.valueText;
             }
           },
           {
             column: "ctr",
+            valueFormat: "percent",
             summaryType: "sum",
             customizeText: function (data) {
-              data.valueText = 'CTR: ' + vm.Camp.totalSummary.ctr.toFixed(4);
+              data.valueText = 'CTR: %' + vm.Camp.totalSummary.ctr.toFixed(4);
               return data.valueText;
             }
           }

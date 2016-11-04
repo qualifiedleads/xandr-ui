@@ -2,8 +2,8 @@
   'use strict';
 
   angular
-  .module('pjtLayout')
-  .controller('MainController', MainController);
+    .module('pjtLayout')
+    .controller('MainController', MainController);
 
   /** @ngInject */
   function MainController($window, $state, $timeout, $localStorage, $translate, Main) {
@@ -111,15 +111,15 @@
     /** TOTALS - START **/
     vm.totals = [];
     vm.Main.statsTotals(vm.advertiser.id, vm.dataStart, vm.dataEnd)
-    .then(function (result) {
-      vm.totals.imp = result.imp.toString().split(/(?=(?:\d{3})+(?!\d))/).join();
-      vm.totals.spent = result.spend.toFixed(2);
-      vm.totals.conv = result.conv;
-      vm.totals.cpc = result.cpc;
-      vm.totals.cpm = result.cpm;
-      vm.totals.cvr = result.cvr;
-      vm.totals.ctr = result.ctr;
-    });
+      .then(function (result) {
+        vm.totals.imp = result.imp.toString().split(/(?=(?:\d{3})+(?!\d))/).join();
+        vm.totals.spent = result.spend.toFixed(2);
+        vm.totals.conv = result.conv;
+        vm.totals.cpc = result.cpc;
+        vm.totals.cpm = result.cpm;
+        vm.totals.cvr = result.cvr;
+        vm.totals.ctr = result.ctr;
+      });
 
     vm.onlyTwo = function (value) {
       var i = 0;
@@ -224,10 +224,10 @@
     var clicksByCountry = {};
 
     vm.Main.statsMap(vm.advertiser.id, vm.dataStart, vm.dataEnd)
-    .then(function (res) {
-      clicksByCountry = res;
-      $window.$('#visualMap').dxVectorMap(vm.UI.vectorMapOptions);
-    });
+      .then(function (res) {
+        clicksByCountry = res;
+        $window.$('#visualMap').dxVectorMap(vm.UI.vectorMapOptions);
+      });
 
     vm.chartStore = Main.chartStore(vm.advertiser.id, vm.dataStart, vm.dataEnd, vm.by);
     vm.multipleStore = Main.multipleStore(vm.advertiser.id, vm.dataStart, vm.dataEnd, vm.by);
@@ -256,11 +256,11 @@
           vm.dataGridOptionsMultipleFunc = data.component;
           /*vm.dataGridOptionsMultipleFunc._controllers.columns._commandColumns[1].visibleIndex = 15;*/
         },
-        loadPanel:{
+        loadPanel: {
           shadingColor: "rgba(0,0,0,0.4)",
 
-          position: { at: 'center' },
-          height:100,
+          position: {at: 'center'},
+          height: 100,
 
           cssClass: 'Loading'
         },
@@ -305,15 +305,17 @@
             cellTemplate: function (container, options) {
               container.addClass('a-campaign');
               $window.angular.element('<a href="#/home/campaign/' + options.data.id + '">' + options.data.campaign + '</a>')
-              .appendTo(container);
+                .appendTo(container);
             },
             alignment: 'center'
           },
           {
-            caption: LC('MAIN.CAMPAIGN.COLUMNS.SPENT')+ ' ,$',
+            caption: LC('MAIN.CAMPAIGN.COLUMNS.SPENT') + ' ,$',
             dataField: 'spend',
             alignment: 'center',
-            dataType: 'number'+ '$'
+            dataType: 'number',
+            format:'currency',
+            precision:4,
           },
           {
             caption: LC('MAIN.CAMPAIGN.COLUMNS.CONV'),
@@ -326,6 +328,7 @@
             dataField: 'imp',
             sortOrder: 'desc',
             alignment: 'center',
+            format:'fixedPoint',
             dataType: 'number'
           },
           {
@@ -335,56 +338,74 @@
             dataType: 'number'
           },
           {
-            caption: LC('MAIN.CAMPAIGN.COLUMNS.CPC')+ ' ,$',
+            caption: LC('MAIN.CAMPAIGN.COLUMNS.CPC') + ' ,$',
             dataField: 'cpc',
             alignment: 'center',
-            dataType: 'number'
+            dataType: 'number',
+            precision:4,
+            format:'currency'
           },
           {
-            caption: LC('MAIN.CAMPAIGN.COLUMNS.CPM')+ ' ,$',
+            caption: LC('MAIN.CAMPAIGN.COLUMNS.CPM') + ' ,$',
             dataField: 'cpm',
             alignment: 'center',
-            dataType: 'number'
+            dataType: 'number',
+            precision:4,
+            format:'currency'
           },
           {
-            caption: LC('MAIN.CAMPAIGN.COLUMNS.CVR')+ ' ,%',
+            caption: LC('MAIN.CAMPAIGN.COLUMNS.CVR') + ' ,%',
             dataField: 'cvr',
             alignment: 'center',
-            dataType: 'number'
+            dataType: 'number',
+            precision:2,
+            format:'percent'
           },
           {
-            caption: LC('MAIN.CAMPAIGN.COLUMNS.CTR')+ ' ,%',
+            caption: LC('MAIN.CAMPAIGN.COLUMNS.CTR') + ' ,%',
             dataField: 'ctr',
             alignment: 'center',
-            dataType: 'number'
+            dataType: 'number',
+            precision:2,
+            format:'percent'
           },
           {
             caption: LC('MAIN.CAMPAIGN.COLUMNS.IMPS_VIEWED'),
             dataField: 'imps_viewed',
             alignment: 'center',
             width: 90,
-            dataType: 'number'
+            dataType: 'number',
+            format:'fixedPoint',
+
           },
           {
             caption: LC('MAIN.CAMPAIGN.COLUMNS.VIEW_MEASURED_IMPS'),
             dataField: 'view_measured_imps',
             alignment: 'center',
             width: 100,
-            dataType: 'number'
+            dataType: 'number',
+            format:'fixedPoint',
+
+
           },
           {
-            caption: LC('MAIN.CAMPAIGN.COLUMNS.VIEW_MEASUREMENT_RATE')+ ' ,%',
+            caption: LC('MAIN.CAMPAIGN.COLUMNS.VIEW_MEASUREMENT_RATE') + ' ,%',
             dataField: 'view_measurement_rate',
             alignment: 'center',
             width: 120,
-            dataType: 'number'
+            dataType: 'number',
+            precision:2,
+            format:'percent'
           },
           {
-            caption: LC('MAIN.CAMPAIGN.COLUMNS.VIEW_RATE')+ ' ,%',
+            caption: LC('MAIN.CAMPAIGN.COLUMNS.VIEW_RATE') + ' ,%',
             dataField: 'view_rate',
             alignment: 'center',
             width: 80,
-            dataType: 'number'
+            dataType: 'number',
+            precision:2,
+            format:'percent',
+
           },
           {
             width: 200,
@@ -421,13 +442,7 @@
                     grid: {visible: false}
                   },
                   valueAxis: [
-                    {name: 'imp',
-                      label: {
-                        visible: true,
-                        customizeText: function () {
-                          return this.value + 'ml' ;
-                        }
-                      }},
+                    {name: 'imp'},
                     {name: 'cvr'},
                     {name: 'cpc'},
                     {name: 'clicks'},
@@ -438,7 +453,7 @@
                   argumentAxis: {
                     valueMarginsEnabled: false,
                     discreteAxisDivisionMode: 'crossLabels',
-                    NumericFormat:Number,
+
                     grid: {
                       visible: false
                     },
@@ -464,13 +479,19 @@
                     customizeTooltip: function (arg) {
                       if (arg.seriesName == 'Cost' || arg.seriesName == 'CPC') {
                         return {
-                          text: '$'+arg.valueText+ ' ' + arg.seriesName
+                          text: '$' + arg.valueText + ' ' + arg.seriesName
+                        };
+                      }
+                      if (arg.seriesName == 'Impressions' ) {
+                        return {
+                          text:arg.value.toString().split(/(?=(?:\d{3})+(?!\d))/).join()
                         };
                       }
                       if (arg.seriesName == 'CTR' || arg.seriesName == 'CVR') {
                         return {
-                          text: arg.valueText+'%'+ ' ' + arg.seriesName
+                          text: arg.valueText + '%' + ' ' + arg.seriesName
                         };
+
                       } else {
                         return {
                           text: arg.valueText + ' ' + arg.seriesName
@@ -488,7 +509,7 @@
                 $window.$('<div id="chartMulti" ></div>')
 
                 //.attr("src", options.value)
-                .appendTo(container);
+                  .appendTo(container);
               }
 
 
@@ -511,6 +532,7 @@
                 name: item.name,
                 position: flag,
                 label: {
+                  format:'percent',
                   alignment: 'center',
                   customizeText: function () {
                     vm.charIsUpdating = true;
@@ -519,26 +541,41 @@
                     if (Array.isArray(major) && maxMajor < major[major.length - 1].value) {
                       maxMajor = major[major.length - 1].value;
                     }
+
+
                     if (this.value == maxMajor) {
-                      switch ( item.name) {
+
+                      switch (item.name) {
                         case 'imp':
-                          return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('MAIN.CHECKBOX.IMPRESSIONS') + '</span><br>' + this.value;
+                          return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('MAIN.CHECKBOX.IMPRESSIONS') +'</span><br>' + this.value.toString().split(/(?=(?:\d{3})+(?!\d))/).join();;
                         case 'cvr':
-                          return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('MAIN.CHECKBOX.CVR') + '</span><br>' + this.value;
+                          return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('MAIN.CHECKBOX.CVR') +'%' + '</span><br>' + this.value+'%';
                         case 'cpc':
-                          return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('MAIN.CHECKBOX.CPC') + '</span><br>' + this.value;
+                          return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + '$' + LC('MAIN.CHECKBOX.CPC') + '</span><br>' + '$' +this.value;
                         case 'clicks':
                           return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('MAIN.CHECKBOX.CLICKS') + '</span><br>' + this.value;
                         case 'spend':
-                          return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('MAIN.CHECKBOX.COST') + '</span><br>' + this.value;
+                          return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('MAIN.CHECKBOX.COST') + '</span><br>' + '$' +this.value;
                         case 'conv':
                           return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('MAIN.CHECKBOX.CONVERSIONS') + '</span><br>' + this.value;
                         case 'ctr':
-                          return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('MAIN.CHECKBOX.CTR') + '</span><br>' + this.value;
+                          return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('MAIN.CHECKBOX.CTR')+'%' + '</span><br>' + this.value+'%';
                         default:
                           return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + item.name + '</span><br>' + this.value;
                       }
-                    }
+                    }else {
+                      switch (item.name) {
+                      case 'imp':
+                        return this.value.toString().split(/(?=(?:\d{3})+(?!\d))/).join();
+                      case 'cvr':
+                        return this.value+'%';
+                      case 'cpc':
+                        return '$'+this.value;
+                      case 'spend':
+                        return '$' + this.value;
+                      case 'ctr':
+                        return  this.value+'%';
+                    }}
                     return this.value;
                   }
                 }
@@ -576,17 +613,22 @@
         },
         tooltip: {
           enabled: true,
+
           customizeTooltip: function (arg) {
             //console.log(arg);
             if (arg.seriesName == 'Cost' || arg.seriesName == 'CPC') {
               return {
-                text: '$'+arg.valueText,
-
+                text: '$' + arg.valueText
               };
             }
-            if ( (arg.seriesName == 'CTR') || (arg.seriesName == 'CVR') ){
+            if (arg.point.series.name == 'Impressions') {
               return {
-                text: arg.valueText+'%'
+                text: arg.valueText.toString().split(/(?=(?:\d{3})+(?!\d))/).join()}
+            }
+
+            if ((arg.seriesName == 'CTR') || (arg.seriesName == 'CVR')) {
+              return {
+                text: arg.valueText + '%'
               };
             }
             return {
@@ -597,36 +639,39 @@
 
         },
         crosshair: {
-
           enabled: true,
           color: 'deepskyblue',
           visible: true,
 
-          horizontalLine:{
+          horizontalLine: {
             label: {
               visible: true,
 
-            format: 'fixedPoint',
 
-            customizeText: function (arg) {
-              //console.log(arg);
-              if (arg.point.series.name == 'Cost' || arg.point.series.name == 'CPC') {
-                return  '$'+this.value ;
-              }
-              if ( (arg.point.series.name == 'CTR') || (arg.point.series.name == 'CVR') ){
-                return this.value + '%' ;
-              }
-
+              customizeText: function (arg) {
+                //console.log(arg);
+                if (arg.point.series.name == 'Cost' || arg.point.series.name == 'CPC') {
+                  return '$' + this.value;
+                }
+                if (arg.point.series.name == 'Impressions')  {
+                  return this. value.toString().split(/(?=(?:\d{3})+(?!\d))/).join();
+                }
+                if ((arg.point.series.name == 'CTR') || (arg.point.series.name == 'CVR')) {
+                  return this.value + '%';
+                }
+              },
             },
-          }},
-          verticalLine:{
+          },
+          verticalLine: {
             label: {
-              visible: true}
+              visible: true
             }
+          }
 
         },
         commonAxisSettings: {
-          valueMarginsEnabled: true
+          valueMarginsEnabled: true,
+
         },
         margin: {
           bottom: 20
@@ -634,22 +679,20 @@
         argumentAxis: {
           //valueMarginsEnabled: false,
           discreteAxisDivisionMode: 'crossLabels',
+
+
           grid: {
             visible: true
           }
         },
+
         valueAxis: [
           {
             name: 'imp',
             position: 'left',
-            label: {
-              visible: true,
-              customizeText: function () {
-              return this.value + 'ml' ;
-              }
-            }
-
-          /*  text: '$'+arg.valueText,*/
+            label:{
+              format:'percent',
+            },
           },
           {
             name: 'cvr',
@@ -658,11 +701,14 @@
           {
             name: 'cpc',
             position: 'left',
+            label:{   format:'currency'},
+
 
           },
           {
             name: 'clicks',
-            position: 'left'
+            position: 'left',
+
           },
           {
             name: 'spend',
@@ -790,7 +836,7 @@
           name: 'areas',
           dataSource: $window.DevExpress.viz.map.sources.world,
           palette: 'blue',
-          colorGroups: [ 0,100, 10000000],
+          colorGroups: [0, 100, 10000000],
           colorGroupingField: 'clicks',
           label: {
             enabled: true,

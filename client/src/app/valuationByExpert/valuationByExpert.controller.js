@@ -170,18 +170,21 @@
             dataType: 'number',
             sortOrder: 'desc',
             alignment: 'center',
+          format:'fixedPoint'
           },
           {
             caption: LC('CAMP.CAMPAIGN.COLUMNS.CPA') + ' ,$',
             dataField: 'cpa',
             dataType: 'number',
             alignment: 'center',
+            format:'currency'
           },
           {
             caption: LC('CAMP.CAMPAIGN.COLUMNS.COST') + ' ,$',
             dataField: 'cost',
             alignment: 'center',
             dataType: 'number',
+            format:'currency'
           },
           {
             caption: LC('CAMP.CAMPAIGN.COLUMNS.CLICKS'),
@@ -195,24 +198,28 @@
             dataField: 'cpc',
             alignment: 'center',
             dataType: 'number',
+            format:'currency'
           },
           {
             caption: LC('CAMP.CAMPAIGN.COLUMNS.CPM') + ' ,$',
             dataField: 'cpm',
             alignment: 'center',
             dataType: 'number',
+            format:'currency'
           },
           {
             caption: LC('CAMP.CAMPAIGN.COLUMNS.CVR') + ' ,%',
             dataField: 'cvr',
             alignment: 'center',
             dataType: 'number',
+            format:'percent'
           },
           {
             caption: LC('CAMP.CAMPAIGN.COLUMNS.CTR') + ' ,%',
             dataField: 'ctr',
             alignment: 'center',
             dataType: 'number',
+            format:'percent'
           },
           {
             caption: LC('CAMP.CAMPAIGN.COLUMNS.IMPS_VIEWED'),

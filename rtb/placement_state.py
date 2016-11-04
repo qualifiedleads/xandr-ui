@@ -13,10 +13,12 @@ import requests
 import datetime
 import pytz
 import utils
+import time
 
 
 _last_token = None
 _last_token_time = None
+change_state = None
 
 class PlacementState:
     def __init__(self, campaign_id, placement_id):
@@ -147,22 +149,14 @@ class PlacementState:
         for oneState in suspendState:
             now = datetime.datetime.now(pytz.timezone('UTC'))
             if oneState.suspend < now:
-                oneState.state = 4
+                oneState.state = 0
+                oneState.change = True
+                oneState.suspend = None
                 oneState.save()
-                headers = {"Authorization": self.get_token(), 'Content-Type': 'application/json'}
-                profile_id, advertiser_id = self.get_campaign_by_id(oneState.campaign_id)
-                platform_placement_targets = self.get_profile_by_id(profile_id)
-                if platform_placement_targets is None:
-                    updated_profile = self.update_profile_by_id(None, [oneState.placement_id],
-                                                                profile_id, advertiser_id, 4)
-                else:
-                    updated_profile = self.update_profile_by_id(platform_placement_targets, [oneState.placement_id],
-                                                                profile_id, advertiser_id, 4)
-                toWhitelist.append(str(oneState.placement_id) + ' to white ' + updated_profile)
-                print str(oneState.placement_id) + ' to white ' + updated_profile
+                toWhitelist.append(str(oneState.placement_id) + ' - update')
             else:
                 continue
-        return toWhitelist
+        print 'Suspend state middleware: ' + str(toWhitelist)
 
     def remove_placement_from_targets_list(self):
         try:
@@ -205,86 +199,108 @@ class PlacementState:
             return 503
 
     def placement_targets_list(self):
-        lasmoModified = LastModified.objects.filter(type='profile')
-        if lasmoModified:
-            minutesAgo = LastModified.objects.filter(type='profile')[0].date
-        else:
-            minutesAgo = Profile.objects.all().values('last_modified').order_by('last_modified')[0]['last_modified']
-        now = timezone.make_aware(datetime.datetime.now(), timezone.get_default_timezone())
-        print 'from: {0} to {1}'.format(minutesAgo, now)
         try:
-            load_depending_data(self.get_token(), True, False)
-        except ValueError, e:
-            print "Failed to load profile platform placement targets. Error: " + str(e)
-            return False
-        allProfile = Campaign.objects.select_related("profile")\
-            .filter(
-                state='active',
-                profile__platform_placement_targets__isnull=False,
-                profile__last_modified__range=[minutesAgo, now]
-            )\
-            .values('id', 'profile_id', 'profile__platform_placement_targets', 'profile__last_modified')
-        for profile in allProfile:
-            string = profile['profile__platform_placement_targets']
-            placementTargets = unicodedata.normalize('NFKD', string).encode('utf-8', 'ignore')
-            placementTargets = re.sub('\'', '"', placementTargets)
-            placementTargets = re.sub('u"', '"', placementTargets)
-            placementTargets = placementTargets[2:-2]
-            placementTargets = placementTargets.split('}, {')
-            placeTarget = []
-            for items in placementTargets:
-                items = items.split(', ')
-                tempDictionary = {}
-                for item in items:
-                    item = item.split(': ')
-                    item[0] = re.sub('\"', '', item[0])
-                    item[1] = re.sub('\"', '', item[1])
-                    tempDictionary[item[0]] = item[1]
-                placeTarget.append(tempDictionary)
-            for placement in placeTarget:
-                dbPlacement = ModelPlacementState.objects\
-                    .filter(placement_id=int(placement['id']), campaign_id=profile['id'])
-                if not dbPlacement:
-                    if placement['action'] == 'exclude':
-                        state = 2
-                    else:
-                        state = 4
-                    try:
-                        ModelPlacementState(
-                            placement_id=int(placement['id']),
-                            campaign_id=profile['id'],
-                            state=state,
-                            suspend=None,
-                            change=False
-                        ).save()
-                        print 'Added placement {0} and campaign {1}'.format(placement['id'], profile['id'])
-                    except ValueError, e:
-                        print "Can't save placement state. Error: " + str(e)
+            change_state = LastModified.objects.filter(type='platform_placement_targets')
+            if len(change_state) >= 1:
+                if timezone.make_aware(datetime.datetime.now(), timezone.get_default_timezone()) - change_state[0].date >= timedelta(minutes=45):
+                    LastModified.objects.filter(type='platform_placement_targets').delete()
                 else:
-                    try:
-                        if dbPlacement[0].state == 1 and placement['action'] == 'exclude':
-                            continue
+                    print "placement_targets_list wait..."
+                    return None
+
+            LastModified(type='platform_placement_targets', date=timezone.make_aware(datetime.datetime.now(),
+                                                                                    timezone.get_default_timezone())).save()
+            print 'change state by state - start'
+            lasmoModified = LastModified.objects.filter(type='profile')
+            if len(lasmoModified) >= 1:
+                minutesAgo = LastModified.objects.filter(type='profile')[0].date
+            else:
+                minutesAgo = Profile.objects.all().values('last_modified').order_by('last_modified')[0]['last_modified']
+            now = timezone.make_aware(datetime.datetime.now(), timezone.get_default_timezone())
+            print 'from: {0} to {1}'.format(minutesAgo, now)
+            try:
+                load_depending_data(self.get_token(), True, False)
+            except ValueError, e:
+                print "Failed to load profile platform placement targets. Error: " + str(e)
+                return False
+            allProfile = Campaign.objects.select_related("profile")\
+                .filter(
+                    state='active',
+                    profile__platform_placement_targets__isnull=False,
+                    profile__last_modified__range=[minutesAgo, now]
+                )\
+                .values('id', 'profile_id', 'profile__platform_placement_targets', 'profile__last_modified')
+            for profile in allProfile:
+                LastModified.objects.filter(type='platform_placement_targets').update(date=timezone.make_aware(datetime.datetime.now(),
+                                                                                    timezone.get_default_timezone()))
+                string = profile['profile__platform_placement_targets']
+                placementTargets = unicodedata.normalize('NFKD', string).encode('utf-8', 'ignore')
+                placementTargets = re.sub('\'', '"', placementTargets)
+                placementTargets = re.sub('u"', '"', placementTargets)
+                placementTargets = placementTargets[2:-2]
+                placementTargets = placementTargets.split('}, {')
+                placeTarget = []
+                for items in placementTargets:
+                    items = items.split(', ')
+                    tempDictionary = {}
+                    for item in items:
+                        item = item.split(': ')
+                        item[0] = re.sub('\"', '', item[0])
+                        item[1] = re.sub('\"', '', item[1])
+                        tempDictionary[item[0]] = item[1]
+                    placeTarget.append(tempDictionary)
+                for placement in placeTarget:
+                    dbPlacement = ModelPlacementState.objects\
+                        .filter(placement_id=int(placement['id']), campaign_id=profile['id'])
+                    if not dbPlacement:
                         if placement['action'] == 'exclude':
                             state = 2
                         else:
                             state = 4
-                        obj, created = ModelPlacementState.objects.update_or_create(
-                            placement_id=int(placement['id']),
-                            campaign_id=profile['id'],
-                            defaults={"state": state, "suspend": None, "change": False})
-                        print (obj, created)
-                    except ValueError, e:
-                        print "Can't update placement state. Error: " + str(e)
-        if not lasmoModified:
-            LastModified(type='profile', date=now).save()
-        else:
-            lastminutesAgo = Profile.objects.latest('last_modified').last_modified
-            LastModified.objects.filter(type='profile').update(date=lastminutesAgo)
-            print 'Last modified profile: {0} '.format(lastminutesAgo)
-        print "End platform placement targets"
+                        try:
+                            ModelPlacementState(
+                                placement_id=int(placement['id']),
+                                campaign_id=profile['id'],
+                                state=state,
+                                suspend=None,
+                                change=False
+                            ).save()
+                            print 'Added placement {0} and campaign {1}'.format(placement['id'], profile['id'])
+                        except ValueError, e:
+                            print "Can't save placement state. Error: " + str(e)
+                    else:
+                        try:
+                            if dbPlacement[0].state == 1 and placement['action'] == 'exclude':
+                                continue
+                            if placement['action'] == 'exclude':
+                                state = 2
+                            else:
+                                state = 4
+                            obj, created = ModelPlacementState.objects.update_or_create(
+                                placement_id=int(placement['id']),
+                                campaign_id=profile['id'],
+                                defaults={"state": state, "suspend": None, "change": False})
+                            print (obj, created)
+                        except ValueError, e:
+                            print "Can't update placement state. Error: " + str(e)
+            try:
+                LastModified.objects.filter(type='platform_placement_targets').delete()
+            except ValueError, e:
+                print 'Error: ' + str(e)
+            if not lasmoModified:
+                LastModified(type='profile', date=now).save()
+            else:
+                lastminutesAgo = Profile.objects.latest('last_modified').last_modified
+                LastModified.objects.filter(type='profile').update(date=lastminutesAgo)
+                print 'Last modified profile: {0} '.format(lastminutesAgo)
+            print "End platform placement targets"
+        except ValueError, e:
+            LastModified.objects.filter(type='platform_placement_targets').delete()
+            print 'Error: ' + str(e)
 
     def change_state_by_state(self, stateGet):
         try:
+            tempState = stateGet
             whiteBlackState = ModelPlacementState.objects.filter(Q(state=stateGet) & Q(change=True))
             if len(whiteBlackState) < 1:
                 return None
@@ -301,31 +317,34 @@ class PlacementState:
                         nextPlacement.append(oneState.placement_id)
                 campaignAndPlacement.append({'campaign_id': comp, 'placement_id': nextPlacement})
 
+            if stateGet == 1:
+                tempState = 2
+
             for campaign in campaignAndPlacement:
                 campaign_id = campaign['campaign_id']
                 placement_id = campaign['placement_id']
                 profile_id, advertiser_id = self.get_campaign_by_id(campaign_id)
                 platform_placement_targets = self.get_profile_by_id(profile_id)
                 if platform_placement_targets is None:
-                    updated_profile = self.update_profile_by_id(None, placement_id, profile_id, advertiser_id, 4)
+                    updated_profile = self.update_profile_by_id(None, placement_id, profile_id, advertiser_id, tempState)
                     if updated_profile == 'OK':
                         for placement in placement_id:
                             obj, created = ModelPlacementState.objects.update_or_create(
                                 placement_id=int(placement),
                                 campaign_id=int(campaign_id),
-                                defaults={"state": stateGet, "suspend": None, "change": False})
+                                defaults={"state": stateGet, "change": False})
                     print 'List for '+str(placement_id) + ' to platform placement targets, profile: ' + updated_profile
                 else:
                     updated_profile = self.update_profile_by_id(platform_placement_targets, placement_id,
-                                                                profile_id, advertiser_id, stateGet)
+                                                                profile_id, advertiser_id, tempState)
                     if updated_profile == 'OK':
                         for placement in placement_id:
                             obj, created = ModelPlacementState.objects.update_or_create(
                                 placement_id=int(placement),
                                 campaign_id=int(campaign_id),
-                                defaults={"state": stateGet, "suspend": None, "change": False})
+                                defaults={"state": stateGet, "change": False})
                     print 'List for ' + str(placement_id) + ' to platform placement targets, profile: ' + updated_profile
-            print "Sync white list to platform placement targets."
+            print "Sync white and black list to platform placement targets."
             return True
         except:
             print "Fail sync white list to platform placement targets."
@@ -440,11 +459,27 @@ class PlacementState:
     def change_state_placement_by_cron(self):
         try:
             #self.update_plasement_state_in_our_table(None, None)
+            change_state = LastModified.objects.filter(type='change_state_placement_by_cron')
+            if len(change_state) >= 1:
+                if timezone.make_aware(datetime.datetime.now(), timezone.get_default_timezone()) - change_state[0].date >= timedelta(minutes=45):
+                    LastModified.objects.filter(type='change_state_placement_by_cron').delete()
+                else:
+                    print "placement_targets_list wait..."
+                    return None
+
+            LastModified(type='change_state_placement_by_cron', date=timezone.make_aware(datetime.datetime.now(),
+                                                                                    timezone.get_default_timezone())).save()
             unactive = self.remove_placement_from_targets_list_by_cron(0)
             white = self.change_state_by_state(4)
             black = self.change_state_by_state(2)
-            print "Sync: white - {0}, black - {1}, Unactive - {2}".format(white, black, unactive)
+            suspend = self.change_state_by_state(1)
+            print "Sync: white - {0}, black - {1}, suspend - {2}, Unactive - {3}".format(white, black, suspend, unactive)
+            try:
+                LastModified.objects.filter(type='change_state_placement_by_cron').delete()
+            except ValueError, e:
+                print 'Error: ' + str(e)
         except ValueError, e:
+            LastModified.objects.filter(type='change_state_placement_by_cron').delete()
             print 'Error: ' + str(e)
             return 503
 

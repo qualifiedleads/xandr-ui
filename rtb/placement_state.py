@@ -1,9 +1,9 @@
 from models.placement_state import PlacementState as ModelPlacementState, LastModified
+from models.models import LastToken
 from django.conf import settings
 from models.models import Campaign, Profile
 from django.db.models import Max, Q, F
 from rtb.cron import load_depending_data
-from pytz import utc
 from django.utils import timezone
 from datetime import timedelta
 import unicodedata
@@ -13,11 +13,7 @@ import requests
 import datetime
 import pytz
 import utils
-import time
 
-
-_last_token = None
-_last_token_time = None
 change_state = None
 
 class PlacementState:
@@ -32,10 +28,14 @@ class PlacementState:
     __two_hours = datetime.timedelta(hours=1, minutes=55)
 
     def get_token(self):
-        global _last_token, _last_token_time
         _two_hours = datetime.timedelta(hours=1, minutes=55)
-        if _last_token and utils.get_current_time() - _last_token_time < _two_hours:
-            return _last_token
+        lastToken = LastToken.objects.filter(name='token')
+        if len(lastToken) >= 1:
+            if utils.get_current_time() - lastToken[0].date < _two_hours:
+                return lastToken[0].token
+        else:
+            tempDate = utils.get_current_time()-_two_hours
+            LastToken(name='token', token='', date=tempDate).save()
         try:
             auth_url = self.__appnexus_url + "auth"
             data = {"auth": settings.NEXUS_AUTH_DATA}
@@ -46,9 +46,10 @@ class PlacementState:
                 print "get campaign by id - " + response['response']['error']
             except:
                 pass
-            _last_token = response['response']['token']
+            last_token = response['response']['token']
             _last_token_time = utils.get_current_time()
-            return _last_token
+            LastToken.objects.filter(name='token').update(token=last_token, date=_last_token_time)
+            return last_token
         except:
             print "get token - " + response['response']['error']
             return 503

@@ -4377,6 +4377,14 @@ class CreativeVASTSegment(models.Model):
     class Meta:
         db_table = "creative_vast_segment"
 
+class LastToken(models.Model):
+    id = models.AutoField(primary_key=True)
+    name = models.TextField(null=True, blank=True, unique=True)
+    token = models.TextField(null=True, blank=True, unique=True)
+    date = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        db_table = "last_token"
 
 
 

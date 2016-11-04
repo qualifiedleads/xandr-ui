@@ -58,4 +58,17 @@ python manage.py crontab add
 python manage.py crontab show
 2. To get the data manually
 python manage.py imp_tracker '2016-10-10 22:00' '2016-10-21 23:00'
+========================================
+cron job
+('* * * * *', 'rtb.crons.placement_state_cron.change_state_placement_by_cron_settings')
+This task checks placement state in our base every minute and sends all changes to appnexus.
+
+('*/15 * * * *', 'rtb.crons.placement_state_cron.platform_placement_targets')
+This task updates our placements states (white/black) in datatable with changes of platform_placement_targets value, which we are getting from appnexus. 
+This task runs every 15 minutes.
+
+('* * * * *', 'rtb.crons.placement_state_cron.suspend_state_middleware_cron')
+Cronjob finds placements with suspend state and changes their state in appnexus to exclude. 
+This task runs every minute.
+
 ````

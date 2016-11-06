@@ -1,7 +1,6 @@
 from models.placement_state import PlacementState as ModelPlacementState, LastModified
-from models.models import LastToken
 from django.conf import settings
-from models.models import Campaign, Profile
+from models.models import Campaign, Profile, LastToken
 from django.db.models import Max, Q, F
 from rtb.cron import load_depending_data
 from django.utils import timezone
@@ -219,11 +218,18 @@ class PlacementState:
                 minutesAgo = Profile.objects.all().values('last_modified').order_by('last_modified')[0]['last_modified']
             now = timezone.make_aware(datetime.datetime.now(), timezone.get_default_timezone())
             print 'from: {0} to {1}'.format(minutesAgo, now)
+            print 'send to appnexus'
+            try:
+                self.change_state_placement_by_cron()
+            except Exception as e:
+                print 'Error: ' + str(e)
+            print 'upload from appnexus'
             try:
                 load_depending_data(self.get_token(), True, False)
             except ValueError, e:
                 print "Failed to load profile platform placement targets. Error: " + str(e)
                 return False
+            print 'End upload from appnexus'
             allProfile = Campaign.objects.select_related("profile")\
                 .filter(
                     state='active',
@@ -250,7 +256,9 @@ class PlacementState:
                         item[1] = re.sub('\"', '', item[1])
                         tempDictionary[item[0]] = item[1]
                     placeTarget.append(tempDictionary)
+                newPlacementFromAppnexus = []
                 for placement in placeTarget:
+                    newPlacementFromAppnexus.append(int(placement['id']))
                     dbPlacement = ModelPlacementState.objects\
                         .filter(placement_id=int(placement['id']), campaign_id=profile['id'])
                     if not dbPlacement:
@@ -284,6 +292,18 @@ class PlacementState:
                             print (obj, created)
                         except ValueError, e:
                             print "Can't update placement state. Error: " + str(e)
+                tempOldPlacement = ModelPlacementState.objects\
+                        .filter(Q(campaign_id=profile['id']), Q(change=False))\
+                        .values('placement_id')
+                oldPlacement = []
+                if len(tempOldPlacement)>=1:
+                    for item in tempOldPlacement:
+                        oldPlacement.append(item['placement_id'])
+                for i in newPlacementFromAppnexus:
+                    if i in oldPlacement:
+                        oldPlacement.remove(i)
+                ModelPlacementState.objects.filter(placement_id__in=oldPlacement).delete()
+                print 'Remove old state from our table: ' + str(oldPlacement)
             try:
                 LastModified.objects.filter(type='platform_placement_targets').delete()
             except ValueError, e:

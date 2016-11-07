@@ -6,7 +6,7 @@
     .controller('CampaignMainController', CampaignMainController);
 
   /** @ngInject */
-  function CampaignMainController($window, $state, $localStorage, $translate, $timeout, CampMain, Campaign, $scope) {
+  function CampaignMainController($window, $state, $localStorage, $translate, $timeout, CampMain, Campaign, $scope, CampaignOptimiser) {
     var vm = this;
     var LC = $translate.instant;
     var dataSuspend = null;
@@ -1396,8 +1396,6 @@
                 for (var i = 0; i < selectedRows.length; i++) {
                   selectedArr.push(selectedRows[i].firstChild.innerText);
                 }
-
-                //e;
                 if (e.selectedItem.state == 1) {
                   if (selectedArr != '[]') {
                     tempSespendRow.placement = selectedArr;
@@ -1419,7 +1417,7 @@
                       s.removeClass('active');
                     }
 
-                    CampMain.editCampaignDomains(vm.campId, selectedArr, e.selectedItem.state).then(function (res) {
+                    CampaignOptimiser.editCampaignDomains(vm.campId, selectedArr, e.selectedItem.state).then(function (res) {
                       for (var i =0; i<selectedArr.length; i++) {
                         var b = $window.$('div.state-black'+ selectedArr[i]);
                         var w =$window.$('div.state-white'+ selectedArr[i]);
@@ -1445,20 +1443,11 @@
                         }
                       }
                       $('#gridContainer2').dxDataGrid('instance').refresh();
-                    }).catch(function () {
-                      $('#gridContainer2').dxDataGrid('instance').refresh();
-                    });
-                  }
-                  if (selectedArr != '[]') {
-                    CampMain.editCampaignDomains(vm.campId, selectedArr, e.selectedItem.state).then(function (res) {
-                      $('#gridContainer2').dxDataGrid('instance').refresh();
-                    }).catch(function () {
-                      $('#gridContainer2').dxDataGrid('instance').refresh();
                     });
                   }
                 }
               } else {
-                $window.DevExpress.ui.notify(LC('CO.NO-ITEMS-CHOSEN'), "warning", 4000);
+                return $window.DevExpress.ui.notify(LC('CO.NO-ITEMS-CHOSEN'), "warning", 4000);
               }
             }
           });

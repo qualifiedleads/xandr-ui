@@ -1129,7 +1129,6 @@
                 } else {
                   return $window.DevExpress.ui.notify(LC('CO.NO-ITEMS-CHOSEN'), "warning", 4000);
                 }
-                // e.component.option('value', false);
                 $('.gridContainerWhite').dxDataGrid('instance').refresh();
               }
             });

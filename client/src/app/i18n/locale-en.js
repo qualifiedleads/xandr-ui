@@ -182,7 +182,8 @@
     },
     'VBE':{
       'PAGE-NAME': 'Valuation by expert',
-      'CALCULATE-AUC': 'CalculateAUC'
+      'CALCULATE-AUC': 'Calculate AUC',
+      'CREATE-TEST-SET': 'Create test set'
     }
   })
 })();

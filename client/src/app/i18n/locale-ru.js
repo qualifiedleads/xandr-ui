@@ -179,6 +179,11 @@
       "RULES": "Правила для всех доменов:",
       "OPTIMISER-FOR":"Оптимизатор для",
       "CAMPAIGN-HOME": "Вернуться к компании"
+    },
+    'VBE':{
+      'PAGE-NAME': 'Valuation by expert',
+      'CALCULATE-AUC': 'Calculate AUC',
+      'CREATE-TEST-SET': 'Create test set'
     }
   })
 })();

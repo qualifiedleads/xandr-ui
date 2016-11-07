@@ -112,6 +112,13 @@
           vm.culcReady = true;
           $scope.$apply();
         }
+      }
+      ,createTestSet: {
+        text: LC('VBE.CREATE-TEST-SET'),
+        onClick: function () {
+          vm.culcReady = true;
+          $scope.$apply();
+        }
       },
       dataGridOptionsExpert: {
         editing: {

@@ -13,13 +13,14 @@ import datetime
 from pytz import utc
 import filter_func
 from models.ml_kmeans_model import MLPlacementDailyFeatures, MLClustersCentroidsKmeans, MLPlacementsClustersKmeans, \
-MLExpertsPlacementsMarks
+MLExpertsPlacementsMarks, MLViewFullPlacementsData, MLTestDataSet
 from rtb.ml_learn_kmeans import mlGetPlacementInfoKmeans, mlGetGoodClusters, mlGetTestNumber
 from models.placement_state import PlacementState, CampaignRules
 from rtb.placement_state import PlacementState as PlacementStateClass
 from rest_framework import status
 import time
 from models.rtb_impression_tracker import RtbImpressionTrackerPlacement, RtbImpressionTrackerPlacementDomain
+from django.db import connection
 
 import bisect
 from django.contrib.auth.decorators import login_required, user_passes_test
@@ -612,7 +613,7 @@ def mlApiSaveExpertDecision(request):
         placement_id=placement_id,
         day=day,
         expert_decision=decision,
-        date=time.strftime("%Y-%m-%d")
+        date=time.strftime("%Y-%m-%d %H:%M:%S")
     )
     try:
         tempQuery = MLExpertsPlacementsMarks.objects.filter(
@@ -624,7 +625,7 @@ def mlApiSaveExpertDecision(request):
         else:
             tempQuery.update(
                 expert_decision=decision,
-                date=time.strftime("%Y-%m-%d")
+                date=time.strftime("%Y-%m-%d %H:%M:%S")
             )
     except Exception, e:
         print "Can't save expert mark. Error: " + str(e)
@@ -710,12 +711,104 @@ def mlFillPredictionAnswer(placement_id = 1, flagAllWeek = False, test_type = "k
 
 @api_view(["GET"])
 @check_user_advertiser_permissions(campaign_id_num=0)
-def mlApiSendRandomTestSet(request):
-    res = {}
+def mlApiRandomTestSet(request):
+    action = request.GET.get("action")
+    if action == "create":
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute("REFRESH MATERIALIZED VIEW ml_view_full_placements_data")
+        except Exception, e:
+            print "Can't update view" + str(e)
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        placemetsDataQuery = MLViewFullPlacementsData.objects.raw(
+            """
+            SELECT
+              placement_id as id,
+              imps,
+              clicks,
+              total_convs,
+              imps_viewed,
+              view_measured_imps,
+              sum_cost,
+              cpa,
+              ctr,
+              cvr,
+              cpc,
+              cpm,
+              view_rate,
+              view_measurement_rate
+            FROM
+              ml_view_full_placements_data
+            TABLESAMPLE BERNOULLI(20)
+            limit 127;
+            """
+        )
+        res = []
+        for row in placemetsDataQuery:
+            placement = {}
+            placement["imps"] = row.imps
+            placement["clicks"] = row.clicks
+            placement["total_convs"] = row.total_convs
+            placement["imps_viewed"] = row.imps_viewed
+            placement["view_measured_imps"] = row.view_measured_imps
+            placement["sum_cost"] = float(row.sum_cost)
+            placement["cpa"] = float(row.cpa)
+            placement["ctr"] = float(row.ctr)
+            placement["cvr"] = float(row.cvr)
+            placement["cpc"] = float(row.cpc)
+            placement["cpm"] = float(row.cpm)
+            placement["view_rate"] = float(row.view_rate)
+            placement["view_measurement_rate"] = float(row.view_measurement_rate)
 
-    return Response(res)
-    # getting test samples for model testing
-    pass
+            queryRes = NetworkAnalyticsReport_ByPlacement.objects.filter(
+                placement_id=row.id
+            ).select_related(
+                "Placement"
+            ).values(
+                'placement',
+                'placement__rtbimpressiontrackerplacementdomain__domain',
+                'placement__mlexpertsplacementsmarks__expert_decision'
+            ).annotate(
+                placement_name=F('placement_name'),  # placement__name
+                NetworkPublisher=Concat(F('publisher_name'), Value("/"), F('seller_member_name')),
+            )
+
+            if not queryRes:
+                placement["domain"] = ""
+                placement["placement_name"] = ""
+                placement["publisher"] = ""
+            else:
+                placement["domain"] = queryRes[0]["placement__rtbimpressiontrackerplacementdomain__domain"]
+                placement["mark"] = queryRes[0]["placement__mlexpertsplacementsmarks__expert_decision"]
+                placement["placement_nfloat(ame"] = queryRes[0]["placement_name"]
+                placement["publisher"] = queryRes[0]["NetworkPublisher"]
+            res.append(placement)
+        try:
+            MLTestDataSet(
+                data=res,
+                created=time.strftime("%Y-%m-%d %H:%M:%S")
+            ).save()
+        except Exception, e:
+            print "Can't save test set" + str(e)
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        return Response(res)
+
+    if action == "send":
+        try:
+            max_date = MLTestDataSet.objects.latest("created")
+            if not max_date:
+                print "Can't get latest date"
+                return Response(status=status.HTTP_400_BAD_REQUEST)
+            res = MLTestDataSet.objects.filter(created=max_date.created).values("data")
+            if not res:
+                print "Can't get info"
+                return Response(status=status.HTTP_400_BAD_REQUEST)
+        except Exception, e:
+            print "Error in sending test dataset " + str(e)
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        return Response(res[0]["data"])
+
+    return Response(status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(["GET"])
 @check_user_advertiser_permissions(campaign_id_num=0)
@@ -727,7 +820,7 @@ def mlApiSaveExpertPlacementMark(request):
         placement_id=placement_id,
         day=day,
         expert_decision=decision,
-        date=time.strftime("%Y-%m-%d")
+        date=time.strftime("%Y-%m-%d %H:%M:%S")
     )
     try:
         tempQuery = MLExpertsPlacementsMarks.objects.filter(
@@ -739,7 +832,7 @@ def mlApiSaveExpertPlacementMark(request):
         else:
             tempQuery.update(
                 expert_decision=decision,
-                date=time.strftime("%Y-%m-%d")
+                date=time.strftime("%Y-%m-%d %H:%M:%S")
             )
     except Exception, e:
         print "Can't save expert mark. Error: " + str(e)

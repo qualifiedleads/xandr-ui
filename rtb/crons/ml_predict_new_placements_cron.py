@@ -23,11 +23,7 @@ def mlPredictNewPlacementsCron():
     # predict new placements for test_number 2
     n = 0
     timeout = False
-    tt = 0
     for row in newPlacementsList:
-        tt += 1
-        if tt >=5:
-            break
         mlPredictKmeans(row.id, "ctr_cvr_cpc_cpm_cpa")
         n += 1
         currentTime = datetime.now()

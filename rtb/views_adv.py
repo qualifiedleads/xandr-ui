@@ -799,14 +799,14 @@ def mlApiRandomTestSet(request):
             if not max_date:
                 print "Can't get latest date"
                 return Response(status=status.HTTP_400_BAD_REQUEST)
-            res = MLTestDataSet.objects.filter(created=max_date).value("data")["data"]
+            res = MLTestDataSet.objects.filter(created=max_date.created).values("data")
             if not res:
                 print "Can't get info"
                 return Response(status=status.HTTP_400_BAD_REQUEST)
         except Exception, e:
-            print "Error in sending test dataset"
+            print "Error in sending test dataset " + str(e)
             return Response(status=status.HTTP_400_BAD_REQUEST)
-        return Response(res)
+        return Response(res[0]["data"])
 
     return Response(status=status.HTTP_400_BAD_REQUEST)
 

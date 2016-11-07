@@ -866,16 +866,39 @@ def changeState(request, campaignId):
 
     listObj = []
 
-    print 'len: ' + str(len(placementId))
+    if len(placementId) > 1:
+        try:
+            checkUnclick = False
+            placementStateInTable = list(PlacementState.objects\
+                .filter(Q(campaign_id=campaignId), Q(placement_id__in=placementId)))
+            for plState in placementStateInTable:
+                if plState.state != activeState:
+                    checkUnclick = False
+                    break
+                else:
+                    checkUnclick = True
+            if checkUnclick == True:
+                for plState in placementStateInTable:
+                    obj, created = PlacementState.objects.update_or_create(campaign_id=campaignId,
+                                                                       placement_id=plState.placement_id,
+                                                                       defaults=dict(
+                                                                           state=0,
+                                                                           suspend=date,
+                                                                           change=True
+                                                                       ))
+                return Response('Unactive')
+        except Exception as e:
+            print e
+
     if len(placementId) == 1:
         try:
-            state_obj = PlacementState.objects.get(placement_id=placementId[0])
+            state_obj = PlacementState.objects.get(campaign_id=campaignId,
+                                                   placement_id=placementId[0])
             state = state_obj.state
-            print 'state try: ' + str(state)
-        except:
+        except Exception, e:
+            print e
             state = 0
 
-        print 'state: ' + str(state)
         if state == activeState:
             obj, created = PlacementState.objects.update_or_create(campaign_id=campaignId,
                                                                    placement_id=placementId[0],
@@ -885,17 +908,7 @@ def changeState(request, campaignId):
                                                                        change=True
                                                                    ))
 
-            # state = PlacementStateClass(campaignId, placementId)  # , 7043341
-            # result = state.remove_placement_from_targets_list()
-            # print (campaignId, placementId, result)
-            # if result == 'OK':
             return Response('Unactive')
-            # return Response(str(result))
-
-    # state = PlacementStateClass(campaignId, placementId)  # , 7043341
-    # result = state.change_state_placement(activeState)
-    # print (campaignId, placementId, result)
-    # if result == 'OK':
     try:
         for i, placement in enumerate(placementId):
             obj, created = PlacementState.objects.update_or_create(campaign_id=campaignId,

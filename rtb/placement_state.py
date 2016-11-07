@@ -233,7 +233,6 @@ class PlacementState:
             allProfile = Campaign.objects.select_related("profile")\
                 .filter(
                     state='active',
-                    profile__platform_placement_targets__isnull=False,
                     profile__last_modified__range=[minutesAgo, now]
                 )\
                 .values('id', 'profile_id', 'profile__platform_placement_targets', 'profile__last_modified')
@@ -241,6 +240,10 @@ class PlacementState:
                 LastModified.objects.filter(type='platform_placement_targets').update(date=timezone.make_aware(datetime.datetime.now(),
                                                                                     timezone.get_default_timezone()))
                 string = profile['profile__platform_placement_targets']
+                if string is None:
+                    ModelPlacementState.objects.filter(campaign_id=profile['id'], change=False).delete()
+                    print "Delete all placement for campaign - " + profile['id']
+                    continue
                 placementTargets = unicodedata.normalize('NFKD', string).encode('utf-8', 'ignore')
                 placementTargets = re.sub('\'', '"', placementTargets)
                 placementTargets = re.sub('u"', '"', placementTargets)
@@ -296,17 +299,17 @@ class PlacementState:
                         .filter(Q(campaign_id=profile['id']), Q(change=False))\
                         .values('placement_id')
                 oldPlacement = []
-                if len(tempOldPlacement)>=1:
+                if len(tempOldPlacement) >= 1:
                     for item in tempOldPlacement:
                         oldPlacement.append(item['placement_id'])
                 for i in newPlacementFromAppnexus:
                     if i in oldPlacement:
                         oldPlacement.remove(i)
-                ModelPlacementState.objects.filter(placement_id__in=oldPlacement).delete()
+                ModelPlacementState.objects.filter(campaign_id=profile['id'], placement_id__in=oldPlacement).delete()
                 print 'Remove old state from our table: ' + str(oldPlacement)
             try:
                 LastModified.objects.filter(type='platform_placement_targets').delete()
-            except ValueError, e:
+            except Exception, e:
                 print 'Error: ' + str(e)
             if not lasmoModified:
                 LastModified(type='profile', date=now).save()
@@ -315,7 +318,7 @@ class PlacementState:
                 LastModified.objects.filter(type='profile').update(date=lastminutesAgo)
                 print 'Last modified profile: {0} '.format(lastminutesAgo)
             print "End platform placement targets"
-        except ValueError, e:
+        except Exception, e:
             LastModified.objects.filter(type='platform_placement_targets').delete()
             print 'Error: ' + str(e)
 

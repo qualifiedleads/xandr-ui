@@ -1077,8 +1077,6 @@
                   for (var i = 0; i < selectedRows.length; i++) {
                     selectedArr.push(selectedRows[i].firstChild.innerText);
                   }
-
-                  //e;
                   if (e.selectedItem.state == 1) {
                     if (selectedArr != '[]') {
                       tempSespendRow.placement = selectedArr;
@@ -1125,15 +1123,14 @@
                             w.addClass('active');
                           }
                         }
-                        $('.gridContainerWhite').dxDataGrid('instance').refresh();
-                      }).catch(function () {
-                        $('.gridContainerWhite').dxDataGrid('instance').refresh();
                       });
                     }
                   }
                 } else {
-                  $window.DevExpress.ui.notify(LC('CO.NO-ITEMS-CHOSEN'), "warning", 4000);
+                  return $window.DevExpress.ui.notify(LC('CO.NO-ITEMS-CHOSEN'), "warning", 4000);
                 }
+                // e.component.option('value', false);
+                $('.gridContainerWhite').dxDataGrid('instance').refresh();
               }
             });
             info.cancel = true;

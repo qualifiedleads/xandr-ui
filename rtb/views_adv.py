@@ -18,9 +18,9 @@ from rtb.ml_learn_kmeans import mlGetPlacementInfoKmeans, mlGetGoodClusters, mlG
 from models.placement_state import PlacementState, CampaignRules
 from rtb.placement_state import PlacementState as PlacementStateClass
 from rest_framework import status
-import time
 from models.rtb_impression_tracker import RtbImpressionTrackerPlacement, RtbImpressionTrackerPlacementDomain
 from django.db import connection
+from django.utils import timezone
 
 import bisect
 from django.contrib.auth.decorators import login_required, user_passes_test
@@ -613,7 +613,8 @@ def mlApiSaveExpertDecision(request):
         placement_id=placement_id,
         day=day,
         expert_decision=decision,
-        date=time.strftime("%Y-%m-%d %H:%M:%S")
+        date=timezone.make_aware(datetime.datetime.now(),
+                        timezone.get_default_timezone())
     )
     try:
         tempQuery = MLExpertsPlacementsMarks.objects.filter(
@@ -625,7 +626,8 @@ def mlApiSaveExpertDecision(request):
         else:
             tempQuery.update(
                 expert_decision=decision,
-                date=time.strftime("%Y-%m-%d %H:%M:%S")
+                date=timezone.make_aware(datetime.datetime.now(),
+                        timezone.get_default_timezone())
             )
     except Exception, e:
         print "Can't save expert mark. Error: " + str(e)
@@ -746,6 +748,7 @@ def mlApiRandomTestSet(request):
         res = []
         for row in placemetsDataQuery:
             placement = {}
+            placement["placement_id"] = row.id
             placement["imps"] = row.imps
             placement["clicks"] = row.clicks
             placement["total_convs"] = row.total_convs
@@ -780,13 +783,14 @@ def mlApiRandomTestSet(request):
             else:
                 placement["domain"] = queryRes[0]["placement__rtbimpressiontrackerplacementdomain__domain"]
                 placement["mark"] = queryRes[0]["placement__mlexpertsplacementsmarks__expert_decision"]
-                placement["placement_nfloat(ame"] = queryRes[0]["placement_name"]
+                placement["placement_name"] = queryRes[0]["placement_name"]
                 placement["publisher"] = queryRes[0]["NetworkPublisher"]
             res.append(placement)
         try:
             MLTestDataSet(
                 data=res,
-                created=time.strftime("%Y-%m-%d %H:%M:%S")
+                created=timezone.make_aware(datetime.datetime.now(),
+                        timezone.get_default_timezone())
             ).save()
         except Exception, e:
             print "Can't save test set" + str(e)
@@ -813,14 +817,17 @@ def mlApiRandomTestSet(request):
 @api_view(["GET"])
 @check_user_advertiser_permissions(campaign_id_num=0)
 def mlApiSaveExpertPlacementMark(request):
-    placement_id = request.data.get("placementId")
-    day = request.data.get("day")
-    decision = request.data.get("decision")
+    placement_id = request.GET.get("placementId")
+    day = request.GET.get("day")
+    decision = request.GET.get("decision")
+    if not (decision == "good" or decision == "bad"):
+        return Response(status=status.HTTP_400_BAD_REQUEST)
     expertMarkRecord = MLExpertsPlacementsMarks(
         placement_id=placement_id,
         day=day,
         expert_decision=decision,
-        date=time.strftime("%Y-%m-%d %H:%M:%S")
+        date=timezone.make_aware(datetime.datetime.now(),
+                        timezone.get_default_timezone())
     )
     try:
         tempQuery = MLExpertsPlacementsMarks.objects.filter(
@@ -832,10 +839,12 @@ def mlApiSaveExpertPlacementMark(request):
         else:
             tempQuery.update(
                 expert_decision=decision,
-                date=time.strftime("%Y-%m-%d %H:%M:%S")
+                date=timezone.make_aware(datetime.datetime.now(),
+                        timezone.get_default_timezone())
             )
     except Exception, e:
         print "Can't save expert mark. Error: " + str(e)
+    return Response(status=status.HTTP_200_OK)
 
 
 @api_view(['POST'])

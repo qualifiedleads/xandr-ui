@@ -1065,6 +1065,10 @@
                 {
                   'name': 'Suspended',
                   'state': 1
+                },
+                {
+                  'name': 'Clear state',
+                  'state': 0
                 }
               ],
               placeholder: 'Select a state',

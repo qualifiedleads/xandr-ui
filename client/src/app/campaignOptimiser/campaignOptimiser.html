@@ -1,16 +1,15 @@
 <div class="container-fluid optimiser-camp col-lg-12  col-md-12 col-sm-12">
   <div class="row stats-header">
-    <div  dx-button="CO.UI.navCamp"></div>
     <div class="groupHeadOpti">
       <span class="glyphicon glyphicon-cog iconOpti"></span>
       <span translate="CO.OPTIMISER-FOR" class="camp-header"></span>:<span class="camp-header">
-        <a href="" ui-sref="home.campaign.details({id: CO.campId})"  >{{CO.campName}} </a>
+        <a href="" ui-sref="home.campaign ({id: CO.campId})"  >{{CO.campName}} </a>
         <div class="control pull-right" dx-select-box="CO.UI.datePiker"></div>
       </span>
     </div>
   </div>
   <div class="row camp-content1">
-    <div class="transformable" ng-class="{'smallTargeting':isSmall, 'bigTargeting':!isSmall}" >
+    <!--<div class="transformable" ng-class="{'smallTargeting':isSmall, 'bigTargeting':!isSmall}" >
       <table class="table table-bordered">
         <tr>
           <td class="col-md-3">
@@ -44,16 +43,8 @@
           </td>
         </tr>
       </table>
-    </div>
+    </div>-->
 
-
-
-
-
-
-    {{CO.rulesArray.id}}
-
-    <hr class="lineMiddle">
     <span class="optimizerTitle">{{ 'CO.OPTIMIZER' | translate }}</span>
 
     <div class="gridContainerWhite" dx-data-grid="CO.UI.dataGridOptionsCampaign"></div>

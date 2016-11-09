@@ -116,7 +116,10 @@
       ,createTestSet: {
         text: LC('VBE.CREATE-TEST-SET'),
         onClick: function () {
-          vm.culcReady = true;
+         valuationByExpertS._MLRandomTestSet('create').then(function (res) {
+            console.log(res);
+         });
+
           $scope.$apply();
         }
       },

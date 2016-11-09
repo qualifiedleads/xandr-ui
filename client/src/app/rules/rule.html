@@ -1,5 +1,5 @@
-<div class="logic-rule" ng-if="CO.typeOfLogic(rule)" ng-hide="hideRules">
-  <button class=" btn-danger removeF" ng-click="CO.deleteFilds($parent,IndexF)" data-title="Delete">X</button>
+<div class="logic-rule" ng-if="rulesC.typeOfLogic(rule)" ng-hide="hideRules">
+  <button class=" btn-danger removeF" ng-click="rulesC.deleteFilds($parent,IndexF)" data-title="Delete">X</button>
 
   <div class="RadioRule">
     <div class="ORback">
@@ -23,8 +23,8 @@
 </div>
 <div class="RuleString" ng-show="hideRules">
   <div ng-if="$index == 0">
-    <button class="btn green addfieldsG" ng-click="CO.addField($parent)" data-title="Add Field">F+</button>
-    <button class="btn green addgroupG" ng-click="CO.addGroup($parent, IndexF)" data-title="Add Group">G+</button>
+    <button class="btn green addfieldsG" ng-click="rulesC.addField($parent)" data-title="Add Field">F+</button>
+    <button class="btn green addgroupG" ng-click="rulesC.addGroup($parent, IndexF)" data-title="Add Group">G+</button>
   </div>
   <div class="AllRule" ng-if="rule.type == 'condition'">
 
@@ -93,7 +93,7 @@
 
 
   <div class="Infologic" ng-if="rule.type == 'logic'">
-    <button class=" btn-danger removeInfo" ng-click="CO.deleteFilds($parent,IndexF)"data-title="Delete">X</button>
+    <button class=" btn-danger removeInfo" ng-click="rulesC.deleteFilds($parent,IndexF)"data-title="Delete">X</button>
     <div class="InfoOr" ng-if="rule.logicOrAnd == true">
       OR
     </div>
@@ -104,10 +104,10 @@
 </div>
 
 
-<div class="object-rule" ng-if="CO.typeOfObject(rule)" ng-hide="hideRules">
+<div class="object-rule" ng-if="rulesC.typeOfObject(rule)" ng-hide="hideRules">
   <div ng-if="$index == 0" ng-hide="hideRules">
-    <button class="btn green addfields" ng-click="CO.addField($parent)" data-title="Add Field" >F+</button>
-    <button class="btn green addgroup" ng-click="CO.addGroup($parent, IndexF)" data-title="Add Group">G+</button>
+    <button class="btn green addfields" ng-click="rulesC.addField($parent)" data-title="Add Field" >F+</button>
+    <button class="btn green addgroup" ng-click="rulesC.addGroup($parent, IndexF)" data-title="Add Group">G+</button>
   </div>
   <div class="RuleShow">
 
@@ -164,9 +164,9 @@
 <div class="GroupShow">
   <!---->
   <!--  -->
-  <div class="object-group" ng-if="CO.typeOfArray(rule) ">
+  <div class="object-group" ng-if="rulesC.typeOfArray(rule) ">
     <div class="bracet-begin"></div>
-    <div class="GroupRepeat" ng-repeat="(IndexF,rule) in rule" ng-include="'app/campaignOptimiser/rule.html'" ng-hide="hideGroup">
+    <div class="GroupRepeat" ng-repeat="(IndexF,rule) in rule" ng-include="'app/rules/rule.html'" ng-hide="hideGroup">
     </div>
     <div class="bracet-end"></div>
   </div>

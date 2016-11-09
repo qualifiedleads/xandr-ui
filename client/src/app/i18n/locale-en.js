@@ -181,6 +181,10 @@
       'OPTIMISER-FOR':'Optimiser for',
       'CAMPAIGN-HOME': 'back to Campaign Home'
     },
+    "RULESC": {
+      'OPTIMISER-FOR':'Rules for',
+      'RULES': 'Rules for All Domains:',
+    },
     'VBE':{
       'PAGE-NAME': 'Valuation by expert',
       'CALCULATE-AUC': 'Calculate AUC',

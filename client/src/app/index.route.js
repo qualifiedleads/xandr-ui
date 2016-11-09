@@ -27,78 +27,23 @@
         controllerAs: 'main'
       })
       .state('home.campaign', {
-        templateUrl:  'app/campaign/camp.html',
-        abstract: true
-      })
-      .state('home.campaign.details', {
         url: '/campaign/:id',
-        views: {
-          details: {
-            templateUrl: 'app/campaignmain/campmain.html',
-            controller: 'CampaignMainController',
-            controllerAs: 'campmain',
-            resolve: {
-              Campaign:  function(CampMain,$stateParams, $state){
-                if (!$stateParams.id) {
-                  $state.go('home.main');
-                }
-                return CampMain.nameCampaigns($stateParams.id).then(function (res) {
-                  return res
-                });
-              }
+        templateUrl: 'app/campaignmain/campmain.html',
+        controller: 'CampaignMainController',
+        controllerAs: 'campmain',
+        resolve: {
+          Campaign: function (CampMain, $stateParams, $state) {
+            if (!$stateParams.id) {
+              $state.go('home.main');
             }
-          },
-          info: {
-            templateUrl: 'app/CPA/campdetails.html',
-            controller: 'CampaignDetailsController',
-            controllerAs: 'campdetails',
-            resolve: {
-              Campaign:  function(CampMain,$stateParams, $state){
-                if (!$stateParams.id) {
-                  $state.go('home.main');
-                }
-                return CampMain.nameCampaigns($stateParams.id).then(function (res) {
-                  return res
-                });
-              },
-              ChartDetails:  function(CampDetails,$stateParams, $state,$localStorage){
-                if (!$stateParams.id) {
-                  $state.go('home.main');
-                }
-                return CampDetails.detailsStoreAll(
-                  $stateParams.id,
-                  $localStorage.dataStart,
-                  $localStorage.dataEnd,
-                  $localStorage.selectedSection
-                ).then(function (result) {
-                  return result;
-                })
-                  .catch(function (err) {
-                    return err;
-                  });
-              },
-              CpaBucketsAll:  function(CampDetails,$stateParams, $state,$localStorage){
-                if (!$stateParams.id) {
-                  $state.go('home.main');
-                }
-                return CampDetails.bucketsCpa(
-                  $stateParams.id,
-                  $localStorage.dataStart,
-                  $localStorage.dataEnd,
-                  $localStorage.selectedSection
-                ).then(function (result) {
-                  return result;
-                })
-                  .catch(function (err) {
-                    return err;
-                  });
-              }
-            }
+            return CampMain.nameCampaigns($stateParams.id).then(function (res) {
+              return res
+            });
           }
         }
       })
-      .state('home.campaignOptimiser', {
-        url: '/campaignOptimiser/:id',
+      .state('home.optimiser', {
+        url: '/optimiser/:id',
         templateUrl: 'app/campaignOptimiser/campaignOptimiser.html',
         controller: 'CampaignOptimiserController',
         controllerAs: 'CO',
@@ -125,68 +70,60 @@
         controller: 'AdminController',
         controllerAs: 'admin'
       })
-
       .state('home.rules', {
         url: '/rules/:id',
-        templateUrl: 'app/Rules/Rules.html',
-        controller: 'CampaignOptimiserController',
-        controllerAs: 'CO'
+        templateUrl: 'app/rules/rules.html',
+        controller: 'rulesController',
+        controllerAs: 'rulesC'
       })
-      .state('home.optimiser', {
-        url: '/optimiser/:id',
-        templateUrl: 'app/campaignOptimiser/Optimiser.html',
-        controller: 'CampaignOptimiserController',
-        controllerAs: 'CO'
-      })
-
-  .state('home.CPA', {
-    url: '/CPA/:id',
-    templateUrl: 'app/CPA/campdetails.html',
-    controller: 'CampaignDetailsController',
-    controllerAs: 'campdetails',
-    resolve: {
-      Campaign:  function(CampMain,$stateParams, $state){
-        if (!$stateParams.id) {
-          $state.go('home.main');
+      .state('home.cpa', {
+        url: '/cpa/:id',
+        templateUrl: 'app/cpa/cpa.html',
+        controller: 'CPAController',
+        controllerAs: 'cpa',
+        resolve: {
+          Campaign:  function(CampMain,$stateParams, $state){
+            if (!$stateParams.id) {
+              $state.go('home.main');
+            }
+            return CampMain.nameCampaigns($stateParams.id).then(function (res) {
+              return res
+            });
+          },
+          ChartDetails:  function(CPA,$stateParams, $state,$localStorage){
+            if (!$stateParams.id) {
+              $state.go('home.main');
+            }
+            return CPA.detailsStoreAll(
+              $stateParams.id,
+              $localStorage.dataStart,
+              $localStorage.dataEnd,
+              $localStorage.selectedSection
+            ).then(function (result) {
+              return result;
+            })
+              .catch(function (err) {
+                return err;
+              });
+          },
+          CpaBucketsAll:  function(CPA,$stateParams, $state,$localStorage){
+            if (!$stateParams.id) {
+              $state.go('home.main');
+            }
+            return CPA.bucketsCpa(
+              $stateParams.id,
+              $localStorage.dataStart,
+              $localStorage.dataEnd,
+              $localStorage.selectedSection
+            ).then(function (result) {
+              return result;
+            })
+              .catch(function (err) {
+                return err;
+              });
+          }
         }
-        return CampMain.nameCampaigns($stateParams.id).then(function (res) {
-          return res
-        });
-      },
-      ChartDetails:  function(CampDetails,$stateParams, $state,$localStorage){
-        if (!$stateParams.id) {
-          $state.go('home.main');
-        }
-        return CampDetails.detailsStoreAll(
-          $stateParams.id,
-          $localStorage.dataStart,
-          $localStorage.dataEnd,
-          $localStorage.selectedSection
-        ).then(function (result) {
-          return result;
-        })
-          .catch(function (err) {
-            return err;
-          });
-      },
-      CpaBucketsAll:  function(CampDetails,$stateParams, $state,$localStorage){
-        if (!$stateParams.id) {
-          $state.go('home.main');
-        }
-        return CampDetails.bucketsCpa(
-          $stateParams.id,
-          $localStorage.dataStart,
-          $localStorage.dataEnd,
-          $localStorage.selectedSection
-        ).then(function (result) {
-          return result;
-        })
-          .catch(function (err) {
-            return err;
-          });
-      }
-    }
-  });
+      });
 
     $urlRouterProvider.otherwise('/');
   }

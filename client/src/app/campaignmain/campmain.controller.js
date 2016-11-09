@@ -16,11 +16,15 @@
     var oneSuspend = false;
     $rootScope.id = Campaign.id;
     $rootScope.name = Campaign.campaign;
-    //   "name": Campaign.campaign
-    // };
-    //$state.reload(true);
     vm.checkChart = [];
     vm.by = 'imp,cvr,cpc,clicks,spend,conv,ctr';
+    $localStorage.campaign = {
+      "id":  Campaign.id,
+      "name": Campaign.campaign
+    };
+    if ($localStorage.campaign == null) {
+      $state.go('home.main');
+    }
 
     vm.campName = Campaign.campaign;
     vm.campId = Campaign.id;
@@ -675,9 +679,6 @@
     //region MULTIPLE
     vm.selectedItems = [];
     vm.chartOptionsFuncgrid = [];
-    if ($localStorage.boxPlotData == null) {
-      $localStorage.boxPlotData = vm.boxPlotData;
-    }
 
     vm.state = '';
     vm.selectCell = {
@@ -869,7 +870,7 @@
           $scope.$apply();
         }
       },
-    }
+    };
 
 
     vm.dataGridOptionsCampaign = {
@@ -1203,7 +1204,6 @@
               white.addClass('state-white'+ options.data.placement).appendTo(container);
             }
 
-
             var black = $window.$("<div />").dxButton({
               text: 'black',
               height: 30,
@@ -1277,7 +1277,6 @@
           }
         }
       ],
-
       summary: {
         totalItems: [
           {
@@ -1472,111 +1471,6 @@
         vm.disabled = !vm.selectedItems.length;
       }
     };
-    //endregion
-
-
-    //region RANGE SELECTOR FIRST
-    vm.rangeFirstChartOptions = {
-      margin: {
-        left: 50
-      },
-      scale: {
-        startValue: new Date($localStorage.dataStart),
-        endValue: new Date($localStorage.dataEnd),
-        minorTickInterval: "day",
-        minRange: "hour",
-        maxRange: "month",
-        minorTick: {
-          visible: false
-        }
-      },
-      sliderMarker: {
-        format: "monthAndDay"
-      }
-      // selectedRange: {
-      //   startValue: new Date($localStorage.dataStart),
-      //   endValue: new Date($localStorage.dataEnd)
-      // }
-    };
-
-    //endregion
-
-    //region RANGE SELECTOR SECOND
-    vm.rangeSecondChartOptions = {
-      margin: {
-        left: 50,
-        top: 12
-      },
-      size: {
-        height: 150,
-        width: 450
-      },
-      scale: {
-        startValue: new Date($localStorage.dataStart),
-        endValue: new Date($localStorage.dataEnd),
-        minorTickInterval: "day",
-        minRange: "day",
-        maxRange: "month",
-        minorTick: {
-          visible: false
-        }
-      },
-      sliderMarker: {
-        format: "monthAndDay"
-      }
-      // selectedRange: {
-      //   startValue: new Date(2011, 2, 3),
-      //   endValue: new Date(2011, 2, 9)
-      // }
-    };
-
-    //endregion
-
-
-    //region PIE CHART CONTAINER
-    vm.ctrlBbtns = {
-      placement: {
-        btn: 'Placement',
-        header: 'Placement'
-      },
-      creativeId: {
-        btn: 'creative_id',
-        header: 'creative_id'
-      },
-      creativeSize: {
-        btn: 'creative_size',
-        header: 'creative_size'
-      },
-      viewability: {
-        btn: 'viewability',
-        header: 'viewability'
-      },
-      os: {
-        btn: 'OS',
-        header: 'Operating System used'
-      },
-      carrier: {
-        btn: 'carrier',
-        header: 'carrier'
-      },
-      networkSeller: {
-        btn: 'network(seller)',
-        header: 'network (seller)'
-      },
-      connectionType: {
-        btn: 'connection_type',
-        header: 'connection_type'
-      },
-      device: {
-        btn: 'device',
-        header: 'device'
-      },
-      seller: {
-        btn: 'seller',
-        header: 'Seller'
-      }
-    };
-    vm.pieChartHeader = $localStorage.pieChartHeader || vm.ctrlBbtns.os.header;
     //endregion
   }
 })();

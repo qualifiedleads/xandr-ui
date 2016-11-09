@@ -57,11 +57,12 @@
     'INDEX':{
       'ADVERTISER_TITLE':'Stats for',
       'LEFT_NAV':{
-        'HOME':"Home",
-        'CAMPAIGN':"Campaign",
-        'BILLING':"Billing",
+        'HOME':"Camp. Home",
+        /*'CAMPAIGN':"Optimiser",*/
+        'CPA':"CPA",
         'OPTIMIZER':"Optimizer",
-        'EXPERT':"Valuation by expert"
+        'Rules':"Rules",
+        'EXPERT':"Expert"
       }
     },
     'MAIN': {
@@ -138,6 +139,7 @@
         'COLUMNS':{
           "CAMPAIGN":"Campaign",
           "PLACEMENT": "Placement",
+          'DOMAIN' : 'Domain',
           "NETWORK":"Network + Seller",
           "SPENT":"Spent",
           "CONV":"Conv",
@@ -179,9 +181,14 @@
       'OPTIMISER-FOR':'Optimiser for',
       'CAMPAIGN-HOME': 'back to Campaign Home'
     },
+    "RULESC": {
+      'OPTIMISER-FOR':'Rules for',
+      'RULES': 'Rules for All Domains:',
+    },
     'VBE':{
       'PAGE-NAME': 'Valuation by expert',
-      'CALCULATE-AUC': 'CalculateAUC'
+      'CALCULATE-AUC': 'Calculate AUC',
+      'CREATE-TEST-SET': 'Create test set'
     }
   })
 })();

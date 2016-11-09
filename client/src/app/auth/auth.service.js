@@ -27,13 +27,16 @@
     function selectAdvertisersStore() {
       return new $window.DevExpress.data.CustomStore({
         totalCount: function () {
-          return _totalCount;
+
+          return _totalCount
+
         },
         load: function () {
-          return _advertisersList();
+          return _advertisersList()
         }
       });
     }
+
 
     function authorization(user) {
       return $http({

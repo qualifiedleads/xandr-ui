@@ -12,14 +12,20 @@ import itertools
 import datetime
 from pytz import utc
 import filter_func
-from models.ml_kmeans_model import MLPlacementDailyFeatures, MLClustersCentroidsKmeans, MLPlacementsClustersKmeans
-from rtb.ml_learn_kmeans import mlPredictKmeans,mlGetPlacementInfoKmeans
-from models.placement_state import PlacementState
+from models.ml_kmeans_model import MLPlacementDailyFeatures, MLClustersCentroidsKmeans, MLPlacementsClustersKmeans, \
+MLExpertsPlacementsMarks, MLViewFullPlacementsData, MLTestDataSet
+from rtb.ml_learn_kmeans import mlGetPlacementInfoKmeans, mlGetGoodClusters, mlGetTestNumber
+from models.placement_state import PlacementState, CampaignRules
+from rtb.placement_state import PlacementState as PlacementStateClass
 from rest_framework import status
+from models.rtb_impression_tracker import RtbImpressionTrackerPlacement, RtbImpressionTrackerPlacementDomain
+from django.db import connection
+from django.utils import timezone
 
 import bisect
 from django.contrib.auth.decorators import login_required, user_passes_test
 import json
+#from ml_auc import mlCalcAuc
 
 @api_view()
 @check_user_advertiser_permissions(campaign_id_num=0)
@@ -222,31 +228,11 @@ def get_campaign_placement(campaign_id, from_date, to_date):
                 x['state'] = state.state
             else:
                 x['state'] = 0
-
-            mlAnswer = mlGetPlacementInfoKmeans(x['placement'], False)
-
-            if mlAnswer == -1 or mlAnswer == -2:
-                x['analitics'] = ({  # for one object
-                    "good": mlAnswer,
-                    "bad": mlAnswer,
-                    "checked": mlAnswer
-                })
-                continue
-
-            if str(wholeWeekInd) not in mlAnswer:  # for one object
-                x['analitics'] = ({
-                    "good": -3,
-                    "bad": -3,
-                    "checked": -3
-                })
-            else:
-                x['analitics'] = ({
-                    "good": mlAnswer[str(wholeWeekInd)]['good'],
-                    "bad": mlAnswer[str(wholeWeekInd)]['bad'],
-                    "checked": mlAnswer[str(wholeWeekInd)]['checked']
-                })
+            x["analitics"] = mlFillPredictionAnswer(x["placement"], False, "kmeans", "ctr_cvr_cpc_cpm_cpa")
+            x["analitics1"] = mlFillPredictionAnswer(x["placement"], False, "log" , "ctr_cvr_cpc_cpm_cpa")
         return res
     # no cache hit
+
     from_date = datetime.datetime(from_date.year, from_date.month, from_date.day, tzinfo=utc)
     to_date = datetime.datetime(to_date.year, to_date.month, to_date.day, 23, tzinfo=utc)
     q = NetworkAnalyticsReport_ByPlacement.objects.filter(
@@ -254,7 +240,12 @@ def get_campaign_placement(campaign_id, from_date, to_date):
         campaign_id=campaign_id,
         hour__gte=from_date,
         hour__lte=to_date,
-    ).values('placement').annotate(
+    ).select_related(
+        "Placement"
+    ).values(
+        'placement',
+        'placement__rtbimpressiontrackerplacementdomain__domain'
+    ).annotate(
         placement_name=F('placement_name'), #placement__name
         NetworkPublisher=Concat(F('publisher_name'),Value("/"), F('seller_member_name')),
         placementState=F('placement__state'),
@@ -280,28 +271,8 @@ def get_campaign_placement(campaign_id, from_date, to_date):
             x['state'] = state.state
         else:
             x['state'] = 0
-        mlAnswer = mlGetPlacementInfoKmeans(x['placement'], False)
-        if mlAnswer == -1 or mlAnswer == -2:
-            x['analitics'] = ({#for one object
-                "good": mlAnswer,
-                "bad": mlAnswer,
-                "checked": mlAnswer
-            })
-            x.pop('placementState', None)
-            continue
-
-        if str(wholeWeekInd) not in mlAnswer:  #for one object
-            x['analitics'] = ({
-                "good": -3,
-                "bad": -3,
-                "checked": -3
-            })
-        else:
-            x['analitics'] = ({
-                "good": mlAnswer[str(wholeWeekInd)]['good'],
-                "bad": mlAnswer[str(wholeWeekInd)]['bad'],
-                "checked": mlAnswer[str(wholeWeekInd)]['checked']
-            })
+        x["analitics"] = mlFillPredictionAnswer(x["placement"], False, "kmeans", "ctr_cvr_cpc_cpm_cpa")
+        x["analitics1"] = mlFillPredictionAnswer(x["placement"], False, "log", "ctr_cvr_cpc_cpm_cpa")
         x.pop('placementState', None)
 
 
@@ -600,70 +571,280 @@ GET: diagramms for week for a placement
     return res
 
 
+    
 def mlApiWeeklyPlacementRecignition(request):
     placement_id = request.GET.get("placementId")
-    mlAnswer = mlGetPlacementInfoKmeans(placement_id, True)#get data from recognition database
-    res = {}
-    res['analitics'] = []
-    if mlAnswer == -1 or mlAnswer == -2:#error with data in database
-        for weekday in xrange(8):  # for all week, 8 - quantity of weekdays+whole week in mlAnswer
-            res['analitics'].append({
-                "day": weekday,
-                "good": mlAnswer,
-                "bad": mlAnswer,
-                "checked": mlAnswer
-            })
-        return Response(res)
-
-    for weekday in xrange(8):  # 8 - quantity of weekdays+whole week in mlAnswer
-        if str(weekday) not in mlAnswer:  # for array
-            res['analitics'].append({
-                "day": weekday,
-                "good": -3,
-                "bad": -3,
-                "checked": -3
-            })
-        else:
-            res['analitics'].append({
-                "day": weekday,
-                "good": mlAnswer[str(weekday)]['good'],  # mlAnswer[str(weekday)]['good']
-                "bad": mlAnswer[str(weekday)]['bad'],  # mlAnswer[str(weekday)]['bad']
-                "checked": mlAnswer[str(weekday)]['checked']
-            })
+    test_name = request.GET.get("test_name")
+    test_type = request.GET.get("test_type")
+    res = mlFillPredictionAnswer(placement_id, True, test_type, test_name)
     return Response(res)
 
 def mlApiSaveExpertDecision(request):
-    placement_id = request.data.get("placementId")
-    checked = request.data.get("checked")
+    placement_id = request.GET.get("placementId")
+    checked = request.GET.get("checked")
+    test_type = request.GET.get("test_type")
+    test_name = request.GET.get("test_name")
+    day = request.GET.get("day")
+
+    goodClusters = mlGetGoodClusters(test_name)
+
+    test_number = mlGetTestNumber(test_type, test_name)
+    if test_type == "kmeans":
+        placementInfo = MLPlacementsClustersKmeans.objects.filter(
+            placement_id=placement_id,
+            day=day,
+            test_number=test_number
+        )
+        if test_type == "log":
+            pass #get info about
+
+    decision = None
+    if placementInfo.cluster == goodClusters[day]:
+        if checked == True:
+            decision = "good"
+        else:
+            decision = "bad"
+    else:
+        if checked == True:
+            decision = "bad"
+        else:
+            decision = "good"
+    expertMarkRecord = MLExpertsPlacementsMarks(
+        placement_id=placement_id,
+        day=day,
+        expert_decision=decision,
+        date=timezone.make_aware(datetime.datetime.now(),
+                        timezone.get_default_timezone())
+    )
     try:
-        MLPlacementsClustersKmeans.objects.filter(placement_id=placement_id).update(expert_decision=checked)
+        tempQuery = MLExpertsPlacementsMarks.objects.filter(
+            placement_id=placement_id,
+            day=day
+        )
+        if not tempQuery:
+            expertMarkRecord.save()
+        else:
+            tempQuery.update(
+                expert_decision=decision,
+                date=timezone.make_aware(datetime.datetime.now(),
+                        timezone.get_default_timezone())
+            )
+    except Exception, e:
+        print "Can't save expert mark. Error: " + str(e)
+
+    try:
+        placementInfo.update(expert_decision=checked)
     except Exception, e:
         print "Can't save expert decision. Error: " + str(e)
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
-    mlAnswer = mlGetPlacementInfoKmeans(placement_id, False)
-    wholeWeekInd = 7
-    res = {}
-    if mlAnswer == -1 or mlAnswer == -2:
-        res['analitics'] = ({  # for one object
-            "good": mlAnswer,
-            "bad": mlAnswer,
-            "checked": mlAnswer
-        })
-
-    if str(wholeWeekInd) not in mlAnswer:  # for one object
-        res['analitics'] = ({
-            "good": -3,
-            "bad": -3,
-            "checked": -3
-        })
-    else:
-        res['analitics'] = ({
-            "good": mlAnswer[str(wholeWeekInd)]['good'],  # mlAnswer[str(weekday)]['good']
-            "bad": mlAnswer[str(wholeWeekInd)]['bad'],  # mlAnswer[str(weekday)]['bad']
-            "checked": mlAnswer[str(wholeWeekInd)]['checked']
-        })
+    res = mlFillPredictionAnswer(placement_id, False, test_type, test_name)#RETURN ONE DAYWEEK?
     return Response(res)
+
+def mlFillPredictionAnswer(placement_id = 1, flagAllWeek = False, test_type = "kmeans", test_name = "ctr_viewrate"):
+    if test_type == "kmeans":
+        mlAnswer = mlGetPlacementInfoKmeans(placement_id, flagAllWeek, test_type, test_name)
+        if flagAllWeek == False:
+            wholeWeekInd = 7
+            if mlAnswer == -1 or mlAnswer == -2:
+                res = ({  # for one object
+                    "good": mlAnswer,
+                    "bad": mlAnswer,
+                    "checked": mlAnswer
+                })
+                return res
+
+            if str(wholeWeekInd) not in mlAnswer:  # for one object
+                res = ({
+                    "good": -3,
+                    "bad": -3,
+                    "checked": -3
+                })
+            else:
+                res = ({
+                    "good": mlAnswer[str(wholeWeekInd)]['good'],
+                    "bad": mlAnswer[str(wholeWeekInd)]['bad'],
+                    "checked": mlAnswer[str(wholeWeekInd)]['checked']
+                })
+            return res
+        else:
+            mlAnswer = mlGetPlacementInfoKmeans(placement_id, True, test_type, test_name)  # get data from recognition database
+            res = []
+            if mlAnswer == -1 or mlAnswer == -2:  # error with data in database
+                for weekday in xrange(8):  # for all week, 8 - quantity of weekdays+whole week in mlAnswer
+                    res.append({
+                        "day": weekday,
+                        "good": mlAnswer,
+                        "bad": mlAnswer,
+                        "checked": mlAnswer
+                    })
+                return res
+
+            for weekday in xrange(8):  # 8 - quantity of weekdays+whole week in mlAnswer
+                if str(weekday) not in mlAnswer:  # for array
+                    res.append({
+                        "day": weekday,
+                        "good": -3,
+                        "bad": -3,
+                        "checked": -3
+                    })
+                else:
+                    res.append({
+                        "day": weekday,
+                        "good": mlAnswer[str(weekday)]['good'],
+                        "bad": mlAnswer[str(weekday)]['bad'],
+                        "checked": mlAnswer[str(weekday)]['checked']
+                    })
+        return res
+    #TODO getting results for logistic regression
+    if test_type == "log":
+        res = ({
+            "good": -1,
+            "bad": -1,
+            "checked": -1
+        })
+        return res
+    res = ({  # if wrong test type
+        "good": -1,
+        "bad": -1,
+        "checked": -1
+    })
+    return res
+
+@api_view(["GET"])
+@check_user_advertiser_permissions(campaign_id_num=0)
+def mlApiRandomTestSet(request):
+    action = request.GET.get("action")
+    if action == "create":
+        placemetsDataQuery = MLViewFullPlacementsData.objects.raw(
+            """
+            SELECT
+              placement_id as id,
+              imps,
+              clicks,
+              total_convs,
+              imps_viewed,
+              view_measured_imps,
+              sum_cost,
+              cpa,
+              ctr,
+              cvr,
+              cpc,
+              cpm,
+              view_rate,
+              view_measurement_rate
+            FROM
+              ml_view_full_placements_data
+            TABLESAMPLE BERNOULLI(20)
+            limit 127;
+            """
+        )
+        res = []
+        for row in placemetsDataQuery:
+            placement = {}
+            placement["placement_id"] = row.id
+            placement["imps"] = row.imps
+            placement["clicks"] = row.clicks
+            placement["total_convs"] = row.total_convs
+            placement["imps_viewed"] = row.imps_viewed
+            placement["view_measured_imps"] = row.view_measured_imps
+            placement["sum_cost"] = float(row.sum_cost)
+            placement["cpa"] = float(row.cpa)
+            placement["ctr"] = float(row.ctr)
+            placement["cvr"] = float(row.cvr)
+            placement["cpc"] = float(row.cpc)
+            placement["cpm"] = float(row.cpm)
+            placement["view_rate"] = float(row.view_rate)
+            placement["view_measurement_rate"] = float(row.view_measurement_rate)
+
+            queryRes = NetworkAnalyticsReport_ByPlacement.objects.filter(
+                placement_id=row.id
+            ).select_related(
+                "Placement"
+            ).values(
+                'placement',
+                'placement__rtbimpressiontrackerplacementdomain__domain',
+                'placement__mlexpertsplacementsmarks__expert_decision'
+            ).annotate(
+                placement_name=F('placement_name'),  # placement__name
+                NetworkPublisher=Concat(F('publisher_name'), Value("/"), F('seller_member_name')),
+            )
+
+            if not queryRes:
+                placement["domain"] = ""
+                placement["placement_name"] = ""
+                placement["publisher"] = ""
+            else:
+                placement["domain"] = queryRes[0]["placement__rtbimpressiontrackerplacementdomain__domain"]
+                placement["mark"] = queryRes[0]["placement__mlexpertsplacementsmarks__expert_decision"]
+                placement["placement_name"] = queryRes[0]["placement_name"]
+                placement["publisher"] = queryRes[0]["NetworkPublisher"]
+            res.append(placement)
+        try:
+            MLTestDataSet(
+                data=res,
+                created=timezone.make_aware(datetime.datetime.now(),
+                        timezone.get_default_timezone())
+            ).save()
+        except Exception, e:
+            print "Can't save test set" + str(e)
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        return Response(res)
+
+    if action == "send":
+        try:
+            max_date = MLTestDataSet.objects.latest("created")
+            if not max_date:
+                print "Can't get latest date"
+                return Response(status=status.HTTP_400_BAD_REQUEST)
+            res = MLTestDataSet.objects.filter(created=max_date.created).values("data")
+            if not res:
+                print "Can't get info"
+                return Response(status=status.HTTP_400_BAD_REQUEST)
+            for i in xrange(len(res[0]["data"])):
+                queryRes = MLExpertsPlacementsMarks.objects.filter(placement_id=res[0]["data"][i]["placement_id"])
+                if not queryRes:
+                    res[0]["data"][i]["mark"] = None
+                else:
+                    res[0]["data"][i]["mark"] = queryRes[0].expert_decision
+        except Exception, e:
+            print "Error in sending test dataset " + str(e)
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        return Response(res[0]["data"])
+
+    return Response(status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(["GET"])
+@check_user_advertiser_permissions(campaign_id_num=0)
+def mlApiSaveExpertPlacementMark(request):
+    placement_id = request.GET.get("placementId")
+    day = request.GET.get("day")
+    decision = request.GET.get("decision")
+    if not (decision == "good" or decision == "bad"):
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+    expertMarkRecord = MLExpertsPlacementsMarks(
+        placement_id=placement_id,
+        day=day,
+        expert_decision=decision,
+        date=timezone.make_aware(datetime.datetime.now(),
+                        timezone.get_default_timezone())
+    )
+    try:
+        tempQuery = MLExpertsPlacementsMarks.objects.filter(
+            placement_id=placement_id,
+            day=day
+        )
+        if not tempQuery:
+            expertMarkRecord.save()
+        else:
+            tempQuery.update(
+                expert_decision=decision,
+                date=timezone.make_aware(datetime.datetime.now(),
+                        timezone.get_default_timezone())
+            )
+    except Exception, e:
+        print "Can't save expert mark. Error: " + str(e)
+    return Response(status=status.HTTP_200_OK)
 
 
 @api_view(['POST'])
@@ -680,6 +861,9 @@ def changeState(request, campaignId):
         + activeState (string) - Change state (white, black, suspend)
         + date - suspend date
 
+    503 - Not connect to appnexus server
+    404 - Not found
+
     """
     placementId = request.data.get("placement")
     activeState = request.data.get("activeState")   # 4 - white / 2 - black / 1 - suspend
@@ -690,18 +874,120 @@ def changeState(request, campaignId):
         date = None
 
     listObj = []
-    for i, placement in enumerate(placementId):
-        obj, created = PlacementState.objects.update_or_create(campaign_id=campaignId,
-                                                               placement_id=placement,
-                                                               defaults=dict(
-                                                                   state=activeState,
-                                                                   suspend=date
-                                                               ))
-        listObj.append({
-            'placementId': obj.placement_id,
-            'campaign_id': obj.campaign_id,
-            'suspend': obj.suspend,
-            'state': obj.state
-        })
 
-    return Response(listObj)
+    try:
+        if activeState == 0:
+            placementStateInTable = list(PlacementState.objects\
+                                         .filter(Q(campaign_id=campaignId), Q(placement_id__in=placementId)))
+            for plState in placementStateInTable:
+                obj, created = PlacementState.objects.update_or_create(campaign_id=campaignId,
+                                                                   placement_id=plState.placement_id,
+                                                                   defaults=dict(
+                                                                       state=0,
+                                                                       suspend=date,
+                                                                       change=True
+                                                                   ))
+            return Response('Unactive')
+    except Exception as e:
+        print e
+
+    try:
+        checkUnclick = False
+        placementStateInTable = list(PlacementState.objects\
+            .filter(Q(campaign_id=campaignId), Q(placement_id__in=placementId)))
+        for plState in placementStateInTable:
+            if plState.state != activeState:
+                checkUnclick = False
+                break
+            else:
+                checkUnclick = True
+        if checkUnclick == True:
+            for plState in placementStateInTable:
+                obj, created = PlacementState.objects.update_or_create(campaign_id=campaignId,
+                                                                   placement_id=plState.placement_id,
+                                                                   defaults=dict(
+                                                                       state=0,
+                                                                       suspend=date,
+                                                                       change=True
+                                                                   ))
+            return Response('Unactive')
+    except Exception as e:
+        print e
+
+    try:
+        for i, placement in enumerate(placementId):
+            obj, created = PlacementState.objects.update_or_create(campaign_id=campaignId,
+                                                                   placement_id=placement,
+                                                                   defaults=dict(
+                                                                       state=activeState,
+                                                                       suspend=date,
+                                                                       change=True
+                                                                   ))
+
+            listObj.append({
+                'placementId': obj.placement_id,
+                'campaign_id': obj.campaign_id,
+                'suspend': obj.suspend,
+                'state': obj.state
+            })
+        return Response(listObj)
+    except ValueError, e:
+        return Response(str(e))
+
+
+def getPlacementDomain(placementId):
+    domains = RtbImpressionTrackerPlacement.objects.filter(placement_id=placementId)
+    if not domains:
+        return "", ""
+    allDomains = ""
+    for row in domains:
+        if row.domain != "null":
+            allDomains += (str(row.domain) + "; ")
+    if allDomains != "":
+        allDomains = allDomains[:-2]
+    domain = RtbImpressionTrackerPlacementDomain.objects.filter(placement_id=placementId)
+    if not domain:
+        return allDomains, ""
+    domain = domain[0].domain
+    return allDomains, domain
+
+# @api_view(["GET"])
+# @check_user_advertiser_permissions(campaign_id_num=0)
+# def mlApiCalcAUC(request):
+#     placementsIds = request.data.get("placementIds")
+#     test_type = request.data.get("test_type")
+#     test_name = request.data.get("test_name")
+#     res = mlCalcAuc(placementsIds, test_type, test_name)
+#     return Response(res)
+
+@api_view(['GET', 'POST'])
+@check_user_advertiser_permissions(campaign_id_num=0)
+def ApiCampaignRules(request, id):#return/save campaign's rules
+    if request.method == "GET":
+        res = getCampaignRules(request, id)#return
+    if request.method == "POST":
+        res = saveCampaignRules(request, id)#save
+    return res
+
+def getCampaignRules(request, id):
+    try:
+        rules = CampaignRules.objects.get(campaign_id=id)
+    except Exception, e:
+        res = []
+        return Response(res)
+    res = rules.rules
+    return Response(res)
+
+def saveCampaignRules(request, id):
+    rule = request.data.get("ruleObj")
+    try:
+        CampaignRules.objects.update_or_create(
+            campaign_id=id,
+            defaults={"rules":rule})
+    except Exception, e:
+        print "Error in inserting/updating campaign rules: ", str(e)
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+    res = {}
+    res["campaign_id"] = id
+    res["rule"] = rule
+    return Response(res)

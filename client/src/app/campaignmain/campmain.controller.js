@@ -2,20 +2,29 @@
   'use strict';
 
   angular
-  .module('pjtLayout')
-  .controller('CampaignMainController', CampaignMainController);
+    .module('pjtLayout')
+    .controller('CampaignMainController', CampaignMainController);
 
   /** @ngInject */
-  function CampaignMainController($window, $state, $localStorage, $translate, $timeout, CampMain, Campaign, $scope) {
+  function CampaignMainController($window, $state, $localStorage, $translate, $timeout, CampMain, Campaign, $scope, CampaignOptimiser, $rootScope) {
     var vm = this;
     var LC = $translate.instant;
     var dataSuspend = null;
     var tempSespendRow = {};
     vm.Camp = CampMain;
     var now = new Date();
-
+    var oneSuspend = false;
+    $rootScope.id = Campaign.id;
+    $rootScope.name = Campaign.campaign;
     vm.checkChart = [];
     vm.by = 'imp,cvr,cpc,clicks,spend,conv,ctr';
+    $localStorage.campaign = {
+      "id":  Campaign.id,
+      "name": Campaign.campaign
+    };
+    if ($localStorage.campaign == null) {
+      $state.go('home.main');
+    }
 
     vm.campName = Campaign.campaign;
     vm.campId = Campaign.id;
@@ -128,6 +137,9 @@
     vm.gridStore = CampMain.getGridCampaignStore(vm.campId, vm.dataStart, vm.dataEnd);
     //endregion
 
+    var wrapper = angular.element($window.document.querySelector("#wrapper"))[0];
+    wrapper.classList.remove('hidden-menu');
+
     //region BIG DIAGRAM
     vm.charIsUpdating = false;
     vm.chartOptionsFirst = {
@@ -153,23 +165,38 @@
                   if (this.value == maxMajor) {
                     switch (item.name) {
                       case 'impression':
-                        return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('CAMP.CHECKBOX.IMPRESSIONS') + '</span><br>' + this.value;
+                        return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('MAIN.CHECKBOX.IMPRESSIONS') +'</span><br>' + this.value.toString().split(/(?=(?:\d{3})+(?!\d))/).join();
                       case 'cpa':
-                        return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('CAMP.CHECKBOX.CPA') + '</span><br>' + this.value;
+                        return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' +'$'+ LC('CAMP.CHECKBOX.CPA') + '</span><br>' + '$'+this.value;
                       case 'cpc':
-                        return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('CAMP.CHECKBOX.CPC') + '</span><br>' + this.value;
+                        return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + '$'+LC('CAMP.CHECKBOX.CPC') + '</span><br>' + '$'+this.value;
                       case 'clicks':
                         return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('CAMP.CHECKBOX.CLICKS') + '</span><br>' + this.value;
                       case 'cost':
-                        return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('CAMP.CHECKBOX.COST') + '</span><br>' + this.value;
+                        return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('CAMP.CHECKBOX.COST') + '</span><br>' + '$'+this.value;
                       case 'conversions':
                         return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('CAMP.CHECKBOX.CONVERSIONS') + '</span><br>' + this.value;
                       case 'ctr':
-                        return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('CAMP.CHECKBOX.CTR') + '</span><br>' + this.value;
+                        return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('CAMP.CHECKBOX.CTR') +'%'+ '</span><br>' + this.value+'%';
                       default:
                         return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + item.name + '</span><br>' + this.value;
                     }
-                  }
+                  }else {
+                    switch (item.name) {
+                      case 'impression':
+                        return this.value.toString().split(/(?=(?:\d{3})+(?!\d))/).join();
+                      case 'cpa':
+                        return '$'+this.value;
+                      case 'cpc':
+                        return '$'+this.value;
+                      case 'cost':
+                        return '$'+this.value;
+                      case 'spend':
+                        return '$' + this.value;
+                      case 'ctr':
+                        return  this.value+'%';
+                    }}
+
                   return this.value;
                 }
               }
@@ -203,11 +230,32 @@
         }
       },
       crosshair: {
+
         enabled: true,
         color: 'deepskyblue',
-        label: {
-          visible: true
+        visible: true,
+        horizontalLine: {
+          label: {
+            visible: true,
+            customizeText: function (arg) {
+              //console.log(arg);
+              if (arg.point.series.name == 'Cost' || arg.point.series.name == 'CPC'|| arg.point.series.name == 'CPA') {
+                return '$' + this.value;
+              }
+              if (arg.point.series.name == 'Impressions') {
+                return  this.value.toString().split(/(?=(?:\d{3})+(?!\d))/).join();
+              }
+              if ((arg.point.series.name == 'CTR') || (arg.point.series.name == 'CVR')) {
+                return this.value + '%';
+              }
+            },
+          }
+        },
+        verticalLine:{
+          label: {
+            visible: true}
         }
+
       },
       legend: {
         verticalAlignment: 'top',
@@ -631,9 +679,6 @@
     //region MULTIPLE
     vm.selectedItems = [];
     vm.chartOptionsFuncgrid = [];
-    if ($localStorage.boxPlotData == null) {
-      $localStorage.boxPlotData = vm.boxPlotData;
-    }
 
     vm.state = '';
     vm.selectCell = {
@@ -679,7 +724,7 @@
     }
 
     vm.UI = {
-       dateFormatPop: {
+      dateFormatPop: {
         disabled: true,
         type: "date",
         value: now,
@@ -739,6 +784,7 @@
         text: 'OK',
         disabled: false,
         onClick: function () {
+          oneSuspend=true;
           var suspendPlacement;
           var radioGroupMain = $('#radioGroupMain').dxRadioGroup('instance');
           var radioGroupSend = $('#radioGroupSend').dxRadioGroup('instance');
@@ -770,13 +816,42 @@
             suspendPlacement = $window.moment().add(1, 'day').unix();
           }
 
+          for (var i =0; i<tempSespendRow.placement.length; i++) {
+            var w = $window.$('div.state-white'+ tempSespendRow.placement[i]);
+            var b = $window.$('div.state-black'+ tempSespendRow.placement[i]);
+            var s = $window.$('div.state-suspended'+ tempSespendRow.placement[i]);
+            w.dxButton('instance').option('disabled',true);
+            b.dxButton('instance').option('disabled',true);
+            s.dxButton('instance').option('disabled',true);
+            w.removeClass('active');
+            b.removeClass('active');
+            s.removeClass('active');
+          }
+
           CampMain.editCampaignDomains(vm.campId, tempSespendRow.placement, 1, suspendPlacement)
-            .then(function () {
+            .then(function (res) {
               for (var i =0; i<tempSespendRow.placement.length; i++) {
-                $window.$('div.state-black'+ tempSespendRow.placement[i]).removeClass('active');
-                $window.$('div.state-white'+ tempSespendRow.placement[i]).removeClass('active');
-                $window.$('div.state-suspended'+ tempSespendRow.placement[i]).addClass('active');
+                var b = $window.$('div.state-black'+ tempSespendRow.placement[i]);
+                var w =$window.$('div.state-white'+ tempSespendRow.placement[i]);
+                var s = $window.$('div.state-suspended'+ tempSespendRow.placement[i]);
+                w.dxButton('instance').option('disabled',false);
+                b.dxButton('instance').option('disabled',false);
+                s.dxButton('instance').option('disabled',false);
+                if (res == 404) {
+                  $window.DevExpress.ui.notify("Not found", "warning", 4000);
+                  $window.$('#gridContainer2').dxDataGrid('instance').refresh();
+                  return res;
+                }
+                if (res == 503) {
+                  $window.DevExpress.ui.notify("Not connect to appnexus server, please try again later", "warning", 4000);
+                  $window.$('#gridContainer2').dxDataGrid('instance').refresh();
+                  return res;
+                }
+                if (res !== 'Unactive') {
+                  s.addClass('active');
+                }
               }
+              oneSuspend=false;
             });
 
           vm.confirmPopupVisible = false;
@@ -795,7 +870,7 @@
           $scope.$apply();
         }
       },
-    }
+    };
 
 
     vm.dataGridOptionsCampaign = {
@@ -827,6 +902,14 @@
       filterRow: {
         visible: true,
         applyFilter: "auto"
+      },
+      loadPanel: {
+        shadingColor: "rgba(0,0,0,0.4)",
+
+        position: {at: 'center'},
+        height: 100,
+
+        cssClass: 'Loading'
       },
       bindingOptions: {
         dataSource: 'campmain.gridStore'
@@ -860,6 +943,18 @@
           }
         },
         {
+          caption: LC('CAMP.CAMPAIGN.COLUMNS.DOMAIN'),
+          dataField: 'placement__rtbimpressiontrackerplacementdomain__domain',
+          alignment: 'center',
+          dataType: 'string',
+          allowEditing: false,
+          headerFilter: {
+            dataSource: function (source) {
+              return headerFilterColumn(source, 'domain');
+            }
+          }
+        },
+        {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.NETWORK'),
           dataField: 'NetworkPublisher',
           alignment: 'center',
@@ -886,6 +981,7 @@
           dataField: 'imp',
           dataType: 'number',
           sortOrder: 'desc',
+          format:'fixedPoint',
           alignment: 'center',
           headerFilter: {
             dataSource: function (source) {
@@ -897,6 +993,8 @@
           caption: LC('CAMP.CAMPAIGN.COLUMNS.CPA') + ' ,$',
           dataField: 'cpa',
           dataType: 'number',
+          format:'currency',
+          precision:4,
           alignment: 'center',
           headerFilter: {
             dataSource: function (source) {
@@ -908,6 +1006,8 @@
           caption: LC('CAMP.CAMPAIGN.COLUMNS.COST') + ' ,$',
           dataField: 'cost',
           alignment: 'center',
+          format:'currency',
+          precision:2,
           dataType: 'number',
           headerFilter: {
             dataSource: function (source) {
@@ -927,20 +1027,26 @@
           }
         },
         {
+
           caption: LC('CAMP.CAMPAIGN.COLUMNS.CPC') + ' ,$',
           dataField: 'cpc',
           alignment: 'center',
+          format:'currency',
+          precision:4,
           dataType: 'number',
           headerFilter: {
             dataSource: function (source) {
               return headerFilterColumn(source, 'cpc');
             }
-          }
+          },
+
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.CPM') + ' ,$',
           dataField: 'cpm',
           alignment: 'center',
+          format:'currency',
+          precision:4,
           dataType: 'number',
           headerFilter: {
             dataSource: function (source) {
@@ -952,6 +1058,8 @@
           caption: LC('CAMP.CAMPAIGN.COLUMNS.CVR') + ' ,%',
           dataField: 'cvr',
           alignment: 'center',
+          format:'percent',
+          precision:2,
           dataType: 'number',
           headerFilter: {
             dataSource: function (source) {
@@ -963,6 +1071,8 @@
           caption: LC('CAMP.CAMPAIGN.COLUMNS.CTR') + ' ,%',
           dataField: 'ctr',
           alignment: 'center',
+          format:'percent',
+          precision:2,
           dataType: 'number',
           headerFilter: {
             dataSource: function (source) {
@@ -977,6 +1087,7 @@
           visible: false,
           width: 80,
           dataType: 'number',
+          format:'fixedPoint',
           headerFilter: {
             dataSource: function (source) {
               return headerFilterColumn(source, 'imps_viewed');
@@ -990,6 +1101,7 @@
           visible: false,
           width: 100,
           dataType: 'number',
+          format:'fixedPoint',
           headerFilter: {
             dataSource: function (source) {
               return headerFilterColumn(source, 'view_measured_imps');
@@ -1002,6 +1114,8 @@
           alignment: 'center',
           visible: false,
           width: 120,
+          format:'percent',
+          precision:1,
           dataType: 'number',
           headerFilter: {
             dataSource: function (source) {
@@ -1015,6 +1129,8 @@
           alignment: 'center',
           visible: false,
           width: 80,
+          format:'percent',
+          precision:1,
           dataType: 'number',
           headerFilter: {
             dataSource: function (source) {
@@ -1047,11 +1163,33 @@
               width: 89,
               disabled: false,
               onClick: function (e) {
+                var w = $window.$('div.state-white'+ options.data.placement);
+                var b = $window.$('div.state-black'+ options.data.placement);
+                var s = $window.$('div.state-suspended'+ options.data.placement);
+                w.dxButton('instance').option('disabled',true);
+                b.dxButton('instance').option('disabled',true);
+                s.dxButton('instance').option('disabled',true);
+                w.removeClass('active');
+                b.removeClass('active');
+                s.removeClass('active');
                 CampMain.editCampaignDomains(vm.campId, [options.data.placement], 4)
                   .then(function (res) {
-                    $window.$('div.state-white'+ options.data.placement).addClass('active');
-                    $window.$('div.state-black'+ options.data.placement).removeClass('active');
-                    $window.$('div.state-suspended'+ options.data.placement).removeClass('active');
+                    w.dxButton('instance').option('disabled',false);
+                    b.dxButton('instance').option('disabled',false);
+                    s.dxButton('instance').option('disabled',false);
+                    if (res == 404) {
+                      $window.DevExpress.ui.notify("Not found", "warning", 4000);
+                      $('#gridContainerWhite').dxDataGrid('instance').refresh();
+                      return res;
+                    }
+                    if (res == 503) {
+                      $window.DevExpress.ui.notify("Not connect to appnexus server, please try again later", "warning", 4000);
+                      $window.$('#gridContainer2').dxDataGrid('instance').refresh();
+                      return res;
+                    }
+                    if (res !== 'Unactive') {
+                      w.addClass('active');
+                    }
                     return res;
                   })
                   .catch(function (err) {
@@ -1066,19 +1204,39 @@
               white.addClass('state-white'+ options.data.placement).appendTo(container);
             }
 
-
             var black = $window.$("<div />").dxButton({
               text: 'black',
               height: 30,
               width: 89,
               disabled: false,
               onClick: function (e) {
+                var w = $window.$('div.state-white'+ options.data.placement);
+                var b = $window.$('div.state-black'+ options.data.placement);
+                var s = $window.$('div.state-suspended'+ options.data.placement);
+                w.dxButton('instance').option('disabled',true);
+                b.dxButton('instance').option('disabled',true);
+                s.dxButton('instance').option('disabled',true);
+                w.removeClass('active');
+                b.removeClass('active');
+                s.removeClass('active');
                 CampMain.editCampaignDomains(vm.campId, [options.data.placement], 2)
                   .then(function (res) {
-                    $window.$('div.state-black'+ options.data.placement).addClass('active');
-                    $window.$('div.state-white'+ options.data.placement).removeClass('active');
-                    $window.$('div.state-suspended'+ options.data.placement).removeClass('active');
-
+                    w.dxButton('instance').option('disabled',false);
+                    b.dxButton('instance').option('disabled',false);
+                    s.dxButton('instance').option('disabled',false);
+                    if (res == 404) {
+                      $window.DevExpress.ui.notify("Not found", "warning", 4000);
+                      $window.$('#gridContainer2').dxDataGrid('instance').refresh();
+                      return res;
+                    }
+                    if (res == 503) {
+                      $window.DevExpress.ui.notify("Not connect to appnexus server, please try again later", "warning", 4000);
+                      $window.$('#gridContainer2').dxDataGrid('instance').refresh();
+                      return res;
+                    }
+                    if (res !== 'Unactive') {
+                      b.addClass('active');
+                    }
                     return res;
                   })
                   .catch(function (err) {
@@ -1100,6 +1258,10 @@
               width: 95,
               disabled: false,
               onClick: function () {
+                if (oneSuspend==true) {
+                  $window.DevExpress.ui.notify("Wait please", "warning", 4000);
+                  return 0;
+                }
                 tempSespendRow.placement = [options.data.placement];
                 tempSespendRow.suspend = 1;
                 vm.confirmPopup.option('visible', true);
@@ -1120,6 +1282,7 @@
           {
             column: "placement",
             summaryType: "count",
+
             customizeText: function (data) {
               data.valueText = 'Count: ' + vm.dataGridOptionsMultipleFunc.totalCount();
               return data.valueText;
@@ -1137,7 +1300,7 @@
             column: "imp",
             summaryType: "sum",
             customizeText: function (data) {
-              data.valueText = 'Imp: ' + vm.Camp.totalSummary.imp;
+              data.valueText = 'Imp: ' + vm.Camp.totalSummary.imp.toString().split(/(?=(?:\d{3})+(?!\d))/).join();
               return data.valueText;
             }
           },
@@ -1186,16 +1349,18 @@
           {
             column: "cvr",
             summaryType: "sum",
+
             customizeText: function (data) {
-              data.valueText = 'CVR: ' + vm.Camp.totalSummary.cvr.toFixed(4);
+              data.valueText = 'CVR: %' + vm.Camp.totalSummary.cvr.toFixed(4);
               return data.valueText;
             }
           },
           {
             column: "ctr",
+            valueFormat: "percent",
             summaryType: "sum",
             customizeText: function (data) {
-              data.valueText = 'CTR: ' + vm.Camp.totalSummary.ctr.toFixed(4);
+              data.valueText = 'CTR: %' + vm.Camp.totalSummary.ctr.toFixed(4);
               return data.valueText;
             }
           }
@@ -1227,6 +1392,10 @@
               {
                 'name': 'Suspended',
                 'state': 1
+              },
+              {
+                'name': 'Clear state',
+                'state': 0
               }
             ],
             placeholder: 'Select a state',
@@ -1239,8 +1408,6 @@
                 for (var i = 0; i < selectedRows.length; i++) {
                   selectedArr.push(selectedRows[i].firstChild.innerText);
                 }
-
-                //e;
                 if (e.selectedItem.state == 1) {
                   if (selectedArr != '[]') {
                     tempSespendRow.placement = selectedArr;
@@ -1250,15 +1417,49 @@
                   }
                 } else {
                   if (selectedArr != '[]') {
-                    CampMain.editCampaignDomains(vm.campId, selectedArr, e.selectedItem.state).then(function (res) {
-                      $('#gridContainer2').dxDataGrid('instance').refresh();
-                    }).catch(function () {
+                    for (var i =0; i<selectedArr.length; i++) {
+                      var w = $window.$('div.state-white'+ selectedArr[i]);
+                      var b = $window.$('div.state-black'+ selectedArr[i]);
+                      var s = $window.$('div.state-suspended'+ selectedArr[i]);
+                      w.dxButton('instance').option('disabled',true);
+                      b.dxButton('instance').option('disabled',true);
+                      s.dxButton('instance').option('disabled',true);
+                      w.removeClass('active');
+                      b.removeClass('active');
+                      s.removeClass('active');
+                    }
+
+                    CampaignOptimiser.editCampaignDomains(vm.campId, selectedArr, e.selectedItem.state).then(function (res) {
+                      for (var i =0; i<selectedArr.length; i++) {
+                        var b = $window.$('div.state-black'+ selectedArr[i]);
+                        var w =$window.$('div.state-white'+ selectedArr[i]);
+                        var s = $window.$('div.state-suspended'+ selectedArr[i]);
+                        w.dxButton('instance').option('disabled',false);
+                        b.dxButton('instance').option('disabled',false);
+                        s.dxButton('instance').option('disabled',false);
+                        if (res == 404) {
+                          $window.DevExpress.ui.notify("Not found", "warning", 4000);
+                          $window.$('#gridContainer2').dxDataGrid('instance').refresh();
+                          return res;
+                        }
+                        if (res == 503) {
+                          $window.DevExpress.ui.notify("Not connect to appnexus server, please try again later", "warning", 4000);
+                          $window.$('#gridContainer2').dxDataGrid('instance').refresh();
+                          return res;
+                        }
+                        if (e.selectedItem.state == 2) {
+                          b.addClass('active');
+                        }
+                        if (e.selectedItem.state == 4) {
+                          w.addClass('active');
+                        }
+                      }
                       $('#gridContainer2').dxDataGrid('instance').refresh();
                     });
                   }
                 }
               } else {
-                $window.DevExpress.ui.notify(LC('CO.NO-ITEMS-CHOSEN'), "warning", 4000);
+                return $window.DevExpress.ui.notify(LC('CO.NO-ITEMS-CHOSEN'), "warning", 4000);
               }
             }
           });
@@ -1270,111 +1471,6 @@
         vm.disabled = !vm.selectedItems.length;
       }
     };
-    //endregion
-
-
-    //region RANGE SELECTOR FIRST
-    vm.rangeFirstChartOptions = {
-      margin: {
-        left: 50
-      },
-      scale: {
-        startValue: new Date($localStorage.dataStart),
-        endValue: new Date($localStorage.dataEnd),
-        minorTickInterval: "day",
-        minRange: "hour",
-        maxRange: "month",
-        minorTick: {
-          visible: false
-        }
-      },
-      sliderMarker: {
-        format: "monthAndDay"
-      }
-      // selectedRange: {
-      //   startValue: new Date($localStorage.dataStart),
-      //   endValue: new Date($localStorage.dataEnd)
-      // }
-    };
-
-    //endregion
-
-    //region RANGE SELECTOR SECOND
-    vm.rangeSecondChartOptions = {
-      margin: {
-        left: 50,
-        top: 12
-      },
-      size: {
-        height: 150,
-        width: 450
-      },
-      scale: {
-        startValue: new Date($localStorage.dataStart),
-        endValue: new Date($localStorage.dataEnd),
-        minorTickInterval: "day",
-        minRange: "day",
-        maxRange: "month",
-        minorTick: {
-          visible: false
-        }
-      },
-      sliderMarker: {
-        format: "monthAndDay"
-      }
-      // selectedRange: {
-      //   startValue: new Date(2011, 2, 3),
-      //   endValue: new Date(2011, 2, 9)
-      // }
-    };
-
-    //endregion
-
-
-    //region PIE CHART CONTAINER
-    vm.ctrlBbtns = {
-      placement: {
-        btn: 'Placement',
-        header: 'Placement'
-      },
-      creativeId: {
-        btn: 'creative_id',
-        header: 'creative_id'
-      },
-      creativeSize: {
-        btn: 'creative_size',
-        header: 'creative_size'
-      },
-      viewability: {
-        btn: 'viewability',
-        header: 'viewability'
-      },
-      os: {
-        btn: 'OS',
-        header: 'Operating System used'
-      },
-      carrier: {
-        btn: 'carrier',
-        header: 'carrier'
-      },
-      networkSeller: {
-        btn: 'network(seller)',
-        header: 'network (seller)'
-      },
-      connectionType: {
-        btn: 'connection_type',
-        header: 'connection_type'
-      },
-      device: {
-        btn: 'device',
-        header: 'device'
-      },
-      seller: {
-        btn: 'seller',
-        header: 'Seller'
-      }
-    };
-    vm.pieChartHeader = $localStorage.pieChartHeader || vm.ctrlBbtns.os.header;
     //endregion
   }
 })();

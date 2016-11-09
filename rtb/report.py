@@ -287,7 +287,13 @@ def nexus_get_objects(
                 time.sleep(10)
                 continue
             dbg_info = response['dbg_info']
-            limit = dbg_info['reads']*1.0 / dbg_info['read_limit']
+            try:
+                dbg_reads = dbg_info['reads']
+                dbg_limit = dbg_info['read_limit']
+            except:
+                dbg_reads = dbg_info['parent_dbg_info']['reads']
+                dbg_limit = dbg_info['parent_dbg_info']['read_limit']
+            limit = dbg_reads*1.0 / dbg_limit
             if limit > 0.9:
                 time.sleep((limit - 0.9) * 300)
             if not data_key_name:

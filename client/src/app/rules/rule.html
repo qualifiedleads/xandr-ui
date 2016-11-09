@@ -1,0 +1,179 @@
+<div class="logic-rule" ng-if="rulesC.typeOfLogic(rule)" ng-hide="hideRules">
+  <button class=" btn-danger removeF" ng-click="rulesC.deleteFilds($parent,IndexF)" data-title="Delete">X</button>
+
+  <div class="RadioRule">
+    <div class="ORback">
+      <input class="RadioRuleOr" id="orlogic" type="radio" data-ng-model="rule.logicOrAnd" ng-value="true"
+             ng-checked="rule.logicOrAnd">
+      <label class="OrLogic" for="orlogic">
+        <div calss="verticalOr">OR</div>
+      </label>
+    </div>
+
+    <div class="ANDback">
+      <input class="RadioRuleAnd" id="andlogic" type="radio" data-ng-model="rule.logicOrAnd" ng-value="false"
+             ng-checked="rule.logicOrAnd">
+      <label class="AndLogic" for="andlogic">
+        <div calss="verticalAnd">AND</div>
+      </label>
+    </div>
+
+
+  </div>
+</div>
+<div class="RuleString" ng-show="hideRules">
+  <div ng-if="$index == 0">
+    <button class="btn green addfieldsG" ng-click="rulesC.addField($parent)" data-title="Add Field">F+</button>
+    <button class="btn green addgroupG" ng-click="rulesC.addGroup($parent, IndexF)" data-title="Add Group">G+</button>
+  </div>
+  <div class="AllRule" ng-if="rule.type == 'condition'">
+
+    <div class="chek">
+      <p class="onoff">
+        <input type="checkbox" class="onoff1" ng-model="hideGroup" id="hideGroup">
+        <label class="hideGroup" for="hideGroup">
+        </label>
+      </p>
+    </div>
+
+    <div class="infoRule">
+      <div class="infotarget">{{rule.target}}</div>
+      <div class="info"> {{rule.payment}}{{rule.compare}}{{rule.value}}</div>
+    </div>
+
+    <div class="RuleShow" ng-show="hideGroup">
+      <div class="dropdown" ng-show="hideGroup">
+               <span >
+                  <select class="select0"  data-ng-model="rule.target">
+                    <option ng-selected="rule.target == 'Placement/App'">Placement/App</option>
+                    <option ng-selected="rule.target == 'Carrier'">Carrier</option>
+                    <option ng-selected="rule.target == 'Device'">Device</option>
+                    <option ng-selected="rule.target == 'OS'">OS</option>
+                    <option ng-selected="rule.target == 'Ad exchange'">Ad exchange</option>
+                  </select>
+                </span>
+      </div>
+      <div class="dropdown1" ng-show="hideGroup">
+        if
+        <span>
+          <select class="select1" data-ng-model="rule.payment">
+            <option ng-selected="rule.payment == 'CPA'">CPA</option>
+            <option ng-selected="rule.payment == 'Spend'">Spend</option>
+            <option ng-selected="rule.payment == 'Imressions'">Imressions</option>
+            <option ng-selected="rule.payment == 'Cliks'">Cliks</option>
+            <option ng-selected="rule.payment == 'CRM%'">CRM%</option>
+            <option ng-selected="rule.payment == 'CPC'">CPC</option>
+            <option ng-selected="rule.payment == 'CVR%'">CVR%</option>
+          </select>
+          </span>
+
+      </div>
+      <div class="dropdown2" ng-show="hideGroup">
+        compare
+        <span>
+                  <select class="select2" data-ng-model="rule.compare">
+                    <option ng-selected="rule.compare == '>'">&#x3e;</option>
+                    <option ng-selected="rule.compare == '<'">&#x3c;</option>
+                    <option ng-selected="rule.compare == '='">=</option>
+                    <option ng-selected="rule.compare == '>='">&#x3e;=</option>
+                    <option ng-selected="rule.compare == '<='">&#x3c;=</option>
+                  </select>
+                </span>
+      </div>
+      <div class="inputm" ng-show="hideGroup">
+        <label>
+          Value
+          <input class="money" type="number" ng-model="rule.value" min="0">
+        </label>
+      </div>
+    </div>
+
+
+  </div>
+
+
+  <div class="Infologic" ng-if="rule.type == 'logic'">
+    <button class=" btn-danger removeInfo" ng-click="rulesC.deleteFilds($parent,IndexF)"data-title="Delete">X</button>
+    <div class="InfoOr" ng-if="rule.logicOrAnd == true">
+      OR
+    </div>
+    <div class="InfoAnd" ng-if="rule.logicOrAnd == false">
+      AND
+    </div>
+  </div>
+</div>
+
+
+<div class="object-rule" ng-if="rulesC.typeOfObject(rule)" ng-hide="hideRules">
+  <div ng-if="$index == 0" ng-hide="hideRules">
+    <button class="btn green addfields" ng-click="rulesC.addField($parent)" data-title="Add Field" >F+</button>
+    <button class="btn green addgroup" ng-click="rulesC.addGroup($parent, IndexF)" data-title="Add Group">G+</button>
+  </div>
+  <div class="RuleShow">
+
+    <div class="dropdown">
+             <span>
+                <select class="select3" data-ng-model="rule.target">
+                  <option ng-selected="rule.target == 'Placement/App'">Placement/App</option>
+                  <option ng-selected="rule.target == 'Carrier'">Carrier</option>
+                  <option ng-selected="rule.target == 'Device'">Device</option>
+                  <option ng-selected="rule.target == 'OS'">OS</option>
+                  <option ng-selected="rule.target == 'Ad exchange'">Ad exchange</option>
+                </select>
+              </span>
+    </div>
+    <div class="dropdown1">
+
+      if
+      <span>
+      <select class="select1" data-ng-model="rule.payment">
+
+        <option ng-selected="rule.payment == 'CPA'">CPA</option>
+        <option ng-selected="rule.payment == 'Spend'">Spend</option>
+        <option ng-selected="rule.payment == 'Imressions'">Imressions</option>
+        <option ng-selected="rule.payment == 'Cliks'">Cliks</option>
+        <option ng-selected="rule.payment == 'CRM%'">CRM%</option>
+        <option ng-selected="rule.payment == 'CPC'">CPC</option>
+        <option ng-selected="rule.payment == 'CVR%'">CVR%</option>
+
+      </select>
+      </span>
+    </div>
+    <div class="dropdown2">
+      compare
+      <span>
+                <select class="select2" data-ng-model="rule.compare">
+                  <option ng-selected="rule.compare == '>'">&#x3e;</option>
+                  <option ng-selected="rule.compare == '<'">&#x3c;</option>
+                  <option ng-selected="rule.compare == '='">=</option>
+                  <option ng-selected="rule.compare == '>='">&#x3e;=</option>
+                  <option ng-selected="rule.compare == '<='">&#x3c;=</option>
+                </select>
+              </span>
+    </div>
+    <div class="inputm">
+      <label>
+        Value
+        <input class="money" type="number" ng-model="rule.value" min="0">
+      </label>
+    </div>
+  </div>
+
+</div>
+
+<div class="GroupShow">
+  <!---->
+  <!--  -->
+  <div class="object-group" ng-if="rulesC.typeOfArray(rule) ">
+    <div class="bracet-begin"></div>
+    <div class="GroupRepeat" ng-repeat="(IndexF,rule) in rule" ng-include="'app/rules/rule.html'" ng-hide="hideGroup">
+    </div>
+    <div class="bracet-end"></div>
+  </div>
+
+</div>
+
+
+
+
+

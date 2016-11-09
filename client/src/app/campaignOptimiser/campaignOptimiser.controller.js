@@ -6,183 +6,18 @@
     .controller('CampaignOptimiserController', CampaignOptimiserController);
 
   /** @ngInject */
-  function CampaignOptimiserController($window, $state, $localStorage, $scope, $translate, $compile, Campaign, CampaignOptimiser) {
+  function CampaignOptimiserController($window, $state, $rootScope, $localStorage, $scope, $translate, $compile, CampaignOptimiser) {
     var vm = this;
     var LC = $translate.instant;
     var dataSuspend = null;
     var tempSespendRow = {};
-    var ruleSuspend = false;
-    var ruleTimePopUp = '';
-    var ruleIndexPopUp = '';
-
-    vm.campName = Campaign.campaign;
-    vm.campId = Campaign.id;
+    var oneSuspend = false;
+    vm.campName = $rootScope.name;
+    vm.campId = $rootScope.id;
     vm.object = CampaignOptimiser.campaignTargeting(1, 1, 1);
     vm.popUpIf = false;
     vm.arrayDiagram = [];
 
-    vm.saveRules = saveRules;
-    vm.popUpHide = popUpHide;
-    vm.checkTime = checkTime;
-
-    function popUpHide () {
-      vm.popUpIf = false;
-    }
-
-
-    //region Rules
-
-    function checkTime(index, rules) { //CO.checkTime(Index)
-      if (rules.then == 'Suspend for review') {
-        ruleSuspend = true;
-        ruleIndexPopUp = index;
-        vm.confirmPopup.option('visible', true);
-      } else {
-        delete rules.time;
-      }
-    }
-
-    function saveRules() {
-      CampaignOptimiser.saveRules(Campaign.id, vm.rulesArray);
-    }
-
-    CampaignOptimiser
-      .getRules(Campaign.id)
-      .then(function (rule) {
-        if (rule){
-          vm.rulesArray = rule;
-        }
-
-      });
-
-    vm.addField = function (rule) {
-      if (rule.$parent.$parent.$parent.$parent.rule) {
-        var newItemNo = vm.rulesArray.length + 1;
-        rule.$parent.$parent.$parent.$parent.rule.push(
-          {"id_logic": "NewRule" + newItemNo, "type": "logic", "logicOrAnd": true},
-          {"id_rule": "NewRule" + newItemNo,
-            "type": "condition",
-            "target": "Placement/App",
-            "payment": "CPA",
-            "compare": ">",
-            "value": 0
-          }
-        );
-
-      } else {
-        var newItemNo = vm.rulesArray.length + 1;
-        rule.$parent.$parent.rules.if.push(
-          {"id_logic": "NewRule" + newItemNo, "type": "logic", "logicOrAnd": true},
-          {"id_rule": "NewRule" + newItemNo,
-            "type": "condition",
-            "target": "Placement/App",
-            "payment": "CPA",
-            "compare": ">",
-            "value": 0
-          }
-        );
-      }
-    };
-
-    vm.addGroup = function (rule, ind) {
-      if (rule.$parent.$parent.$parent.rule) {
-        var newItemNo = vm.rulesArray.length + 1;
-        rule.$parent.$parent.$parent.rule.push({
-            "id_logic": "NewRule" + newItemNo,
-            "type": "logic",
-            "logicOrAnd": true
-          },
-          [
-            {
-              id_rule: 'NewGroup' + newItemNo,
-              "type": "condition",
-              "target": "Placement/App",
-              "payment": "CPA",
-              "compare": ">",
-              "value": 0
-            }
-          ]
-        );
-      } else {
-        var newItemNo = vm.rulesArray.length + 1;
-        rule.$parent.rules.if.push({"id_logic": "NewRule" + newItemNo, "type": "logic", "logicOrAnd": true},
-          [
-            {
-              id_rule: 'NewGroup' + newItemNo,
-              "type": "condition",
-              "target": "Placement/App",
-              "payment": "CPA",
-              "compare": ">",
-              "value": 0
-            }
-          ]
-        );
-      }
-    };
-
-    vm.addNewRule = function () {
-      var newItemNo = vm.rulesArray.length + 1;
-      vm.rulesArray.push(
-        {
-          "id": "rule" + newItemNo,
-          "if": [
-            {"id_rule": "NewRule" + newItemNo,
-              "type": "condition",
-              "target": "Placement/App",
-              "payment": "CPA",
-              "compare": ">",
-              "value": 0
-            }
-          ],
-          "then": "Blacklist"
-        }
-      );
-    };
-
-    vm.deleteRule = function (ind) {
-      vm.rulesArray.splice(ind, 1);
-    };
-
-    vm.deleteFilds = function (rule, ind) {
-      if (rule.$parent.$parent.$parent.$parent.rule) {
-        rule.$parent.$parent.$parent.$parent.rule.splice(ind, 2);
-      } else {
-        rule.$parent.$parent.rules.if.splice(ind, 2);
-      }
-    };
-
-    vm.typeOfLogic = function (rule) {
-      if (rule.type === 'logic') {
-        return true;
-      } else {
-        return false;
-      }
-    };
-
-    vm.typeOfThen = function (rules) {
-      if (rules.then === 'Blacklist') {
-        return true;
-      } else {
-        return false;
-      }
-    };
-
-    vm.typeOfObject = function (rule) {
-      if (rule.type == 'condition') {
-        return true;
-      } else {
-        return false;
-      }
-    };
-
-    vm.typeOfArray = function (rule) {
-      if (Array.isArray(rule) == true) {
-        return true;
-      } else {
-        return false;
-      }
-    };
-    //endregion
 
     //region DATE PIKER
     /** DATE PIKER **/
@@ -363,45 +198,8 @@
         text: 'OK',
         disabled: false,
         onClick: function () {
-          if (ruleSuspend == true) {
-            var radioGroupMain = $('#radioGroupMain').dxRadioGroup('instance');
-            var radioGroupSend = $('#radioGroupSend').dxRadioGroup('instance');
+          oneSuspend=true;
 
-            if (radioGroupMain._options.value !== false) {
-              if (radioGroupMain._options.value == LC('CO.24-HRS')) {
-                ruleTimePopUp = $window.moment().add(1, 'day').unix();
-              }
-
-              if (radioGroupMain._options.value == LC('CO.3-DAYS')) {
-                ruleTimePopUp = $window.moment().add(3, 'day').unix();
-              }
-
-              if (radioGroupMain._options.value == LC('CO.7-DAYS')) {
-                ruleTimePopUp = $window.moment().add(7, 'day').unix();
-              }
-
-            }
-
-            if (radioGroupSend._options.value !== false) {
-              ruleTimePopUp = "unlimited";
-            }
-
-            if (dataSuspend !== null) {
-              ruleTimePopUp = $window.moment(dataSuspend).unix();
-            }
-
-            if ((radioGroupSend._options.value == null) && (radioGroupMain._options.value == LC('CO.24-HRS'))) {
-              ruleTimePopUp = $window.moment().add(1, 'day').unix();
-            }
-
-            vm.rulesArray[ruleIndexPopUp].time = ruleTimePopUp;
-
-            ruleSuspend = false;
-            vm.confirmPopupVisible = false;
-            vm.confirmPopup.option('visible', false);
-            $scope.$apply();
-            return 0
-          }
           var suspendPlacement;
           var radioGroupMain = $('#radioGroupMain').dxRadioGroup('instance');
           var radioGroupSend = $('#radioGroupSend').dxRadioGroup('instance');
@@ -433,13 +231,41 @@
             suspendPlacement = $window.moment().add(1, 'day').unix();
           }
 
+          for (var i =0; i<tempSespendRow.placement.length; i++) {
+            var w = $window.$('div.state-white'+ tempSespendRow.placement[i]);
+            var b = $window.$('div.state-black'+ tempSespendRow.placement[i]);
+            var s = $window.$('div.state-suspended'+ tempSespendRow.placement[i]);
+            w.dxButton('instance').option('disabled',true);
+            b.dxButton('instance').option('disabled',true);
+            s.dxButton('instance').option('disabled',true);
+            w.removeClass('active');
+            b.removeClass('active');
+            s.removeClass('active');
+          }
           CampaignOptimiser.editCampaignDomains(vm.campId, tempSespendRow.placement, 1, suspendPlacement)
-            .then(function () {
+            .then(function (res) {
               for (var i =0; i<tempSespendRow.placement.length; i++) {
-                $window.$('div.state-black'+ tempSespendRow.placement[i]).removeClass('active');
-                $window.$('div.state-white'+ tempSespendRow.placement[i]).removeClass('active');
-                $window.$('div.state-suspended'+ tempSespendRow.placement[i]).addClass('active');
+                var b = $window.$('div.state-black'+ tempSespendRow.placement[i]);
+                var w =$window.$('div.state-white'+ tempSespendRow.placement[i]);
+                var s = $window.$('div.state-suspended'+ tempSespendRow.placement[i]);
+                w.dxButton('instance').option('disabled',false);
+                b.dxButton('instance').option('disabled',false);
+                s.dxButton('instance').option('disabled',false);
+                if (res == 404) {
+                  $window.DevExpress.ui.notify("Not found", "warning", 4000);
+                  $window.$('.gridContainerWhite').dxDataGrid('instance').refresh();
+                  return res;
+                }
+                if (res == 503) {
+                  $window.DevExpress.ui.notify("Not connect to appnexus server, please try again later", "warning", 4000);
+                  $window.$('.gridContainerWhite').dxDataGrid('instance').refresh();
+                  return res;
+                }
+                if (res !== 'Unactive') {
+                  s.addClass('active');
+                }
               }
+              oneSuspend=false;
             });
 
           vm.confirmPopupVisible = false;
@@ -451,9 +277,7 @@
         width: 120,
         text: LC('COMMON.CANCEL'),
         onClick: function () {
-          /*          tempSespendRow = null;
-           dataSuspend = null;*/
-          //vm.confirmPopupVisible = false;
+          oneSuspend=false;
           vm.confirmPopup.option('visible', false);
           $scope.$apply();
         }
@@ -480,6 +304,14 @@
         editing: {
           mode: "batch",
           allowUpdating: true
+        },
+        loadPanel: {
+          shadingColor: "rgba(0,0,0,0.4)",
+
+          position: {at: 'center'},
+          height: 100,
+
+          cssClass: 'Loading'
         },
         alignment: 'left',
         headerFilter: {
@@ -520,6 +352,17 @@
                 return headerFilterColumn(source, 'placement');
               }
             }
+          },{
+            caption: LC('CAMP.CAMPAIGN.COLUMNS.DOMAIN'),
+            dataField: 'placement__rtbimpressiontrackerplacementdomain__domain',
+            alignment: 'center',
+            dataType: 'string',
+            allowEditing: false,
+            headerFilter: {
+              dataSource: function (source) {
+                return headerFilterColumn(source, 'domain');
+              }
+            }
           },
           {
             caption: LC('CAMP.CAMPAIGN.COLUMNS.NETWORK'),
@@ -550,6 +393,7 @@
             dataField: 'imp',
             dataType: 'number',
             sortOrder: 'desc',
+            format:'fixedPoint',
             alignment: 'center',
             allowEditing: false,
             headerFilter: {
@@ -563,6 +407,8 @@
             dataField: 'cpa',
             dataType: 'number',
             alignment: 'center',
+               format:'currency',
+            precision:4,
             allowEditing: false,
             headerFilter: {
               dataSource: function (source) {
@@ -574,6 +420,8 @@
             caption: LC('CAMP.CAMPAIGN.COLUMNS.COST') + ' ,$',
             dataField: 'cost',
             alignment: 'center',
+          format:'currency',
+            precision:2,
             dataType: 'number',
             allowEditing: false,
             headerFilter: {
@@ -599,6 +447,8 @@
             dataField: 'cpc',
             alignment: 'center',
             dataType: 'number',
+          format:'currency',
+            precision:4,
             allowEditing: false,
             headerFilter: {
               dataSource: function (source) {
@@ -611,6 +461,8 @@
             dataField: 'cpm',
             alignment: 'center',
             dataType: 'number',
+            format:'currency',
+            precision:4,
             allowEditing: false,
             headerFilter: {
               dataSource: function (source) {
@@ -623,6 +475,8 @@
             dataField: 'cvr',
             alignment: 'center',
             dataType: 'number',
+            format:'percent',
+            precision:2,
             allowEditing: false,
             headerFilter: {
               dataSource: function (source) {
@@ -635,6 +489,8 @@
             dataField: 'ctr',
             alignment: 'center',
             dataType: 'number',
+            format:'percent',
+            precision:2,
             allowEditing: false,
             headerFilter: {
               dataSource: function (source) {
@@ -648,6 +504,7 @@
             alignment: 'center',
             visible: false,
             width: 80,
+            format:'fixedPoint',
             dataType: 'number',
             allowEditing: false,
             headerFilter: {
@@ -660,6 +517,7 @@
             caption: LC('CAMP.CAMPAIGN.COLUMNS.VIEW_MEASURED_IMPS'),
             dataField: 'view_measured_imps',
             alignment: 'center',
+            format:'fixedPoint',
             visible: false,
             width: 100,
             dataType: 'number',
@@ -673,6 +531,8 @@
             caption: LC('CAMP.CAMPAIGN.COLUMNS.VIEW_MEASUREMENT_RATE') + ' ,%',
             dataField: 'view_measurement_rate',
             alignment: 'center',
+            format:'percent',
+            precision:1,
             visible: false,
             width: 120,
             dataType: 'number',
@@ -686,6 +546,8 @@
             caption: LC('CAMP.CAMPAIGN.COLUMNS.VIEW_RATE') + ' ,%',
             dataField: 'view_rate',
             alignment: 'center',
+            format:'percent',
+            precision:1,
             visible: false,
             width: 80,
             dataType: 'number',
@@ -804,11 +666,33 @@
                 width: 89,
                 disabled: false,
                 onClick: function (e) {
+                  var w = $window.$('div.state-white'+ options.data.placement);
+                  var b = $window.$('div.state-black'+ options.data.placement);
+                  var s = $window.$('div.state-suspended'+ options.data.placement);
+                  w.dxButton('instance').option('disabled',true);
+                  b.dxButton('instance').option('disabled',true);
+                  s.dxButton('instance').option('disabled',true);
+                  w.removeClass('active');
+                  b.removeClass('active');
+                  s.removeClass('active');
                   CampaignOptimiser.editCampaignDomains(vm.campId, [options.data.placement], 4)
                     .then(function (res) {
-                      $window.$('div.state-white'+ options.data.placement).addClass('active');
-                      $window.$('div.state-black'+ options.data.placement).removeClass('active');
-                      $window.$('div.state-suspended'+ options.data.placement).removeClass('active');
+                      w.dxButton('instance').option('disabled',false);
+                      b.dxButton('instance').option('disabled',false);
+                      s.dxButton('instance').option('disabled',false);
+                      if (res == 404) {
+                        $window.DevExpress.ui.notify("Not found", "warning", 4000);
+                        $('#gridContainerWhite').dxDataGrid('instance').refresh();
+                        return res;
+                      }
+                      if (res == 503) {
+                        $window.DevExpress.ui.notify("Not connect to appnexus server, please try again later", "warning", 4000);
+                        $window.$('.gridContainerWhite').dxDataGrid('instance').refresh();
+                        return res;
+                      }
+                      if (res !== 'Unactive') {
+                        w.addClass('active');
+                      }
                       return res;
                     })
                     .catch(function (err) {
@@ -830,12 +714,33 @@
                 width: 89,
                 disabled: false,
                 onClick: function (e) {
+                  var w = $window.$('div.state-white'+ options.data.placement);
+                  var b = $window.$('div.state-black'+ options.data.placement);
+                  var s = $window.$('div.state-suspended'+ options.data.placement);
+                  w.dxButton('instance').option('disabled',true);
+                  b.dxButton('instance').option('disabled',true);
+                  s.dxButton('instance').option('disabled',true);
+                  w.removeClass('active');
+                  b.removeClass('active');
+                  s.removeClass('active');
                   CampaignOptimiser.editCampaignDomains(vm.campId, [options.data.placement], 2)
                     .then(function (res) {
-                      $window.$('div.state-black'+ options.data.placement).addClass('active');
-                      $window.$('div.state-white'+ options.data.placement).removeClass('active');
-                      $window.$('div.state-suspended'+ options.data.placement).removeClass('active');
-
+                      w.dxButton('instance').option('disabled',false);
+                      b.dxButton('instance').option('disabled',false);
+                      s.dxButton('instance').option('disabled',false);
+                      if (res == 404) {
+                        $window.DevExpress.ui.notify("Not found", "warning", 4000);
+                        $window.$('.gridContainerWhite').dxDataGrid('instance').refresh();
+                        return res;
+                      }
+                      if (res == 503) {
+                        $window.DevExpress.ui.notify("Not connect to appnexus server, please try again later", "warning", 4000);
+                        $window.$('.gridContainerWhite').dxDataGrid('instance').refresh();
+                        return res;
+                      }
+                      if (res !== 'Unactive') {
+                        b.addClass('active');
+                      }
                       return res;
                     })
                     .catch(function (err) {
@@ -857,6 +762,10 @@
                 width: 95,
                 disabled: false,
                 onClick: function () {
+                  if (oneSuspend==true) {
+                    $window.DevExpress.ui.notify("Wait please", "warning", 4000);
+                    return 0;
+                  }
                   tempSespendRow.placement = [options.data.placement];
                   tempSespendRow.suspend = 1;
                   vm.confirmPopup.option('visible', true);
@@ -894,7 +803,7 @@
               column: "imp",
               summaryType: "sum",
               customizeText: function (data) {
-                data.valueText = 'Imp: ' + CampaignOptimiser.totalSummary.imp;
+                data.valueText = 'Imp: ' + CampaignOptimiser.totalSummary.imp.toString().split(/(?=(?:\d{3})+(?!\d))/).join();
                 return data.valueText;
               }
             },
@@ -944,7 +853,7 @@
               column: "cvr",
               summaryType: "sum",
               customizeText: function (data) {
-                data.valueText = 'CVR: ' + CampaignOptimiser.totalSummary.cvr.toFixed(4);
+                data.valueText = 'CVR: %' + CampaignOptimiser.totalSummary.cvr.toFixed(4);
                 return data.valueText;
               }
             },
@@ -952,7 +861,7 @@
               column: "ctr",
               summaryType: "sum",
               customizeText: function (data) {
-                data.valueText = 'CTR: ' + CampaignOptimiser.totalSummary.ctr.toFixed(4);
+                data.valueText = 'CTR: %' + CampaignOptimiser.totalSummary.ctr.toFixed(4);
                 return data.valueText;
               }
             }
@@ -989,6 +898,10 @@
                 {
                   'name': 'Suspended',
                   'state': 1
+                },
+                {
+                  'name': 'Clear state',
+                  'state': 0
                 }
               ],
               placeholder: 'Select a state',
@@ -1001,8 +914,6 @@
                   for (var i = 0; i < selectedRows.length; i++) {
                     selectedArr.push(selectedRows[i].firstChild.innerText);
                   }
-
-                  //e;
                   if (e.selectedItem.state == 1) {
                     if (selectedArr != '[]') {
                       tempSespendRow.placement = selectedArr;
@@ -1012,16 +923,50 @@
                     }
                   } else {
                     if (selectedArr != '[]') {
+                      for (var i =0; i<selectedArr.length; i++) {
+                        var w = $window.$('div.state-white'+ selectedArr[i]);
+                        var b = $window.$('div.state-black'+ selectedArr[i]);
+                        var s = $window.$('div.state-suspended'+ selectedArr[i]);
+                        w.dxButton('instance').option('disabled',true);
+                        b.dxButton('instance').option('disabled',true);
+                        s.dxButton('instance').option('disabled',true);
+                        w.removeClass('active');
+                        b.removeClass('active');
+                        s.removeClass('active');
+                      }
+
                       CampaignOptimiser.editCampaignDomains(vm.campId, selectedArr, e.selectedItem.state).then(function (res) {
-                        $('.gridContainerWhite').dxDataGrid('instance').refresh();
-                      }).catch(function () {
-                        $('.gridContainerWhite').dxDataGrid('instance').refresh();
+                        for (var i =0; i<selectedArr.length; i++) {
+                          var b = $window.$('div.state-black'+ selectedArr[i]);
+                          var w =$window.$('div.state-white'+ selectedArr[i]);
+                          var s = $window.$('div.state-suspended'+ selectedArr[i]);
+                          w.dxButton('instance').option('disabled',false);
+                          b.dxButton('instance').option('disabled',false);
+                          s.dxButton('instance').option('disabled',false);
+                          if (res == 404) {
+                            $window.DevExpress.ui.notify("Not found", "warning", 4000);
+                            $window.$('.gridContainerWhite').dxDataGrid('instance').refresh();
+                            return res;
+                          }
+                          if (res == 503) {
+                            $window.DevExpress.ui.notify("Not connect to appnexus server, please try again later", "warning", 4000);
+                            $window.$('.gridContainerWhite').dxDataGrid('instance').refresh();
+                            return res;
+                          }
+                          if (e.selectedItem.state == 2) {
+                            b.addClass('active');
+                          }
+                          if (e.selectedItem.state == 4) {
+                            w.addClass('active');
+                          }
+                        }
                       });
                     }
                   }
                 } else {
-                  $window.DevExpress.ui.notify(LC('CO.NO-ITEMS-CHOSEN'), "warning", 4000);
+                  return $window.DevExpress.ui.notify(LC('CO.NO-ITEMS-CHOSEN'), "warning", 4000);
                 }
+                $('.gridContainerWhite').dxDataGrid('instance').refresh();
               }
             });
             info.cancel = true;

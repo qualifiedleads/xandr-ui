@@ -28,7 +28,7 @@ class AdvertiserViewSet(viewsets.ModelViewSet):
         """
         user = self.request.user
         if user.is_staff or user.is_superuser:
-            return Advertiser.objects.all()
+            return Advertiser.objects.order_by('name')
         if not user.frameworkuser:
             return Advertiser.objects.none()
         if user.frameworkuser.use_appnexus_rights:

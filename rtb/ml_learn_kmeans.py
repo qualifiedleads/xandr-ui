@@ -8,24 +8,6 @@ from django.db.models import Sum, Min, Max, Avg, Value, When, Case, F, Q, Func, 
 import math
 import csv
 
-
-class PlacementInfo:#objects with features for recognition
-    placement_id = 0
-
-    imps = 0
-    clicks = 0
-    cost = 0
-    conversions = 0
-    imps_viewed = 0
-    view_measured_imps = 0
-
-    cpa = 0
-    view_rate = 0
-    view_measurement_rate = 0
-
-    features = np.empty(1)
-    cluster = 0
-
 def mlLearnKmeans (test_name = "ctr_viewrate"):#learn machine, save clusters, predict on training set
     kmeansSpaces = []
     colNumb = 0
@@ -290,7 +272,7 @@ def mlPredictKmeans(placement_idRecogn = 1, test_name = "ctr_viewrate"):#predict
                               test_name=test_name)
 
 
-def mlGetPlacementInfoKmeans(placement_id = 1, flagAllWeek = False, test_name = "ctr_viewrate"):#getting info about placement cluster from database
+def mlGetPlacementInfoKmeans(placement_id = 1, flagAllWeek = False, test_type = "kmeans", test_name = "ctr_viewrate"):#getting info about placement cluster from database
     #placement_id - palcement for recognition
     # flagAllWeek: True - return data about all weekdays, False - return about only whole week analyze
     wholeWeekInd = 7#index of whole week recognition data in column "day"
@@ -298,14 +280,9 @@ def mlGetPlacementInfoKmeans(placement_id = 1, flagAllWeek = False, test_name = 
     if goodClusters == -1:#if K-means didn't learn
         return -1
 
-    test_number = 0
-    if test_name == "ctr_viewrate":
-        test_number = 1
-    if test_name == "ctr_cvr_cpc_cpm_cpa":
-        test_number = 2
+    test_number = mlGetTestNumber(test_type, test_name)
 
     if test_number == 0:
-        print "Wrong test name"
         return -1
 
     queryClusterInfo = MLPlacementsClustersKmeans.objects.filter(placement_id=placement_id, test_number=test_number)
@@ -373,6 +350,7 @@ def mlGetPlacementInfoKmeans(placement_id = 1, flagAllWeek = False, test_name = 
 
 def mlGetGoodClusters(test_name = "ctr_viewrate"):#get array of "good" clusters for every k-means space
     numbFeaturesInDay = 0
+    test_number = mlGetTestNumber("kmeans", test_name)
     if test_name == "ctr_viewrate":
         numbFeaturesInDay = 2
     if test_name == "ctr_cvr_cpc_cpm_cpa":
@@ -385,8 +363,8 @@ def mlGetGoodClusters(test_name = "ctr_viewrate"):#get array of "good" clusters 
     numbClusters = 2
     numbDays = 8
 
-    queryResults = MLClustersCentroidsKmeans.objects.all()#get info from database about clusters centroids
-
+    #queryResults = MLClustersCentroidsKmeans.objects.all()#get info from database about clusters centroids
+    queryResults = MLClustersCentroidsKmeans.objects.filter(test_number=test_number)
     if not queryResults:
         return -1
 
@@ -464,7 +442,6 @@ def mlPredictOnePlacement(placement_id, numbClusters, test_name = "ctr_viewrate"
         print "Wrong test name"
         return -1
 
-    #queryResults = MLClustersCentroidsKmeans.objects.all()
     queryResults = MLClustersCentroidsKmeans.objects.filter(test_number=test_number)
     centroidsCoord = [0] * numbDays
     for i in xrange(numbDays):
@@ -498,7 +475,8 @@ def mlPredictOnePlacement(placement_id, numbClusters, test_name = "ctr_viewrate"
                   dow;
                 """
                 )
-
+    if not queryResultsPlacementInfo:
+        return -2
     allDaysPlacementFeatures = []
     for row in queryResultsPlacementInfo:#recognition of every weekday
         maxdata = MLNormalizationData.objects.filter(
@@ -580,6 +558,7 @@ def mlPredictOnePlacement(placement_id, numbClusters, test_name = "ctr_viewrate"
     # checking of all weekdays in the week
     if len(allDaysPlacementFeatures) < (numbDays - 1) * numbFeaturesInDay:
         print "Prediction completed (not enough data for weekly space) " + str(placement_id)
+        return 1
     else:
         placementClusterRecord = MLPlacementsClustersKmeans()
         placementClusterRecord.day = 7
@@ -616,18 +595,12 @@ def mlPredictOnePlacement(placement_id, numbClusters, test_name = "ctr_viewrate"
         except Exception, e:
             print "Can't save recognition info. Error: " + str(e)
         print "Prediction completed " + str(placement_id)
+        return 1
 
 def mlmakeCsv(test_name = "ctr_viewrate"):#making csv file from recognized database
-    test_number = 0
-    if test_name == "ctr_viewrate":
-        numbFeaturesInDay = 2
-        test_number = 1
-    if test_name == "ctr_cvr_cpc_cpm_cpa":
-        numbFeaturesInDay = 5
-        test_number = 2
+    test_number = mlGetTestNumber("kmeans", test_name)
 
     if test_number == 0:
-        print "Wrong test name"
         return -1
 
     goodClusters = mlGetGoodClusters(test_name)#getting array of good clusters for every k-means space
@@ -651,7 +624,7 @@ def mlmakeCsv(test_name = "ctr_viewrate"):#making csv file from recognized datab
                 prevDay = row.day
                 first = False
 
-            if curPlacement != row.placement_id and prevDay != 7:
+            if curPlacement != row.placement_id and prevDay != 7:#Ariphmetic mean
                 queryClusterInfo = MLPlacementsClustersKmeans.objects.filter(
                     placement_id=curPlacement,
                     test_number=test_number)
@@ -701,3 +674,83 @@ def mlmakeCsv(test_name = "ctr_viewrate"):#making csv file from recognized datab
                              'distance to bad': distBad,
                              'distance difference': dist})
 
+#check placement good or bad
+def mlGetPlacementQuallity(placement_id = 0, test_type = "kmeans", test_name = "ctr_viewrate"):
+    print "Placement: " + str(placement_id)
+    if test_type == "kmeans":
+        error = mlPredictOnePlacement(placement_id, 2, test_name)
+        if error == 1:
+            test_number = mlGetTestNumber(test_type, test_name)
+            if test_number == 0:
+                return -1
+            answer = {}
+            placementsInfo = MLPlacementsClustersKmeans.objects.filter(placement_id=placement_id, test_number=test_number)
+            goodClusters = mlGetGoodClusters("ctr_cvr_cpc_cpm_cpa")
+            for row in placementsInfo:
+                if row.cluster == goodClusters[row.day]:
+                    answer[str(row.day)] = "good"
+                    print "Day " + str(row.day) + " is good"
+                else:
+                    answer[str(row.day)] = "bad"
+                    print "Day " + str(row.day) + " is bad"
+            if '7' not in answer:#arihhmetic mean
+                answer['7'] = mlCalcArihmeticMean(placement_id, test_type, test_name)
+                print "Day 7 is " + answer['7']
+            return answer
+        else:
+            print "Wrong input data"
+            return -1
+
+def mlCalcArihmeticMean(placement_id, test_type, test_name):#get whole week prediction with not enough data
+    test_number = mlGetTestNumber(test_type, test_name)
+    if test_number == 0:
+        return -1
+    queryClusterInfo = MLPlacementsClustersKmeans.objects.filter(
+        placement_id=placement_id,
+        test_number=test_number)
+    goodClusters = mlGetGoodClusters(test_name)
+    badDistance = 0
+    goodDistance = 0
+    n = 0
+    for rowInf in queryClusterInfo:
+        n += 1
+        goodDistance += rowInf.distance_to_clusters[goodClusters[rowInf.day] - 1]
+        badDistance += rowInf.distance_to_clusters[goodClusters[rowInf.day] % 2]
+    distGood = goodDistance / n
+    distBad = badDistance / n
+    if distGood < distBad:
+        return "good"
+    else:
+        return "bad"
+
+def mlGetCentroids(test_name):
+    test_number = mlGetTestNumber("kmeans", test_name)
+    if test_number == 0:
+        return -1
+    numbDays = 8
+    numbClusters = 2
+    queryResults = MLClustersCentroidsKmeans.objects.filter(test_number=test_number)
+    # centroidsCoord[x][y][x] - x=day, y=cluster, z=coord numb
+    centroidsCoord = [0] * numbDays
+    for i in xrange(numbDays):
+        centroidsCoord[i] = [0] * numbClusters
+
+    for row in queryResults.iterator():  # getting data about cluster centroids
+        centroidsCoord[row.day][row.cluster - 1] = row.centroid
+
+def mlGetTestNumber(test_type, test_name):
+    test_number = 0
+    if test_type == "kmeans":
+        if test_name == "ctr_viewrate":
+            test_number = 1
+        if test_name == "ctr_cvr_cpc_cpm_cpa":
+            test_number = 2
+    if test_type == "log":
+        if test_name == "ctr_cvr_cpc_cpm_cpa":
+            test_number = 3
+    if test_number == 0:
+        print "Wrong test"
+    return test_number
+
+def mlCalcCluster(sampleFeatures, centroidsCoord):
+    pass

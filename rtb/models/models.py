@@ -1907,7 +1907,7 @@ class Profile(models.Model):
     code = models.TextField(null=True, blank=True)
     description = models.TextField(null=True, blank=True, db_index=True)
     is_template = models.NullBooleanField(null=True, blank=True)
-    last_modified = models.DateTimeField(default=now_tz) 
+    last_modified = models.DateTimeField()
     max_lifetime_imps = models.IntegerField(null=True, blank=True)
     min_session_imps = models.IntegerField(null=True, blank=True)
     max_session_imps = models.IntegerField(null=True, blank=True)
@@ -2448,7 +2448,7 @@ class ClickTrackerPlacement(models.Model):
 
 
 class ImpressionTracker(models.Model):
-    #https://wiki.appnexus.com/display/api/Impression+Tracker+Service
+    #   https://wiki.appnexus.com/display/api/Impression+Tracker+Service
     member = models.ForeignKey("Member", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     advertiser = models.ForeignKey("Advertiser", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     name = models.TextField(null=True, blank=True, db_index=True)
@@ -2457,7 +2457,7 @@ class ImpressionTracker(models.Model):
         choices=STATE_CHOICES,
         null=True, blank=True)
     publisher = models.ForeignKey("Publisher", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
-    #tag = array - see model ImpressionTrackerPlacement below
+    #   tag = array - see model ImpressionTrackerPlacement below
     payment_rule = models.ForeignKey("PaymentRule", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     line_item = models.ForeignKey("LineItem", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     last_modified = models.DateTimeField(default=now_tz) 
@@ -4377,6 +4377,14 @@ class CreativeVASTSegment(models.Model):
     class Meta:
         db_table = "creative_vast_segment"
 
+class LastToken(models.Model):
+    id = models.AutoField(primary_key=True)
+    name = models.TextField(null=True, blank=True, unique=True)
+    token = models.TextField(null=True, blank=True, unique=True)
+    date = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        db_table = "last_token"
 
 
 

@@ -712,16 +712,10 @@ def mlFillPredictionAnswer(placement_id = 1, flagAllWeek = False, test_type = "k
     return res
 
 @api_view(["GET"])
-#@check_user_advertiser_permissions(campaign_id_num=0)
+@check_user_advertiser_permissions(campaign_id_num=0)
 def mlApiRandomTestSet(request):
     action = request.GET.get("action")
     if action == "create":
-        # try:
-        #     with connection.cursor() as cursor:
-        #         cursor.execute("REFRESH MATERIALIZED VIEW ml_view_full_placements_data")
-        # except Exception, e:
-        #     print "Can't update view" + str(e)
-        #     return Response(status=status.HTTP_400_BAD_REQUEST)
         placemetsDataQuery = MLViewFullPlacementsData.objects.raw(
             """
             SELECT
@@ -807,6 +801,12 @@ def mlApiRandomTestSet(request):
             if not res:
                 print "Can't get info"
                 return Response(status=status.HTTP_400_BAD_REQUEST)
+            for i in xrange(len(res[0]["data"])):
+                queryRes = MLExpertsPlacementsMarks.objects.filter(placement_id=res[0]["data"][i]["placement_id"])
+                if not queryRes:
+                    res[0]["data"][i]["mark"] = None
+                else:
+                    res[0]["data"][i]["mark"] = queryRes[0].expert_decision
         except Exception, e:
             print "Error in sending test dataset " + str(e)
             return Response(status=status.HTTP_400_BAD_REQUEST)

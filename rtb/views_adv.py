@@ -25,7 +25,7 @@ from django.utils import timezone
 import bisect
 from django.contrib.auth.decorators import login_required, user_passes_test
 import json
-#from ml_auc import mlCalcAuc
+from ml_auc import mlCalcAuc
 
 @api_view()
 @check_user_advertiser_permissions(campaign_id_num=0)
@@ -716,12 +716,7 @@ def mlFillPredictionAnswer(placement_id = 1, flagAllWeek = False, test_type = "k
 def mlApiRandomTestSet(request):
     action = request.GET.get("action")
     if action == "create":
-        try:
-            with connection.cursor() as cursor:
-                cursor.execute("REFRESH MATERIALIZED VIEW ml_view_full_placements_data")
-        except Exception, e:
-            print "Can't update view" + str(e)
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+
         placemetsDataQuery = MLViewFullPlacementsData.objects.raw(
             """
             SELECT
@@ -782,7 +777,6 @@ def mlApiRandomTestSet(request):
                 placement["publisher"] = ""
             else:
                 placement["domain"] = queryRes[0]["placement__rtbimpressiontrackerplacementdomain__domain"]
-                placement["mark"] = queryRes[0]["placement__mlexpertsplacementsmarks__expert_decision"]
                 placement["placement_name"] = queryRes[0]["placement_name"]
                 placement["publisher"] = queryRes[0]["NetworkPublisher"]
             res.append(placement)
@@ -807,6 +801,12 @@ def mlApiRandomTestSet(request):
             if not res:
                 print "Can't get info"
                 return Response(status=status.HTTP_400_BAD_REQUEST)
+            for i in xrange(len(res[0]["data"])):
+                queryRes = MLExpertsPlacementsMarks.objects.filter(placement_id=res[0]["data"][i]["placement_id"])
+                if not queryRes:
+                    res[0]["data"][i]["mark"] = None
+                else:
+                    res[0]["data"][i]["mark"] = queryRes[0].expert_decision
         except Exception, e:
             print "Error in sending test dataset " + str(e)
             return Response(status=status.HTTP_400_BAD_REQUEST)
@@ -951,14 +951,13 @@ def getPlacementDomain(placementId):
     domain = domain[0].domain
     return allDomains, domain
 
-# @api_view(["GET"])
-# @check_user_advertiser_permissions(campaign_id_num=0)
-# def mlApiCalcAUC(request):
-#     placementsIds = request.data.get("placementIds")
-#     test_type = request.data.get("test_type")
-#     test_name = request.data.get("test_name")
-#     res = mlCalcAuc(placementsIds, test_type, test_name)
-#     return Response(res)
+@api_view(["GET"])
+@check_user_advertiser_permissions(campaign_id_num=0)
+def mlApiCalcAUC(request):
+    test_type = request.GET.get("test_type")
+    test_name = request.GET.get("test_name")
+    res = mlCalcAuc(test_type, test_name)
+    return Response(res)
 
 @api_view(['GET', 'POST'])
 @check_user_advertiser_permissions(campaign_id_num=0)

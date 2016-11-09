@@ -49,7 +49,7 @@
             }
           },
           info: {
-            templateUrl: 'app/campaigndetails/campdetails.html',
+            templateUrl: 'app/CPA/campdetails.html',
             controller: 'CampaignDetailsController',
             controllerAs: 'campdetails',
             resolve: {
@@ -124,7 +124,69 @@
         templateUrl: 'app/admin/admin.html',
         controller: 'AdminController',
         controllerAs: 'admin'
-      });
+      })
+
+      .state('home.rules', {
+        url: '/rules/:id',
+        templateUrl: 'app/Rules/Rules.html',
+        controller: 'CampaignOptimiserController',
+        controllerAs: 'CO'
+      })
+      .state('home.optimiser', {
+        url: '/optimiser/:id',
+        templateUrl: 'app/campaignOptimiser/Optimiser.html',
+        controller: 'CampaignOptimiserController',
+        controllerAs: 'CO'
+      })
+
+  .state('home.CPA', {
+    url: '/CPA/:id',
+    templateUrl: 'app/CPA/campdetails.html',
+    controller: 'CampaignDetailsController',
+    controllerAs: 'campdetails',
+    resolve: {
+      Campaign:  function(CampMain,$stateParams, $state){
+        if (!$stateParams.id) {
+          $state.go('home.main');
+        }
+        return CampMain.nameCampaigns($stateParams.id).then(function (res) {
+          return res
+        });
+      },
+      ChartDetails:  function(CampDetails,$stateParams, $state,$localStorage){
+        if (!$stateParams.id) {
+          $state.go('home.main');
+        }
+        return CampDetails.detailsStoreAll(
+          $stateParams.id,
+          $localStorage.dataStart,
+          $localStorage.dataEnd,
+          $localStorage.selectedSection
+        ).then(function (result) {
+          return result;
+        })
+          .catch(function (err) {
+            return err;
+          });
+      },
+      CpaBucketsAll:  function(CampDetails,$stateParams, $state,$localStorage){
+        if (!$stateParams.id) {
+          $state.go('home.main');
+        }
+        return CampDetails.bucketsCpa(
+          $stateParams.id,
+          $localStorage.dataStart,
+          $localStorage.dataEnd,
+          $localStorage.selectedSection
+        ).then(function (result) {
+          return result;
+        })
+          .catch(function (err) {
+            return err;
+          });
+      }
+    }
+  });
 
     $urlRouterProvider.otherwise('/');
   }

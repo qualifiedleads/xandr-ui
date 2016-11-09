@@ -6,7 +6,7 @@
     .controller('MainController', MainController);
 
   /** @ngInject */
-  function MainController($window, $state, $timeout, $localStorage, $translate, Main) {
+  function MainController($window, $state, $timeout, $localStorage, $translate, Main, $rootScope) {
     var vm = this;
     vm.advertiser = $localStorage.advertiser;
     vm.Main = Main;
@@ -17,6 +17,7 @@
     vm.selectedItems = [];
     vm.chartOptionsFuncgrid = [];
     vm.charIsUpdating = false;
+    $rootScope.id = null;
     var LC = $translate.instant;
 
     /** LOCAL STORAGE CHECKBOX - START **/
@@ -60,6 +61,8 @@
         vm.dataEnd = $localStorage.dataEnd;
       }
     }
+    var wrapper = angular.element($window.document.querySelector("#wrapper"))[0];
+    wrapper.classList.add('hidden-menu');
     var products = [
       {
         ID: 0,
@@ -120,6 +123,8 @@
         vm.totals.cvr = result.cvr;
         vm.totals.ctr = result.ctr;
       });
+
+  vm.checkBoxState = true;
 
     vm.onlyTwo = function (value) {
       var i = 0;
@@ -297,6 +302,7 @@
         },
         showBorders: true,
         showRowLines: true,
+
         columns: [
           {
             caption: LC('MAIN.CAMPAIGN.COLUMNS.CAMPAIGN'),

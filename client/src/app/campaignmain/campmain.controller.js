@@ -6,7 +6,7 @@
     .controller('CampaignMainController', CampaignMainController);
 
   /** @ngInject */
-  function CampaignMainController($window, $state, $localStorage, $translate, $timeout, CampMain, Campaign, $scope, CampaignOptimiser) {
+  function CampaignMainController($window, $state, $localStorage, $translate, $timeout, CampMain, Campaign, $scope, CampaignOptimiser, $rootScope) {
     var vm = this;
     var LC = $translate.instant;
     var dataSuspend = null;
@@ -14,7 +14,11 @@
     vm.Camp = CampMain;
     var now = new Date();
     var oneSuspend = false;
-
+    $rootScope.id = Campaign.id;
+    $rootScope.name = Campaign.campaign;
+    //   "name": Campaign.campaign
+    // };
+    //$state.reload(true);
     vm.checkChart = [];
     vm.by = 'imp,cvr,cpc,clicks,spend,conv,ctr';
 
@@ -128,6 +132,9 @@
     vm.boxPlotStore = CampMain.getBoxPlotStore(vm.campId, vm.dataStart, vm.dataEnd);
     vm.gridStore = CampMain.getGridCampaignStore(vm.campId, vm.dataStart, vm.dataEnd);
     //endregion
+
+    var wrapper = angular.element($window.document.querySelector("#wrapper"))[0];
+    wrapper.classList.remove('hidden-menu');
 
     //region BIG DIAGRAM
     vm.charIsUpdating = false;
@@ -1019,6 +1026,7 @@
           }
         },
         {
+
           caption: LC('CAMP.CAMPAIGN.COLUMNS.CPC') + ' ,$',
           dataField: 'cpc',
           alignment: 'center',
@@ -1029,7 +1037,8 @@
             dataSource: function (source) {
               return headerFilterColumn(source, 'cpc');
             }
-          }
+          },
+
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.CPM') + ' ,$',
@@ -1268,6 +1277,7 @@
           }
         }
       ],
+
       summary: {
         totalItems: [
           {
@@ -1297,7 +1307,6 @@
           },
           {
             column: "cpa",
-
             summaryType: "sum",
             valueFormat: "currency",
             customizeText: function (data) {

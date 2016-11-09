@@ -6,7 +6,7 @@
     .controller('HomeController', HomeController);
 
   /** @ngInject */
-  function HomeController($localStorage, $state, $cookies, $window) {
+  function HomeController($localStorage, $state, $stateParams, $cookies, $window, $scope, $rootScope) {
     var vm = this;
     vm.advertiser = {};
     vm.a = 123;
@@ -31,16 +31,24 @@
     } else {
       vm.advertiser.name = $localStorage.advertiser.name;
     }
+  /*  vm.campId = Campaign.id;*/
 
-    vm.checked = function(value) {
+
+    /*vm.checked = function(value) {
       var wrapper = angular.element($window.document.querySelector("#wrapper"))[0];
       if(value) {
         wrapper.classList.add('hidden-menu');
        } else {
         wrapper.classList.remove('hidden-menu');
        }
+    };*/
+    //wrapper.classList.add('hidden-menu');
+    vm.checked = function(value) {
+      var wrapper = angular.element($window.document.querySelector("#wrapper"))[0];
+      if(wrapper.classList.add('hidden-menu')) {
+        wrapper.classList.remove('hidden-menu');
+      }
     };
-
     function goToAdminPanel() {
       $state.go('admin');
     }

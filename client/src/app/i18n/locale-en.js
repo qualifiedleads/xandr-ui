@@ -57,11 +57,12 @@
     'INDEX':{
       'ADVERTISER_TITLE':'Stats for',
       'LEFT_NAV':{
-        'HOME':"Home",
-        'CAMPAIGN':"Campaign",
-        'BILLING':"Billing",
+        'HOME':"Camp. Home",
+        /*'CAMPAIGN':"Optimiser",*/
+        'CPA':"CPA",
         'OPTIMIZER':"Optimizer",
-        'EXPERT':"Valuation by expert"
+        'Rules':"Rules",
+        'EXPERT':"Expert"
       }
     },
     'MAIN': {

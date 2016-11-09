@@ -1,0 +1,188 @@
+<div class="container-fluid optimiser-camp col-lg-12  col-md-12 col-sm-12">
+  <div class="row stats-header">
+    <div  dx-button="CO.UI.navCamp"></div>
+    <div class="groupHeadOpti">
+      <span class="glyphicon glyphicon-cog iconOpti"></span>
+      <span translate="CO.OPTIMISER-FOR" class="camp-header"></span>:<span class="camp-header">
+        <a href="" ui-sref="home.campaign.details({id: CO.campId})"  >{{CO.campName}} </a>
+        <div class="control pull-right" dx-select-box="CO.UI.datePiker"></div>
+      </span>
+    </div>
+  </div>
+  <div class="row camp-content1">
+    <div class="transformable" ng-class="{'smallTargeting':isSmall, 'bigTargeting':!isSmall}" >
+      <table class="table table-bordered">
+        <tr>
+          <td class="col-md-3">
+            <h5> {{ 'CO.DOMAIN-LISTS' | translate }} & {{ 'CO.DOMAINS' | translate}} </h5>
+            <p ng-repeat="domain in CO.object.domains">
+              {{domain}} - {{ 'CO.DOMAIN' | translate }}
+            </p>
+          </td>
+          <td class="col-md-2">
+            <h5> {{ 'CO.GEO' | translate }}</h5>
+            <p ng-repeat="geo in CO.object.geo">
+              {{geo}}
+            </p>
+          </td>
+          <td class="col-md-5">
+            <div class="col-md-6">
+              <h5>{{ 'CO.DEVICE-AND-SUPPLY-TYPE' | translate }}</h5>
+              <p ng-repeat="device in CO.object.device">
+                {{device}}
+              </p>
+            </div>
+            <div class="col-md-6">
+              <h5>{{ 'CO.BLOCKING' | translate }}</h5>
+              <p ng-repeat="block in CO.object.block">
+                {{block}}
+              </p>
+            </div>
+          </td>
+          <td class="col-md-2">
+
+          </td>
+        </tr>
+      </table>
+    </div>
+
+    <h3 class="titleRules" translate="CO.RULES">Rules for All Domains:</h3>
+
+    <fieldset data-ng-repeat="(Index,rules) in CO.rulesArray"  class="container-fluid-rule rule">
+      <div class="all-if-rule">
+        <div class="chek">
+          <p class="onoff">
+            <input class="onoff2" type="checkbox" ng-model="hideRules" id="checkboxID1"  value="1">
+            <label for="checkboxID1"></label>
+          </p>
+          <div class="DeleteRule">
+            <button class="btn btn-danger " ng-click="CO.deleteRule(Index)">RULE DELETE</button>
+          </div>
+        </div>
+
+        <div class="if-rule" data-ng-repeat="(IndexF,rule) in rules.if"  ng-include="'app/campaignOptimiser/rule.html'" >
+        </div>
+        <div class="then"ng-hide="hideRules"  >
+
+
+          <input type="radio" class="r-optionc" ng-model="rules.then" id="r-option" value="Blacklist" ng-click="CO.checkTime(Index, rules)">
+          <label class="lr-option" for="r-option"> Blacklist</label>
+
+          <input type="radio"  class="r1-optionc" ng-model="rules.then" id="r1-option" value="Whitelist" ng-click="CO.checkTime(Index, rules)">
+          <label class="lr1-option" for="r1-option"> Whitelist</label>
+
+
+
+          <div class="RadioTime1"  >   Suspend:
+
+            <input type="radio"class="option1" id="option1" ng-model="rules.then" value="1" ng-click="CO.checkTime(Index, rules)" >
+            <label class="lr-option-time" for="option1">24 hrs</label>
+
+
+            <input type="radio"class="option2" id="option2" ng-model="rules.then" value="2" ng-click="CO.checkTime(Index, rules)" >
+            <label class="lr1-option-time" for="option2">3 days</label>
+
+
+            <input type="radio"class="option3" id="option3" ng-model="rules.then" value="3" ng-click="CO.checkTime(Index, rules)" >
+            <label class="lr2-option-time" for="option3">7 days</label>
+
+
+            <input type="radio"class="option4" id="option4" ng-model="rules.then" value="4" ng-click="CO.checkTime(Index, rules)" >
+            <label class="lr3-option-time" for="option4">manual </label>
+
+            </div>
+          <p class="TimeRule" ng-if="rules.time">Time:{{rules.time}}</p>
+        </div>
+
+        <div class="then-little" ng-show="hideRules" >
+
+          <input type="radio" class="r-optionc-little" ng-model="rules.then" id="r-option-little" value="Blacklist" ng-click="CO.checkTime(Index, rules)">
+          <label class="lr-option-little" for="r-option-little"> Blacklist</label>
+
+          <input type="radio"  class="r1-optionc-little" ng-model="rules.then" id="r1-option-little" value="Whitelist" ng-click="CO.checkTime(Index, rules)">
+          <label class="lr1-option-little" for="r1-option-little"> Whitelist</label>
+
+          <div class="RadioTime2">
+
+
+              <input type="radio" class="option_1" id="r2-option_1" ng-model="rules.then" value="1"
+                     ng-click="CO.checkTime(Index, rules)">
+            <label class="lr-option-time_1" for="r2-option_1">24 hrs</label>
+
+
+              <input type="radio" class="option_2" id="r2-option_2" ng-model="rules.then" value="2 review"
+                     ng-click="CO.checkTime(Index, rules)">
+            <label class="lr1-option-time_2" for="r2-option_2"> 3 days</label>
+
+
+              <input type="radio" class="option_3" id="r2-option_3" ng-model="rules.then" value="3"
+                     ng-click="CO.checkTime(Index, rules)">
+            <label class="lr2-option-time_3" for="r2-option_3">7 days</label>
+
+
+              <input type="radio" class="option_4" id="r2-option_4" ng-model="rules.then" value="4"
+                     ng-click="CO.checkTime(Index, rules)">
+            <label class="lr3-option-time_4" for="r2-option_4"> manual </label>
+
+          </div>
+
+          <p class="TimeRule1" ng-if="rules.time">Time:{{rules.time}}</p>
+
+        </div>
+      </div>
+
+    </fieldset>
+    <button class="btn btn-primary" ng-click="CO.addNewRule()">Add rule</button>
+    <button class="btn btn-success" ng-click="CO.saveRules()">Save rule</button>
+
+    {{CO.rulesArray.id}}
+
+    <hr class="lineMiddle">
+    <span class="optimizerTitle">{{ 'CO.OPTIMIZER' | translate }}</span>
+
+    <div class="gridContainerWhite" dx-data-grid="CO.UI.dataGridOptionsCampaign"></div>
+
+    <div class="counter-popup-group" dx-popup="CO.UI.confirmPopup" >
+      <div class="title" >{{ 'CO.SUSPEND' | translate }}</div>
+
+      <div id="radioGroupMain" dx-radio-group="CO.UI.radioGroupMain" ></div>
+      <div id="dateFormatPop" style="margin-left: 35px; " dx-date-box="CO.UI.dateFormatPop"></div>
+      <br>
+      <div id="radioGroupSend" dx-radio-group="CO.UI.radioGroupSend" ></div>
+
+      <div class="button" id="buttonOk" dx-button="CO.UI.confirmPopupOk"></div>
+      <div class="button" dx-button="CO.UI.confirmPopupCancel"></div>
+
+    </div>
+
+    <div class="b-popup" id="popup1"  ng-if="CO.popUpIf==true">
+      <div class="b-popup-content">
+        <div id="btn-close" class="btn-close" ng-click="CO.popUpHide()"  title="Закрыть"></div>
+        <h4 class="title">Prediction 1</h4>
+        <table class="table">
+          <tr ng-repeat="item in CO.arraytoPopup track by $index" class="repitDiagram" style="display: block; position: relative; ">
+            <td ng-if="item">{{item.day}}</td>
+            <td ng-if="item">
+              <div class="analiticCO" style="text-align: center;">
+                <div class="diagramCO">
+                  <div class="badDiagramCO" style="width:{{item.badDiagram}}; opacity: {{item.badOpasity}};"></div>
+                  <div class="goodDiagramCO" style="width:{{item.goodDiagram}};opacity:{{item.goodOpasity}};"></div>
+                  <p class="textBadDiagramCO" >{{ item.k.toFixed(1)}}%</p>
+                  <p class="textGoodDiagramCO">{{(100-item.k).toFixed(1)}}%</p>
+                </div>
+                <div class="buttonAnaliticCO">
+                  <div class="trueButtonAnaliticCO"></div>
+                  <div class="falseButtonAnaliticCO"></div>
+                </div>
+              </div>
+            </td>
+
+          </tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</div>

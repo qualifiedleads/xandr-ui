@@ -6,10 +6,11 @@
   .service('Auth', Auth);
 
   /** @ngInject */
-  function Auth($http, $cookies) {
+  function Auth($http, $cookies, $window) {
     var _this = this;
+    var _totalCount = 0;
 
-    function advertisersList() {
+    function _advertisersList() {
       return $http({
         method: 'GET',
         headers: { 'Authorization': 'Token ' + $cookies.get('token') },
@@ -17,6 +18,20 @@
       })
       .then(function (res) {
         return res.data;
+      })
+      .catch(function (err) {
+        $window.DevExpress.ui.notify(err.statusText, "error", 4000);
+      });
+    }
+
+    function selectAdvertisersStore() {
+      return new $window.DevExpress.data.CustomStore({
+        totalCount: function () {
+          return _totalCount;
+        },
+        load: function () {
+          return _advertisersList();
+        }
       });
     }
 
@@ -30,12 +45,13 @@
         return res;
       })
       .catch(function (err) {
-        return err;
+        $window.DevExpress.ui.notify(err.statusText, "error", 4000);
       });
     }
 
     _this.authorization = authorization;
-    _this.advertisersList = advertisersList;
+    _this.selectAdvertisersStore = selectAdvertisersStore;
+
   }
 
 })();

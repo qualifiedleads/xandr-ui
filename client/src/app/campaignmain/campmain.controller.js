@@ -6,11 +6,14 @@
   .controller('CampaignMainController', CampaignMainController);
 
   /** @ngInject */
-  function CampaignMainController($window, $state, $localStorage, $translate, $timeout, CampMain, Campaign) {
+  function CampaignMainController($window, $state, $localStorage, $translate, $timeout, CampMain, Campaign, $scope) {
     var vm = this;
     var LC = $translate.instant;
-
+    var dataSuspend = null;
+    var tempSespendRow = {};
     vm.Camp = CampMain;
+    var now = new Date();
+    var oneSuspend = false;
 
     vm.checkChart = [];
     vm.by = 'imp,cvr,cpc,clicks,spend,conv,ctr';
@@ -105,13 +108,9 @@
       valueExpr: 'ID',
       value: products[$localStorage.SelectedTime].ID,
       onValueChanged: function (e) {
-        //$log.info(products[e.value]);
         $localStorage.SelectedTime = e.value;
         $localStorage.dataStart = products[e.value].dataStart;
         $localStorage.dataEnd = products[e.value].dataEnd;
-
-        //$('#gridContainer1').dxDataGrid('instance').refresh();
-        //$('#gridContainer2').dxDataGrid('instance').refresh();
         $state.reload();
       }
     };
@@ -120,7 +119,7 @@
     vm.optimiser = {
       text: LC('CAMP.GO-OPTIMISER'),
       onClick: function () {
-        $state.go('home.campaignoptimiser', {"id": vm.campId});
+        $state.go('home.campaignOptimiser', {"id": vm.campId});
       }
     };
 
@@ -131,7 +130,6 @@
     //endregion
 
     //region BIG DIAGRAM
-    vm.types = ['line', 'stackedLine', 'fullStackedLine'];
     vm.charIsUpdating = false;
     vm.chartOptionsFirst = {
       onDone: function () {
@@ -200,7 +198,6 @@
         {name: 'ctr', position: 'left'}
       ],
       argumentAxis: {
-        //valueMarginsEnabled: false,
         discreteAxisDivisionMode: 'crossLabels',
         grid: {
           visible: true
@@ -320,7 +317,6 @@
      * @param selected {boolean}
      */
 
-
     vm.updateCharts = function (seriesName, seriesShortName, selected) {
       $localStorage.checkCharCamp[seriesShortName] = selected;
       vm.gridCharts = $window.$('#zoomedChartFirst').dxChart('instance');
@@ -331,7 +327,6 @@
         vm.chartOptionsFuncFirst.getSeriesByName(seriesName).hide();
       }
     };
-
 
     vm.onlyTwo = function (value) {
       var i = 0;
@@ -684,6 +679,156 @@
       };
     }
 
+    vm.UI = {
+       dateFormatPop: {
+        disabled: true,
+        type: "date",
+        value: now,
+        onValueChanged: function (e) {
+          dataSuspend = e.value;
+        }
+      },
+      radioGroupMain: {
+        items: [LC('CO.24-HRS'), LC('CO.3-DAYS'), LC('CO.7-DAYS'), LC('CO.SPECIFIC-DATE')],
+        value: LC('CO.24-HRS'),
+        onValueChanged: function (e) {
+          var radioGroupSend = $('#radioGroupSend')
+            .dxRadioGroup('instance');
+          if (!e.value) return;
+          radioGroupSend.option('value', false);
+
+          if (e.value == LC('CO.SPECIFIC-DATE')) {
+            //e;
+            var datePik = $('#dateFormatPop')
+              .dxDateBox('instance');
+            datePik.option('disabled', false);
+          } else {
+            var datePik = $('#dateFormatPop')
+              .dxDateBox('instance');
+            datePik.option('disabled', true);
+            dataSuspend = null;
+          }
+        }
+      },
+      radioGroupSend: {
+        items: [LC('CO.SEND-TO-SUSPEND-LIST')],
+        onValueChanged: function (e) {
+          dataSuspend = null;
+          var datePik = $('#dateFormatPop')
+            .dxDateBox('instance');
+          datePik.option('disabled', true);
+
+          var radioGroupMain = $('#radioGroupMain')
+            .dxRadioGroup('instance');
+          if (!e.value) return;
+          radioGroupMain.option('value', false);
+        }
+      },
+      confirmPopup: {
+        onInitialized: function (data) {
+          vm.confirmPopup = data.component;
+        },
+        bindingOptions: {
+          visible: 'crc.confirmPopupVisible'
+        },
+        showTitle: false,
+        width: 320,
+        height: 300
+      },
+      confirmPopupOk: {
+        width: 110,
+        text: 'OK',
+        disabled: false,
+        onClick: function () {
+          oneSuspend=true;
+          var suspendPlacement;
+          var radioGroupMain = $('#radioGroupMain').dxRadioGroup('instance');
+          var radioGroupSend = $('#radioGroupSend').dxRadioGroup('instance');
+
+          if (radioGroupMain._options.value !== false) {
+            if (radioGroupMain._options.value == LC('CO.24-HRS')) {
+              suspendPlacement = $window.moment().add(1, 'day').unix();
+            }
+
+            if (radioGroupMain._options.value == LC('CO.3-DAYS')) {
+              suspendPlacement = $window.moment().add(3, 'day').unix();
+            }
+
+            if (radioGroupMain._options.value == LC('CO.7-DAYS')) {
+              suspendPlacement = $window.moment().add(7, 'day').unix();
+            }
+
+          }
+
+          if (radioGroupSend._options.value !== false) {
+            suspendPlacement = "unlimited";
+          }
+
+          if (dataSuspend !== null) {
+            suspendPlacement = $window.moment(dataSuspend).unix();
+          }
+
+          if ((radioGroupSend._options.value == null) && (radioGroupMain._options.value == LC('CO.24-HRS'))) {
+            suspendPlacement = $window.moment().add(1, 'day').unix();
+          }
+
+          for (var i =0; i<tempSespendRow.placement.length; i++) {
+            var w = $window.$('div.state-white'+ tempSespendRow.placement[i]);
+            var b = $window.$('div.state-black'+ tempSespendRow.placement[i]);
+            var s = $window.$('div.state-suspended'+ tempSespendRow.placement[i]);
+            w.dxButton('instance').option('disabled',true);
+            b.dxButton('instance').option('disabled',true);
+            s.dxButton('instance').option('disabled',true);
+            w.removeClass('active');
+            b.removeClass('active');
+            s.removeClass('active');
+          }
+
+          CampMain.editCampaignDomains(vm.campId, tempSespendRow.placement, 1, suspendPlacement)
+            .then(function (res) {
+              for (var i =0; i<tempSespendRow.placement.length; i++) {
+                var b = $window.$('div.state-black'+ tempSespendRow.placement[i]);
+                var w =$window.$('div.state-white'+ tempSespendRow.placement[i]);
+                var s = $window.$('div.state-suspended'+ tempSespendRow.placement[i]);
+                w.dxButton('instance').option('disabled',false);
+                b.dxButton('instance').option('disabled',false);
+                s.dxButton('instance').option('disabled',false);
+                if (res == 404) {
+                  $window.DevExpress.ui.notify("Not found", "warning", 4000);
+                  $window.$('#gridContainer2').dxDataGrid('instance').refresh();
+                  return res;
+                }
+                if (res == 503) {
+                  $window.DevExpress.ui.notify("Not connect to appnexus server, please try again later", "warning", 4000);
+                  $window.$('#gridContainer2').dxDataGrid('instance').refresh();
+                  return res;
+                }
+                if (res !== 'Unactive') {
+                  s.addClass('active');
+                }
+              }
+              oneSuspend=false;
+            });
+
+          vm.confirmPopupVisible = false;
+          vm.confirmPopup.option('visible', false);
+          $scope.$apply();
+        }
+      },
+      confirmPopupCancel: {
+        width: 120,
+        text: LC('COMMON.CANCEL'),
+        onClick: function () {
+          /*          tempSespendRow = null;
+           dataSuspend = null;*/
+          //vm.confirmPopupVisible = false;
+          vm.confirmPopup.option('visible', false);
+          $scope.$apply();
+        }
+      },
+    }
+
+
     vm.dataGridOptionsCampaign = {
       onInitialized: function (data) {
         vm.dataGridOptionsMultipleFunc = data.component;
@@ -693,7 +838,7 @@
       onRowPrepared: function (data) {
         vm.objectData = data;
         if (vm.objectData.rowType == 'data') {
-          var allRowBtns = data.rowElement[0].childNodes[9];
+          var allRowBtns = data.rowElement[0].childNodes[11];
           var state = data.data.state;
           if (state.whiteList == "true") {
             allRowBtns.classList.add('active-white');
@@ -912,80 +1057,139 @@
           caption: 'State',
           width: 300,
           columnIndex: 16,
-          headerCellTemplate: 'headerCellTemplate',
+          dataField: 'state',
+          allowEditing: false,
+          headerFilter: {
+            dataSource: [{
+              text: "White",
+              value: ["state", "=", 4]
+            }, {
+              text: "Black",
+              value: ["state", "=", 2]
+            }, {
+              text: "Suspended",
+              value: ["state", "=", 1]
+            }]
+          },
           cellTemplate: function (container, options) {
-            $window.$("<div />").dxButton({
+            var white = $window.$("<div />").dxButton({
               text: 'white',
               height: 30,
               width: 89,
-              disabled: true,
+              disabled: false,
               onClick: function (e) {
-                var parentWhiteBtn = e.element[0].parentNode;
-                if (parentWhiteBtn.classList.contains('active-white')) {
-                  parentWhiteBtn.classList.remove('active-white');
-                  parentWhiteBtn.classList.add('unactive-white');
-                  options.data.state.whiteList = 'false';
-                } else if (!parentWhiteBtn.classList.contains('active-white')) {
-                  parentWhiteBtn.classList.remove('unactive-white');
-                  parentWhiteBtn.classList.add('active-white');
-                  options.data.state.whiteList = 'true';
-                  options.data.state.suspended = 'false';
-                  options.data.state.blackList = 'false';
-                  parentWhiteBtn.classList.remove('active-black');
-                  parentWhiteBtn.classList.remove('active-suspended');
-                }
-
+                var w = $window.$('div.state-white'+ options.data.placement);
+                var b = $window.$('div.state-black'+ options.data.placement);
+                var s = $window.$('div.state-suspended'+ options.data.placement);
+                w.dxButton('instance').option('disabled',true);
+                b.dxButton('instance').option('disabled',true);
+                s.dxButton('instance').option('disabled',true);
+                w.removeClass('active');
+                b.removeClass('active');
+                s.removeClass('active');
+                CampMain.editCampaignDomains(vm.campId, [options.data.placement], 4)
+                  .then(function (res) {
+                      w.dxButton('instance').option('disabled',false);
+                      b.dxButton('instance').option('disabled',false);
+                      s.dxButton('instance').option('disabled',false);
+                      if (res == 404) {
+                        $window.DevExpress.ui.notify("Not found", "warning", 4000);
+                        $('#gridContainerWhite').dxDataGrid('instance').refresh();
+                        return res;
+                      }
+                      if (res == 503) {
+                        $window.DevExpress.ui.notify("Not connect to appnexus server, please try again later", "warning", 4000);
+                        $window.$('#gridContainer2').dxDataGrid('instance').refresh();
+                        return res;
+                      }
+                      if (res !== 'Unactive') {
+                        w.addClass('active');
+                      }
+                    return res;
+                  })
+                  .catch(function (err) {
+                    return err;
+                  });
               }
-            }).addClass('white-list').appendTo(container);
+            });
 
-            $window.$("<div />").dxButton({
+            if (options.data.state.whiteList == 4) {
+              white.addClass('state-white'+ options.data.placement).addClass('active').appendTo(container);
+            } else {
+              white.addClass('state-white'+ options.data.placement).appendTo(container);
+            }
+
+
+            var black = $window.$("<div />").dxButton({
               text: 'black',
               height: 30,
               width: 89,
-              disabled: true,
+              disabled: false,
               onClick: function (e) {
-                var parentWhiteBtn = e.element[0].parentNode;
-                if (parentWhiteBtn.classList.contains('active-black')) {
-                  parentWhiteBtn.classList.remove('active-black');
-                  parentWhiteBtn.classList.add('unactive-black');
-                  options.data.state.blackList = 'false';
-                } else if (!parentWhiteBtn.classList.contains('active-black')) {
-                  parentWhiteBtn.classList.remove('unactive-black');
-                  parentWhiteBtn.classList.add('active-black');
-                  options.data.state.blackList = 'true';
-                  options.data.state.suspended = 'false';
-                  options.data.state.whiteList = 'false';
-                  parentWhiteBtn.classList.remove('active-white');
-                  parentWhiteBtn.classList.remove('active-suspended');
-                }
-
+                var w = $window.$('div.state-white'+ options.data.placement);
+                var b = $window.$('div.state-black'+ options.data.placement);
+                var s = $window.$('div.state-suspended'+ options.data.placement);
+                w.dxButton('instance').option('disabled',true);
+                b.dxButton('instance').option('disabled',true);
+                s.dxButton('instance').option('disabled',true);
+                w.removeClass('active');
+                b.removeClass('active');
+                s.removeClass('active');
+                CampMain.editCampaignDomains(vm.campId, [options.data.placement], 2)
+                  .then(function (res) {
+                    w.dxButton('instance').option('disabled',false);
+                    b.dxButton('instance').option('disabled',false);
+                    s.dxButton('instance').option('disabled',false);
+                    if (res == 404) {
+                      $window.DevExpress.ui.notify("Not found", "warning", 4000);
+                      $window.$('#gridContainer2').dxDataGrid('instance').refresh();
+                      return res;
+                    }
+                    if (res == 503) {
+                      $window.DevExpress.ui.notify("Not connect to appnexus server, please try again later", "warning", 4000);
+                      $window.$('#gridContainer2').dxDataGrid('instance').refresh();
+                      return res;
+                    }
+                    if (res !== 'Unactive') {
+                      b.addClass('active');
+                    }
+                    return res;
+                  })
+                  .catch(function (err) {
+                    return err;
+                  });
               }
-            }).addClass('black-list').appendTo(container);
+            });
 
-            $window.$("<div />").dxButton({
+            if (options.data.state.blackList == 2) {
+              black.addClass('state-black'+ options.data.placement).addClass('active').appendTo(container);
+            } else {
+              black.addClass('state-black'+ options.data.placement).appendTo(container);
+            }
+
+
+            var suspended = $window.$("<div />").dxButton({
               text: 'suspend',
               height: 30,
               width: 95,
-              disabled: true,
-              onClick: function (e) {
-                var parentWhiteBtn = e.element[0].parentNode;
-                if (parentWhiteBtn.classList.contains('active-suspended')) {
-                  parentWhiteBtn.classList.remove('active-suspended');
-                  parentWhiteBtn.classList.add('unactive-suspended');
-                  options.data.state.suspended = 'false';
-                } else if (!parentWhiteBtn.classList.contains('active-suspended')) {
-                  parentWhiteBtn.classList.remove('unactive-suspended');
-                  parentWhiteBtn.classList.add('active-suspended');
-                  options.data.state.suspended = 'true';
-                  options.data.state.whiteList = 'false';
-                  options.data.state.blackList = 'false';
-                  parentWhiteBtn.classList.remove('active-white');
-                  parentWhiteBtn.classList.remove('active-black');
-
+              disabled: false,
+              onClick: function () {
+                if (oneSuspend==true) {
+                  $window.DevExpress.ui.notify("Wait please", "warning", 4000);
+                  return 0;
                 }
-
+                tempSespendRow.placement = [options.data.placement];
+                tempSespendRow.suspend = 1;
+                vm.confirmPopup.option('visible', true);
               }
-            }).addClass('suspended').appendTo(container);
+            });
+
+            if (options.data.state.suspended == 1) {
+              suspended.addClass('state-suspended'+ options.data.placement).addClass('active').appendTo(container);
+            } else {
+              suspended.addClass('state-suspended'+ options.data.placement).appendTo(container);
+            }
+
           }
         }
       ],
@@ -1081,10 +1285,107 @@
         width: 400,
         emptyPanelText: 'A place to hide the columns'
       },
-      // selection: {
-      //   mode: 'multiple',
-      //   showCheckBoxesMode: 'always'
-      // },
+      selection: {
+        mode: 'multiple',
+        allowSelectAll: false,
+        showCheckBoxesMode: 'always'
+      },
+      onEditorPreparing: function (info) {
+        if ((info.parentType == 'filterRow') && (info.caption == 'State')) {
+          info.editorElement.dxSelectBox({
+            dataSource: [
+              {
+                'name': 'White List',
+                'state': 4
+              },
+              {
+                'name': 'Black List',
+                'state': 2
+              },
+              {
+                'name': 'Suspended',
+                'state': 1
+              }
+            ],
+            placeholder: 'Select a state',
+            displayExpr: 'name',
+            valueExpr: vm.state,
+            onSelectionChanged: function (e) {
+              var selectedRows = $window.$('#gridContainer2')[0].querySelectorAll('[aria-selected="true"]');
+              if (selectedRows[0]) {
+                var selectedArr = [];
+                for (var i = 0; i < selectedRows.length; i++) {
+                  selectedArr.push(selectedRows[i].firstChild.innerText);
+                }
+
+                //e;
+                if (e.selectedItem.state == 1) {
+                  if (selectedArr != '[]') {
+                    tempSespendRow.placement = selectedArr;
+                    tempSespendRow.suspend = 'suspend';
+                    vm.confirmPopupVisible = true;
+                    vm.confirmPopup.option('visible', true);
+                  }
+                } else {
+                  if (selectedArr != '[]') {
+                      for (var i =0; i<selectedArr.length; i++) {
+                        var w = $window.$('div.state-white'+ selectedArr[i]);
+                        var b = $window.$('div.state-black'+ selectedArr[i]);
+                        var s = $window.$('div.state-suspended'+ selectedArr[i]);
+                        w.dxButton('instance').option('disabled',true);
+                        b.dxButton('instance').option('disabled',true);
+                        s.dxButton('instance').option('disabled',true);
+                        w.removeClass('active');
+                        b.removeClass('active');
+                        s.removeClass('active');
+                      }
+
+                      CampMain.editCampaignDomains(vm.campId, selectedArr, e.selectedItem.state).then(function (res) {
+                        for (var i =0; i<selectedArr.length; i++) {
+                          var b = $window.$('div.state-black'+ selectedArr[i]);
+                          var w =$window.$('div.state-white'+ selectedArr[i]);
+                          var s = $window.$('div.state-suspended'+ selectedArr[i]);
+                          w.dxButton('instance').option('disabled',false);
+                          b.dxButton('instance').option('disabled',false);
+                          s.dxButton('instance').option('disabled',false);
+                          if (res == 404) {
+                            $window.DevExpress.ui.notify("Not found", "warning", 4000);
+                            $window.$('#gridContainer2').dxDataGrid('instance').refresh();
+                            return res;
+                          }
+                          if (res == 503) {
+                            $window.DevExpress.ui.notify("Not connect to appnexus server, please try again later", "warning", 4000);
+                            $window.$('#gridContainer2').dxDataGrid('instance').refresh();
+                            return res;
+                          }
+                          if (e.selectedItem.state == 2) {
+                            b.addClass('active');
+                          }
+                          if (e.selectedItem.state == 4) {
+                            w.addClass('active');
+                          }
+                        }
+                        $('#gridContainer2').dxDataGrid('instance').refresh();
+                      }).catch(function () {
+                        $('#gridContainer2').dxDataGrid('instance').refresh();
+                      });
+                    }
+                  if (selectedArr != '[]') {
+                    CampMain.editCampaignDomains(vm.campId, selectedArr, e.selectedItem.state).then(function (res) {
+                      $('#gridContainer2').dxDataGrid('instance').refresh();
+                    }).catch(function () {
+                      $('#gridContainer2').dxDataGrid('instance').refresh();
+                    });
+                  }
+                }
+              } else {
+                $window.DevExpress.ui.notify(LC('CO.NO-ITEMS-CHOSEN'), "warning", 4000);
+              }
+            }
+          });
+          info.cancel = true;
+        }
+      },
       onSelectionChanged: function (data) {
         vm.selectedItems = data.selectedRowsData;
         vm.disabled = !vm.selectedItems.length;

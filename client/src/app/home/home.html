@@ -7,6 +7,7 @@
         <li class="active"><a ui-sref="home.campaign.details" translate="INDEX.LEFT_NAV.CAMPAIGN">Campaign</a></li>
         <li><a href="#/" translate="INDEX.LEFT_NAV.OPTIMIZER">Optimizer</a></li>
         <li><a href="#/" translate="INDEX.LEFT_NAV.BILLING">Billing</a></li>
+        <li ng-if="home.isEven == true"><a  ui-sref="home.valuationByExpert" translate="INDEX.LEFT_NAV.EXPERT" >Valuation by expert</a></li>
       </ul>
     </div>
       <input class="open" id="top-box"  ng-model="home.value" ng-click="home.checked(home.value)" type="checkbox" value="true"  hidden>

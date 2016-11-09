@@ -125,9 +125,9 @@
             view_measurement_rate: parseFloat((item.view_measurement_rate || 0).toFixed(1)),
             view_rate: parseFloat((item.view_rate || 0).toFixed(1)),
             state: {
-              blackList: item.state.blackList,
-              suspended: item.state.suspended,
-              whiteList: item.state.whiteList
+              blackList: item.state & 2,
+              suspended: item.state & 1,
+              whiteList: item.state & 4
             }
           };
         });
@@ -140,6 +140,25 @@
       .catch(function (err) {
         return err;
       });
+    }
+
+    function editCampaignDomains(id,placement,activeState, time) {
+      return $http({
+        method: 'POST',
+        url: '/api/v1/campaigns/' + encodeURI(id) + '/changestate',
+        headers: {'Authorization': 'Token ' + $cookies.get('token')},
+        data: {
+          placement: placement,
+          activeState: activeState,
+          suspendTimes: time
+        }
+      })
+        .then(function (res) {
+          return res.data;
+        })
+        .catch(function (err) {
+          $window.DevExpress.ui.notify(err.data.detail, "error", 4000);
+        });
     }
 
     function getChartStore(campId, dataStart, dataEnd, by) {
@@ -177,6 +196,7 @@
     }
 
     _this.nameCampaigns = nameCampaigns;
+    _this.editCampaignDomains = editCampaignDomains;
 
     _this.getChartStore = getChartStore;
     _this.getGridCampaignStore = getGridCampaignStore;

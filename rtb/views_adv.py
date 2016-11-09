@@ -12,6 +12,15 @@ import itertools
 import datetime
 from pytz import utc
 import filter_func
+from models.ml_kmeans_model import MLPlacementDailyFeatures, MLClustersCentroidsKmeans, MLPlacementsClustersKmeans, \
+MLExpertsPlacementsMarks
+from rtb.ml_learn_kmeans import mlGetPlacementInfoKmeans, mlGetGoodClusters, mlGetTestNumber
+from models.placement_state import PlacementState
+from rtb.placement_state import PlacementState as PlacementStateClass
+from rest_framework import status
+import time
+from models.rtb_impression_tracker import RtbImpressionTrackerPlacement, RtbImpressionTrackerPlacementDomain
+
 import bisect
 from django.contrib.auth.decorators import login_required, user_passes_test
 import json
@@ -207,8 +216,22 @@ Get single campaign cpa report for given period to create boxplots
 def get_campaign_placement(campaign_id, from_date, to_date):
     key = '_'.join(('rtb_campaign_placement', str(campaign_id), from_date.strftime('%Y-%m-%d'),
                     to_date.strftime('%Y-%m-%d'),))
+    wholeWeekInd = 7
     res = cache.get(key)
-    if res: return res
+
+    if res:
+        for x in res:
+            if PlacementState.objects.filter(campaign_id=campaign_id, placement_id=x['placement']):
+                state = list(PlacementState.objects.filter(campaign_id=campaign_id, placement_id=x['placement']))[0]
+                x['state'] = state.state
+            else:
+                x['state'] = 0
+            #x["analitics"] = []
+            #x["analitics"].append(mlFillPredictionAnswer(x["placement"], False, "kmeans", "ctr_cvr_cpc_cpm_cpa"))
+            x["analitics"] = mlFillPredictionAnswer(x["placement"], False, "kmeans", "ctr_cvr_cpc_cpm_cpa")
+            #x["analitics1"] = mlFillPredictionAnswer(x["placement"], False, "log" , "ctr_cvr_cpc_cpm_cpa")
+            x["allDomains"], x["domain"] = getPlacementDomain(x["placement"])
+        return res
     # no cache hit
     from_date = datetime.datetime(from_date.year, from_date.month, from_date.day, tzinfo=utc)
     to_date = datetime.datetime(to_date.year, to_date.month, to_date.day, 23, tzinfo=utc)
@@ -238,12 +261,19 @@ def get_campaign_placement(campaign_id, from_date, to_date):
     )
     res = list(q)
     for x in res:
-        x['state'] = {
-            "whiteList": "true",
-            "blackList": "false",
-            "suspended": x['placementState'] == 'inactive'
-        }
+        if PlacementState.objects.filter(campaign_id=campaign_id, placement_id=x['placement']):
+            state = list(PlacementState.objects.filter(campaign_id=campaign_id, placement_id=x['placement']))[0]
+            x['state'] = state.state
+        else:
+            x['state'] = 0
+        #x["analitics"] = []
+        #x["analitics"].append(mlFillPredictionAnswer(x["placement"], False, "kmeans", "ctr_cvr_cpc_cpm_cpa"))
+        x["analitics"] = mlFillPredictionAnswer(x["placement"], False, "kmeans", "ctr_cvr_cpc_cpm_cpa")
+        #x["analitics1"] = mlFillPredictionAnswer(x["placement"], False, "log", "ctr_cvr_cpc_cpm_cpa")
+        x["allDomains"], x["domain"] = getPlacementDomain(x["placement"])
         x.pop('placementState', None)
+
+
     cache.set(key, res)
     return res
 
@@ -287,7 +317,7 @@ Field "placement" must contain name and id of placement. Id in parenthesis
     reverse_order = params['order'] == 'desc'
     allowed_key_names = set(
         ["placement", "NetworkPublisher", "placementState", "cost", "conv", "imp", "clicks", "cpc", "cpm", "cvr", "ctr", "cpa",
-         'imps_viewed', 'view_measured_imps', 'view_rate', 'view_measurement_rate', ])
+         'imps_viewed', 'view_measured_imps', 'view_rate', 'view_measurement_rate', "analitics"])
     key_name = params['sort']
     if 'sort' not in request.GET:
         key_name = 'imp'
@@ -296,6 +326,7 @@ Field "placement" must contain name and id of placement. Id in parenthesis
         key_name = 'placement'
     res.sort(key=lambda x: x[key_name], reverse=reverse_order)
     totalCount = len(res)
+
     result = {"data": res[params['skip']:params['skip'] + params['take']], "totalCount": totalCount}
 
     sums = reduce(make_sum, res, {"cost":0, "conv":0, "imp":0, "clicks":0, "imps_viewed":0, "view_measured_imps":0,
@@ -310,6 +341,7 @@ Field "placement" must contain name and id of placement. Id in parenthesis
     sums['ctr'] = 100.0 * float(sums["clicks"]) / sums['imp'] if sums['imp'] else 0
 
     result['totalSummary'] = sums
+
     return Response(result)
 
 
@@ -500,3 +532,296 @@ Get single campaign details for given period
     res = get_cpa_buckets(id, params['from_date'], params['to_date'], params['category'])
     # convs
     return Response(res)
+
+@api_view(['GET', 'POST'])
+@check_user_advertiser_permissions(campaign_id_num=0)
+def mlApiAnalitics(request, id):
+    """
+Post: commends the decision taken by the machine
+
+## Url format: /api/v1/campaigns/:id/MLPlacement
+    body {
+        placementId: placementId,
+        checked: checked
+    }
+
++ Parameters
+    + id (Number) - id company
+    + placementId (Number) - placement id
+    + checked (boolean) - true | false
+
+
+http://localhost:3000/api/v1/campaigns/13921687/MLPlacement
+{placementId: 3898, checked: true}
+
+
+GET: diagramms for week for a placement
+## Url format: /api/v1/campaigns/:id/MLPlacement?placementId={placementId}
+
++ Parameters
+    + id (Number) - id company
+	+ placementId (Number) - placement id
+    """
+    if request.method == "GET":
+        res = mlApiWeeklyPlacementRecignition(request)
+    if request.method == "POST":
+        res = mlApiSaveExpertDecision(request)
+    return res
+
+
+def mlApiWeeklyPlacementRecignition(request):
+    placement_id = request.GET.get("placementId")
+    test_name = request.GET.get("test_name")
+    test_type = request.GET.get("test_type")
+    res = mlFillPredictionAnswer(placement_id, True, test_type, test_name)
+    return Response(res)
+
+def mlApiSaveExpertDecision(request):
+    placement_id = request.GET.get("placementId")
+    checked = request.GET.get("checked")
+    test_type = request.GET.get("test_type")
+    test_name = request.GET.get("test_name")
+    day = request.GET.get("day")
+
+    goodClusters = mlGetGoodClusters(test_name)
+
+    test_number = mlGetTestNumber(test_type, test_name)
+    if test_type == "kmeans":
+        placementInfo = MLPlacementsClustersKmeans.objects.filter(
+            placement_id=placement_id,
+            day=day
+        )
+        if test_type == "log":
+            pass #get info about
+
+    decision = None
+    if placementInfo.cluster == goodClusters[day]:
+        if checked == True:
+            decision = "good"
+        else:
+            decision = "bad"
+    else:
+        if checked == True:
+            decision = "bad"
+        else:
+            decision = "good"
+    expertMarkRecord = MLExpertsPlacementsMarks(
+        placement_id=placement_id,
+        day=day,
+        expert_decision=decision,
+        date=time.strftime("%Y-%m-%d")
+    )
+    try:
+        tempQuery = MLExpertsPlacementsMarks.objects.filter(
+            placement_id=placement_id,
+            day=day
+        )
+        if not tempQuery:
+            expertMarkRecord.save()
+        else:
+            tempQuery.update(
+                expert_decision=decision,
+                date=time.strftime("%Y-%m-%d")
+            )
+    except Exception, e:
+        print "Can't save expert mark. Error: " + str(e)
+
+    try:
+        placementInfo.update(expert_decision=checked)
+    except Exception, e:
+        print "Can't save expert decision. Error: " + str(e)
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+
+    res = mlFillPredictionAnswer(placement_id, False, test_type, test_name)#RETURN ONE DAYWEEK?
+    return Response(res)
+
+def mlFillPredictionAnswer(placement_id = 1, flagAllWeek = False, test_type = "kmeans", test_name = "ctr_viewrate"):
+    mlAnswer = mlGetPlacementInfoKmeans(placement_id, flagAllWeek, test_type, test_name)
+
+    if flagAllWeek == False:
+        wholeWeekInd = 7
+        if mlAnswer == -1 or mlAnswer == -2:
+            res = ({  # for one object
+                "good": mlAnswer,
+                "bad": mlAnswer,
+                "checked": mlAnswer
+            })
+            return res
+
+        if str(wholeWeekInd) not in mlAnswer:  # for one object
+            res = ({
+                "good": -3,
+                "bad": -3,
+                "checked": -3
+            })
+        else:
+            res = ({
+                "good": mlAnswer[str(wholeWeekInd)]['good'],
+                "bad": mlAnswer[str(wholeWeekInd)]['bad'],
+                "checked": mlAnswer[str(wholeWeekInd)]['checked']
+            })
+        return res
+    else:
+        mlAnswer = mlGetPlacementInfoKmeans(placement_id, True, test_type, test_name)  # get data from recognition database
+        res = []
+        if mlAnswer == -1 or mlAnswer == -2:  # error with data in database
+            for weekday in xrange(8):  # for all week, 8 - quantity of weekdays+whole week in mlAnswer
+                res.append({
+                    "day": weekday,
+                    "good": mlAnswer,
+                    "bad": mlAnswer,
+                    "checked": mlAnswer
+                })
+            return res
+
+        for weekday in xrange(8):  # 8 - quantity of weekdays+whole week in mlAnswer
+            if str(weekday) not in mlAnswer:  # for array
+                res.append({
+                    "day": weekday,
+                    "good": -3,
+                    "bad": -3,
+                    "checked": -3
+                })
+            else:
+                res.append({
+                    "day": weekday,
+                    "good": mlAnswer[str(weekday)]['good'],
+                    "bad": mlAnswer[str(weekday)]['bad'],
+                    "checked": mlAnswer[str(weekday)]['checked']
+                })
+    return res
+
+@api_view(["GET"])
+@check_user_advertiser_permissions(campaign_id_num=0)
+def mlApiSendRandomTestSet(request):
+    res = {}
+    res["wtf"] = 3
+    return Response(res)
+    # getting test samples for model testing
+    pass
+
+@api_view(["GET"])
+@check_user_advertiser_permissions(campaign_id_num=0)
+def mlApiSaveExpertPlacementMark(request):
+    placement_id = request.data.get("placementId")
+    day = request.data.get("day")
+    decision = request.data.get("decision")
+    expertMarkRecord = MLExpertsPlacementsMarks(
+        placement_id=placement_id,
+        day=day,
+        expert_decision=decision,
+        date=time.strftime("%Y-%m-%d")#GET MARK DATE
+    )
+    try:
+        tempQuery = MLExpertsPlacementsMarks.objects.filter(
+            placement_id=placement_id,
+            day=day
+        )
+        if not tempQuery:
+            expertMarkRecord.save()
+        else:
+            tempQuery.update(
+                expert_decision=decision,
+                date=time.strftime("%Y-%m-%d")# GET MARK DATE
+            )
+    except Exception, e:
+        print "Can't save expert mark. Error: " + str(e)
+
+
+@api_view(['POST'])
+@check_user_advertiser_permissions(campaign_id_num=0)
+def changeState(request, campaignId):
+    """
+    POST single campaign details by domains
+
+    ## Url format: /api/v1/campaigns/:id/changestate
+
+    + Parameters
+        + id (Number) - id for putting information about company
+        + placement (Number) - placement id
+        + activeState (string) - Change state (white, black, suspend)
+        + date - suspend date
+
+    503 - Not connect to appnexus server
+    404 - Not found
+
+    """
+    placementId = request.data.get("placement")
+    activeState = request.data.get("activeState")   # 4 - white / 2 - black / 1 - suspend
+
+    if request.data.get("activeState") == 1 and request.data.get("suspendTimes") is not None and request.data.get("suspendTimes") != "unlimited":
+        date = datetime.date.fromtimestamp(int(request.data.get("suspendTimes")))
+    else:
+        date = None
+
+    listObj = []
+
+    print 'len: ' + str(len(placementId))
+    if len(placementId) == 1:
+        try:
+            state_obj = PlacementState.objects.get(placement_id=placementId[0])
+            state = state_obj.state
+            print 'state try: ' + str(state)
+        except:
+            state = 0
+
+        print 'state: ' + str(state)
+        if state == activeState:
+            state = PlacementStateClass(campaignId, placementId)  # , 7043341
+            result = state.remove_placement_from_targets_list()
+            print (campaignId, placementId, result)
+            if result == 'OK':
+                return Response('Unactive')
+            return Response(str(result))
+
+
+    state = PlacementStateClass(campaignId, placementId)  # , 7043341
+    result = state.change_state_placement(activeState)
+    print (campaignId, placementId, result)
+    if result == 'OK':
+        for i, placement in enumerate(placementId):
+            obj, created = PlacementState.objects.update_or_create(campaign_id=campaignId,
+                                                                   placement_id=placement,
+                                                                   defaults=dict(
+                                                                       state=activeState,
+                                                                       suspend=date,
+                                                                       change=False
+                                                                   ))
+
+            listObj.append({
+                'placementId': obj.placement_id,
+                'campaign_id': obj.campaign_id,
+                'suspend': obj.suspend,
+                'state': obj.state
+            })
+        return Response(listObj)
+    else:
+        return Response(str(result))
+
+
+def getPlacementDomain(placementId):
+    domains = RtbImpressionTrackerPlacement.objects.filter(placement_id=placementId)
+    if not domains:
+        return "", ""
+    allDomains = ""
+    for row in domains:
+        if row.domain != "null":
+            allDomains += (str(row.domain) + "; ")
+    if allDomains != "":
+        allDomains = allDomains[:-2]
+    domain = RtbImpressionTrackerPlacementDomain.objects.filter(placement_id=placementId)
+    if not domain:
+        return allDomains, ""
+    domain = domain[0].domain
+    return allDomains, domain
+
+#@api_view(["GET"])
+#@check_user_advertiser_permissions(campaign_id_num=0)
+# def mlCalcAUC(request):
+#     placementsIds = request.data.get("placementIds")
+#     test_type = request.data.get("test_type")
+#     test_name = request.data.get("test_name")
+#     rocSensetivities, rocFalsePositivesRates = mlBuildROC(placementsIds, test_type, test_name)
+#
+#     for i in xrange(len(rocFalsePositivesRates)):
+#         pass

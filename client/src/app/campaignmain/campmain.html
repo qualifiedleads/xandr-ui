@@ -26,14 +26,26 @@
         <!--<div dx-range-selector="campmain.rangeOptionsSecond"></div>-->
       </div>
     </div>
+
+
+    <div class="counter-popup-group" dx-popup="campmain.UI.confirmPopup" >
+      <div class="title" >{{ 'campmain.SUSPEND' | translate }}</div>
+
+      <div id="radioGroupMain" dx-radio-group="campmain.UI.radioGroupMain" ></div>
+      <div id="dateFormatPop" style="margin-left: 35px; " dx-date-box="campmain.UI.dateFormatPop"></div>
+      <br>
+      <div id="radioGroupSend" dx-radio-group="campmain.UI.radioGroupSend" ></div>
+
+      <div class="button" id="buttonOk" dx-button="campmain.UI.confirmPopupOk"></div>
+      <div class="button" dx-button="campmain.UI.confirmPopupCancel"></div>
+
+    </div>
+
+
   </div>
 
   <div class="row first-grid">
-    <div  id="gridContainer2" dx-data-grid="campmain.dataGridOptionsCampaign">
-      <div data-options="dxTemplate: {name: 'headerCellTemplate'}">
-        <div ng-model="main.state" dx-select-box="$parent.campmain.selectCell"></div>
-      </div>
-    </div>
+    <div  id="gridContainer2" dx-data-grid="campmain.dataGridOptionsCampaign"></div>
   </div>
 
 

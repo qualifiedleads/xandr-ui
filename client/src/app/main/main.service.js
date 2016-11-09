@@ -8,8 +8,23 @@
   /** @ngInject */
   function Main($http, $window, $cookies) {
     var _this = this;
+    var _multipleTotalCount = 0;
 
-    function statsChart(advertiser_id, from_date, to, by) {
+    function chartStore (id, dataStart, dataEnd, by) {
+      return new $window.DevExpress.data.CustomStore({
+        totalCount: function () {
+          return 0;
+        },
+        load: function () {
+          return _statsChart(id, dataStart, dataEnd, by)
+          .then(function (result) {
+            return result.statistics;
+          });
+        }
+      });
+    }
+
+    function _statsChart(advertiser_id, from_date, to, by) {
       return $http({
         method: 'GET',
         url: '/api/v1/statistics',
@@ -18,7 +33,6 @@
       })
       .then(function (res) {
         for (var index in res.data.statistics) {
-          /*var loc = $translateLocalStorage.get('TRANSLATE_LANG_KEY');*/
           res.data.statistics[index].cvr = +parseFloat(res.data.statistics[index].cvr).toFixed(4);
           res.data.statistics[index].ctr = +parseFloat(res.data.statistics[index].ctr).toFixed(4);
           res.data.statistics[index].cpc = +parseFloat(res.data.statistics[index].cpc).toFixed(2);
@@ -27,6 +41,9 @@
           res.data.statistics[index].day = $window.moment(res.data.statistics[index].day).format('DD/MM');
         }
         return res.data;
+      })
+      .catch(function (err) {
+        $window.DevExpress.ui.notify(err.data.detail, "error", 4000);
       });
     }
 
@@ -44,10 +61,33 @@
         res.data.totals.cpm = +parseFloat(res.data.totals.cpm).toFixed(2);
         res.data.totals.spend = +parseFloat(res.data.totals.spend).toFixed(2);
         return res.data.totals;
+      })
+      .catch(function (err) {
+        $window.DevExpress.ui.notify(err.data.detail, "error", 4000);
       });
     }
 
-    function statsCampaigns(advertiser_id, from_date, to, skip, take, sort, order, stat_by, filters) {
+    function multipleStore(id, dataStart, dataEnd, by) {
+      return new $window.DevExpress.data.CustomStore({
+        totalCount: function () {
+          return _multipleTotalCount;
+        },
+        load: function (loadOptions) {
+          if (loadOptions.searchOperation && loadOptions.dataField){
+            loadOptions.take = 999999;
+          }
+          return _statsCampaigns(id, dataStart, dataEnd, loadOptions.skip,
+              loadOptions.take, loadOptions.sort, loadOptions.order,
+              by, loadOptions.filter)
+          .then(function (result) {
+            _multipleTotalCount = result.totalCount;
+            return result.campaigns;
+          });
+        }
+      });
+    }
+
+    function _statsCampaigns(advertiser_id, from_date, to, skip, take, sort, order, stat_by, filters) {
       if (sort) {
         if (sort[0].desc === true) {
           order = 'desc'
@@ -102,6 +142,9 @@
           res.data.campaigns[index].view_rate = +parseFloat(res.data.campaigns[index].view_rate).toFixed(1);
         }
         return res.data;
+      })
+      .catch(function (err) {
+        $window.DevExpress.ui.notify(err.data.detail, "error", 4000);
       });
     }
 
@@ -114,12 +157,15 @@
       })
       .then(function (res) {
         return res.data;
+      })
+      .catch(function (err) {
+        $window.DevExpress.ui.notify(err.data.detail, "error", 4000);
       });
     }
 
-    _this.statsCampaigns = statsCampaigns;
+    _this.multipleStore = multipleStore;
+    _this.chartStore = chartStore;
     _this.statsTotals = statsTotals;
-    _this.statsChart = statsChart;
     _this.statsMap = statsMap;
 
   }

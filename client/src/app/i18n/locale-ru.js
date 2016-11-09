@@ -7,9 +7,11 @@
     'COMMON': {
       'GO-TO-ADMIN-PANEL': 'Панель администратора',
       'LOGOUT': 'Выйти',
-      'TO-MAIN-PAGE': 'Главная'
+      'TO-MAIN-PAGE': 'Главная',
+      'CANCEL': 'Отмена'
     },
     'AUTH':{
+      'EMAIL-OR-PASSWORD-EMPTY':'E-mail или пароль пуст',
       'GO_BUTTON':'Дальше',
       'MAIL-REQUIRED': 'Введите ваш email',
       'MAIL-VALID': 'Некорректный адрес электронной почты',
@@ -58,7 +60,8 @@
         'HOME':"Главная",
         'CAMPAIGN':"Кампания",
         'BILLING':"Биллинг",
-        'OPTIMIZER':"Оптимизатор"
+        'OPTIMIZER':"Оптимизатор",
+        'EXPERT':"Оценка экспертом"
       }
     },
     'MAIN': {
@@ -155,18 +158,26 @@
       }
     },
     "CO":{
-      "NAME":"Оптимизатор кампании",
-      "ORIGINAL": "Оригинал",
-      "OPTIMISED": "Оптимизированный (белый список)",
+      "NO-ITEMS-CHOSEN" : "Пожалуйста, выберите по крайней мере 1 пункт",
+      "SEND-TO-SUSPEND-LIST" : "Приостановить , пока я не добрался до него",
+      "SPECIFIC-DATE" : "Выбрать дату",
+      "7-DAYS" : "7 дней",
+      "3-DAYS" : "3 дня",
+      "24-HRS" : "24 часа",
+      "TEMP-SUSPEND" : "Приостановленые",
+      "BLACKLISTED" : "Blacklisted",
+      "WHITELIST" : "Whitelist",
+      "SUSPEND" : "Приостановить",
+      "OPTIMIZER" : "Оптимизатор",
+      "BLOCKING" : "Блокировка",
+      "DEVICE-AND-SUPPLY-TYPE" : "Устройство и тип",
+      "GEO" : "Геоинформация",
+      "DOMAIN" : "Домен",
+      "DOMAIN-LISTS" : 'Списки доменов',
+      "DOMAINS" : 'Домены',
       "RULES": "Правила для всех доменов:",
-      "SPENDS": "если приложение/домен расходует больше чем",
-      "CONVERSIONS1": "и conversions равны 0, то",
-      "APP": "если приложение/домен имеет более чем",
-      "CONVERSIONS2": "imp. и conversions равны 0, то",
-      "UNDISCLOSED": "если приложение/домен помечен как \"нераскрытый\" ",
-      "DOMAIN-RULES": "Домен-специфические правила:",
-      "CURRENT-LIST": "Текущий список мест размещения ",
-      "GO-OPTIMISER": "Перейти к оптимизатору"
+      "OPTIMISER-FOR":"Оптимизатор для",
+      "CAMPAIGN-HOME": "Вернуться к компании"
     }
   })
 })();

@@ -148,7 +148,6 @@ class mlPlacementInfo:
 
 
 def mlBuildROC(test_type = "kmeans", test_name = "ctr_cvr_cpc_cpm_cpa", date = -1):
-    print "Start " + str(datetime.datetime.now())
     numbDays = 8
     samplesNumb = 127
     if test_type == "kmeans":
@@ -189,7 +188,6 @@ def mlBuildROC(test_type = "kmeans", test_name = "ctr_cvr_cpc_cpm_cpa", date = -
         centroidsCoord = mlGetCentroids(test_name)#get centroids coord
         #centroidsCoord[x][y][z] - x=day, y=cluster, z=coord numb
         numbFeatures = len(centroidsCoord[0][0])
-        print "Data loaded " + str(datetime.datetime.now())
         directions = [0] * numbDays
         for i in xrange(numbDays):
             if i == (numbDays - 1):
@@ -274,13 +272,11 @@ def mlBuildROC(test_type = "kmeans", test_name = "ctr_cvr_cpc_cpm_cpa", date = -
 
             if (sensetivity == 100 and falsePositiveRate == 100) or (sensetivity == 0 and falsePositiveRate == 0):
                 break
-        print "First cluster finish " + str(datetime.datetime.now())
         #second cluster is going out of first
         for iDay in xrange(numbDays):  # change direction
             for iFeature in xrange(len(centroidsCoord[iDay][0])):
                 directions[iDay][iFeature] = directions[iDay][iFeature] * (-1)
 
-        #centroidsCoord = backupCentroidsCoord
         centroidsCoord = mlGetCentroids(test_name)
         delta = 0.00001
         while True:
@@ -379,12 +375,16 @@ def partition(FPR,first,last, sens):
 
 def mlCalcAuc(test_type = "kmeans", test_name = "ctr_cvr_cpc_cpm_cpa", date = -1):
     rocSensetivities, rocFalsePositivesRates = mlBuildROC(test_type, test_name)
-    print "Sort start " + str(datetime.datetime.now())
     quickSort(rocFalsePositivesRates, rocSensetivities)#create sorting of rocSensetivities,rocFalsePositivesRates asc
-    print "Sort finish " + str(datetime.datetime.now())
     auc = 0
-    print "Auc calc starts " + str(datetime.datetime.now())
     for i in xrange(1, len(rocFalsePositivesRates)):
         auc += ((((rocSensetivities[i-1] + rocSensetivities[i])/100.0) * ((rocFalsePositivesRates[i] - rocFalsePositivesRates[i-1])/100.0)) / 2.0)
-    print "Finish " + str(datetime.datetime.now())
-    return auc
+    res = {}
+    res["auc"] = auc
+    res["chartCoord"] = []
+    for i in xrange(len(rocSensetivities)):
+        temp = {}
+        temp["rocFalsePositiveRate"] = rocFalsePositivesRates[i]
+        temp["rocSensetivities"] = rocSensetivities[i]
+        res["chartCoord"].append(temp)
+    return res

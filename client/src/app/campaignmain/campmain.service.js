@@ -48,6 +48,7 @@
         return err;
       });
     }
+
     function _cpaReport(id, from, to) {
       return $http({
         method: 'GET',

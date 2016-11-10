@@ -25,7 +25,7 @@ from django.utils import timezone
 import bisect
 from django.contrib.auth.decorators import login_required, user_passes_test
 import json
-#from ml_auc import mlCalcAuc
+from ml_auc import mlCalcAuc
 
 @api_view()
 @check_user_advertiser_permissions(campaign_id_num=0)
@@ -776,7 +776,6 @@ def mlApiRandomTestSet(request):
                 placement["publisher"] = ""
             else:
                 placement["domain"] = queryRes[0]["placement__rtbimpressiontrackerplacementdomain__domain"]
-                placement["mark"] = queryRes[0]["placement__mlexpertsplacementsmarks__expert_decision"]
                 placement["placement_name"] = queryRes[0]["placement_name"]
                 placement["publisher"] = queryRes[0]["NetworkPublisher"]
             res.append(placement)
@@ -951,14 +950,13 @@ def getPlacementDomain(placementId):
     domain = domain[0].domain
     return allDomains, domain
 
-# @api_view(["GET"])
-# @check_user_advertiser_permissions(campaign_id_num=0)
-# def mlApiCalcAUC(request):
-#     placementsIds = request.data.get("placementIds")
-#     test_type = request.data.get("test_type")
-#     test_name = request.data.get("test_name")
-#     res = mlCalcAuc(placementsIds, test_type, test_name)
-#     return Response(res)
+@api_view(["GET"])
+@check_user_advertiser_permissions(campaign_id_num=0)
+def mlApiCalcAUC(request):
+    test_type = request.GET.get("test_type")
+    test_name = request.GET.get("test_name")
+    res = mlCalcAuc(test_type, test_name)
+    return Response(res)
 
 @api_view(['GET', 'POST'])
 @check_user_advertiser_permissions(campaign_id_num=0)

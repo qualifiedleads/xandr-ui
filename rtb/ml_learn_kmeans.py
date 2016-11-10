@@ -730,13 +730,16 @@ def mlGetCentroids(test_name):
     numbDays = 8
     numbClusters = 2
     queryResults = MLClustersCentroidsKmeans.objects.filter(test_number=test_number)
-    # centroidsCoord[x][y][x] - x=day, y=cluster, z=coord numb
+    # centroidsCoord[x][y][z] - x=day, y=cluster, z=coord numb
     centroidsCoord = [0] * numbDays
     for i in xrange(numbDays):
         centroidsCoord[i] = [0] * numbClusters
 
     for row in queryResults.iterator():  # getting data about cluster centroids
         centroidsCoord[row.day][row.cluster - 1] = row.centroid
+        for iFeature in xrange(len(centroidsCoord[row.day][row.cluster - 1])):
+            centroidsCoord[row.day][row.cluster - 1][iFeature] = float(centroidsCoord[row.day][row.cluster - 1][iFeature])
+    return centroidsCoord
 
 def mlGetTestNumber(test_type, test_name):
     test_number = 0
@@ -752,5 +755,21 @@ def mlGetTestNumber(test_type, test_name):
         print "Wrong test"
     return test_number
 
-def mlCalcCluster(sampleFeatures, centroidsCoord):
-    pass
+def mlCalcCluster(sampleFeatures, centroidsCoord, day):
+    minDistance = 0
+    minCluster = 0
+
+    for iFeature in xrange(len(centroidsCoord[day][0])):
+        minDistance += (
+            (float(centroidsCoord[day][0][iFeature]) - float(sampleFeatures[iFeature])) ** 2)
+
+    # centroidsCoord[x][y][z] - x=day, y=cluster, z=coord numb
+    for iCluster in xrange(1, len(centroidsCoord[day])):
+        curDistance = 0
+        for iFeature in xrange(len(centroidsCoord[day][iCluster])):
+            curDistance += (
+                (float(centroidsCoord[day][iCluster][iFeature]) - float(sampleFeatures[iFeature])) ** 2)
+        if curDistance < minDistance:
+            minDistance = curDistance
+            minCluster = iCluster
+    return (minCluster + 1)

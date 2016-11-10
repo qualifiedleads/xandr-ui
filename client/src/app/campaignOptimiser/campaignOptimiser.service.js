@@ -296,39 +296,8 @@
         });
     }
 
-    function saveRules(id, ruleObj) {
-      return $http({
-        method: 'POST',
-        url: '/api/v1/campaigns/' + id + '/rules',
-        headers: {'Authorization': 'Token ' + $cookies.get('token')},
-        data: {ruleObj: ruleObj}
-      })
-        .then(function (res) {
-          return res.data;
-        })
-        .catch(function (err) {
-          $window.DevExpress.ui.notify(err.statusText, "error", 4000);
-        });
-    }
-
-    function getRules(id) {
-      return $http({
-        method: 'GET',
-        url: '/api/v1/campaigns/' + id + '/rules',
-        headers: {'Authorization': 'Token ' + $cookies.get('token')},
-      })
-        .then(function (res) {
-          return res.data;
-        })
-        .catch(function (err) {
-          $window.DevExpress.ui.notify(err.statusText, "error", 4000);
-        });
-    }
-
     _this.showAllMLDiagram = showAllMLDiagram;
     _this.decisionML = decisionML;
-    _this.saveRules = saveRules;
-    _this.getRules = getRules;
     _this.campaignTargeting = campaignTargeting;
     _this.editCampaignDomains = editCampaignDomains;
     _this.getGridCampaignStore = getGridCampaignStore;

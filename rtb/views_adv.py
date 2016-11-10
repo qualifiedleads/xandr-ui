@@ -716,7 +716,6 @@ def mlFillPredictionAnswer(placement_id = 1, flagAllWeek = False, test_type = "k
 def mlApiRandomTestSet(request):
     action = request.GET.get("action")
     if action == "create":
-
         placemetsDataQuery = MLViewFullPlacementsData.objects.raw(
             """
             SELECT

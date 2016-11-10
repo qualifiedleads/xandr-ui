@@ -103,20 +103,21 @@ def check_user_advertiser_permissions(**field_names):
         @wraps(func)
         def new_func(request, *args, **kwargs):
             try:
+                check_write = field_names.get('check_write')
                 user = request.user
                 assert user.is_authenticated()
-                advertiser_id = request.GET.get('advertiser_id') or \
-                                ('advertiser_id_num' in field_names and args[field_names['advertiser_id_num']]) or \
-                                ('advertiser_id_name' in field_names and kwargs[field_names['advertiser_id_name']])
-                if not advertiser_id:
-                    campaign_id = request.GET.get('campaign_id') or \
-                                  ('campaign_id_num' in field_names and args[field_names['campaign_id_num']]) or \
-                                  ('campaign_id_name' in field_names and kwargs[field_names['campaign_id_name']])
-                    camp = Campaign.objects.get(pk=campaign_id)
-                    advertiser_id = camp.advertiser_id
-                check_write = field_names.get('check_write')
-                assert not(user.is_staff and check_write)
-                if not user.is_superuser:
+                if user.is_superuser or user.is_staff:
+                    assert not(user.is_staff and check_write)
+                else:
+                    advertiser_id = request.GET.get('advertiser_id') or \
+                                    ('advertiser_id_num' in field_names and args[field_names['advertiser_id_num']]) or \
+                                    ('advertiser_id_name' in field_names and kwargs[field_names['advertiser_id_name']])
+                    if not advertiser_id:
+                        campaign_id = request.GET.get('campaign_id') or \
+                                      ('campaign_id_num' in field_names and args[field_names['campaign_id_num']]) or \
+                                      ('campaign_id_name' in field_names and kwargs[field_names['campaign_id_name']])
+                        camp = Campaign.objects.get(pk=campaign_id)
+                        advertiser_id = camp.advertiser_id
                     if user.frameworkuser \
                             and user.frameworkuser.apnexus_user_id \
                             and user.frameworkuser.use_appnexus_rights:

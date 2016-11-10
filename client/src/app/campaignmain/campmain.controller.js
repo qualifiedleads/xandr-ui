@@ -6,7 +6,7 @@
     .controller('CampaignMainController', CampaignMainController);
 
   /** @ngInject */
-  function CampaignMainController($window, $state, $localStorage, $translate, $timeout, CampMain, Campaign, $scope, CampaignOptimiser) {
+  function CampaignMainController($window, $state, $localStorage, $translate, $timeout, CampMain, Campaign, $scope, CampaignOptimiser, $rootScope) {
     var vm = this;
     var LC = $translate.instant;
     var dataSuspend = null;
@@ -14,9 +14,17 @@
     vm.Camp = CampMain;
     var now = new Date();
     var oneSuspend = false;
-
+    $rootScope.id = Campaign.id;
+    $rootScope.name = Campaign.campaign;
     vm.checkChart = [];
     vm.by = 'imp,cvr,cpc,clicks,spend,conv,ctr';
+    $localStorage.campaign = {
+      "id":  Campaign.id,
+      "name": Campaign.campaign
+    };
+    if ($localStorage.campaign == null) {
+      $state.go('home.main');
+    }
 
     vm.campName = Campaign.campaign;
     vm.campId = Campaign.id;
@@ -128,6 +136,9 @@
     vm.boxPlotStore = CampMain.getBoxPlotStore(vm.campId, vm.dataStart, vm.dataEnd);
     vm.gridStore = CampMain.getGridCampaignStore(vm.campId, vm.dataStart, vm.dataEnd);
     //endregion
+
+    var wrapper = angular.element($window.document.querySelector("#wrapper"))[0];
+    wrapper.classList.remove('hidden-menu');
 
     //region BIG DIAGRAM
     vm.charIsUpdating = false;
@@ -668,9 +679,6 @@
     //region MULTIPLE
     vm.selectedItems = [];
     vm.chartOptionsFuncgrid = [];
-    if ($localStorage.boxPlotData == null) {
-      $localStorage.boxPlotData = vm.boxPlotData;
-    }
 
     vm.state = '';
     vm.selectCell = {
@@ -862,7 +870,7 @@
           $scope.$apply();
         }
       },
-    }
+    };
 
 
     vm.dataGridOptionsCampaign = {
@@ -1019,6 +1027,7 @@
           }
         },
         {
+
           caption: LC('CAMP.CAMPAIGN.COLUMNS.CPC') + ' ,$',
           dataField: 'cpc',
           alignment: 'center',
@@ -1029,7 +1038,8 @@
             dataSource: function (source) {
               return headerFilterColumn(source, 'cpc');
             }
-          }
+          },
+
         },
         {
           caption: LC('CAMP.CAMPAIGN.COLUMNS.CPM') + ' ,$',
@@ -1194,7 +1204,6 @@
               white.addClass('state-white'+ options.data.placement).appendTo(container);
             }
 
-
             var black = $window.$("<div />").dxButton({
               text: 'black',
               height: 30,
@@ -1297,7 +1306,6 @@
           },
           {
             column: "cpa",
-
             summaryType: "sum",
             valueFormat: "currency",
             customizeText: function (data) {
@@ -1463,111 +1471,6 @@
         vm.disabled = !vm.selectedItems.length;
       }
     };
-    //endregion
-
-
-    //region RANGE SELECTOR FIRST
-    vm.rangeFirstChartOptions = {
-      margin: {
-        left: 50
-      },
-      scale: {
-        startValue: new Date($localStorage.dataStart),
-        endValue: new Date($localStorage.dataEnd),
-        minorTickInterval: "day",
-        minRange: "hour",
-        maxRange: "month",
-        minorTick: {
-          visible: false
-        }
-      },
-      sliderMarker: {
-        format: "monthAndDay"
-      }
-      // selectedRange: {
-      //   startValue: new Date($localStorage.dataStart),
-      //   endValue: new Date($localStorage.dataEnd)
-      // }
-    };
-
-    //endregion
-
-    //region RANGE SELECTOR SECOND
-    vm.rangeSecondChartOptions = {
-      margin: {
-        left: 50,
-        top: 12
-      },
-      size: {
-        height: 150,
-        width: 450
-      },
-      scale: {
-        startValue: new Date($localStorage.dataStart),
-        endValue: new Date($localStorage.dataEnd),
-        minorTickInterval: "day",
-        minRange: "day",
-        maxRange: "month",
-        minorTick: {
-          visible: false
-        }
-      },
-      sliderMarker: {
-        format: "monthAndDay"
-      }
-      // selectedRange: {
-      //   startValue: new Date(2011, 2, 3),
-      //   endValue: new Date(2011, 2, 9)
-      // }
-    };
-
-    //endregion
-
-
-    //region PIE CHART CONTAINER
-    vm.ctrlBbtns = {
-      placement: {
-        btn: 'Placement',
-        header: 'Placement'
-      },
-      creativeId: {
-        btn: 'creative_id',
-        header: 'creative_id'
-      },
-      creativeSize: {
-        btn: 'creative_size',
-        header: 'creative_size'
-      },
-      viewability: {
-        btn: 'viewability',
-        header: 'viewability'
-      },
-      os: {
-        btn: 'OS',
-        header: 'Operating System used'
-      },
-      carrier: {
-        btn: 'carrier',
-        header: 'carrier'
-      },
-      networkSeller: {
-        btn: 'network(seller)',
-        header: 'network (seller)'
-      },
-      connectionType: {
-        btn: 'connection_type',
-        header: 'connection_type'
-      },
-      device: {
-        btn: 'device',
-        header: 'device'
-      },
-      seller: {
-        btn: 'seller',
-        header: 'Seller'
-      }
-    };
-    vm.pieChartHeader = $localStorage.pieChartHeader || vm.ctrlBbtns.os.header;
     //endregion
   }
 })();

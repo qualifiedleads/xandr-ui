@@ -116,14 +116,16 @@
       ,createTestSet: {
         text: LC('VBE.CREATE-TEST-SET'),
         onClick: function () {
-          vm.culcReady = true;
+          valuationByExpertS._MLRandomTestSet('create').then(function (res) {
+            console.log(res);
+          });
+
           $scope.$apply();
         }
       },
       dataGridOptionsExpert: {
         editing: {
-          mode: "batch",
-          allowUpdating: true
+          mode: "batch"
         },
         alignment: 'left',
         headerFilter: {
@@ -137,15 +139,9 @@
           dataSource: 'VBE.gridStore'
         },
         paging: {
-          pageSize: 10
+          pageSize: 127
         },
         remoteOperations: false,
-        pager: {
-          showPageSizeSelector: true,
-          allowedPageSizes: [10, 30, 50],
-          visible: true,
-          showNavigationButtons: true
-        },
         allowColumnReordering: true,
         allowColumnResizing: true,
         columnAutoWidth: true,
@@ -155,29 +151,43 @@
         columns: [
           {
             caption: LC('CAMP.CAMPAIGN.COLUMNS.PLACEMENT'),
-            dataField: 'placement',
+            dataField: 'placement_id',
             alignment: 'center',
-            dataType: 'number',
+            dataType: 'string',
           },
           {
             caption: LC('CAMP.CAMPAIGN.COLUMNS.NETWORK'),
-            dataField: 'NetworkPublisher',
+            dataField: 'publisher',
+            alignment: 'center',
+            dataType: 'string',
+          },
+          {
+            caption: LC('CAMP.CAMPAIGN.COLUMNS.DOMAIN'),
+            dataField: 'domain',
             alignment: 'center',
             dataType: 'string',
           },
           {
             caption: LC('CAMP.CAMPAIGN.COLUMNS.CONV'),
-            dataField: 'conv',
+            dataField: 'total_convs',
             alignment: 'center',
             dataType: 'number',
           },
           {
             caption: LC('CAMP.CAMPAIGN.COLUMNS.IMP'),
-            dataField: 'imp',
+            dataField: 'imps',
             dataType: 'number',
             sortOrder: 'desc',
             alignment: 'center',
-          format:'fixedPoint'
+            format:'fixedPoint'
+          },
+          {
+            caption: LC('CAMP.CAMPAIGN.COLUMNS.IMPS_VIEWED'),
+            dataField: 'imps_viewed',
+            dataType: 'number',
+            sortOrder: 'desc',
+            alignment: 'center',
+            format:'fixedPoint'
           },
           {
             caption: LC('CAMP.CAMPAIGN.COLUMNS.CPA') + ' ,$',
@@ -188,9 +198,9 @@
           },
           {
             caption: LC('CAMP.CAMPAIGN.COLUMNS.COST') + ' ,$',
-            dataField: 'cost',
-            alignment: 'center',
+            dataField: 'sum_cost',
             dataType: 'number',
+            alignment: 'center',
             format:'currency'
           },
           {
@@ -229,14 +239,6 @@
             format:'percent'
           },
           {
-            caption: LC('CAMP.CAMPAIGN.COLUMNS.IMPS_VIEWED'),
-            dataField: 'imps_viewed',
-            alignment: 'center',
-            visible: false,
-            width: 80,
-            dataType: 'number',
-          },
-          {
             caption: LC('CAMP.CAMPAIGN.COLUMNS.VIEW_MEASURED_IMPS'),
             dataField: 'view_measured_imps',
             alignment: 'center',
@@ -261,89 +263,59 @@
             dataType: 'number',
           },
           {
-            caption: 'Prediction 1',
-            width: 115,
+            caption: 'Good/Bad',
             columnIndex: 16,
-            dataField: 'analytics',
+            dataField: 'goodBad',
+            width:100,
             allowEditing: false,
             cellTemplate: function (container, options) {
-              vm.arrayDiagram.push(options.data);
-              if (options.data.analitics === null) {
-                //                var tpl = $compile(
-                // '<div class="analiticCO">'+
-               //  '</div>;')( $scope );
-              //   tpl.appendTo(container);
-              } else {
-                var bad = options.data.analitics.bad;
-                var good = options.data.analitics.good;
-                var badOpasity = options.data.analitics.badOpasity;
-                var goodOpasity = options.data.analitics.goodOpasity;
-                var k = options.data.analitics.k;
-                var goodDiagram = options.data.analitics.goodDiagram;
-                var badDiagram = options.data.analitics.badDiagram;
                 var tpl = $compile(
-                  '<div class="analiticCO">' +
-                  '<div class="diagramCO" ng-click="VBE.showAllDiagram(' + options.data.placement + ')">' +
-                  '<div class="badDiagramCO" style="width:' + badDiagram + ';opacity:' + badOpasity + ';"></div>' +
-                  '<div class="goodDiagramCO" style="width:' + goodDiagram + ';opacity:' + goodOpasity + ';"></div>' +
-                  '<p class="textBadDiagramCO" >' + k.toFixed(1) + '%</p>' +
-                  '<p class="textGoodDiagramCO">' + (100 - k).toFixed(1) + '%</p>' +
-                  '</div>' +
-                  '<div class="buttonAnaliticCO' + options.data.placement + '">' +
-                  '<div class="trueButtonAnaliticCO' + options.data.placement + '"></div>' +
-                  '<div class="falseButtonAnaliticCO' + options.data.placement + '"></div>' +
-                  '</div>' +
-                  '</div>;')($scope);
+                  '<div class="goodBad">' +
+                  '<div class="button goodButtonAnaliticCO' + options.data.placement_id + '"></div>' +
+                  '<div class="badButtonAnaliticCO' + options.data.placement_id + '"></div>' +
+                  '</div>')($scope);
                 tpl.appendTo(container);
 
-                var trueButton = $window.$(".trueButtonAnaliticCO" + options.data.placement).dxButton({
-                  text: 'True',
+                var trueButton = $window.$(".goodButtonAnaliticCO" + options.data.placement_id).dxButton({
+                  text: 'Good',
+                  width: 80,
                   disabled: false,
                   onClick: function () {
-                    $window.$(".falseButtonAnaliticCO" + options.data.placement).removeClass('active-white');
-                    $window.$(".trueButtonAnaliticCO" + options.data.placement).addClass('active-white');
-                    valuationByExpertS.decisionML(vm.campId, options.data.placement, true)
+                    $window.$(".badButtonAnaliticCO" + options.data.placement_id).removeClass('active-white');
+                    $window.$(".goodButtonAnaliticCO" + options.data.placement_id).addClass('active-white');
+                    valuationByExpertS.goodBadSend(options.data.placement_id, 'good')
                       .then(function (res) {
                         return res;
                       });
                   }
                 });
 
-                var falseButton = $window.$(".falseButtonAnaliticCO" + options.data.placement).dxButton({
-                  text: 'False',
+                var falseButton = $window.$(".badButtonAnaliticCO" + options.data.placement_id).dxButton({
+                  text: 'Bad',
                   disabled: false,
+                  width: 80,
                   onClick: function () {
-                    $window.$(".falseButtonAnaliticCO" + options.data.placement).addClass('active-white');
-                    $window.$(".trueButtonAnaliticCO" + options.data.placement).removeClass('active-white');
-                    valuationByExpertS.decisionML(vm.campId, options.data.placement, false)
+                    $window.$(".badButtonAnaliticCO" + options.data.placement_id).addClass('active-white');
+                    $window.$(".goodButtonAnaliticCO" + options.data.placement_id).removeClass('active-white');
+                    valuationByExpertS.goodBadSend(options.data.placement_id, 'bad')
                       .then(function (res) {
                         return res;
                       });
                   }
                 });
 
-                if (options.data.analitics.checked == true) {
+                if (options.data.mark == 'good') {
                   trueButton.addClass('active-white').append();
                 } else {
                   trueButton.append();
                 }
 
-                if (options.data.analitics.checked == false) {
+                if (options.data.mark == 'bad') {
                   falseButton.addClass('active-white').append();
                 } else {
                   falseButton.append();
                 }
-
-                vm.showAllDiagram = function (item) {
-                  vm.popUpIf = true;
-                  valuationByExpertS.showAllMLDiagram(vm.campId, item)
-                    .then(function (res) {
-                      vm.arraytoPopup = res;
-                    });
-                };
-
               }
-            }
           }
         ],
         columnChooser: {

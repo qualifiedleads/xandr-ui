@@ -3,10 +3,10 @@
 
   angular
     .module('pjtLayout')
-    .service('CampDetails', CampDetails);
+    .service('CPA', CPA);
 
   /** @ngInject */
-  function CampDetails($http, $cookies) {
+  function CPA($http, $cookies) {
     var _this = this;
 
 

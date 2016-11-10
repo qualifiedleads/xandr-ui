@@ -1,0 +1,57 @@
+<div class="container-fluid container-camp col-lg-12  col-md-12 col-sm-12">
+  <div class="row stats-header">
+    <div class="groupHeadOpti">
+      <span translate="CAMP.NAME" class="camp-header"></span>:<span class="camp-header">
+        <a href="" ui-sref="home.campaign ({id: cpa.campId})"  >{{cpa.campName}} </a>
+        <div class="control pull-right" dx-select-box="cpa.UI.datePiker"></div>
+      </span>
+    </div>
+  </div>
+  <div class="second-container-details row">
+    <div class="label-container">
+      <input type="button"  ng-click="cpa.selectInfoBtn($event, cpa.ctrlBbtns.placement.header)"  name='Placement' value="{{cpa.ctrlBbtns.placement.btn}}" class="nav-btn">
+      <input type="button"  ng-click="cpa.selectInfoBtn($event, cpa.ctrlBbtns.creativeId.header)" name='creative_id' value="{{cpa.ctrlBbtns.creativeId.btn}}" class="nav-btn">
+      <input type="button"   ng-click="cpa.selectInfoBtn($event, cpa.ctrlBbtns.creativeSize.header)" name='creative_size' value="{{cpa.ctrlBbtns.creativeSize.btn}}" class="nav-btn">
+      <input type="button"   ng-click="cpa.selectInfoBtn($event, cpa.ctrlBbtns.os.header)" name='OS' value="{{cpa.ctrlBbtns.os.btn}}" class="nav-btn">
+      <input type="button"  ng-click="cpa.selectInfoBtn($event, cpa.ctrlBbtns.carrier.header)" name='carrier' value="{{cpa.ctrlBbtns.carrier.btn}}" class="nav-btn">
+      <input type="button"   ng-click="cpa.selectInfoBtn($event, cpa.ctrlBbtns.networkSeller.header)" name='network(seller)' value="{{cpa.ctrlBbtns.networkSeller.btn}}" class="nav-btn">
+      <input type="button"   ng-click="cpa.selectInfoBtn($event, cpa.ctrlBbtns.connectionType.header)" name='connection_type' value="{{cpa.ctrlBbtns.connectionType.btn}}" class="nav-btn">
+      <input type="button"   ng-click="cpa.selectInfoBtn($event, cpa.ctrlBbtns.device.header)" name='device' value="{{cpa.ctrlBbtns.device.btn}}" class="nav-btn">
+    </div>
+    <div class="pie-chart-container">
+      <div class="header-pie-chart">
+        <div class="pie-chart-header"><h4>{{cpa.pieChartHeader}}</h4></div>
+        <div class="target-cpa-container">
+          <div class="input-target-cpa-text">target CPA</div>
+          <input class="input-target-cpa" type="text" ng-blur="cpa.targetCpaChange($event)" ng-keyup="$event.keyCode == 13 && cpa.targetCpaChange($event)" ng-model="cpa.targetCpa" maxlength="4">
+        </div>
+      </div>
+      <div class="pie-charts">
+        <div class="chart-container" dx-pie-chart="cpa.pieChartAll"></div>
+        <div class="chart-container" dx-pie-chart="cpa.pieChartConversions"></div>
+      </div>
+      <div class="row">
+        <div class="col-lg-6 cpa-buckets-container">
+          <span class="first">${{cpa.backetsRanges.first.min}}-${{cpa.backetsRanges.first.max}}</span>
+          <div id="backets-1" dx-data-grid="cpa.cpaBucketFirst"></div>
+        </div>
+        <div class="col-lg-6 cpa-buckets-container">
+          <span class="first">${{cpa.backetsRanges.second.min}}-${{cpa.backetsRanges.second.max}}</span>
+          <div id="backets-2"  dx-data-grid="cpa.cpaBucketSecond"></div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-lg-6 cpa-buckets-container">
+          <span class="first">${{cpa.backetsRanges.third.min}}-${{cpa.backetsRanges.third.max}}</span>
+          <div id="backets-3"  dx-data-grid="cpa.cpaBucketThird"></div>
+        </div>
+        <div class="col-lg-6 cpa-buckets-container">
+          <span class="first">${{cpa.backetsRanges.fourth.min}}+</span>
+          <div id="backets-4"  dx-data-grid="cpa.cpaBucketFourth"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+

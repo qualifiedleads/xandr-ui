@@ -173,7 +173,7 @@ def mlBuildROC(test_type = "kmeans", test_name = "ctr_cvr_cpc_cpm_cpa", date = -
 
         if len(testSamples) != samplesNumb:
             print "Not all placements are marked by experts"
-            return -1
+            return -1, -1
 
         goodPlacements = []
         badPlacements = []
@@ -375,6 +375,8 @@ def partition(FPR,first,last, sens):
 
 def mlCalcAuc(test_type = "kmeans", test_name = "ctr_cvr_cpc_cpm_cpa", date = -1):
     rocSensetivities, rocFalsePositivesRates = mlBuildROC(test_type, test_name)
+    if rocSensetivities == -1:
+        return -1
     quickSort(rocFalsePositivesRates, rocSensetivities)#create sorting of rocSensetivities,rocFalsePositivesRates asc
     auc = 0
     for i in xrange(1, len(rocFalsePositivesRates)):

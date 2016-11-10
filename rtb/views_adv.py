@@ -956,6 +956,8 @@ def mlApiCalcAUC(request):
     test_type = request.GET.get("test_type")
     test_name = request.GET.get("test_name")
     res = mlCalcAuc(test_type, test_name)
+    if res == -1:
+        return Response(status=status.HTTP_400_BAD_REQUEST)
     return Response(res)
 
 @api_view(['GET', 'POST'])

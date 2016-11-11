@@ -9,6 +9,7 @@
   function HomeController($localStorage, $state, $cookies, $window, $rootScope) {
     var vm = this;
     vm.advertiser = {};
+    vm.isEven = false;
 
     if (($rootScope.id == null) && ($rootScope.name == null) && ($localStorage.campaign != null)) {
       $rootScope.id = $localStorage.campaign.id;
@@ -24,6 +25,10 @@
       (($cookies.get('permission') =='userfull') || $cookies.get('permission') =='userread')){
       vm.isEven = false;
     }
+
+    vm.goToMainPage = function () {
+      $state.go('auth');
+    };
 
     if($localStorage.advertiser == null){
       $state.go('auth');

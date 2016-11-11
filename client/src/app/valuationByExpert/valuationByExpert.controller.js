@@ -13,9 +13,12 @@
     vm.arrayDiagram = [];
     vm.popUpIf = false;
     vm.culcReady = false;
+    vm.chartCoord = [];
+    var buttonIndicator, buttonIndicator1;
     vm.popUpHide = function () {
       vm.popUpIf = false;
     };
+    vm.auc = null;
 
     //region DATE PIKER
     /** DATE PIKER **/
@@ -108,19 +111,97 @@
       },
       calculateAUC: {
         text: LC('VBE.CALCULATE-AUC'),
-        onClick: function () {
-          vm.culcReady = true;
-          $scope.$apply();
+        template: function(data, container) {
+          $("<div class='button-indicator'></div><span class='dx-button-text'>" + data.text + "</span>").appendTo(container);
+          buttonIndicator = container.find(".button-indicator").dxLoadIndicator({
+            height: 15,
+            visible: false
+          }).dxLoadIndicator("instance");
+        },
+        onClick: function (data) {
+          data.component.option("text", "Calculate");
+          buttonIndicator.option("visible", true);
+          valuationByExpertS.MLGetAUC()
+            .then(function (res) {
+              vm.auc = res.auc;
+              vm.chartCoord = res.chartCoord;
+              vm.culcReady = true;
+              buttonIndicator.option("visible", false);
+              data.component.option("text", "Calculate AUC");
+            })
+            .catch(function (err) {
+              buttonIndicator.option("visible", false);
+              data.component.option("text", "Calculate AUC");
+            });
         }
-      }
-      ,createTestSet: {
+      },
+      createTestSet: {
         text: LC('VBE.CREATE-TEST-SET'),
-        onClick: function () {
-          valuationByExpertS._MLRandomTestSet('create').then(function (res) {
-            console.log(res);
-          });
-
-          $scope.$apply();
+        template: function(data, container) {
+          $("<div class='button-indicator1'></div><span class='dx-button-text'>" + data.text + "</span>").appendTo(container);
+          buttonIndicator1 = container.find(".button-indicator1").dxLoadIndicator({
+            height: 10,
+            visible: false
+          }).dxLoadIndicator("instance");
+        },
+        onClick: function (data) {
+          data.component.option("text", "Create");
+          buttonIndicator1.option("visible", true);
+          valuationByExpertS._MLRandomTestSet('create')
+            .then(function (res) {
+              $('.gridContainerWhite').dxDataGrid('instance').refresh();
+              buttonIndicator1.option("visible", false);
+              data.component.option("text", "Create test set");
+            })
+            .catch(function (err) {
+              buttonIndicator1.option("visible", false);
+              data.component.option("text", "Create test set");
+            });
+        }
+      },
+      ROC_curve: {
+        palette: "violet",
+        bindingOptions: {
+          dataSource: "VBE.chartCoord"
+        },
+        commonSeriesSettings: {
+          argumentField: "rocFalsePositiveRate",
+          type: 'line'
+        },
+        margin: {
+          bottom: 20
+        },
+        argumentAxis: {
+          valueMarginsEnabled: false,
+          discreteAxisDivisionMode: "crossLabels",
+          grid: {
+            visible: true
+          }
+        },
+        size: {
+          width: 800,
+          height: 800
+        },
+        series: [
+          { valueField: "rocSensetivities", name: "ROC Curve", showInLegend: false },
+          { valueField: "diagonal", showInLegend: false, color: 'gray'}
+        ],
+        title: {
+          text: "ROC Curve",
+          subtitle: {
+            text: "(Confidence interval - 95%, Confidence error - 5%)"
+          }
+        },
+        "export": {
+          enabled: true
+        },
+        tooltip: {
+          enabled: true,
+          customizeTooltip: function (arg) {
+            return {
+              text: arg.valueText
+            };
+          }
         }
       },
       dataGridOptionsExpert: {
@@ -269,53 +350,53 @@
             width:100,
             allowEditing: false,
             cellTemplate: function (container, options) {
-                var tpl = $compile(
-                  '<div class="goodBad">' +
-                  '<div class="button goodButtonAnaliticCO' + options.data.placement_id + '"></div>' +
-                  '<div class="badButtonAnaliticCO' + options.data.placement_id + '"></div>' +
-                  '</div>')($scope);
-                tpl.appendTo(container);
+              var tpl = $compile(
+                '<div class="goodBad">' +
+                '<div class="button goodButtonAnaliticCO' + options.data.placement_id + '"></div>' +
+                '<div class="badButtonAnaliticCO' + options.data.placement_id + '"></div>' +
+                '</div>')($scope);
+              tpl.appendTo(container);
 
-                var trueButton = $window.$(".goodButtonAnaliticCO" + options.data.placement_id).dxButton({
-                  text: 'Good',
-                  width: 80,
-                  disabled: false,
-                  onClick: function () {
-                    $window.$(".badButtonAnaliticCO" + options.data.placement_id).removeClass('active-white');
-                    $window.$(".goodButtonAnaliticCO" + options.data.placement_id).addClass('active-white');
-                    valuationByExpertS.goodBadSend(options.data.placement_id, 'good')
-                      .then(function (res) {
-                        return res;
-                      });
-                  }
-                });
-
-                var falseButton = $window.$(".badButtonAnaliticCO" + options.data.placement_id).dxButton({
-                  text: 'Bad',
-                  disabled: false,
-                  width: 80,
-                  onClick: function () {
-                    $window.$(".badButtonAnaliticCO" + options.data.placement_id).addClass('active-white');
-                    $window.$(".goodButtonAnaliticCO" + options.data.placement_id).removeClass('active-white');
-                    valuationByExpertS.goodBadSend(options.data.placement_id, 'bad')
-                      .then(function (res) {
-                        return res;
-                      });
-                  }
-                });
-
-                if (options.data.mark == 'good') {
-                  trueButton.addClass('active-white').append();
-                } else {
-                  trueButton.append();
+              var trueButton = $window.$(".goodButtonAnaliticCO" + options.data.placement_id).dxButton({
+                text: 'Good',
+                width: 80,
+                disabled: false,
+                onClick: function () {
+                  $window.$(".badButtonAnaliticCO" + options.data.placement_id).removeClass('active-white');
+                  $window.$(".goodButtonAnaliticCO" + options.data.placement_id).addClass('active-white');
+                  valuationByExpertS.goodBadSend(options.data.placement_id, 'good')
+                    .then(function (res) {
+                      return res;
+                    });
                 }
+              });
 
-                if (options.data.mark == 'bad') {
-                  falseButton.addClass('active-white').append();
-                } else {
-                  falseButton.append();
+              var falseButton = $window.$(".badButtonAnaliticCO" + options.data.placement_id).dxButton({
+                text: 'Bad',
+                disabled: false,
+                width: 80,
+                onClick: function () {
+                  $window.$(".badButtonAnaliticCO" + options.data.placement_id).addClass('active-white');
+                  $window.$(".goodButtonAnaliticCO" + options.data.placement_id).removeClass('active-white');
+                  valuationByExpertS.goodBadSend(options.data.placement_id, 'bad')
+                    .then(function (res) {
+                      return res;
+                    });
                 }
+              });
+
+              if (options.data.mark == 'good') {
+                trueButton.addClass('active-white').append();
+              } else {
+                trueButton.append();
               }
+
+              if (options.data.mark == 'bad') {
+                falseButton.addClass('active-white').append();
+              } else {
+                falseButton.append();
+              }
+            }
           }
         ],
         columnChooser: {

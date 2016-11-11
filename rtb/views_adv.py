@@ -712,7 +712,7 @@ def mlFillPredictionAnswer(placement_id = 1, flagAllWeek = False, test_type = "k
     return res
 
 @api_view(["GET"])
-@check_user_advertiser_permissions(campaign_id_num=0)
+#@check_user_advertiser_permissions(campaign_id_num=0)
 def mlApiRandomTestSet(request):
     action = request.GET.get("action")
     if action == "create":
@@ -814,7 +814,7 @@ def mlApiRandomTestSet(request):
     return Response(status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(["GET"])
-@check_user_advertiser_permissions(campaign_id_num=0)
+#@check_user_advertiser_permissions(campaign_id_num=0)
 def mlApiSaveExpertPlacementMark(request):
     placement_id = request.GET.get("placementId")
     day = request.GET.get("day")
@@ -951,7 +951,7 @@ def getPlacementDomain(placementId):
     return allDomains, domain
 
 @api_view(["GET"])
-@check_user_advertiser_permissions(campaign_id_num=0)
+#@check_user_advertiser_permissions(campaign_id_num=0)
 def mlApiCalcAUC(request):
     test_type = request.GET.get("test_type")
     test_name = request.GET.get("test_name")

@@ -72,7 +72,51 @@
         });
     }
 
+    //http://localhost:8000/api/v1/MLGetAUC?test_type=kmeans&test_name=ctr_cvr_cpc_cpm_cpa
+    function MLGetAUC() {
+      return $http({
+        method: 'GET',
+        url: '/api/v1/MLGetAUC',
+        headers: {'Authorization': 'Token ' + $cookies.get('token')},
+        params: {
+          test_type: 'kmeans',
+          test_name: 'ctr_cvr_cpc_cpm_cpa'
+        }
+      })
+        .then(function (res) {
+          for (var item in res.data.chartCoord) {
+            res.data.chartCoord[item].rocSensetivities = parseFloat((res.data.chartCoord[item].rocSensetivities || 0).toFixed(4));
+            res.data.chartCoord[item].rocFalsePositiveRate = parseFloat((res.data.chartCoord[item].rocFalsePositiveRate || 0).toFixed(4));
+          }
+          res.data.auc = parseFloat((res.data.auc || 0).toFixed(4));
+          res.data.chartCoord[0].diagonal = 0;
+          res.data.chartCoord[res.data.chartCoord.length-1].diagonal = 100;
+          return res.data;
+        })
+        .catch(function (err) {
+          if (err.status == 400) {
+            return $window.DevExpress.ui.notify("Not all placements are marked by experts", "warning", 6000);
+          }
+          $window.DevExpress.ui.notify(err.statusText, "error", 4000);
+        });
+    }
 
+    function chartAUC () {
+      return new $window.DevExpress.data.CustomStore({
+        totalCount: function () {
+          return 0;
+        },
+        load: function () {
+          return MLGetAUC()
+          .then(function (result) {
+            return result;
+          });
+        }
+      });
+    }
+
+    _this.MLGetAUC = MLGetAUC;
+    _this.chartAUC = chartAUC;
     _this.goodBadSend = goodBadSend;
     _this._MLRandomTestSet = _MLRandomTestSet;
     _this.getGridCampaignStore = getGridCampaignStore;

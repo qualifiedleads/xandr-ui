@@ -378,6 +378,26 @@ def mlCalcAuc(test_type = "kmeans", test_name = "ctr_cvr_cpc_cpm_cpa", date = -1
     if rocSensetivities == -1:
         return -1
     quickSort(rocFalsePositivesRates, rocSensetivities)#create sorting of rocSensetivities,rocFalsePositivesRates asc
+
+    i = 1#sorting of the points with same FPR
+    while i < len(rocFalsePositivesRates):
+        if rocFalsePositivesRates[i - 1] == rocFalsePositivesRates[i]:
+            for j in xrange(i + 1, len(rocFalsePositivesRates)):
+                if rocFalsePositivesRates[j] != rocFalsePositivesRates[i]:
+                    for indIns in xrange(i - 1, j):
+                        indMin = indIns
+                        valMin = rocSensetivities[indIns]
+                        for indIn in xrange(indIns, j):
+                            if rocSensetivities[indIn] < valMin:
+                                indMin = indIn
+                                valMin = rocSensetivities[indIn]
+                        temp = rocSensetivities[indIns]
+                        rocSensetivities[indIns] = rocSensetivities[indMin]
+                        rocSensetivities[indMin] = temp
+                    i = j - 1
+                    break
+        i += 1
+
     auc = 0
     for i in xrange(1, len(rocFalsePositivesRates)):
         auc += ((((rocSensetivities[i-1] + rocSensetivities[i])/100.0) * ((rocFalsePositivesRates[i] - rocFalsePositivesRates[i-1])/100.0)) / 2.0)

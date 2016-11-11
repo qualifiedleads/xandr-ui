@@ -20,6 +20,13 @@
     };
     vm.auc = null;
 
+    valuationByExpertS.MLGetAUC()
+      .then(function (res) {
+        vm.auc = res.auc;
+        vm.chartCoord = res.chartCoord;
+        vm.culcReady = true;
+      });
+
     //region DATE PIKER
     /** DATE PIKER **/
     if ($localStorage.SelectedTime == null) {

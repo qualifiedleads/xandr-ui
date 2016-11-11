@@ -1,7 +1,9 @@
 <div class="container-fluid container-camp col-lg-12  col-md-12 col-sm-12">
   <div class="row stats-header">
-    <span translate="CAMP.NAME" class="camp-header"></span><span class="camp-header"> {{campmain.campName}} </span><br>
-    <span translate="CAMP.LINE_ITEM" class="camp-header"></span><span class="camp-header"> {{campmain.line_item}} </span>
+    <span translate="CAMP.NAME" class="camp-header"></span><span class="camp-header">
+    <a href="" ui-sref="home.campaign({id: campmain.campId})"  >{{campmain.campName}} </a>
+      </span>
+      <br><span ng-if="campmain.line_item != null" translate="CAMP.LINE_ITEM" class="camp-header"></span><span class="camp-line-item"> {{campmain.line_item}} </span>
     <div class="control pull-right" dx-select-box="campmain.datePiker"></div>
   </div>
   <div class="row camp-content1">

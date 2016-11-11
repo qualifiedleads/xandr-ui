@@ -242,7 +242,7 @@ class PlacementState:
                 string = profile['profile__platform_placement_targets']
                 if string is None:
                     ModelPlacementState.objects.filter(campaign_id=profile['id'], change=False).delete()
-                    print "Delete all placement for campaign - " + profile['id']
+                    print "Delete all placement for campaign - " + str(profile['id'])
                     continue
                 placementTargets = unicodedata.normalize('NFKD', string).encode('utf-8', 'ignore')
                 placementTargets = re.sub('\'', '"', placementTargets)
@@ -357,7 +357,7 @@ class PlacementState:
                                 placement_id=int(placement),
                                 campaign_id=int(campaign_id),
                                 defaults={"state": stateGet, "change": False})
-                    print 'List for '+str(placement_id) + ' to platform placement targets, profile: ' + updated_profile
+                    print 'List for '+str(placement_id) + ' to platform placement targets, profile: ' + str(updated_profile)
                 else:
                     updated_profile = self.update_profile_by_id(platform_placement_targets, placement_id,
                                                                 profile_id, advertiser_id, tempState)
@@ -367,7 +367,7 @@ class PlacementState:
                                 placement_id=int(placement),
                                 campaign_id=int(campaign_id),
                                 defaults={"state": stateGet, "change": False})
-                    print 'List for ' + str(placement_id) + ' to platform placement targets, profile: ' + updated_profile
+                    print 'List for ' + str(placement_id) + ' to platform placement targets, profile: ' + str(updated_profile)
             print "Sync white and black list to platform placement targets."
             return True
         except:

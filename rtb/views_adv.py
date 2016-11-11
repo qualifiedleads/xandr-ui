@@ -873,7 +873,7 @@ def changeState(request, campaignId):
     activeState = request.data.get("activeState")   # 4 - white / 2 - black / 1 - suspend
 
     if request.data.get("activeState") == 1 and request.data.get("suspendTimes") is not None and request.data.get("suspendTimes") != "unlimited":
-        date = datetime.date.fromtimestamp(int(request.data.get("suspendTimes")))
+        date = datetime.datetime.fromtimestamp(int(request.data.get("suspendTimes")))
     else:
         date = None
 

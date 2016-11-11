@@ -6,13 +6,14 @@
     .controller('rulesController', rulesController);
 
   /** @ngInject */
-  function rulesController($window, $state, $rootScope, $localStorage, $scope, $translate, $compile, Rules) {
+  function rulesController($window, $state, $rootScope, $localStorage, $translate, Rules, Campaign) {
     var vm = this;
     var LC = $translate.instant;
     var ruleSuspend = false;
     var ruleIndexPopUp = '';
-    vm.campName = $rootScope.name;
-    vm.campId = $rootScope.id;
+    vm.campName = Campaign.campaign;
+    vm.campId = Campaign.id;
+    vm.line_item = Campaign.line_item;
     vm.popUpIf = false;
     vm.arrayDiagram = [];
 

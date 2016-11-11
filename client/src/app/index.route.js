@@ -74,7 +74,17 @@
         url: '/rules/:id',
         templateUrl: 'app/rules/rules.html',
         controller: 'rulesController',
-        controllerAs: 'rulesC'
+        controllerAs: 'rulesC',
+        resolve: {
+          Campaign:  function(CampMain,$stateParams, $state){
+            if (!$stateParams.id) {
+              $state.go('home.main');
+            }
+            return CampMain.nameCampaigns($stateParams.id).then(function (res) {
+              return res
+            });
+          }
+        }
       })
       .state('home.cpa', {
         url: '/cpa/:id',

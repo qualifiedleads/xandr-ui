@@ -602,11 +602,11 @@ def load_depending_data(token, force_update=False, daily_load=True):
                 # Get all of an advertiser's line items:
                 line_items = nexus_get_objects(token,
                                                {'advertiser_id': advertiser_id},
-                                               LineItem, force_update)
+                                               LineItem, daily_load)
                 print 'There is %d  line items' % len(line_items)
                 campaigns = nexus_get_objects(token,
                                               {'advertiser_id': advertiser_id},
-                                              Campaign, force_update)
+                                              Campaign, daily_load)
                 print 'There is %d campaigns ' % len(campaigns)
 
     except Exception as e:

@@ -1,9 +1,9 @@
 <div class="container-fluid optimiser-camp col-lg-12  col-md-12 col-sm-12">
   <div class="row stats-header">
     <div class="groupHeadOpti">
-      <span class="glyphicon glyphicon-cog iconOpti"></span>
-      <span translate="RULESC.OPTIMISER-FOR" class="camp-header"></span>:<span class="camp-header">
+      <span translate="RULESC.OPTIMISER-FOR" class="camp-header"></span><span class="camp-header">
         <a href="" ui-sref="home.campaign({id: rulesC.campId})"  >{{rulesC.campName}} </a>
+      <br><span translate="CAMP.LINE_ITEM" class="camp-header"></span><span class="camp-header"> {{rulesC.line_item}} </span>
         <div class="control pull-right" dx-select-box="rulesC.UI.datePiker"></div>
       </span>
     </div>
@@ -19,7 +19,7 @@
             <label for="checkboxID1"></label>
           </p>
           <div class="DeleteRule">
-            <button class="btn btn-danger " ng-click="rulesC.deleteRule(Index)">RULE DELETE</button>
+            <button class="btn btn-danger" translate="RULESC.RULE-DELETE"  ng-click="rulesC.deleteRule(Index)">RULE DELETE</button>
           </div>
         </div>
 
@@ -91,7 +91,7 @@
       </div>
 
     </fieldset>
-    <button class="btn btn-primary" ng-click="rulesC.addNewRule()">Add rule</button>
-    <button class="btn btn-success" ng-click="rulesC.saveRules()">Save rule</button>
+    <button class="btn btn-primary" translate="RULESC.ADD-RULE" ng-click="rulesC.addNewRule()">Add rule</button>
+    <button class="btn btn-success"  translate="RULESC.SAVE-RULE" ng-click="rulesC.saveRules()">Save rule</button>
   </div>
 </div>

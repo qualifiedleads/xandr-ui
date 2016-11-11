@@ -176,16 +176,22 @@
           discreteAxisDivisionMode: "crossLabels",
           grid: {
             visible: true
-          }
+          },
+          title: 'False positive rate'
         },
         size: {
-          width: 800,
-          height: 800
+          width: 400,
+          height: 400
         },
         series: [
           { valueField: "rocSensetivities", name: "ROC Curve", showInLegend: false },
           { valueField: "diagonal", showInLegend: false, color: 'gray'}
         ],
+        valueAxis: {
+          title: {
+            text: "Sensetivity"
+          }
+        },
         title: {
           text: "ROC Curve",
           subtitle: {
@@ -220,7 +226,7 @@
           dataSource: 'VBE.gridStore'
         },
         paging: {
-          pageSize: 127
+          pageSize: 10
         },
         remoteOperations: false,
         allowColumnReordering: true,
@@ -275,14 +281,16 @@
             dataField: 'cpa',
             dataType: 'number',
             alignment: 'center',
-            format:'currency'
+            format:'currency',
+            precision:4,
           },
           {
             caption: LC('CAMP.CAMPAIGN.COLUMNS.COST') + ' ,$',
             dataField: 'sum_cost',
             dataType: 'number',
             alignment: 'center',
-            format:'currency'
+            format:'currency',
+            precision:4,
           },
           {
             caption: LC('CAMP.CAMPAIGN.COLUMNS.CLICKS'),
@@ -296,6 +304,7 @@
             dataField: 'cpc',
             alignment: 'center',
             dataType: 'number',
+            precision:4,
             format:'currency'
           },
           {
@@ -303,6 +312,7 @@
             dataField: 'cpm',
             alignment: 'center',
             dataType: 'number',
+            precision:4,
             format:'currency'
           },
           {
@@ -310,6 +320,7 @@
             dataField: 'cvr',
             alignment: 'center',
             dataType: 'number',
+            precision:2,
             format:'percent'
           },
           {
@@ -317,6 +328,7 @@
             dataField: 'ctr',
             alignment: 'center',
             dataType: 'number',
+            precision:2,
             format:'percent'
           },
           {

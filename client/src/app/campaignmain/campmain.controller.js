@@ -909,11 +909,11 @@
       },
       loadPanel: {
         shadingColor: "rgba(0,0,0,0.4)",
-
-        position: {at: 'center'},
-        height: 100,
-
-        cssClass: 'Loading'
+        visible: false,
+        showIndicator: true,
+        showPane: true,
+        shading: true,
+        closeOnOutsideClick: false,
       },
       bindingOptions: {
         dataSource: 'campmain.gridStore'

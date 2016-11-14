@@ -235,6 +235,14 @@
         paging: {
           pageSize: 10
         },
+        loadPanel: {
+          shadingColor: "rgba(0,0,0,0.4)",
+          visible: false,
+          showIndicator: true,
+          showPane: true,
+          shading: true,
+          closeOnOutsideClick: false,
+        },
         remoteOperations: false,
         allowColumnReordering: true,
         allowColumnResizing: true,

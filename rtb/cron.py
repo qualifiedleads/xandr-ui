@@ -359,7 +359,6 @@ def load_depending_data(token, force_update=False, daily_load=True):
             for adv in advertisers:
                 # Get all of the profiles for the advertiser
                 profiles = nexus_get_objects(token,
-
                                              {'advertiser_id': adv.id},
                                              Profile, force_update)
                 print 'There is %d profiles' % len(profiles)
@@ -419,11 +418,11 @@ def load_depending_data(token, force_update=False, daily_load=True):
             if cd - date_in_db > settings.INVALIDATE_TIME:
                 o1 = nexus_get_objects(token,
                                        {},  # {'type':'universal'}
-                                       ContentCategory, True,
+                                       ContentCategory, force_update,
                                        {'category_type': 'universal'})
                 o2 = nexus_get_objects(token,
                                        {},
-                                       ContentCategory, True)
+                                       ContentCategory, force_update)
             # end transaction
             print 'There is %d content categories ' % ContentCategory.objects.count()
 
@@ -514,7 +513,7 @@ def load_depending_data(token, force_update=False, daily_load=True):
             # with transaction.atomic():
             nexus_get_objects(token,
                               {},
-                              Creative, False)
+                              Creative, force_update)
             brand_ids = set(Creative.objects.filter(brand_id__isnull=False) \
                                .values_list('brand', flat=True).distinct())
             exiting_brands = set(Brand.objects.values_list('id', flat=True))
@@ -524,7 +523,7 @@ def load_depending_data(token, force_update=False, daily_load=True):
             print 'Brand ids:', ids_list
             brands = nexus_get_objects(token,
                                        {},
-                                       Brand, True,
+                                       Brand, force_update,
                                        {'id':','.join(ids_list), 'simple':'true'})
             print 'There is %d brands ' % len(brands)
             profiles_ids = set(Creative.objects.filter(profile_id__isnull=False) \
@@ -532,7 +531,7 @@ def load_depending_data(token, force_update=False, daily_load=True):
             exiting_profiles = set(Profile.objects.values_list('id', flat=True))
             profiles = nexus_get_objects(token,
                                          {},
-                                         Profile, True,
+                                         Profile, force_update,
                                          {'id':','.join(map(str,profiles_ids-exiting_profiles))})
             print 'There is %d new profiles'%len(profiles)
             # end transaction
@@ -540,20 +539,20 @@ def load_depending_data(token, force_update=False, daily_load=True):
             for pub in []:  # publishers: There is too many publishers, disable loading depended objects
                 payment_rules = nexus_get_objects(token,
                                                   {'publisher': pub},
-                                                  PaymentRule, True,
+                                                  PaymentRule, force_update,
                                                   {'publisher_id': pub.pk})
                 print 'There is %d payment rules for publisher %s' % (len(payment_rules), pub.name)
                 print 'Ids:', ','.join(str(x.pk) for x in payment_rules)
                 quality_rules = nexus_get_objects(token,
                                                   {'publisher': pub},
-                                                  AdQualityRule, True,
+                                                  AdQualityRule, force_update,
                                                   {'publisher_id': pub.pk})
                 print 'There is %d quality rules for publisher %s' % (len(payment_rules), pub.name)
                 # Placement
                 # https://api.appnexus.com/placement?publisher_id=PUBLISHER_ID
                 placements = nexus_get_objects(token,
                                                {'publisher': pub},
-                                               Placement, True,
+                                               Placement, force_update,
                                                {'publisher_id': pub.pk})
                 print 'There is %d placements for publisher %s' % (len(placements), pub.name)
 
@@ -603,11 +602,11 @@ def load_depending_data(token, force_update=False, daily_load=True):
                 # Get all of an advertiser's line items:
                 line_items = nexus_get_objects(token,
                                                {'advertiser_id': advertiser_id},
-                                               LineItem, False)
+                                               LineItem, daily_load)
                 print 'There is %d  line items' % len(line_items)
                 campaigns = nexus_get_objects(token,
                                               {'advertiser_id': advertiser_id},
-                                              Campaign, False)
+                                              Campaign, daily_load)
                 print 'There is %d campaigns ' % len(campaigns)
 
     except Exception as e:
@@ -664,7 +663,7 @@ def dayly_task(day=None, load_objects_from_services=True, output=None):
     try:
         token = get_auth_token()
         if load_objects_from_services:
-            load_depending_data(token)
+            load_depending_data(token, True)
         while day<=last_day:
             load_report(token, day, NetworkCarrierReport_Simple)
             load_report(token, day, NetworkDeviceReport_Simple)

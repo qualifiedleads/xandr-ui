@@ -127,19 +127,19 @@
           for (var indexJ in res.data.campaigns[index].chart) {
             res.data.campaigns[index].chart[indexJ].conv = +parseFloat(res.data.campaigns[index].chart[indexJ].conv).toFixed(4);
             res.data.campaigns[index].chart[indexJ].cpc = +parseFloat(res.data.campaigns[index].chart[indexJ].cpc).toFixed(2);
-            res.data.campaigns[index].chart[indexJ].ctr = +parseFloat(res.data.campaigns[index].chart[indexJ].ctr).toFixed(4);
+            res.data.campaigns[index].chart[indexJ].ctr = +parseFloat(res.data.campaigns[index].chart[indexJ].ctr.toFixed(4));
             res.data.campaigns[index].chart[indexJ].cvr = +parseFloat(res.data.campaigns[index].chart[indexJ].cvr).toFixed(4);
             res.data.campaigns[index].chart[indexJ].spend = +parseFloat(res.data.campaigns[index].chart[indexJ].spend).toFixed(2);
           }
-          res.data.campaigns[index].cvr = +parseFloat(res.data.campaigns[index].cvr).toFixed(4);
-          res.data.campaigns[index].ctr = +parseFloat(res.data.campaigns[index].ctr).toFixed(4);
+          res.data.campaigns[index].cvr = +parseFloat(res.data.campaigns[index].cvr).toFixed(2)/100;
+          res.data.campaigns[index].ctr = +parseFloat(res.data.campaigns[index].ctr).toFixed(2)/100;
           res.data.campaigns[index].cpc = +parseFloat(res.data.campaigns[index].cpc).toFixed(4);
           res.data.campaigns[index].cpm = +parseFloat(res.data.campaigns[index].cpm).toFixed(4);
           res.data.campaigns[index].spend = +parseFloat(res.data.campaigns[index].spend).toFixed(4);
           res.data.campaigns[index].imps_viewed = +parseFloat(res.data.campaigns[index].imps_viewed).toFixed(4);
           res.data.campaigns[index].view_measured_imps = +parseFloat(res.data.campaigns[index].view_measured_imps).toFixed(4);
-          res.data.campaigns[index].view_measurement_rate = +parseFloat(res.data.campaigns[index].view_measurement_rate).toFixed(1);
-          res.data.campaigns[index].view_rate = +parseFloat(res.data.campaigns[index].view_rate).toFixed(1);
+          res.data.campaigns[index].view_measurement_rate = +parseFloat(res.data.campaigns[index].view_measurement_rate).toFixed(1)/100;
+          res.data.campaigns[index].view_rate = +parseFloat(res.data.campaigns[index].view_rate).toFixed(1)/100;
         }
         return res.data;
       })

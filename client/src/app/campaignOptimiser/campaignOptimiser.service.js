@@ -68,15 +68,33 @@
               var good = res.data.data[item].analitics.good;
               var badOpasity = 1;
               var goodOpasity = 1;
-              var k = +((bad*100)/(bad + good));
-              if (((k/100 <=0.5)) && (((k/100) >0.45)) || ((((100-k)/100)<=0.5) && (((100-k)/100)>0.45 ))) { badOpasity = 0.03; goodOpasity = 0.03;}
-              if ((k/100 <0.45 && k/100 >0.4)  || (((100-k)/100)<0.45 && ((100-k)/100)>0.4 )) { badOpasity = 0.09; goodOpasity = 0.09;}
-              if ((k/100 <0.4 && k/100 >0.3)   || (((100-k)/100)<0.4 && ((100-k)/100)>0.3 )) { badOpasity = 0.2; goodOpasity = 0.2;}
-              if ((k/100 <0.3 && k/100 >0.2)   || (((100-k)/100)<0.3 && ((100-k)/100)>0.2 )) { badOpasity = 0.5; goodOpasity = 0.5;}
-              if ((k/100 <0.2 && k/100 >0.1)   || (((100-k)/100)<0.2 && ((100-k)/100)>0.1 )) { badOpasity = 0.7; goodOpasity = 0.7;}
-              if ((k/100 <0.1 && k/100 >0)     || (((100-k)/100)<0.1 && ((100-k)/100)>0 )) { badOpasity = 1.0; goodOpasity = 1.0;}
-              var goodDiagram = (100-k)+'%';
-              var badDiagram = k+'%';
+              var k = +((bad * 100) / (bad + good));
+              if (((k / 100 <= 0.5)) && (((k / 100) > 0.45)) || ((((100 - k) / 100) <= 0.5) && (((100 - k) / 100) > 0.45 ))) {
+                badOpasity = 0.03;
+                goodOpasity = 0.03;
+              }
+              if ((k / 100 < 0.45 && k / 100 > 0.4) || (((100 - k) / 100) < 0.45 && ((100 - k) / 100) > 0.4 )) {
+                badOpasity = 0.09;
+                goodOpasity = 0.09;
+              }
+              if ((k / 100 < 0.4 && k / 100 > 0.3) || (((100 - k) / 100) < 0.4 && ((100 - k) / 100) > 0.3 )) {
+                badOpasity = 0.2;
+                goodOpasity = 0.2;
+              }
+              if ((k / 100 < 0.3 && k / 100 > 0.2) || (((100 - k) / 100) < 0.3 && ((100 - k) / 100) > 0.2 )) {
+                badOpasity = 0.5;
+                goodOpasity = 0.5;
+              }
+              if ((k / 100 < 0.2 && k / 100 > 0.1) || (((100 - k) / 100) < 0.2 && ((100 - k) / 100) > 0.1 )) {
+                badOpasity = 0.7;
+                goodOpasity = 0.7;
+              }
+              if ((k / 100 < 0.1 && k / 100 > 0) || (((100 - k) / 100) < 0.1 && ((100 - k) / 100) > 0 )) {
+                badOpasity = 1.0;
+                goodOpasity = 1.0;
+              }
+              var goodDiagram = (100 - k) + '%';
+              var badDiagram = k + '%';
 
 
               itemArray = {
@@ -91,21 +109,21 @@
               };
             }
 
-            res.data.data[item].cvr= parseFloat((res.data.data[item].cvr || 0).toFixed(4)),
-              res.data.data[item].ctr= parseFloat((res.data.data[item].ctr || 0).toFixed(4)),
-              res.data.data[item].cpc= parseFloat((res.data.data[item].cpc || 0).toFixed(4)),
-              res.data.data[item].cpm= parseFloat((res.data.data[item].cpm || 0).toFixed(4)),
-              res.data.data[item].imp= parseFloat((res.data.data[item].imp || 0).toFixed(4)),
-              res.data.data[item].cpa= parseFloat((res.data.data[item].cpa || 0).toFixed(4)),
-              res.data.data[item].clicks= parseFloat((res.data.data[item].clicks || 0).toFixed(4)),
-              res.data.data[item].conv= parseFloat((res.data.data[item].conv || 0).toFixed(4)),
-              res.data.data[item].cost= parseFloat((res.data.data[item].cost || 0).toFixed(2)),
+            res.data.data[item].cvr = parseFloat((res.data.data[item].cvr || 0).toFixed(2)/100),
+              res.data.data[item].ctr = parseFloat((res.data.data[item].ctr || 0).toFixed(2)/100),
+              res.data.data[item].cpc = parseFloat((res.data.data[item].cpc || 0).toFixed(4)),
+              res.data.data[item].cpm = parseFloat((res.data.data[item].cpm || 0).toFixed(4)),
+              res.data.data[item].imp = parseFloat((res.data.data[item].imp || 0).toFixed(4)),
+              res.data.data[item].cpa = parseFloat((res.data.data[item].cpa || 0).toFixed(4)),
+              res.data.data[item].clicks = parseFloat((res.data.data[item].clicks || 0).toFixed(4)),
+              res.data.data[item].conv = parseFloat((res.data.data[item].conv || 0).toFixed(4)),
+              res.data.data[item].cost = parseFloat((res.data.data[item].cost || 0).toFixed(2)),
               res.data.data[item].analitics = itemArray,
-              res.data.data[item].imps_viewed= parseFloat((res.data.data[item].imps_viewed || 0).toFixed(4)),
-              res.data.data[item].view_measured_imps= parseFloat((res.data.data[item].view_measured_imps || 0).toFixed(4)),
-              res.data.data[item].view_measurement_rate= parseFloat((res.data.data[item].view_measurement_rate || 0).toFixed(1)),
-              res.data.data[item].view_rate= parseFloat((res.data.data[item].view_rate || 0).toFixed(1)),
-              res.data.data[item].state= {
+              res.data.data[item].imps_viewed = parseFloat((res.data.data[item].imps_viewed || 0).toFixed(4)),
+              res.data.data[item].view_measured_imps = parseFloat((res.data.data[item].view_measured_imps || 0).toFixed(4)),
+              res.data.data[item].view_measurement_rate = parseFloat((res.data.data[item].view_measurement_rate || 0).toFixed(1)/100),
+              res.data.data[item].view_rate = parseFloat((res.data.data[item].view_rate || 0).toFixed(1)/100),
+              res.data.data[item].state = {
                 blackList: res.data.data[item].state & 2,
                 suspended: res.data.data[item].state & 1,
                 whiteList: res.data.data[item].state & 4
@@ -150,7 +168,7 @@
       };
     }
 
-    function editCampaignDomains(id,placement,activeState, time) {
+    function editCampaignDomains(id, placement, activeState, time) {
       return $http({
         method: 'POST',
         url: '/api/v1/campaigns/' + encodeURI(id) + '/changestate',
@@ -278,71 +296,8 @@
         });
     }
 
-    function saveRules(id, ruleObj) {
-      return $http({
-        method: 'POST',
-        url: '/api/v1/campaigns/' + id + '/rules',
-        headers: {'Authorization': 'Token ' + $cookies.get('token')},
-        data: {ruleObj: ruleObj}
-      })
-        .then(function (res) {
-          return res.data;
-        })
-        .catch(function (err) {
-          $window.DevExpress.ui.notify(err.statusText, "error", 4000);
-        });
-    }
-
-    function getRules(id) {
-      return $http({
-        method: 'GET',
-        url: '/api/v1/campaigns/' + id + '/rules',
-        headers: {'Authorization': 'Token ' + $cookies.get('token')},
-      })
-        .then(function (res) {
-          //return res.data;
-          return [
-            {
-              "id": "rule",
-              "if": [
-                {
-                  id_rule: 'NewRule1',
-                  "type": "condition",
-                  "target": "Placement/App",
-                  "payment": "CPA",
-                  "compare": ">",
-                  "value": 0
-                }
-              ],
-              "then": "Blacklist"
-            }
-          ];
-        })
-        .catch(function (err) {
-          $window.DevExpress.ui.notify(err.statusText, "error", 4000);
-          return [
-            {
-              "id": "rule",
-              "if": [
-                {
-                  id_rule: 'NewRule1',
-                  "type": "condition",
-                  "target": "Placement/App",
-                  "payment": "CPA",
-                  "compare": ">",
-                  "value": 0
-                }
-              ],
-              "then": "Blacklist"
-            }
-          ];
-        });
-    }
-
     _this.showAllMLDiagram = showAllMLDiagram;
     _this.decisionML = decisionML;
-    _this.saveRules = saveRules;
-    _this.getRules = getRules;
     _this.campaignTargeting = campaignTargeting;
     _this.editCampaignDomains = editCampaignDomains;
     _this.getGridCampaignStore = getGridCampaignStore;

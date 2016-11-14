@@ -3,15 +3,16 @@
   <div class="row">
     <div class="left-nav col-lg-1 col-md-2 col-sm-2 col-xs-2">
       <ul class="nav nav-list">
-        <li class="nav-header"><a href="#" translate="INDEX.LEFT_NAV.HOME"></a></li>
-        <li class="active"><a ui-sref="home.campaign.details" translate="INDEX.LEFT_NAV.CAMPAIGN">Campaign</a></li>
-        <li><a href="#/" translate="INDEX.LEFT_NAV.OPTIMIZER">Optimizer</a></li>
-        <li><a href="#/" translate="INDEX.LEFT_NAV.BILLING">Billing</a></li>
-        <li ng-if="home.isEven == true"><a  ui-sref="home.valuationByExpert" translate="INDEX.LEFT_NAV.EXPERT" >Valuation by expert</a></li>
+        <li class="nav-header"><a ui-sref="home.campaign ({id: $root.id}) " translate="INDEX.LEFT_NAV.CAMPAIGN"></a></li>
+        <li class="active"><a ui-sref="home.cpa ({id: $root.id}) " translate="INDEX.LEFT_NAV.CPA"></a></li>
+        <li><a ui-sref="home.optimiser ({id: $root.id})"  translate="INDEX.LEFT_NAV.OPTIMIZER"></a></li>
+        <!-- <li><a href="#/" translate="INDEX.LEFT_NAV.BILLING">Billing</a></li>-->
+        <li class="active"><a ui-sref="home.rules ({id: $root.id})" translate="INDEX.LEFT_NAV.Rules"></a></li>
+        <li ng-if="home.isEven == true"><a  ui-sref="home.valuationByExpert" translate="INDEX.LEFT_NAV.EXPERT" ></a></li>
       </ul>
     </div>
-      <input class="open" id="top-box"  ng-model="home.value" ng-click="home.checked(home.value)" type="checkbox" value="true"  hidden>
-      <label class="btn" for="top-box"></label>
+     <!-- <input class="open" id="top-box"  ng-model="home.value" ng-click="home.checked(home.value)" type="checkbox" value="true"  hidden>
+      <label class="btn" for="top-box"></label>-->
     <div class="main-nav navbar-header col-lg-11 col-md-10 col-sm-10 col-xs-10  col-lg-offset-1 col-md-offset-2 col-sm-offset-2 col-xs-offset-2">
       <div class="row">
         <div class="col-lg-12 col-md-12 col-sm-12">
@@ -33,6 +34,7 @@
         </a>
           </div>
         <input type="button" class="btn btn-danger admin-btn"  ng-click="root.logout()" value="{{ 'COMMON.LOGOUT' | translate }}">
+        <input type="button" class="btn btn-primary admin-btn" ng-click="home.goToMainPage()" value="{{ 'COMMON.TO-MAIN-PAGE' | translate }}">
         <input type="button" id="homeAdm" ng-show="home.isEven" class="btn btn-primary admin-btn" ng-click="home.goToAdminPanel()" value="{{ 'COMMON.GO-TO-ADMIN-PANEL' | translate }}">
       </div>
         </div>

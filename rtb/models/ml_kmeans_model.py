@@ -1,6 +1,6 @@
-__author__ = 'USER'
 from django.db import models
 from django.contrib.postgres.fields import ArrayField
+from django.contrib.postgres.fields import JSONField
 
 class MLPlacementDailyFeatures(models.Model):
     id = models.AutoField(primary_key=True)
@@ -72,7 +72,38 @@ class MLExpertsPlacementsMarks(models.Model):
     placement = models.ForeignKey("Placement", db_constraint=False, on_delete = models.DO_NOTHING)
     day = models.IntegerField(db_index=True)
     expert_decision = models.TextField(db_index=True)
-    date = models.DateField()
+    date = models.DateTimeField()
 
     class Meta:
         db_table = "ml_experts_placements_marks"
+
+class MLViewFullPlacementsData(models.Model):
+    id = models.AutoField(primary_key=True)
+    placement = models.ForeignKey("Placement", db_constraint=False, on_delete=models.DO_NOTHING)
+    imps = models.IntegerField(db_index=True)
+    clicks = models.IntegerField()
+    total_convs = models.IntegerField()
+    imps_viewed = models.IntegerField()
+    view_measured_imps = models.IntegerField()
+    sum_cost = models.DecimalField(max_digits=35, decimal_places=10)
+    view_rate = models.FloatField()
+    view_measurement_rate = models.FloatField()
+    cpa = models.FloatField()
+    ctr = models.FloatField()
+    cvr = models.DecimalField(null=True, max_digits=35, decimal_places=10)
+    cpc = models.DecimalField(null=True, max_digits=35, decimal_places=10)
+    cpm = models.DecimalField(null=True, max_digits=35, decimal_places=10)
+
+    class Meta:
+        db_table = "ml_view_full_placements_data"
+        managed = False
+
+class MLTestDataSet(models.Model):
+    id = models.AutoField(primary_key=True)
+    data = JSONField()
+    created = models.DateTimeField(db_index=True, unique=True)
+
+
+    class Meta:
+        db_table = "ml_test_data_set"
+        ordering = ["-created"]

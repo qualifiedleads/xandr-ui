@@ -1907,7 +1907,7 @@ class Profile(models.Model):
     code = models.TextField(null=True, blank=True)
     description = models.TextField(null=True, blank=True, db_index=True)
     is_template = models.NullBooleanField(null=True, blank=True)
-    last_modified = models.DateTimeField(default=now_tz) 
+    last_modified = models.DateTimeField()
     max_lifetime_imps = models.IntegerField(null=True, blank=True)
     min_session_imps = models.IntegerField(null=True, blank=True)
     max_session_imps = models.IntegerField(null=True, blank=True)
@@ -4377,6 +4377,14 @@ class CreativeVASTSegment(models.Model):
     class Meta:
         db_table = "creative_vast_segment"
 
+class LastToken(models.Model):
+    id = models.AutoField(primary_key=True)
+    name = models.TextField(null=True, blank=True, unique=True)
+    token = models.TextField(null=True, blank=True, unique=True)
+    date = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        db_table = "last_token"
 
 
 

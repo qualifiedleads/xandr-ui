@@ -6,185 +6,19 @@
     .controller('CampaignOptimiserController', CampaignOptimiserController);
 
   /** @ngInject */
-  function CampaignOptimiserController($window, $state, $localStorage, $scope, $translate, $compile, Campaign, CampaignOptimiser) {
+  function CampaignOptimiserController($window, $state, $rootScope, $localStorage, $scope, $translate, $compile, CampaignOptimiser,Campaign) {
     var vm = this;
     var LC = $translate.instant;
     var dataSuspend = null;
     var tempSespendRow = {};
-    var ruleSuspend = false;
-    var ruleTimePopUp = '';
-    var ruleIndexPopUp = '';
     var oneSuspend = false;
-
     vm.campName = Campaign.campaign;
     vm.campId = Campaign.id;
+    vm.line_item = Campaign.line_item;
     vm.object = CampaignOptimiser.campaignTargeting(1, 1, 1);
     vm.popUpIf = false;
     vm.arrayDiagram = [];
 
-    vm.saveRules = saveRules;
-    vm.popUpHide = popUpHide;
-    vm.checkTime = checkTime;
-
-    function popUpHide () {
-      vm.popUpIf = false;
-    }
-
-
-    //region Rules
-
-    function checkTime(index, rules) { //CO.checkTime(Index)
-      if (rules.then == 'Suspend for review') {
-        ruleSuspend = true;
-        ruleIndexPopUp = index;
-        vm.confirmPopup.option('visible', true);
-      } else {
-        delete rules.time;
-        delete rules.timeString;
-      }
-    }
-
-    function saveRules() {
-      CampaignOptimiser.saveRules(Campaign.id, vm.rulesArray);
-    }
-
-    CampaignOptimiser
-      .getRules(Campaign.id)
-      .then(function (rule) {
-        if (rule){
-          vm.rulesArray = rule;
-        }
-
-      });
-
-    vm.addField = function (rule) {
-      if (rule.$parent.$parent.$parent.$parent.rule) {
-        var newItemNo = vm.rulesArray.length + 1;
-        rule.$parent.$parent.$parent.$parent.rule.push(
-          {"id_logic": "NewRule" + newItemNo, "type": "logic", "logicOrAnd": true},
-          {"id_rule": "NewRule" + newItemNo,
-            "type": "condition",
-            "target": "Placement/App",
-            "payment": "CPA",
-            "compare": ">",
-            "value": 0
-          }
-        );
-
-      } else {
-        var newItemNo = vm.rulesArray.length + 1;
-        rule.$parent.$parent.rules.if.push(
-          {"id_logic": "NewRule" + newItemNo, "type": "logic", "logicOrAnd": true},
-          {"id_rule": "NewRule" + newItemNo,
-            "type": "condition",
-            "target": "Placement/App",
-            "payment": "CPA",
-            "compare": ">",
-            "value": 0
-          }
-        );
-      }
-    };
-
-    vm.addGroup = function (rule, ind) {
-      if (rule.$parent.$parent.$parent.rule) {
-        var newItemNo = vm.rulesArray.length + 1;
-        rule.$parent.$parent.$parent.rule.push({
-            "id_logic": "NewRule" + newItemNo,
-            "type": "logic",
-            "logicOrAnd": true
-          },
-          [
-            {
-              id_rule: 'NewGroup' + newItemNo,
-              "type": "condition",
-              "target": "Placement/App",
-              "payment": "CPA",
-              "compare": ">",
-              "value": 0
-            }
-          ]
-        );
-      } else {
-        var newItemNo = vm.rulesArray.length + 1;
-        rule.$parent.rules.if.push({"id_logic": "NewRule" + newItemNo, "type": "logic", "logicOrAnd": true},
-          [
-            {
-              id_rule: 'NewGroup' + newItemNo,
-              "type": "condition",
-              "target": "Placement/App",
-              "payment": "CPA",
-              "compare": ">",
-              "value": 0
-            }
-          ]
-        );
-      }
-    };
-
-    vm.addNewRule = function () {
-      var newItemNo = vm.rulesArray.length + 1;
-      vm.rulesArray.push(
-        {
-          "id": "rule" + newItemNo,
-          "if": [
-            {"id_rule": "NewRule" + newItemNo,
-              "type": "condition",
-              "target": "Placement/App",
-              "payment": "CPA",
-              "compare": ">",
-              "value": 0
-            }
-          ],
-          "then": "Blacklist"
-        }
-      );
-    };
-
-    vm.deleteRule = function (ind) {
-      vm.rulesArray.splice(ind, 1);
-    };
-
-    vm.deleteFilds = function (rule, ind) {
-      if (rule.$parent.$parent.$parent.$parent.rule) {
-        rule.$parent.$parent.$parent.$parent.rule.splice(ind, 2);
-      } else {
-        rule.$parent.$parent.rules.if.splice(ind, 2);
-      }
-    };
-
-    vm.typeOfLogic = function (rule) {
-      if (rule.type === 'logic') {
-        return true;
-      } else {
-        return false;
-      }
-    };
-
-    vm.typeOfThen = function (rules) {
-      if (rules.then === 'Blacklist') {
-        return true;
-      } else {
-        return false;
-      }
-    };
-
-    vm.typeOfObject = function (rule) {
-      if (rule.type == 'condition') {
-        return true;
-      } else {
-        return false;
-      }
-    };
-
-    vm.typeOfArray = function (rule) {
-      if (Array.isArray(rule) == true) {
-        return true;
-      } else {
-        return false;
-      }
-    };
-    //endregion
 
     //region DATE PIKER
     /** DATE PIKER **/
@@ -472,6 +306,14 @@
           mode: "batch",
           allowUpdating: true
         },
+        loadPanel: {
+          shadingColor: "rgba(0,0,0,0.4)",
+          visible: false,
+          showIndicator: true,
+          showPane: true,
+          shading: true,
+          closeOnOutsideClick: false,
+        },
         alignment: 'left',
         headerFilter: {
           visible: true
@@ -511,6 +353,17 @@
                 return headerFilterColumn(source, 'placement');
               }
             }
+          },{
+            caption: LC('CAMP.CAMPAIGN.COLUMNS.DOMAIN'),
+            dataField: 'placement__rtbimpressiontrackerplacementdomain__domain',
+            alignment: 'center',
+            dataType: 'string',
+            allowEditing: false,
+            headerFilter: {
+              dataSource: function (source) {
+                return headerFilterColumn(source, 'domain');
+              }
+            }
           },
           {
             caption: LC('CAMP.CAMPAIGN.COLUMNS.NETWORK'),
@@ -541,6 +394,7 @@
             dataField: 'imp',
             dataType: 'number',
             sortOrder: 'desc',
+            format:'fixedPoint',
             alignment: 'center',
             allowEditing: false,
             headerFilter: {
@@ -554,6 +408,8 @@
             dataField: 'cpa',
             dataType: 'number',
             alignment: 'center',
+               format:'currency',
+            precision:4,
             allowEditing: false,
             headerFilter: {
               dataSource: function (source) {
@@ -565,6 +421,8 @@
             caption: LC('CAMP.CAMPAIGN.COLUMNS.COST') + ' ,$',
             dataField: 'cost',
             alignment: 'center',
+          format:'currency',
+            precision:2,
             dataType: 'number',
             allowEditing: false,
             headerFilter: {
@@ -590,6 +448,8 @@
             dataField: 'cpc',
             alignment: 'center',
             dataType: 'number',
+          format:'currency',
+            precision:4,
             allowEditing: false,
             headerFilter: {
               dataSource: function (source) {
@@ -602,6 +462,8 @@
             dataField: 'cpm',
             alignment: 'center',
             dataType: 'number',
+            format:'currency',
+            precision:4,
             allowEditing: false,
             headerFilter: {
               dataSource: function (source) {
@@ -614,6 +476,8 @@
             dataField: 'cvr',
             alignment: 'center',
             dataType: 'number',
+            format:'percent',
+            precision:2,
             allowEditing: false,
             headerFilter: {
               dataSource: function (source) {
@@ -626,6 +490,8 @@
             dataField: 'ctr',
             alignment: 'center',
             dataType: 'number',
+            format:'percent',
+            precision:2,
             allowEditing: false,
             headerFilter: {
               dataSource: function (source) {
@@ -639,6 +505,7 @@
             alignment: 'center',
             visible: false,
             width: 80,
+            format:'fixedPoint',
             dataType: 'number',
             allowEditing: false,
             headerFilter: {
@@ -651,6 +518,7 @@
             caption: LC('CAMP.CAMPAIGN.COLUMNS.VIEW_MEASURED_IMPS'),
             dataField: 'view_measured_imps',
             alignment: 'center',
+            format:'fixedPoint',
             visible: false,
             width: 100,
             dataType: 'number',
@@ -664,6 +532,8 @@
             caption: LC('CAMP.CAMPAIGN.COLUMNS.VIEW_MEASUREMENT_RATE') + ' ,%',
             dataField: 'view_measurement_rate',
             alignment: 'center',
+            format:'percent',
+            precision:1,
             visible: false,
             width: 120,
             dataType: 'number',
@@ -677,6 +547,8 @@
             caption: LC('CAMP.CAMPAIGN.COLUMNS.VIEW_RATE') + ' ,%',
             dataField: 'view_rate',
             alignment: 'center',
+            format:'percent',
+            precision:1,
             visible: false,
             width: 80,
             dataType: 'number',
@@ -687,7 +559,7 @@
             }
           },
           {
-            caption: 'Prediction 1',
+            caption: LC('CAMP.CAMPAIGN.COLUMNS.PREDICTION_1'),
             width: 115,
             columnIndex: 16,
             dataField: 'analytics',
@@ -771,7 +643,7 @@
             }
           },
           {
-            caption: 'State',
+            caption: LC('CAMP.CAMPAIGN.COLUMNS.STATE'),
             width: 300,
             columnIndex: 16,
             dataField: 'state',
@@ -932,7 +804,7 @@
               column: "imp",
               summaryType: "sum",
               customizeText: function (data) {
-                data.valueText = 'Imp: ' + CampaignOptimiser.totalSummary.imp;
+                data.valueText = 'Imp: ' + CampaignOptimiser.totalSummary.imp.toString().split(/(?=(?:\d{3})+(?!\d))/).join();
                 return data.valueText;
               }
             },
@@ -982,7 +854,7 @@
               column: "cvr",
               summaryType: "sum",
               customizeText: function (data) {
-                data.valueText = 'CVR: ' + CampaignOptimiser.totalSummary.cvr.toFixed(4);
+                data.valueText = 'CVR: %' + CampaignOptimiser.totalSummary.cvr.toFixed(4);
                 return data.valueText;
               }
             },
@@ -990,7 +862,7 @@
               column: "ctr",
               summaryType: "sum",
               customizeText: function (data) {
-                data.valueText = 'CTR: ' + CampaignOptimiser.totalSummary.ctr.toFixed(4);
+                data.valueText = 'CTR: %' + CampaignOptimiser.totalSummary.ctr.toFixed(4);
                 return data.valueText;
               }
             }
@@ -1027,6 +899,10 @@
                 {
                   'name': 'Suspended',
                   'state': 1
+                },
+                {
+                  'name': 'Clear state',
+                  'state': 0
                 }
               ],
               placeholder: 'Select a state',
@@ -1039,8 +915,6 @@
                   for (var i = 0; i < selectedRows.length; i++) {
                     selectedArr.push(selectedRows[i].firstChild.innerText);
                   }
-
-                  //e;
                   if (e.selectedItem.state == 1) {
                     if (selectedArr != '[]') {
                       tempSespendRow.placement = selectedArr;
@@ -1087,15 +961,13 @@
                             w.addClass('active');
                           }
                         }
-                        $('.gridContainerWhite').dxDataGrid('instance').refresh();
-                      }).catch(function () {
-                        $('.gridContainerWhite').dxDataGrid('instance').refresh();
                       });
                     }
                   }
                 } else {
-                  $window.DevExpress.ui.notify(LC('CO.NO-ITEMS-CHOSEN'), "warning", 4000);
+                  return $window.DevExpress.ui.notify(LC('CO.NO-ITEMS-CHOSEN'), "warning", 4000);
                 }
+                $('.gridContainerWhite').dxDataGrid('instance').refresh();
               }
             });
             info.cancel = true;

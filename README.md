@@ -59,7 +59,7 @@ python manage.py crontab show
 2. To get the data manually
 python manage.py imp_tracker '2016-10-10 22:00' '2016-10-21 23:00'
 ========================================
-cron job
+cron jobs
 ('* * * * *', 'rtb.crons.placement_state_cron.change_state_placement_by_cron_settings')
 This task checks placement state in our base every minute and sends all changes to appnexus.
 
@@ -71,4 +71,15 @@ This task runs every 15 minutes.
 Cronjob finds placements with suspend state and changes their state in appnexus to exclude. 
 This task runs every minute.
 
+('0 */4 * * *', 'rtb.crons.imp_tracker_cron.get')
+This task loadsdata from our impression tracker.
+
+('5 0 * * *', 'rtb.cron.dayly_task')
+This task loads reports and entities fromAppnexus.
+
+('0 */1 * * *', 'rtb.crons.ml_predict_new_placements_cron.mlPredictNewPlacementsCron')
+This task predicts GOO/BAD clustersfor new placements.
+
+('0 6 * * 7', 'rtb.crons.ml_refresh_view_full_placements_data_cron.mlRefreshViewFullPlacementsDataCron')
+This task updates materialized view for ML purposes.
 ````

@@ -62,7 +62,7 @@
       if (rule.$parent.$parent.$parent.$parent.rule) {
         var newItemNo = vm.rulesArray.length + 1;
         rule.$parent.$parent.$parent.$parent.rule.push(
-          {"id_logic": "NewRule" + newItemNo, "type": "logic", "logicOrAnd": true},
+          {"id_logic": "NewRule" + newItemNo, "type": "logic", "logicOrAnd": 'and'},
           {"id_rule": "NewRule" + newItemNo,
             "type": "condition",
             "target": "Placement/App",
@@ -75,7 +75,7 @@
       } else {
         var newItemNo = vm.rulesArray.length + 1;
         rule.$parent.$parent.rules.if.push(
-          {"id_logic": "NewRule" + newItemNo, "type": "logic", "logicOrAnd": true},
+          {"id_logic": "NewRule" + newItemNo, "type": "logic", "logicOrAnd": 'and'},
           {"id_rule": "NewRule" + newItemNo,
             "type": "condition",
             "target": "Placement/App",
@@ -93,7 +93,7 @@
         rule.$parent.$parent.$parent.rule.push({
             "id_logic": "NewRule" + newItemNo,
             "type": "logic",
-            "logicOrAnd": true
+            "logicOrAnd": 'and'
           },
           [
             {
@@ -108,7 +108,7 @@
         );
       } else {
         var newItemNo = vm.rulesArray.length + 1;
-        rule.$parent.rules.if.push({"id_logic": "NewRule" + newItemNo, "type": "logic", "logicOrAnd": true},
+        rule.$parent.rules.if.push({"id_logic": "NewRule" + newItemNo, "type": "logic", "logicOrAnd": 'and'},
           [
             {
               id_rule: 'NewGroup' + newItemNo,

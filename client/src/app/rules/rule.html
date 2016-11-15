@@ -3,16 +3,16 @@
 
   <div class="RadioRule">
     <div class="ORback">
-      <input class="RadioRuleOr" id="orlogic" type="radio" data-ng-model="rule.logicOrAnd" ng-value="true"
-             ng-checked="rule.logicOrAnd">
+      <input class="RadioRuleOr" id="orlogic" type="radio" data-ng-model="rule.logicOrAnd" value="or"
+             ng-checked="rule.logicOrAnd == 'or'">
       <label class="OrLogic" for="orlogic">
         <div calss="verticalOr">OR</div>
       </label>
     </div>
 
     <div class="ANDback">
-      <input class="RadioRuleAnd" id="andlogic" type="radio" data-ng-model="rule.logicOrAnd" ng-value="false"
-             ng-checked="rule.logicOrAnd">
+      <input class="RadioRuleAnd" id="andlogic" type="radio" data-ng-model="rule.logicOrAnd" value="and"
+             ng-checked="rule.logicOrAnd == 'and'">
       <label class="AndLogic" for="andlogic">
         <div calss="verticalAnd">AND</div>
       </label>
@@ -110,10 +110,10 @@
 
   <div class="Infologic" ng-if="rule.type == 'logic'">
     <button class=" btn-danger removeInfo" ng-click="rulesC.deleteFilds($parent,IndexF)"data-title="Delete">X</button>
-    <div class="InfoOr" ng-if="rule.logicOrAnd == true">
+    <div class="InfoOr" ng-if="rule.logicOrAnd == 'or'">
       OR
     </div>
-    <div class="InfoAnd" ng-if="rule.logicOrAnd == false">
+    <div class="InfoAnd" ng-if="rule.logicOrAnd == 'and'">
       AND
     </div>
   </div>

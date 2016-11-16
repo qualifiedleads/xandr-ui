@@ -57,9 +57,10 @@
     'INDEX':{
       'ADVERTISER_TITLE':'Stats for',
       'LEFT_NAV':{
-        'HOME':"Camp. Home",
-        /*'CAMPAIGN':"Optimiser",*/
+        'HOME': 'Home',
+        'CAMPAIGN':"Campaign",
         'CPA':"CPA",
+        'BILLING':"Billing",
         'OPTIMIZER':"Optimizer",
         'Rules':"Rules",
         'EXPERT':"Expert"
@@ -124,7 +125,8 @@
       }
     },
     "CAMP": {
-      "NAME":"Campaign",
+      "NAME":"Campaign:",
+      "LINE_ITEM":"Line item:",
       "GO-OPTIMISER": "Go to the Optimiser",
       'CHECKBOX':{
         "IMPRESSIONS":"Impressions",
@@ -155,7 +157,9 @@
           "VIEW_MEASURED_IMPS":"Measured imp",
           "VIEW_MEASUREMENT_RATE":"Viewed measurement rate",
           "VIEW_RATE":"Viewed rate",
-          "STATS":"Stats"
+          "STATS":"Stats",
+          "STATE":"State",
+          "PREDICTION_1":"Prediction №1"
         }
       }
     },
@@ -178,15 +182,18 @@
       'DOMAIN-LISTS' : 'Domain Lists',
       'DOMAINS' : 'Domains',
       'RULES': 'Rules for All Domains:',
-      'OPTIMISER-FOR':'Optimiser for',
+      'OPTIMISER-FOR':'Optimiser for:',
       'CAMPAIGN-HOME': 'back to Campaign Home'
     },
     "RULESC": {
-      'OPTIMISER-FOR':'Rules for',
+      'OPTIMISER-FOR':'Rules for:',
       'RULES': 'Rules for All Domains:',
+      'ADD-RULE': 'Add rule',
+      'SAVE-RULE': 'Save rule',
+      'RULE-DELETE': 'RULE DELETE'
     },
     'VBE':{
-      'PAGE-NAME': 'Valuation by expert',
+      'PAGE-NAME': 'Valuation by expert:',
       'CALCULATE-AUC': 'Calculate AUC',
       'CREATE-TEST-SET': 'Create test set'
     }

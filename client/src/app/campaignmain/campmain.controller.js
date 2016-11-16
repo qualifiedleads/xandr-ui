@@ -16,11 +16,14 @@
     var oneSuspend = false;
     $rootScope.id = Campaign.id;
     $rootScope.name = Campaign.campaign;
+    $rootScope.line_item = Campaign.line_item;
+
     vm.checkChart = [];
     vm.by = 'imp,cvr,cpc,clicks,spend,conv,ctr';
     $localStorage.campaign = {
       "id":  Campaign.id,
-      "name": Campaign.campaign
+      "name": Campaign.campaign,
+      "line_item": Campaign.line_item
     };
     if ($localStorage.campaign == null) {
       $state.go('home.main');
@@ -28,6 +31,7 @@
 
     vm.campName = Campaign.campaign;
     vm.campId = Campaign.id;
+    vm.line_item = Campaign.line_item;
     vm.Init = [];
 
     if ($localStorage.checkCharCamp == null) {
@@ -905,11 +909,11 @@
       },
       loadPanel: {
         shadingColor: "rgba(0,0,0,0.4)",
-
-        position: {at: 'center'},
-        height: 100,
-
-        cssClass: 'Loading'
+        visible: false,
+        showIndicator: true,
+        showPane: true,
+        shading: true,
+        closeOnOutsideClick: false,
       },
       bindingOptions: {
         dataSource: 'campmain.gridStore'
@@ -1139,7 +1143,7 @@
           }
         },
         {
-          caption: 'State',
+          caption: LC('CAMP.CAMPAIGN.COLUMNS.STATE'),
           width: 300,
           columnIndex: 16,
           dataField: 'state',

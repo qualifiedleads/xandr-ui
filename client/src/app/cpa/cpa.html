@@ -1,10 +1,11 @@
 <div class="container-fluid container-camp col-lg-12  col-md-12 col-sm-12">
   <div class="row stats-header">
     <div class="groupHeadOpti">
-      <span translate="CAMP.NAME" class="camp-header"></span>:<span class="camp-header">
-        <a href="" ui-sref="home.campaign ({id: cpa.campId})"  >{{cpa.campName}} </a>
-        <div class="control pull-right" dx-select-box="cpa.UI.datePiker"></div>
+      <span translate="CAMP.NAME" class="camp-header"></span><span class="camp-header">
+        <a href="" ui-sref="home.campaign({id: cpa.campId})"  >{{cpa.campName}} </a>
       </span>
+      <br><span translate="CAMP.LINE_ITEM" class="camp-header"></span><span class="camp-line-item"> {{cpa.line_item}} </span>
+        <div class="control pull-right" dx-select-box="cpa.UI.datePiker"></div>
     </div>
   </div>
   <div class="second-container-details row">

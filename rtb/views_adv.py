@@ -2,6 +2,7 @@ from rest_framework.decorators import api_view, parser_classes
 from rest_framework.response import Response
 from django.http import JsonResponse
 from utils import parse_get_params, make_sum, check_user_advertiser_permissions
+from models.models import LineItem
 from models import SiteDomainPerformanceReport, Campaign, GeoAnaliticsReport, NetworkAnalyticsReport_ByPlacement, \
     Placement, NetworkCarrierReport_Simple, NetworkDeviceReport_Simple
 from django.db.models import Sum, Min, Max, Avg, Value, When, Case, F, Q, Func, FloatField
@@ -41,7 +42,11 @@ Get campaign name by id
 
     """
     obj = Campaign.objects.get(pk=id)
-    return Response({'id': obj.id, 'campaign': obj.name})
+    if obj.line_item_id is not None:
+        li = list(LineItem.objects.filter(id=int(obj.line_item_id)))
+        if len(li)==1:
+            return Response({'id': obj.id, 'campaign': obj.name, 'line_item': li[0].name})
+    return Response({'id': obj.id, 'campaign': obj.name, 'line_item': None})
 
 
 zero_sum = {
@@ -868,7 +873,7 @@ def changeState(request, campaignId):
     activeState = request.data.get("activeState")   # 4 - white / 2 - black / 1 - suspend
 
     if request.data.get("activeState") == 1 and request.data.get("suspendTimes") is not None and request.data.get("suspendTimes") != "unlimited":
-        date = datetime.date.fromtimestamp(int(request.data.get("suspendTimes")))
+        date = datetime.datetime.fromtimestamp(int(request.data.get("suspendTimes")))
     else:
         date = None
 

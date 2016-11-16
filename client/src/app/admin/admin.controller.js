@@ -2,8 +2,8 @@
   'use strict';
 
   angular
-  .module('pjtLayout')
-  .controller('AdminController', AdminController);
+    .module('pjtLayout')
+    .controller('AdminController', AdminController);
 
   /** @ngInject */
   function AdminController($window, $state,  $translate, AdminService) {
@@ -27,11 +27,11 @@
       }
       user.username = user.email;
       return AdminService.addUser(user)
-      .then(function () {
-        vm.user = {};
-        vm.userForm.$setPristine();
-        $window.$('#usersList').dxDataGrid('instance').refresh();
-      });
+        .then(function () {
+          vm.user = {};
+          vm.userForm.$setPristine();
+          $window.$('#usersList').dxDataGrid('instance').refresh();
+        });
     };
 
     vm.usersStore = AdminService.usersStore();
@@ -65,6 +65,14 @@
         howBorders: true,
         showRowLines: true,
         align: 'left',
+        loadPanel: {
+          shadingColor: "rgba(0,0,0,0.4)",
+          visible: false,
+          showIndicator: true,
+          showPane: true,
+          shading: true,
+          closeOnOutsideClick: false,
+        },
         editing: {
           allowDeleting: true
         },

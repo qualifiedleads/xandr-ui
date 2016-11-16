@@ -6,14 +6,15 @@
     .controller('CampaignOptimiserController', CampaignOptimiserController);
 
   /** @ngInject */
-  function CampaignOptimiserController($window, $state, $rootScope, $localStorage, $scope, $translate, $compile, CampaignOptimiser) {
+  function CampaignOptimiserController($window, $state, $rootScope, $localStorage, $scope, $translate, $compile, CampaignOptimiser,Campaign) {
     var vm = this;
     var LC = $translate.instant;
     var dataSuspend = null;
     var tempSespendRow = {};
     var oneSuspend = false;
-    vm.campName = $rootScope.name;
-    vm.campId = $rootScope.id;
+    vm.campName = Campaign.campaign;
+    vm.campId = Campaign.id;
+    vm.line_item = Campaign.line_item;
     vm.object = CampaignOptimiser.campaignTargeting(1, 1, 1);
     vm.popUpIf = false;
     vm.arrayDiagram = [];
@@ -307,11 +308,11 @@
         },
         loadPanel: {
           shadingColor: "rgba(0,0,0,0.4)",
-
-          position: {at: 'center'},
-          height: 100,
-
-          cssClass: 'Loading'
+          visible: false,
+          showIndicator: true,
+          showPane: true,
+          shading: true,
+          closeOnOutsideClick: false,
         },
         alignment: 'left',
         headerFilter: {
@@ -558,7 +559,7 @@
             }
           },
           {
-            caption: 'Prediction 1',
+            caption: LC('CAMP.CAMPAIGN.COLUMNS.PREDICTION_1'),
             width: 115,
             columnIndex: 16,
             dataField: 'analytics',
@@ -642,7 +643,7 @@
             }
           },
           {
-            caption: 'State',
+            caption: LC('CAMP.CAMPAIGN.COLUMNS.STATE'),
             width: 300,
             columnIndex: 16,
             dataField: 'state',

@@ -3,16 +3,16 @@
 
   <div class="RadioRule">
     <div class="ORback">
-      <input class="RadioRuleOr" id="orlogic" type="radio" data-ng-model="rule.logicOrAnd" ng-value="true"
-             ng-checked="rule.logicOrAnd">
+      <input class="RadioRuleOr" id="orlogic" type="radio" data-ng-model="rule.logicOrAnd" value="or"
+             ng-checked="rule.logicOrAnd == 'or'">
       <label class="OrLogic" for="orlogic">
         <div calss="verticalOr">OR</div>
       </label>
     </div>
 
     <div class="ANDback">
-      <input class="RadioRuleAnd" id="andlogic" type="radio" data-ng-model="rule.logicOrAnd" ng-value="false"
-             ng-checked="rule.logicOrAnd">
+      <input class="RadioRuleAnd" id="andlogic" type="radio" data-ng-model="rule.logicOrAnd" value="and"
+             ng-checked="rule.logicOrAnd == 'and'">
       <label class="AndLogic" for="andlogic">
         <div calss="verticalAnd">AND</div>
       </label>
@@ -46,10 +46,10 @@
                <span >
                   <select class="select0"  data-ng-model="rule.target">
                     <option ng-selected="rule.target == 'Placement/App'">Placement/App</option>
-                    <option ng-selected="rule.target == 'Carrier'">Carrier</option>
-                    <option ng-selected="rule.target == 'Device'">Device</option>
-                    <option ng-selected="rule.target == 'OS'">OS</option>
-                    <option ng-selected="rule.target == 'Ad exchange'">Ad exchange</option>
+                    <!--<option ng-selected="rule.target == 'Carrier'">Carrier</option>-->
+                    <!--<option ng-selected="rule.target == 'Device'">Device</option>-->
+                    <!--<option ng-selected="rule.target == 'OS'">OS</option>-->
+                    <!--<option ng-selected="rule.target == 'Ad exchange'">Ad exchange</option>-->
                   </select>
                 </span>
       </div>
@@ -58,6 +58,7 @@
         <span>
           <select class="select1" data-ng-model="rule.payment">
             <option ng-selected="rule.payment == 'CPA'">CPA</option>
+            <option ng-selected="rule.payment == 'Prediction'">Prediction</option>
             <option ng-selected="rule.payment == 'Spend'">Spend</option>
             <option ng-selected="rule.payment == 'Imressions'">Imressions</option>
             <option ng-selected="rule.payment == 'Cliks'">Cliks</option>
@@ -68,22 +69,37 @@
           </span>
 
       </div>
-      <div class="dropdown2" ng-show="hideGroup">
+      <div ng-if="rule.payment != 'Prediction'" class="dropdown2" ng-show="hideGroup">
         compare
         <span>
-                  <select class="select2" data-ng-model="rule.compare">
-                    <option ng-selected="rule.compare == '>'">&#x3e;</option>
-                    <option ng-selected="rule.compare == '<'">&#x3c;</option>
-                    <option ng-selected="rule.compare == '='">=</option>
-                    <option ng-selected="rule.compare == '>='">&#x3e;=</option>
-                    <option ng-selected="rule.compare == '<='">&#x3c;=</option>
-                  </select>
-                </span>
+          <select class="select2" data-ng-model="rule.compare">
+            <option ng-selected="rule.compare == '>'">&#x3e;</option>
+            <option ng-selected="rule.compare == '<'">&#x3c;</option>
+            <option ng-selected="rule.compare == '='">=</option>
+            <option ng-selected="rule.compare == '>='">&#x3e;=</option>
+            <option ng-selected="rule.compare == '<='">&#x3c;=</option>
+          </select>
+        </span>
       </div>
-      <div class="inputm" ng-show="hideGroup">
+      <div ng-if="rule.payment != 'Prediction'" class="inputm" ng-show="hideGroup">
         <label>
           Value
           <input class="money" type="number" ng-model="rule.value" min="0">
+        </label>
+      </div>
+
+      <div ng-if="rule.payment == 'Prediction'" class="dropdown2" ng-show="hideGroup">
+        compare
+        <span>
+          <select class="select2" data-ng-model="rule.compare">
+            <option ng-selected="rule.compare = '='">=</option>
+          </select>
+        </span>
+      </div>
+      <div ng-if="rule.payment == 'Prediction'" class="inputm" ng-show="hideGroup">
+        <label>
+          Value
+          <input class="money" type="text" ng-model="rule.value" min="0">
         </label>
       </div>
     </div>
@@ -94,10 +110,10 @@
 
   <div class="Infologic" ng-if="rule.type == 'logic'">
     <button class=" btn-danger removeInfo" ng-click="rulesC.deleteFilds($parent,IndexF)"data-title="Delete">X</button>
-    <div class="InfoOr" ng-if="rule.logicOrAnd == true">
+    <div class="InfoOr" ng-if="rule.logicOrAnd == 'or'">
       OR
     </div>
-    <div class="InfoAnd" ng-if="rule.logicOrAnd == false">
+    <div class="InfoAnd" ng-if="rule.logicOrAnd == 'and'">
       AND
     </div>
   </div>
@@ -115,10 +131,10 @@
              <span>
                 <select class="select3" data-ng-model="rule.target">
                   <option ng-selected="rule.target == 'Placement/App'">Placement/App</option>
-                  <option ng-selected="rule.target == 'Carrier'">Carrier</option>
-                  <option ng-selected="rule.target == 'Device'">Device</option>
-                  <option ng-selected="rule.target == 'OS'">OS</option>
-                  <option ng-selected="rule.target == 'Ad exchange'">Ad exchange</option>
+                  <!--<option ng-selected="rule.target == 'Carrier'">Carrier</option>-->
+                  <!--<option ng-selected="rule.target == 'Device'">Device</option>-->
+                  <!--<option ng-selected="rule.target == 'OS'">OS</option>-->
+                  <!--<option ng-selected="rule.target == 'Ad exchange'">Ad exchange</option>-->
                 </select>
               </span>
     </div>
@@ -130,6 +146,7 @@
 
         <option ng-selected="rule.payment == 'CPA'">CPA</option>
         <option ng-selected="rule.payment == 'Spend'">Spend</option>
+        <option ng-selected="rule.payment == 'Prediction'">Prediction</option>
         <option ng-selected="rule.payment == 'Imressions'">Imressions</option>
         <option ng-selected="rule.payment == 'Cliks'">Cliks</option>
         <option ng-selected="rule.payment == 'CRM%'">CRM%</option>
@@ -139,24 +156,48 @@
       </select>
       </span>
     </div>
-    <div class="dropdown2">
+    <!-- START OTHER-->
+    <div ng-if="rule.payment != 'Prediction'" class="dropdown2">
       compare
       <span>
-                <select class="select2" data-ng-model="rule.compare">
-                  <option ng-selected="rule.compare == '>'">&#x3e;</option>
-                  <option ng-selected="rule.compare == '<'">&#x3c;</option>
-                  <option ng-selected="rule.compare == '='">=</option>
-                  <option ng-selected="rule.compare == '>='">&#x3e;=</option>
-                  <option ng-selected="rule.compare == '<='">&#x3c;=</option>
-                </select>
-              </span>
+        <select class="select2" data-ng-model="rule.compare">
+          <option ng-selected="rule.compare == '>'">&#x3e;</option>
+          <option ng-selected="rule.compare == '<'">&#x3c;</option>
+          <option ng-selected="rule.compare == '='">=</option>
+          <option ng-selected="rule.compare == '>='">&#x3e;=</option>
+          <option ng-selected="rule.compare == '<='">&#x3c;=</option>
+        </select>
+      </span>
     </div>
-    <div class="inputm">
+    <div ng-if="rule.payment != 'Prediction'" class="inputm">
       <label>
         Value
         <input class="money" type="number" ng-model="rule.value" min="0">
       </label>
     </div>
+    <!-- END OTHER-->
+
+    <!-- START PREDICTION-->
+    <div ng-if="rule.payment == 'Prediction'" class="dropdown2">
+
+      <span>
+        <select ng-hide="true" class="select2" data-ng-model="rule.compare">
+          <option ng-selected="rule.compare == '='">=</option>
+        </select>
+      </span>
+    </div>
+    <div ng-if="rule.payment == 'Prediction'" class="inputm">
+      <label>
+        Value
+        <select class="money" data-ng-model="rule.value">
+          <option ng-selected="rule.value == 'good' || !rule.value">good</option>
+          <option ng-selected="rule.value == 'bad'">bad</option>
+        </select>
+      </label>
+    </div>
+    <!-- END PREDICTION-->
+
+
   </div>
 
 </div>

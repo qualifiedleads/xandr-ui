@@ -20,6 +20,13 @@
     };
     vm.auc = null;
 
+    valuationByExpertS.MLGetAUC()
+      .then(function (res) {
+        vm.auc = res.auc;
+        vm.chartCoord = res.chartCoord;
+        vm.culcReady = true;
+      });
+
     //region DATE PIKER
     /** DATE PIKER **/
     if ($localStorage.SelectedTime == null) {
@@ -176,16 +183,22 @@
           discreteAxisDivisionMode: "crossLabels",
           grid: {
             visible: true
-          }
+          },
+          title: 'False positive rate'
         },
         size: {
-          width: 800,
-          height: 800
+          width: 400,
+          height: 400
         },
         series: [
           { valueField: "rocSensetivities", name: "ROC Curve", showInLegend: false },
           { valueField: "diagonal", showInLegend: false, color: 'gray'}
         ],
+        valueAxis: {
+          title: {
+            text: "Sensetivity"
+          }
+        },
         title: {
           text: "ROC Curve",
           subtitle: {
@@ -220,7 +233,15 @@
           dataSource: 'VBE.gridStore'
         },
         paging: {
-          pageSize: 127
+          pageSize: 10
+        },
+        loadPanel: {
+          shadingColor: "rgba(0,0,0,0.4)",
+          visible: false,
+          showIndicator: true,
+          showPane: true,
+          shading: true,
+          closeOnOutsideClick: false,
         },
         remoteOperations: false,
         allowColumnReordering: true,
@@ -275,14 +296,16 @@
             dataField: 'cpa',
             dataType: 'number',
             alignment: 'center',
-            format:'currency'
+            format:'currency',
+            precision:4,
           },
           {
             caption: LC('CAMP.CAMPAIGN.COLUMNS.COST') + ' ,$',
             dataField: 'sum_cost',
             dataType: 'number',
             alignment: 'center',
-            format:'currency'
+            format:'currency',
+            precision:4,
           },
           {
             caption: LC('CAMP.CAMPAIGN.COLUMNS.CLICKS'),
@@ -296,6 +319,7 @@
             dataField: 'cpc',
             alignment: 'center',
             dataType: 'number',
+            precision:4,
             format:'currency'
           },
           {
@@ -303,6 +327,7 @@
             dataField: 'cpm',
             alignment: 'center',
             dataType: 'number',
+            precision:4,
             format:'currency'
           },
           {
@@ -310,6 +335,7 @@
             dataField: 'cvr',
             alignment: 'center',
             dataType: 'number',
+            precision:2,
             format:'percent'
           },
           {
@@ -317,6 +343,7 @@
             dataField: 'ctr',
             alignment: 'center',
             dataType: 'number',
+            precision:2,
             format:'percent'
           },
           {

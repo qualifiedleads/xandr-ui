@@ -153,7 +153,7 @@ def mlBuildROC(test_type = "kmeans", test_name = "ctr_cvr_cpc_cpm_cpa", date = -
     if test_type == "kmeans":
         goodClusters = mlGetGoodClusters(test_name)
         if goodClusters == -1:
-            print "System isn't teached"
+            print "System isn't taught"
             return -1, -1
 
         testPlacementsIds = []

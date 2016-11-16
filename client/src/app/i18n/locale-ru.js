@@ -60,7 +60,9 @@
         'HOME':"Главная",
         'CAMPAIGN':"Кампания",
         'BILLING':"Биллинг",
+        'CPA':"CPA",
         'OPTIMIZER':"Оптимизатор",
+        'Rules':"Правила",
         'EXPERT':"Оценка экспертом"
       }
     },
@@ -124,6 +126,7 @@
     },
     "CAMP": {
       "NAME":"Кампания",
+      "LINE_ITEM":"Line item",
       "GO-OPTIMISER": "Перейти к оптимизатору",
       'CHECKBOX':{
         "IMPRESSIONS":"Показы",
@@ -154,7 +157,9 @@
           "VIEW_MEASURED_IMPS":"Измерено видимость показов",
           "VIEW_MEASUREMENT_RATE":"Измереная видимост",
           "VIEW_RATE":"Видимость",
-          "STATS":"Стат"
+          "PREDICTION_1":"Прогнозирование №1",
+          "STATS":"Стат",
+          "STATE":"Cостояние"
         }
       }
     },
@@ -177,11 +182,18 @@
       "DOMAIN-LISTS" : 'Списки доменов',
       "DOMAINS" : 'Домены',
       "RULES": "Правила для всех доменов:",
-      "OPTIMISER-FOR":"Оптимизатор для",
+      "OPTIMISER-FOR":"Оптимизатор для:",
       "CAMPAIGN-HOME": "Вернуться к компании"
     },
+    "RULESC": {
+      'OPTIMISER-FOR':'Правила для:',
+      'RULES': 'Правила для всех доменов:',
+      'ADD-RULE': 'Добавить правило',
+      'SAVE-RULE': 'Сохранить правила',
+      'RULE-DELETE': 'Удалить правило'
+    },
     'VBE':{
-      'PAGE-NAME': 'Valuation by expert',
+      'PAGE-NAME': 'Valuation by expert:',
       'CALCULATE-AUC': 'Calculate AUC',
       'CREATE-TEST-SET': 'Create test set'
     }

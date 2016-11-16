@@ -6,13 +6,14 @@
     .controller('rulesController', rulesController);
 
   /** @ngInject */
-  function rulesController($window, $state, $rootScope, $localStorage, $scope, $translate, $compile, Rules) {
+  function rulesController($window, $state, $rootScope, $localStorage, $translate, Rules, Campaign) {
     var vm = this;
     var LC = $translate.instant;
     var ruleSuspend = false;
     var ruleIndexPopUp = '';
-    vm.campName = $rootScope.name;
-    vm.campId = $rootScope.id;
+    vm.campName = Campaign.campaign;
+    vm.campId = Campaign.id;
+    vm.line_item = Campaign.line_item;
     vm.popUpIf = false;
     vm.arrayDiagram = [];
 
@@ -59,10 +60,9 @@
 
     vm.addField = function (rule) {
       if (rule.$parent.$parent.$parent.$parent.rule) {
-        var newItemNo = vm.rulesArray.length + 1;
         rule.$parent.$parent.$parent.$parent.rule.push(
-          {"id_logic": "NewRule" + newItemNo, "type": "logic", "logicOrAnd": true},
-          {"id_rule": "NewRule" + newItemNo,
+          {"type": "logic", "logicOrAnd": 'and'},
+          {
             "type": "condition",
             "target": "Placement/App",
             "payment": "CPA",
@@ -72,10 +72,9 @@
         );
 
       } else {
-        var newItemNo = vm.rulesArray.length + 1;
         rule.$parent.$parent.rules.if.push(
-          {"id_logic": "NewRule" + newItemNo, "type": "logic", "logicOrAnd": true},
-          {"id_rule": "NewRule" + newItemNo,
+          {"type": "logic", "logicOrAnd": 'and'},
+          {
             "type": "condition",
             "target": "Placement/App",
             "payment": "CPA",
@@ -88,15 +87,12 @@
 
     vm.addGroup = function (rule, ind) {
       if (rule.$parent.$parent.$parent.rule) {
-        var newItemNo = vm.rulesArray.length + 1;
         rule.$parent.$parent.$parent.rule.push({
-            "id_logic": "NewRule" + newItemNo,
             "type": "logic",
-            "logicOrAnd": true
+            "logicOrAnd": 'and'
           },
           [
             {
-              id_rule: 'NewGroup' + newItemNo,
               "type": "condition",
               "target": "Placement/App",
               "payment": "CPA",
@@ -106,11 +102,9 @@
           ]
         );
       } else {
-        var newItemNo = vm.rulesArray.length + 1;
-        rule.$parent.rules.if.push({"id_logic": "NewRule" + newItemNo, "type": "logic", "logicOrAnd": true},
+        rule.$parent.rules.if.push({"type": "logic", "logicOrAnd": 'and'},
           [
             {
-              id_rule: 'NewGroup' + newItemNo,
               "type": "condition",
               "target": "Placement/App",
               "payment": "CPA",
@@ -128,7 +122,7 @@
         {
           "id": "rule" + newItemNo,
           "if": [
-            {"id_rule": "NewRule" + newItemNo,
+            {
               "type": "condition",
               "target": "Placement/App",
               "payment": "CPA",

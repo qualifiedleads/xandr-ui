@@ -35,6 +35,7 @@ class MLPlacementsClustersKmeans(models.Model):
         )
     test_number = models.IntegerField(null=True)
     expert_decision = models.NullBooleanField(null=True)
+    good = models.NullBooleanField(null=True)
 
     class Meta:
         db_table = "ml_placements_clusters_kmeans"

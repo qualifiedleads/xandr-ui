@@ -60,10 +60,9 @@
 
     vm.addField = function (rule) {
       if (rule.$parent.$parent.$parent.$parent.rule) {
-        var newItemNo = vm.rulesArray.length + 1;
         rule.$parent.$parent.$parent.$parent.rule.push(
-          {"id_logic": "NewRule" + newItemNo, "type": "logic", "logicOrAnd": 'and'},
-          {"id_rule": "NewRule" + newItemNo,
+          {"type": "logic", "logicOrAnd": 'and'},
+          {
             "type": "condition",
             "target": "Placement/App",
             "payment": "CPA",
@@ -73,10 +72,9 @@
         );
 
       } else {
-        var newItemNo = vm.rulesArray.length + 1;
         rule.$parent.$parent.rules.if.push(
-          {"id_logic": "NewRule" + newItemNo, "type": "logic", "logicOrAnd": 'and'},
-          {"id_rule": "NewRule" + newItemNo,
+          {"type": "logic", "logicOrAnd": 'and'},
+          {
             "type": "condition",
             "target": "Placement/App",
             "payment": "CPA",
@@ -89,15 +87,12 @@
 
     vm.addGroup = function (rule, ind) {
       if (rule.$parent.$parent.$parent.rule) {
-        var newItemNo = vm.rulesArray.length + 1;
         rule.$parent.$parent.$parent.rule.push({
-            "id_logic": "NewRule" + newItemNo,
             "type": "logic",
             "logicOrAnd": 'and'
           },
           [
             {
-              id_rule: 'NewGroup' + newItemNo,
               "type": "condition",
               "target": "Placement/App",
               "payment": "CPA",
@@ -107,11 +102,9 @@
           ]
         );
       } else {
-        var newItemNo = vm.rulesArray.length + 1;
-        rule.$parent.rules.if.push({"id_logic": "NewRule" + newItemNo, "type": "logic", "logicOrAnd": 'and'},
+        rule.$parent.rules.if.push({"type": "logic", "logicOrAnd": 'and'},
           [
             {
-              id_rule: 'NewGroup' + newItemNo,
               "type": "condition",
               "target": "Placement/App",
               "payment": "CPA",
@@ -129,7 +122,7 @@
         {
           "id": "rule" + newItemNo,
           "if": [
-            {"id_rule": "NewRule" + newItemNo,
+            {
               "type": "condition",
               "target": "Placement/App",
               "payment": "CPA",

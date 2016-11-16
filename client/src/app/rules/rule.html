@@ -190,7 +190,7 @@
       <label>
         Value
         <select class="money" data-ng-model="rule.value">
-          <option ng-selected="rule.value == 'good'">good</option>
+          <option ng-selected="rule.value == 'good' || !rule.value">good</option>
           <option ng-selected="rule.value == 'bad'">bad</option>
         </select>
       </label>

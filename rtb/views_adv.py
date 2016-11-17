@@ -15,6 +15,7 @@ from pytz import utc
 import filter_func
 from models.ml_kmeans_model import MLPlacementDailyFeatures, MLClustersCentroidsKmeans, MLPlacementsClustersKmeans, \
 MLExpertsPlacementsMarks, MLViewFullPlacementsData, MLTestDataSet
+from models.ml_logistic_regression_models import MLLogisticRegressionResults, MLLogisticRegressionCoeff
 from rtb.ml_learn_kmeans import mlGetPlacementInfoKmeans, mlGetGoodClusters, mlGetTestNumber
 from models.placement_state import PlacementState, CampaignRules
 from rtb.placement_state import PlacementState as PlacementStateClass
@@ -585,65 +586,94 @@ def mlApiWeeklyPlacementRecignition(request):
     return Response(res)
 
 def mlApiSaveExpertDecision(request):
-    placement_id = request.GET.get("placementId")
-    checked = request.GET.get("checked")
-    test_type = request.GET.get("test_type")
-    test_name = request.GET.get("test_name")
-    day = request.GET.get("day")
+    placement_id = request.data.get("placementId")
+    checked = request.data.get("checked")
+    test_name = request.data.get("test_name")
+    test_type = request.data.get("test_type")
+    day = request.data.get("day")
 
-    goodClusters = mlGetGoodClusters(test_name)
+    test_number = mlGetTestNumber(test_type=test_type, test_name=test_name)
+    decision = None
+    if test_number == 0:#check if test number is valid
+        return Response(status=status.HTTP_400_BAD_REQUEST)
 
-    test_number = mlGetTestNumber(test_type, test_name)
     if test_type == "kmeans":
+        goodClusters = mlGetGoodClusters(test_name)
         placementInfo = MLPlacementsClustersKmeans.objects.filter(
             placement_id=placement_id,
             day=day,
             test_number=test_number
         )
-        if test_type == "log":
-            pass #get info about
 
-    decision = None
-    if placementInfo.cluster == goodClusters[day]:
-        if checked == True:
-            decision = "good"
+        if placementInfo.cluster == goodClusters[day]:
+            if checked == True:
+                decision = "good"
+            else:
+                decision = "bad"
         else:
-            decision = "bad"
-    else:
-        if checked == True:
-            decision = "bad"
-        else:
-            decision = "good"
-    expertMarkRecord = MLExpertsPlacementsMarks(
-        placement_id=placement_id,
-        day=day,
-        expert_decision=decision,
-        date=timezone.make_aware(datetime.datetime.now(),
-                        timezone.get_default_timezone())
-    )
-    try:
-        tempQuery = MLExpertsPlacementsMarks.objects.filter(
+            if checked == True:
+                decision = "bad"
+            else:
+                decision = "good"
+
+    if test_type == "log":#if logistic regression
+        placementInfo = MLLogisticRegressionResults.objects.filter(
             placement_id=placement_id,
-            day=day
+            day=day,
+            test_number=test_number
         )
-        if not tempQuery:
-            expertMarkRecord.save()
-        else:
-            tempQuery.update(
-                expert_decision=decision,
-                date=timezone.make_aware(datetime.datetime.now(),
-                        timezone.get_default_timezone())
-            )
+        logregModelInfo = MLLogisticRegressionCoeff.objects.filter(
+            day=day,
+            test_number=test_number
+        )
+
+        if logregModelInfo[0].good_direction == "higher":
+            if checked == True:
+                if placementInfo[0].probability > 0.5:
+                    decision = "good"
+                else:
+                    decision = "bad"
+            else:
+                if placementInfo[0].probability > 0.5:
+                    decision = "bad"
+                else:
+                    decision = "good"
+        if logregModelInfo[0].good_direction == "lower":
+            if checked:
+                if placementInfo[0].probability > 0.5:
+                    decision = "bad"
+                else:
+                    decision = "good"
+            else:
+                if placementInfo[0].probability > 0.5:
+                    decision = "good"
+                else:
+                    decision = "bad"
+
+    try:#save expert's mark for a placement
+        MLExpertsPlacementsMarks.objects.update_or_create(
+            placement_id=placement_id,
+            day=day,
+            defaults={
+                "expert_decision": decision,
+                "date": timezone.make_aware(datetime.datetime.now(),
+                                            timezone.get_default_timezone())
+            }
+        )
     except Exception, e:
         print "Can't save expert mark. Error: " + str(e)
-
-    try:
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+    try:#save expert decision about recognition results
         placementInfo.update(expert_decision=checked)
     except Exception, e:
         print "Can't save expert decision. Error: " + str(e)
         return Response(status=status.HTTP_400_BAD_REQUEST)
-
-    res = mlFillPredictionAnswer(placement_id, False, test_type, test_name)#RETURN ONE DAYWEEK?
+    res = mlFillPredictionAnswer(
+        placement_id=placement_id,
+        flagAllWeek=False,
+        test_type=test_type,
+        test_name=test_name
+    )
     return Response(res)
 
 def mlFillPredictionAnswer(placement_id = 1, flagAllWeek = False, test_type = "kmeans", test_name = "ctr_viewrate"):
@@ -703,12 +733,34 @@ def mlFillPredictionAnswer(placement_id = 1, flagAllWeek = False, test_type = "k
         return res
     #TODO getting results for logistic regression
     if test_type == "log":
-        res = ({
-            "good": -1,
-            "bad": -1,
-            "checked": -1
-        })
-        return res
+        test_number = mlGetTestNumber(test_type=test_type, test_name=test_name)
+        if test_number == 3:
+            fullResult = MLLogisticRegressionResults.objects.filter(
+                placement_id=placement_id,
+                day=7
+            )
+            if not fullResult:
+                res = ({
+                    "good": -1,
+                    "bad": -1,
+                    "checked": -1
+                })
+            else:
+                good_direction = MLLogisticRegressionCoeff.objects.filter(day=7, test_number=3)[0].good_direction
+                if good_direction == "higher":
+                    res = ({
+                        "good": fullResult[0].probability,
+                        "bad": 1 - fullResult[0].probability,
+                        "checked": fullResult[0].expert_decision
+                    })
+                else:
+                    res = ({
+                        "good": 1 - fullResult[0].probability,
+                        "bad": fullResult[0].probability,
+                        "checked": fullResult[0].expert_decision
+                    })
+            return res
+
     res = ({  # if wrong test type
         "good": -1,
         "bad": -1,

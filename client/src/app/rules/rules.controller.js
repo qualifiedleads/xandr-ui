@@ -120,7 +120,7 @@
       var newItemNo = vm.rulesArray.length + 1;
       vm.rulesArray.push(
         {
-          "id": "rule" + newItemNo,
+          "id": newItemNo,
           "if": [
             {
               "type": "condition",

@@ -140,6 +140,7 @@ REST_FRAMEWORK = {
 # Periodic jobs
 CRONJOBS = [
     ('* * * * *', 'rtb.crons.placement_state_cron.change_state_placement_by_cron_settings'),
+    ('0 */1 * * *', 'rtb.crons.campaign_rules_cron.checkRulesByCron'),
     ('*/15 * * * *', 'rtb.crons.placement_state_cron.platform_placement_targets'),
     ('* * * * *', 'rtb.crons.placement_state_cron.suspend_state_middleware_cron'),
     ('0 */4 * * *', 'rtb.crons.imp_tracker_cron.get'),

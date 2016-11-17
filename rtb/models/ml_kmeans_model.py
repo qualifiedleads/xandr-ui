@@ -77,6 +77,7 @@ class MLExpertsPlacementsMarks(models.Model):
 
     class Meta:
         db_table = "ml_experts_placements_marks"
+        unique_together = (('placement', 'day'),)
 
 class MLViewFullPlacementsData(models.Model):
     id = models.AutoField(primary_key=True)
@@ -103,7 +104,6 @@ class MLTestDataSet(models.Model):
     id = models.AutoField(primary_key=True)
     data = JSONField()
     created = models.DateTimeField(db_index=True, unique=True)
-
 
     class Meta:
         db_table = "ml_test_data_set"

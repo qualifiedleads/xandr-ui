@@ -287,7 +287,7 @@ def get_campaign_placement(campaign_id, from_date, to_date):
 
 
 @api_view()
-#@check_user_advertiser_permissions(campaign_id_num=0)
+@check_user_advertiser_permissions(campaign_id_num=0)
 def campaignDomains(request, id):
     """
 Get single campaign details by domains
@@ -586,65 +586,94 @@ def mlApiWeeklyPlacementRecignition(request):
     return Response(res)
 
 def mlApiSaveExpertDecision(request):
-    placement_id = request.GET.get("placementId")
-    checked = request.GET.get("checked")
-    test_type = request.GET.get("test_type")
-    test_name = request.GET.get("test_name")
-    day = request.GET.get("day")
+    placement_id = request.data.get("placementId")
+    checked = request.data.get("checked")
+    test_name = request.data.get("test_name")
+    test_type = request.data.get("test_type")
+    day = request.data.get("day")
 
-    goodClusters = mlGetGoodClusters(test_name)
+    test_number = mlGetTestNumber(test_type=test_type, test_name=test_name)
+    decision = None
+    if test_number == 0:#check if test number is valid
+        return Response(status=status.HTTP_400_BAD_REQUEST)
 
-    test_number = mlGetTestNumber(test_type, test_name)
     if test_type == "kmeans":
+        goodClusters = mlGetGoodClusters(test_name)
         placementInfo = MLPlacementsClustersKmeans.objects.filter(
             placement_id=placement_id,
             day=day,
             test_number=test_number
         )
-        if test_type == "log":
-            pass #get info about
 
-    decision = None
-    if placementInfo.cluster == goodClusters[day]:
-        if checked == True:
-            decision = "good"
+        if placementInfo.cluster == goodClusters[day]:
+            if checked == True:
+                decision = "good"
+            else:
+                decision = "bad"
         else:
-            decision = "bad"
-    else:
-        if checked == True:
-            decision = "bad"
-        else:
-            decision = "good"
-    expertMarkRecord = MLExpertsPlacementsMarks(
-        placement_id=placement_id,
-        day=day,
-        expert_decision=decision,
-        date=timezone.make_aware(datetime.datetime.now(),
-                        timezone.get_default_timezone())
-    )
-    try:
-        tempQuery = MLExpertsPlacementsMarks.objects.filter(
+            if checked == True:
+                decision = "bad"
+            else:
+                decision = "good"
+
+    if test_type == "log":#if logistic regression
+        placementInfo = MLLogisticRegressionResults.objects.filter(
             placement_id=placement_id,
-            day=day
+            day=day,
+            test_number=test_number
         )
-        if not tempQuery:
-            expertMarkRecord.save()
-        else:
-            tempQuery.update(
-                expert_decision=decision,
-                date=timezone.make_aware(datetime.datetime.now(),
-                        timezone.get_default_timezone())
-            )
+        logregModelInfo = MLLogisticRegressionCoeff.objects.filter(
+            day=day,
+            test_number=test_number
+        )
+
+        if logregModelInfo[0].good_direction == "higher":
+            if checked == True:
+                if placementInfo[0].probability > 0.5:
+                    decision = "good"
+                else:
+                    decision = "bad"
+            else:
+                if placementInfo[0].probability > 0.5:
+                    decision = "bad"
+                else:
+                    decision = "good"
+        if logregModelInfo[0].good_direction == "lower":
+            if checked:
+                if placementInfo[0].probability > 0.5:
+                    decision = "bad"
+                else:
+                    decision = "good"
+            else:
+                if placementInfo[0].probability > 0.5:
+                    decision = "good"
+                else:
+                    decision = "bad"
+
+    try:#save expert's mark for a placement
+        MLExpertsPlacementsMarks.objects.update_or_create(
+            placement_id=placement_id,
+            day=day,
+            defaults={
+                "expert_decision": decision,
+                "date": timezone.make_aware(datetime.datetime.now(),
+                                            timezone.get_default_timezone())
+            }
+        )
     except Exception, e:
         print "Can't save expert mark. Error: " + str(e)
-
-    try:
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+    try:#save expert decision about recognition results
         placementInfo.update(expert_decision=checked)
     except Exception, e:
         print "Can't save expert decision. Error: " + str(e)
         return Response(status=status.HTTP_400_BAD_REQUEST)
-
-    res = mlFillPredictionAnswer(placement_id, False, test_type, test_name)#RETURN ONE DAYWEEK?
+    res = mlFillPredictionAnswer(
+        placement_id=placement_id,
+        flagAllWeek=False,
+        test_type=test_type,
+        test_name=test_name
+    )
     return Response(res)
 
 def mlFillPredictionAnswer(placement_id = 1, flagAllWeek = False, test_type = "kmeans", test_name = "ctr_viewrate"):

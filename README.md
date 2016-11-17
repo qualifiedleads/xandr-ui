@@ -82,4 +82,7 @@ This task predicts GOO/BAD clustersfor new placements.
 
 ('0 6 * * 7', 'rtb.crons.ml_refresh_view_full_placements_data_cron.mlRefreshViewFullPlacementsDataCron')
 This task updates materialized view for ML purposes.
+
+('0 */1 * * *', 'rtb.crons.campaign_rules_cron.checkRulesByCron')
+Those rules check condition and change placements states
 ````

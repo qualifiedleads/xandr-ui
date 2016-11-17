@@ -15,6 +15,7 @@ from pytz import utc
 import filter_func
 from models.ml_kmeans_model import MLPlacementDailyFeatures, MLClustersCentroidsKmeans, MLPlacementsClustersKmeans, \
 MLExpertsPlacementsMarks, MLViewFullPlacementsData, MLTestDataSet
+from models.ml_logistic_regression_models import MLLogisticRegressionResults, MLLogisticRegressionCoeff
 from rtb.ml_learn_kmeans import mlGetPlacementInfoKmeans, mlGetGoodClusters, mlGetTestNumber
 from models.placement_state import PlacementState, CampaignRules
 from rtb.placement_state import PlacementState as PlacementStateClass
@@ -286,7 +287,7 @@ def get_campaign_placement(campaign_id, from_date, to_date):
 
 
 @api_view()
-@check_user_advertiser_permissions(campaign_id_num=0)
+#@check_user_advertiser_permissions(campaign_id_num=0)
 def campaignDomains(request, id):
     """
 Get single campaign details by domains
@@ -703,12 +704,34 @@ def mlFillPredictionAnswer(placement_id = 1, flagAllWeek = False, test_type = "k
         return res
     #TODO getting results for logistic regression
     if test_type == "log":
-        res = ({
-            "good": -1,
-            "bad": -1,
-            "checked": -1
-        })
-        return res
+        test_number = mlGetTestNumber(test_type=test_type, test_name=test_name)
+        if test_number == 3:
+            fullResult = MLLogisticRegressionResults.objects.filter(
+                placement_id=placement_id,
+                day=7
+            )
+            if not fullResult:
+                res = ({
+                    "good": -1,
+                    "bad": -1,
+                    "checked": -1
+                })
+            else:
+                good_direction = MLLogisticRegressionCoeff.objects.filter(day=7, test_number=3)[0].good_direction
+                if good_direction == "higher":
+                    res = ({
+                        "good": fullResult[0].probability,
+                        "bad": 1 - fullResult[0].probability,
+                        "checked": fullResult[0].expert_decision
+                    })
+                else:
+                    res = ({
+                        "good": 1 - fullResult[0].probability,
+                        "bad": fullResult[0].probability,
+                        "checked": fullResult[0].expert_decision
+                    })
+            return res
+
     res = ({  # if wrong test type
         "good": -1,
         "bad": -1,

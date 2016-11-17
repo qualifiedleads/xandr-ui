@@ -77,7 +77,7 @@
           {
             "type": "condition",
             "target": "Placement/App",
-            "payment": "CPA",
+            "payment": "cpa",
             "compare": ">",
             "value": 0
           }
@@ -95,7 +95,7 @@
             {
               "type": "condition",
               "target": "Placement/App",
-              "payment": "CPA",
+              "payment": "cpa",
               "compare": ">",
               "value": 0
             }
@@ -107,7 +107,7 @@
             {
               "type": "condition",
               "target": "Placement/App",
-              "payment": "CPA",
+              "payment": "cpa",
               "compare": ">",
               "value": 0
             }
@@ -125,7 +125,7 @@
             {
               "type": "condition",
               "target": "Placement/App",
-              "payment": "CPA",
+              "payment": "cpa",
               "compare": ">",
               "value": 0
             }

@@ -15,6 +15,7 @@
     vm.campName = Campaign.campaign;
     vm.campId = Campaign.id;
     vm.line_item = Campaign.line_item;
+    vm.line_item_id = Campaign.line_item_id;
     vm.object = CampaignOptimiser.campaignTargeting(1, 1, 1);
     vm.popUpIf = false;
     vm.arrayDiagram = [];
@@ -585,7 +586,7 @@
                 var badDiagram = options.data.analitics.badDiagram;
                 var tpl = $compile(
                   '<div class="analiticCO">' +
-                  '<div class="diagramCO" ng-click="CO.showAllDiagram(' + options.data.placement + ')">' +
+                  '<div class="diagramCO">' +
                   '<div class="badDiagramCO" style="width:' + badDiagram + ';opacity:' + badOpasity + ';"></div>' +
                   '<div class="goodDiagramCO" style="width:' + goodDiagram + ';opacity:' + goodOpasity + ';"></div>' +
                   '<p class="textBadDiagramCO" >' + k.toFixed(1) + '%</p>' +

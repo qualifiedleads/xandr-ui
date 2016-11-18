@@ -46,7 +46,7 @@ Get campaign name by id
     if obj.line_item_id is not None:
         li = list(LineItem.objects.filter(id=int(obj.line_item_id)))
         if len(li)==1:
-            return Response({'id': obj.id, 'campaign': obj.name, 'line_item': li[0].name})
+            return Response({'id': obj.id, 'campaign': obj.name, 'line_item': li[0].name, 'line_item_id': li[0].id})
     return Response({'id': obj.id, 'campaign': obj.name, 'line_item': None})
 
 

@@ -46,7 +46,7 @@ Get campaign name by id
     if obj.line_item_id is not None:
         li = list(LineItem.objects.filter(id=int(obj.line_item_id)))
         if len(li)==1:
-            return Response({'id': obj.id, 'campaign': obj.name, 'line_item': li[0].name})
+            return Response({'id': obj.id, 'campaign': obj.name, 'line_item': li[0].name, 'line_item_id': li[0].id})
     return Response({'id': obj.id, 'campaign': obj.name, 'line_item': None})
 
 
@@ -599,13 +599,16 @@ def mlApiSaveExpertDecision(request):
 
     if test_type == "kmeans":
         goodClusters = mlGetGoodClusters(test_name)
+        if goodClusters == -1:
+            print "Kmeans model is not taught"
+            return Response(status=status.HTTP_400_BAD_REQUEST)
         placementInfo = MLPlacementsClustersKmeans.objects.filter(
             placement_id=placement_id,
             day=day,
             test_number=test_number
         )
 
-        if placementInfo.cluster == goodClusters[day]:
+        if placementInfo[0].cluster == goodClusters[day]:
             if checked == True:
                 decision = "good"
             else:

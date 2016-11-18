@@ -73,13 +73,13 @@
     }
 
     //http://localhost:8000/api/v1/MLGetAUC?test_type=kmeans&test_name=ctr_cvr_cpc_cpm_cpa
-    function MLGetAUC() {
+    function MLGetAUC(test_type) {
       return $http({
         method: 'GET',
         url: '/api/v1/MLGetAUC',
         headers: {'Authorization': 'Token ' + $cookies.get('token')},
         params: {
-          test_type: 'kmeans',
+          test_type: test_type,
           test_name: 'ctr_cvr_cpc_cpm_cpa'
         }
       })

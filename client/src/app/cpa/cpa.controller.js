@@ -16,6 +16,7 @@
     vm.campName = Campaign.campaign;
     vm.campId = Campaign.id;
     vm.line_item = Campaign.line_item;
+    vm.line_item_id = Campaign.line_item_id;
     vm.cpaResult = [];
     vm.selectedSection = $localStorage.selectedSection;
 

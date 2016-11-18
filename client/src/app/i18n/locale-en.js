@@ -159,7 +159,8 @@
           "VIEW_RATE":"Viewed rate",
           "STATS":"Stats",
           "STATE":"State",
-          "PREDICTION_1":"Prediction №1"
+          "PREDICTION_1":"Prediction №1",
+          "PREDICTION_2":"Prediction №2"
         }
       }
     },

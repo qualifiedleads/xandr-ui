@@ -2,9 +2,9 @@
   <div class="row stats-header">
     <div class="groupHeadOpti">
       <span translate="RULESC.OPTIMISER-FOR" class="camp-header"></span><span class="camp-header">
-        <a href="" ui-sref="home.campaign({id: rulesC.campId})"  >{{rulesC.campName}} </a>
+        <a href="" ui-sref="home.campaign({id: rulesC.campId})"  >{{rulesC.campName}} ({{rulesC.campId}})</a>
       </span>
-      <br><span translate="CAMP.LINE_ITEM" class="camp-header"></span><span class="camp-line-item"> {{rulesC.line_item}} </span>
+      <br><span translate="CAMP.LINE_ITEM" class="camp-header"></span><span class="camp-line-item"> {{rulesC.line_item}} ({{rulesC.line_item_id}})</span>
         <div class="control pull-right" dx-select-box="rulesC.UI.datePiker"></div>
     </div>
   </div>

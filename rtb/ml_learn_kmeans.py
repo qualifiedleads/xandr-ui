@@ -580,6 +580,11 @@ def mlPredictOnePlacement(placement_id, numbClusters, test_name = "ctr_viewrate"
                 minDistance = clustersDistance[i]
                 placementClusterRecord.cluster = i + 1
 
+        goodClusters = mlGetGoodClusters("ctr_cvr_cpc_cpm_cpa")
+        if placementClusterRecord.cluster == goodClusters[7]:
+            placementClusterRecord.good = True
+        else:
+            placementClusterRecord.good = False
         try:
             tempQuery = MLPlacementsClustersKmeans.objects.filter(
                 placement_id=placement_id,
@@ -588,10 +593,12 @@ def mlPredictOnePlacement(placement_id, numbClusters, test_name = "ctr_viewrate"
             )
             if not tempQuery:
                 placementClusterRecord.save()
-            tempQuery.update(
-                distance_to_clusters=placementClusterRecord.distance_to_clusters,
-                cluster=placementClusterRecord.cluster
-            )
+            else:
+                tempQuery.update(
+                    distance_to_clusters=placementClusterRecord.distance_to_clusters,
+                    cluster=placementClusterRecord.cluster,
+                    good=placementClusterRecord.good
+                )
         except Exception, e:
             print "Can't save recognition info. Error: " + str(e)
         print "Prediction completed " + str(placement_id)

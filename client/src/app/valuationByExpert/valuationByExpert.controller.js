@@ -20,9 +20,16 @@
       vm.popUpIf = false;
     };
     vm.auc = null;
+    vm.titlePred = '';
 
     valuationByExpertS.MLGetAUC(vm.selectType)
       .then(function (res) {
+        if (vm.selectType == "log") {
+          vm.titlePred = "Logistic regression";
+        }
+        if (vm.selectType == "kmeans") {
+          vm.titlePred = "K-means";
+        }
         vm.auc = res.auc;
         vm.chartCoord = res.chartCoord;
         vm.culcReady = true;
@@ -131,6 +138,12 @@
           buttonIndicator.option("visible", true);
           valuationByExpertS.MLGetAUC(vm.selectType)
             .then(function (res) {
+              if (vm.selectType == "log") {
+                vm.titlePred = "Logistic regression";
+              }
+              if (vm.selectType == "kmeans") {
+                vm.titlePred = "K-means";
+              }
               vm.auc = res.auc;
               vm.chartCoord = res.chartCoord;
               vm.culcReady = true;

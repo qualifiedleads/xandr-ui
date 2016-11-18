@@ -19,6 +19,11 @@
     vm.popUpIf = false;
     vm.arrayDiagram = [];
 
+    vm.popUpHide = popUpHide;
+
+    function popUpHide () {
+      vm.popUpIf = false;
+    }
 
     //region DATE PIKER
     /** DATE PIKER **/
@@ -561,7 +566,6 @@
           {
             caption: LC('CAMP.CAMPAIGN.COLUMNS.PREDICTION_1'),
             width: 115,
-            columnIndex: 16,
             dataField: 'analytics',
             allowEditing: false,
             cellTemplate: function (container, options) {
@@ -600,7 +604,7 @@
                   onClick: function () {
                     $window.$(".falseButtonAnaliticCO" + options.data.placement).removeClass('active-white');
                     $window.$(".trueButtonAnaliticCO" + options.data.placement).addClass('active-white');
-                    CampaignOptimiser.decisionML(vm.campId, options.data.placement, true)
+                    CampaignOptimiser.decisionML(vm.campId, options.data.placement, true, 'kmeans')
                       .then(function (res) {
                         return res;
                       });
@@ -613,7 +617,7 @@
                   onClick: function () {
                     $window.$(".falseButtonAnaliticCO" + options.data.placement).addClass('active-white');
                     $window.$(".trueButtonAnaliticCO" + options.data.placement).removeClass('active-white');
-                    CampaignOptimiser.decisionML(vm.campId, options.data.placement, false)
+                    CampaignOptimiser.decisionML(vm.campId, options.data.placement, false, 'kmeans')
                       .then(function (res) {
                         return res;
                       });
@@ -627,6 +631,88 @@
                 }
 
                 if (options.data.analitics.checked == false) {
+                  falseButton.addClass('active-white').append();
+                } else {
+                  falseButton.append();
+                }
+
+                vm.showAllDiagram = function (item) {
+                  vm.popUpIf = true;
+                  CampaignOptimiser.showAllMLDiagram(vm.campId, item)
+                    .then(function (res) {
+                      vm.arraytoPopup = res;
+                    });
+                };
+              }
+            }
+          },{
+            caption: LC('CAMP.CAMPAIGN.COLUMNS.PREDICTION_2'),
+            width: 115,
+            dataField: 'analytics1',
+            allowEditing: false,
+            cellTemplate: function (container, options) {
+              vm.arrayDiagram.push(options.data);
+              if (options.data.analitics1 === null) {
+                /*                var tpl = $compile(
+                 '<div class="analiticCO">'+
+                 '</div>;')( $scope );
+                 tpl.appendTo(container);*/
+              } else {
+                var bad = options.data.analitics1.bad;
+                var good = options.data.analitics1.good;
+                var badOpasity = options.data.analitics1.badOpasity;
+                var goodOpasity = options.data.analitics1.goodOpasity;
+                var k = options.data.analitics1.k;
+                var goodDiagram = options.data.analitics1.goodDiagram;
+                var badDiagram = options.data.analitics1.badDiagram;
+                var tpl = $compile(
+                  '<div class="analiticCO">' +
+                  '<div class="diagramCO">' +
+                  '<div class="badDiagramCO" style="width:' + badDiagram + ';opacity:' + badOpasity + ';"></div>' +
+                  '<div class="goodDiagramCO" style="width:' + goodDiagram + ';opacity:' + goodOpasity + ';"></div>' +
+                  '<p class="textBadDiagramCO" >' + k.toFixed(1) + '%</p>' +
+                  '<p class="textGoodDiagramCO">' + (100 - k).toFixed(1) + '%</p>' +
+                  '</div>' +
+                  '<div class="buttonAnaliticCO' + options.data.placement + '">' +
+                  '<div class="trueButtonAnaliticCO1' + options.data.placement + '"></div>' +
+                  '<div class="falseButtonAnaliticCO1' + options.data.placement + '"></div>' +
+                  '</div>' +
+                  '</div>;')($scope);
+                tpl.appendTo(container);
+
+                var trueButton = $window.$(".trueButtonAnaliticCO1" + options.data.placement).dxButton({
+                  text: 'True',
+                  disabled: false,
+                  onClick: function () {
+                    $window.$(".falseButtonAnaliticCO1" + options.data.placement).removeClass('active-white');
+                    $window.$(".trueButtonAnaliticCO1" + options.data.placement).addClass('active-white');
+                    CampaignOptimiser.decisionML(vm.campId, options.data.placement, true, 'log')
+                      .then(function (res) {
+                        return res;
+                      });
+                  }
+                });
+
+                var falseButton = $window.$(".falseButtonAnaliticCO1" + options.data.placement).dxButton({
+                  text: 'False',
+                  disabled: false,
+                  onClick: function () {
+                    $window.$(".falseButtonAnaliticCO1" + options.data.placement).addClass('active-white');
+                    $window.$(".trueButtonAnaliticCO1" + options.data.placement).removeClass('active-white');
+                    CampaignOptimiser.decisionML(vm.campId, options.data.placement, false, 'log')
+                      .then(function (res) {
+                        return res;
+                      });
+                  }
+                });
+
+                if (options.data.analitics1.checked == true) {
+                  trueButton.addClass('active-white').append();
+                } else {
+                  trueButton.append();
+                }
+
+                if (options.data.analitics1.checked == false) {
                   falseButton.addClass('active-white').append();
                 } else {
                   falseButton.append();

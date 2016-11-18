@@ -599,13 +599,16 @@ def mlApiSaveExpertDecision(request):
 
     if test_type == "kmeans":
         goodClusters = mlGetGoodClusters(test_name)
+        if goodClusters == -1:
+            print "Kmeans model is not taught"
+            return Response(status=status.HTTP_400_BAD_REQUEST)
         placementInfo = MLPlacementsClustersKmeans.objects.filter(
             placement_id=placement_id,
             day=day,
             test_number=test_number
         )
 
-        if placementInfo.cluster == goodClusters[day]:
+        if placementInfo[0].cluster == goodClusters[day]:
             if checked == True:
                 decision = "good"
             else:

@@ -109,25 +109,75 @@
               };
             }
 
-            res.data.data[item].cvr = parseFloat((res.data.data[item].cvr || 0).toFixed(2)/100),
-              res.data.data[item].ctr = parseFloat((res.data.data[item].ctr || 0).toFixed(2)/100),
-              res.data.data[item].cpc = parseFloat((res.data.data[item].cpc || 0).toFixed(4)),
-              res.data.data[item].cpm = parseFloat((res.data.data[item].cpm || 0).toFixed(4)),
-              res.data.data[item].imp = parseFloat((res.data.data[item].imp || 0).toFixed(4)),
-              res.data.data[item].cpa = parseFloat((res.data.data[item].cpa || 0).toFixed(4)),
-              res.data.data[item].clicks = parseFloat((res.data.data[item].clicks || 0).toFixed(4)),
-              res.data.data[item].conv = parseFloat((res.data.data[item].conv || 0).toFixed(4)),
-              res.data.data[item].cost = parseFloat((res.data.data[item].cost || 0).toFixed(2)),
-              res.data.data[item].analitics = itemArray,
-              res.data.data[item].imps_viewed = parseFloat((res.data.data[item].imps_viewed || 0).toFixed(4)),
-              res.data.data[item].view_measured_imps = parseFloat((res.data.data[item].view_measured_imps || 0).toFixed(4)),
-              res.data.data[item].view_measurement_rate = parseFloat((res.data.data[item].view_measurement_rate || 0).toFixed(1)/100),
-              res.data.data[item].view_rate = parseFloat((res.data.data[item].view_rate || 0).toFixed(1)/100),
-              res.data.data[item].state = {
-                blackList: res.data.data[item].state & 2,
-                suspended: res.data.data[item].state & 1,
-                whiteList: res.data.data[item].state & 4
+            var itemArray1 = [];
+            if (res.data.data[item].analitics1.good == -1 || res.data.data[item].analitics1.good == -2 || res.data.data[item].analitics1.good == -3) {
+              itemArray1 = null;
+            } else {
+              var bad = res.data.data[item].analitics1.bad;
+              var good = res.data.data[item].analitics1.good;
+              var badOpasity = 1;
+              var goodOpasity = 1;
+              var k = +((bad * 100) / (bad + good));
+              if (((k / 100 <= 0.5)) && (((k / 100) > 0.45)) || ((((100 - k) / 100) <= 0.5) && (((100 - k) / 100) > 0.45 ))) {
+                badOpasity = 0.03;
+                goodOpasity = 0.03;
               }
+              if ((k / 100 < 0.45 && k / 100 > 0.4) || (((100 - k) / 100) < 0.45 && ((100 - k) / 100) > 0.4 )) {
+                badOpasity = 0.09;
+                goodOpasity = 0.09;
+              }
+              if ((k / 100 < 0.4 && k / 100 > 0.3) || (((100 - k) / 100) < 0.4 && ((100 - k) / 100) > 0.3 )) {
+                badOpasity = 0.2;
+                goodOpasity = 0.2;
+              }
+              if ((k / 100 < 0.3 && k / 100 > 0.2) || (((100 - k) / 100) < 0.3 && ((100 - k) / 100) > 0.2 )) {
+                badOpasity = 0.5;
+                goodOpasity = 0.5;
+              }
+              if ((k / 100 < 0.2 && k / 100 > 0.1) || (((100 - k) / 100) < 0.2 && ((100 - k) / 100) > 0.1 )) {
+                badOpasity = 0.7;
+                goodOpasity = 0.7;
+              }
+              if ((k / 100 < 0.1 && k / 100 > 0) || (((100 - k) / 100) < 0.1 && ((100 - k) / 100) > 0 )) {
+                badOpasity = 1.0;
+                goodOpasity = 1.0;
+              }
+              var goodDiagram = (100 - k) + '%';
+              var badDiagram = k + '%';
+
+
+              itemArray1 = {
+                "good": res.data.data[item].analitics1.good,
+                "bad": res.data.data[item].analitics1.bad,
+                "checked": res.data.data[item].analitics1.checked,
+                "badDiagram": badDiagram,
+                "goodDiagram": goodDiagram,
+                "badOpasity": badOpasity,
+                "goodOpasity": goodOpasity,
+                "k": k
+              };
+            }
+
+            res.data.data[item].cvr = parseFloat((res.data.data[item].cvr || 0).toFixed(2)/100),
+            res.data.data[item].ctr = parseFloat((res.data.data[item].ctr || 0).toFixed(2)/100),
+            res.data.data[item].cpc = parseFloat((res.data.data[item].cpc || 0).toFixed(4)),
+            res.data.data[item].cpm = parseFloat((res.data.data[item].cpm || 0).toFixed(4)),
+            res.data.data[item].imp = parseFloat((res.data.data[item].imp || 0).toFixed(4)),
+            res.data.data[item].cpa = parseFloat((res.data.data[item].cpa || 0).toFixed(4)),
+            res.data.data[item].clicks = parseFloat((res.data.data[item].clicks || 0).toFixed(4)),
+            res.data.data[item].conv = parseFloat((res.data.data[item].conv || 0).toFixed(4)),
+            res.data.data[item].cost = parseFloat((res.data.data[item].cost || 0).toFixed(2)),
+            res.data.data[item].analitics = itemArray,
+            res.data.data[item].analitics1 = itemArray1,
+            res.data.data[item].imps_viewed = parseFloat((res.data.data[item].imps_viewed || 0).toFixed(4)),
+            res.data.data[item].view_measured_imps = parseFloat((res.data.data[item].view_measured_imps || 0).toFixed(4)),
+            res.data.data[item].view_measurement_rate = parseFloat((res.data.data[item].view_measurement_rate || 0).toFixed(1)/100),
+            res.data.data[item].view_rate = parseFloat((res.data.data[item].view_rate || 0).toFixed(1)/100),
+            res.data.data[item].state = {
+              blackList: res.data.data[item].state & 2,
+              suspended: res.data.data[item].state & 1,
+              whiteList: res.data.data[item].state & 4
+            }
           }
 
           _totalCountCampaign = res.data.totalCount;
@@ -187,12 +237,18 @@
         });
     }
 
-    function decisionML(id, placementId, checked) {
+    function decisionML(id, placementId, checked, test_type) {
       return $http({
         method: 'POST',
         url: '/api/v1/campaigns/' + id + '/MLPlacement',
         headers: {'Authorization': 'Token ' + $cookies.get('token')},
-        data: {placementId: placementId, checked: checked}
+        data: {
+          placementId: placementId,
+          checked: checked,
+          test_type: test_type,//"kmeans"(pred1), "log"(pred2)
+          test_name: "ctr_cvr_cpc_cpm_cpa",
+          day: 7
+        }
       })
         .then(function (res) {
           return res.data;
@@ -216,7 +272,7 @@
         .then(function (res) {
           var itemArray = [];
           for (var item in res.data) {
-            if (res.data[item].good == -1) {
+            if ((res.data[item].good == -1) || (res.data[item].good == -2) || (res.data[item].good == -3)) {
               itemArray[item] = false;
             } else {
               if (res.data[item].day == '0') {

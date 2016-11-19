@@ -197,9 +197,9 @@ def mlPredictOnePlacementLogisticRegression(placement_id, test_name = "ctr_cvr_c
     for i in xrange(len(placementFeatures)):
         functionValue += (placementFeatures[i] * coefficients[i])
     if functionValue > 700:
-        print "Math overflow, can't predict"
-        return -1
-    prob = 1.0 / (1.0 + math.exp(functionValue))#calc probability of class
+        prob = 0
+    else:
+        prob = 1.0 / (1.0 + math.exp(functionValue))#calc probability of class
     MLLogisticRegressionResults.objects.update_or_create(
         placement_id=placement_id,
         day=7,

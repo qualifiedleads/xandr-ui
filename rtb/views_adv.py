@@ -748,30 +748,37 @@ def mlFillPredictionAnswer(placement_id = 1, flagAllWeek = False, test_type = "k
                     "bad": -1,
                     "checked": -1
                 })
+                return res
+            if fullResult[0].probability == -1:
+                res = ({
+                    "good": -1,
+                    "bad": -1,
+                    "checked": -1
+                })
+                return res
+            good_direction = MLLogisticRegressionCoeff.objects.filter(day=7, test_number=3)[0].good_direction
+            if good_direction == "higher":
+                # res = ({
+                #     "good": fullResult[0].probability,
+                #     "bad": 1 - fullResult[0].probability,
+                #     "checked": fullResult[0].expert_decision
+                # })
+                res = ({
+                    "good": 1 - fullResult[0].probability,
+                    "bad": fullResult[0].probability,
+                    "checked": fullResult[0].expert_decision
+                })
             else:
-                good_direction = MLLogisticRegressionCoeff.objects.filter(day=7, test_number=3)[0].good_direction
-                if good_direction == "higher":
-                    # res = ({
-                    #     "good": fullResult[0].probability,
-                    #     "bad": 1 - fullResult[0].probability,
-                    #     "checked": fullResult[0].expert_decision
-                    # })
-                    res = ({
-                        "good": 1 - fullResult[0].probability,
-                        "bad": fullResult[0].probability,
-                        "checked": fullResult[0].expert_decision
-                    })
-                else:
-                    # res = ({
-                    #     "good": 1 - fullResult[0].probability,
-                    #     "bad": fullResult[0].probability,
-                    #     "checked": fullResult[0].expert_decision
-                    # })
-                    res = ({
-                        "good": fullResult[0].probability,
-                        "bad": 1 - fullResult[0].probability,
-                        "checked": fullResult[0].expert_decision
-                    })
+                # res = ({
+                #     "good": 1 - fullResult[0].probability,
+                #     "bad": fullResult[0].probability,
+                #     "checked": fullResult[0].expert_decision
+                # })
+                res = ({
+                    "good": fullResult[0].probability,
+                    "bad": 1 - fullResult[0].probability,
+                    "checked": fullResult[0].expert_decision
+                })
             return res
 
     res = ({  # if wrong test type
@@ -805,8 +812,8 @@ def mlApiRandomTestSet(request):
               view_measurement_rate
             FROM
               ml_view_full_placements_data
-            TABLESAMPLE BERNOULLI(20)
-            limit 127;
+            TABLESAMPLE BERNOULLI(15)
+            limit 254;
             """
         )
         res = []

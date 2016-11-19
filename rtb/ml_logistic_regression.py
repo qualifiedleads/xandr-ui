@@ -8,7 +8,7 @@ from models import NetworkAnalyticsReport_ByPlacement
 from rtb.ml_learn_kmeans import mlGetTestNumber
 
 #learn logistic regression model
-def mlLearnLogisticRegression(test_name = "ctr_cvr_cpc_cpm_cpa"):
+def mlLearnLogisticRegression(goodPlacementsIds, badPlacementsIds, test_name = "ctr_cvr_cpc_cpm_cpa"):
     numbDays = 7
     numbFeaturesInDay = 0
     test_number_base = 0
@@ -19,17 +19,15 @@ def mlLearnLogisticRegression(test_name = "ctr_cvr_cpc_cpm_cpa"):
         print "Wrong test name"
         return -1
 
-    allMarkedPlacements = []#TODO remove into the loop if we will get experts mark for every weekday
-    queryResults = MLExpertsPlacementsMarks.objects.filter(expert_decision__isnull=False)
-    if not queryResults:
-        print "Data base hasn't any of expert marks"
-        return -1
     placementsMarks = {}
     sqlMarkedPlacementsIn = "("
-    for row in queryResults.iterator():
-        allMarkedPlacements.append(row.placement_id)
-        placementsMarks[str(row.placement_id)] = row.expert_decision
-        sqlMarkedPlacementsIn += (str(row.placement_id) + ',')
+
+    for placement in goodPlacementsIds:
+        placementsMarks[str(placement)] = "good"
+        sqlMarkedPlacementsIn += (str(placement) + ',')
+    for placement in badPlacementsIds:
+        placementsMarks[str(placement)] = "bad"
+        sqlMarkedPlacementsIn += (str(placement) + ',')
 
     sqlMarkedPlacementsIn = sqlMarkedPlacementsIn[:-1]
     sqlMarkedPlacementsIn += ')'

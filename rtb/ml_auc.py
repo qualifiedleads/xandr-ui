@@ -1,4 +1,5 @@
 from ml_learn_kmeans import mlGetGoodClusters, mlGetCentroids, mlGetTestNumber, mlCalcCluster
+from ml_logistic_regression import mlLearnLogisticRegression
 from models.ml_kmeans_model import MLPlacementDailyFeatures, MLClustersCentroidsKmeans, MLPlacementsClustersKmeans, \
     MLNormalizationData, MLExpertsPlacementsMarks, MLTestDataSet
 from models.ml_logistic_regression_models import MLLogisticRegressionCoeff, MLLogisticRegressionResults
@@ -238,8 +239,6 @@ def mlBuildROC(test_type = "kmeans", test_name = "ctr_cvr_cpc_cpm_cpa", date = -
         return -1, -1
 
     numbDays = 8
-    samplesNumb = 127
-
     testPlacementsIds = []
     if date == -1:  # getting latest test dataset and adding it placements to our list
         max_date = MLTestDataSet.objects.latest("created")
@@ -258,6 +257,8 @@ def mlBuildROC(test_type = "kmeans", test_name = "ctr_cvr_cpc_cpm_cpa", date = -
         placement_id__in=testPlacementsIds,
         expert_decision__isnull=False
     )
+
+    samplesNumb = len(testPlacementsIds)
 
     if len(testSamples) != samplesNumb:
         print "Not all placements are marked by experts"
@@ -421,15 +422,40 @@ def mlBuildROC(test_type = "kmeans", test_name = "ctr_cvr_cpc_cpm_cpa", date = -
         return rocSensetivities, rocFalsePositivesRates
 
     if test_type == "log":
+        goodLearnIds = []
+        badLearnIds = []
+        if len(badPlacements) % 2 == 1:
+            badCount = (len(badPlacements) / 2) + 1
+        else:
+            badCount = len(badPlacements) / 2
+        if len(goodPlacements) % 2 == 1:
+            goodCount = (len(goodPlacements) / 2) + 1
+        else:
+            goodCount = len(goodPlacements) / 2
+
+        for i in xrange(goodCount):
+            goodLearnIds.append(goodPlacements[i])
+        for i in xrange(badCount):
+            badLearnIds.append(badPlacements[i])
+
+        goodPlacements = goodPlacements[goodCount:]
+        badPlacements = badPlacements[badCount:]
+        mlLearnLogisticRegression(goodLearnIds, badLearnIds, "ctr_cvr_cpc_cpm_cpa")
+
+        MLLogisticRegressionResults.objects.all().update(
+            probability=-1,
+            expert_decision=None
+        )
+
         queryResult = MLLogisticRegressionCoeff.objects.filter(
             day=7,
             test_number=test_number
         )
         if not queryResult:
             print "Logreg model is not taught"
-            return
+            return -1, -1
         goodClusterSamples = mlPlacementsInfoLogreg(test_number=test_number, placementsIds=goodPlacements)
-        badClusterSamples = mlPlacementsInfoLogreg(test_number=test_number,placementsIds=badPlacements)
+        badClusterSamples = mlPlacementsInfoLogreg(test_number=test_number, placementsIds=badPlacements)
 
         delta = 0.0001
         rocSensetivities = []

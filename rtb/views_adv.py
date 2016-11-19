@@ -751,15 +751,25 @@ def mlFillPredictionAnswer(placement_id = 1, flagAllWeek = False, test_type = "k
             else:
                 good_direction = MLLogisticRegressionCoeff.objects.filter(day=7, test_number=3)[0].good_direction
                 if good_direction == "higher":
-                    res = ({
-                        "good": fullResult[0].probability,
-                        "bad": 1 - fullResult[0].probability,
-                        "checked": fullResult[0].expert_decision
-                    })
-                else:
+                    # res = ({
+                    #     "good": fullResult[0].probability,
+                    #     "bad": 1 - fullResult[0].probability,
+                    #     "checked": fullResult[0].expert_decision
+                    # })
                     res = ({
                         "good": 1 - fullResult[0].probability,
                         "bad": fullResult[0].probability,
+                        "checked": fullResult[0].expert_decision
+                    })
+                else:
+                    # res = ({
+                    #     "good": 1 - fullResult[0].probability,
+                    #     "bad": fullResult[0].probability,
+                    #     "checked": fullResult[0].expert_decision
+                    # })
+                    res = ({
+                        "good": fullResult[0].probability,
+                        "bad": 1 - fullResult[0].probability,
                         "checked": fullResult[0].expert_decision
                     })
             return res

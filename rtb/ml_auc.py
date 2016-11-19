@@ -227,7 +227,10 @@ class mlPlacementsInfoLogreg:
                 functionValue = 0  # calc value of decision function
                 for i in xrange(len(onePlacementFeatures)):
                     functionValue += (onePlacementFeatures[i] * coefficients[i])
-                prob = 1.0 / (1.0 + math.exp(functionValue))  # calc probability of class
+                if functionValue > 700:
+                    prob = 0
+                else:
+                    prob = 1.0 / (1.0 + math.exp(functionValue))  # calc probability of class
                 self.placementsProbability.append(prob)
                 onePlacementFeatures = []
                 curFeature = 0

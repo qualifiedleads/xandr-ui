@@ -10,12 +10,12 @@
 
     <div  dx-button="VBE.UI.calculateAUC"></div>
     <div  dx-button="VBE.UI.createTestSet"></div>
+    <div class="select-test_type" dx-select-box="VBE.UI.test_type"></div>
 
     <div class="gridContainerWhite" dx-data-grid="VBE.UI.dataGridOptionsExpert"></div>
     <br>
-    <br>
     <div ng-if="VBE.culcReady == true">
-    <h1>Pred 1</h1>
+    <h1>{{VBE.titlePred}}</h1>
     <h2>AUC = {{VBE.auc}}</h2>
     <div  id="chart" dx-chart="VBE.UI.ROC_curve"></div>
     </div>

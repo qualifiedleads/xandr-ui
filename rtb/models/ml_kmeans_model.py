@@ -35,6 +35,7 @@ class MLPlacementsClustersKmeans(models.Model):
         )
     test_number = models.IntegerField(null=True)
     expert_decision = models.NullBooleanField(null=True)
+    good = models.NullBooleanField(null=True)
 
     class Meta:
         db_table = "ml_placements_clusters_kmeans"
@@ -76,6 +77,7 @@ class MLExpertsPlacementsMarks(models.Model):
 
     class Meta:
         db_table = "ml_experts_placements_marks"
+        unique_together = (('placement', 'day'),)
 
 class MLViewFullPlacementsData(models.Model):
     id = models.AutoField(primary_key=True)
@@ -102,7 +104,6 @@ class MLTestDataSet(models.Model):
     id = models.AutoField(primary_key=True)
     data = JSONField()
     created = models.DateTimeField(db_index=True, unique=True)
-
 
     class Meta:
         db_table = "ml_test_data_set"

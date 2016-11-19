@@ -2,9 +2,9 @@
   <div class="row stats-header">
     <div class="groupHeadOpti">
       <span translate="CAMP.NAME" class="camp-header"></span><span class="camp-header">
-        <a href="" ui-sref="home.campaign({id: cpa.campId})"  >{{cpa.campName}} </a>
+        <a href="" ui-sref="home.campaign({id: cpa.campId})"  >{{cpa.campName}} ({{cpa.campId}}) </a>
       </span>
-      <br><span translate="CAMP.LINE_ITEM" class="camp-header"></span><span class="camp-line-item"> {{cpa.line_item}} </span>
+      <br><span translate="CAMP.LINE_ITEM" class="camp-header"></span><span class="camp-line-item"> {{cpa.line_item}} ({{cpa.line_item_id}})</span>
         <div class="control pull-right" dx-select-box="cpa.UI.datePiker"></div>
     </div>
   </div>

@@ -17,6 +17,7 @@
     $rootScope.id = Campaign.id;
     $rootScope.name = Campaign.campaign;
     $rootScope.line_item = Campaign.line_item;
+    $rootScope.line_item_id = Campaign.line_item_id;
 
     vm.checkChart = [];
     vm.by = 'imp,cvr,cpc,clicks,spend,conv,ctr';
@@ -32,6 +33,7 @@
     vm.campName = Campaign.campaign;
     vm.campId = Campaign.id;
     vm.line_item = Campaign.line_item;
+    vm.line_item_id = Campaign.line_item_id;
     vm.Init = [];
 
     if ($localStorage.checkCharCamp == null) {

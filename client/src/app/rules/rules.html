@@ -2,9 +2,9 @@
   <div class="row stats-header">
     <div class="groupHeadOpti">
       <span translate="RULESC.OPTIMISER-FOR" class="camp-header"></span><span class="camp-header">
-        <a href="" ui-sref="home.campaign({id: rulesC.campId})"  >{{rulesC.campName}} </a>
+        <a href="" ui-sref="home.campaign({id: rulesC.campId})"  >{{rulesC.campName}} ({{rulesC.campId}})</a>
       </span>
-      <br><span translate="CAMP.LINE_ITEM" class="camp-header"></span><span class="camp-line-item"> {{rulesC.line_item}} </span>
+      <br><span translate="CAMP.LINE_ITEM" class="camp-header"></span><span class="camp-line-item"> {{rulesC.line_item}} ({{rulesC.line_item_id}})</span>
         <div class="control pull-right" dx-select-box="rulesC.UI.datePiker"></div>
     </div>
   </div>
@@ -69,17 +69,17 @@
             <label class="lr-option-time_1" for="r2-option_1">24 hrs</label>
 
 
-            <input type="radio" class="option_2" id="r2-option_2" ng-model="rules.then" value="2 review"
+            <input type="radio" class="option_2" id="r2-option_2" ng-model="rules.then" value="3"
                    ng-click="rulesC.checkTime(Index, rules)">
             <label class="lr1-option-time_2" for="r2-option_2"> 3 days</label>
 
 
-            <input type="radio" class="option_3" id="r2-option_3" ng-model="rules.then" value="3"
+            <input type="radio" class="option_3" id="r2-option_3" ng-model="rules.then" value="7"
                    ng-click="rulesC.checkTime(Index, rules)">
             <label class="lr2-option-time_3" for="r2-option_3">7 days</label>
 
 
-            <input type="radio" class="option_4" id="r2-option_4" ng-model="rules.then" value="4"
+            <input type="radio" class="option_4" id="r2-option_4" ng-model="rules.then" value="0"
                    ng-click="rulesC.checkTime(Index, rules)">
             <label class="lr3-option-time_4" for="r2-option_4"> manual </label>
 

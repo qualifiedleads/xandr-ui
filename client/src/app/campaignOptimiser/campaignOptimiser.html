@@ -2,10 +2,10 @@
   <div class="row stats-header">
     <div class="groupHeadOpti">
       <span translate="CO.OPTIMISER-FOR" class="camp-header"></span><span class="camp-header">
-        <a href="" ui-sref="home.campaign({id: CO.campId})"  >{{CO.campName}} </a>
+        <a href="" ui-sref="home.campaign({id: CO.campId})"  >{{CO.campName}} ({{CO.campId}}) </a>
       </span>
-      <br><span translate="CAMP.LINE_ITEM" class="camp-header"></span><span class="camp-line-item"> {{CO.line_item}} </span>
-        <div class="control pull-right" dx-select-box="CO.UI.datePiker"></div>
+      <br><span translate="CAMP.LINE_ITEM" class="camp-header"></span><span class="camp-line-item"> {{CO.line_item}} ({{CO.line_item_id}}) </span>
+      <div class="control pull-right" dx-select-box="CO.UI.datePiker"></div>
     </div>
   </div>
   <div class="row camp-content1">
@@ -45,8 +45,6 @@
       </table>
     </div>-->
 
-    <span class="optimizerTitle">{{ 'CO.OPTIMIZER' | translate }}</span>
-
     <div class="gridContainerWhite" dx-data-grid="CO.UI.dataGridOptionsCampaign"></div>
 
     <div class="counter-popup-group" dx-popup="CO.UI.confirmPopup" >
@@ -61,35 +59,5 @@
       <div class="button" dx-button="CO.UI.confirmPopupCancel"></div>
 
     </div>
-
-    <div class="b-popup" id="popup1"  ng-if="CO.popUpIf==true">
-      <div class="b-popup-content">
-        <div id="btn-close" class="btn-close" ng-click="CO.popUpHide()"  title="Закрыть"></div>
-        <h4 class="title">Prediction 1</h4>
-        <table class="table">
-          <tr ng-repeat="item in CO.arraytoPopup track by $index" class="repitDiagram" style="display: block; position: relative; ">
-            <td ng-if="item">{{item.day}}</td>
-            <td ng-if="item">
-              <div class="analiticCO" style="text-align: center;">
-                <div class="diagramCO">
-                  <div class="badDiagramCO" style="width:{{item.badDiagram}}; opacity: {{item.badOpasity}};"></div>
-                  <div class="goodDiagramCO" style="width:{{item.goodDiagram}};opacity:{{item.goodOpasity}};"></div>
-                  <p class="textBadDiagramCO" >{{ item.k.toFixed(1)}}%</p>
-                  <p class="textGoodDiagramCO">{{(100-item.k).toFixed(1)}}%</p>
-                </div>
-                <div class="buttonAnaliticCO">
-                  <div class="trueButtonAnaliticCO"></div>
-                  <div class="falseButtonAnaliticCO"></div>
-                </div>
-              </div>
-            </td>
-
-          </tr>
-        </table>
-      </div>
-    </div>
   </div>
-
-</div>
-
 </div>

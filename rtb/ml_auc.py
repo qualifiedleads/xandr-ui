@@ -1,9 +1,11 @@
 from ml_learn_kmeans import mlGetGoodClusters, mlGetCentroids, mlGetTestNumber, mlCalcCluster
 from models.ml_kmeans_model import MLPlacementDailyFeatures, MLClustersCentroidsKmeans, MLPlacementsClustersKmeans, \
     MLNormalizationData, MLExpertsPlacementsMarks, MLTestDataSet
+from models.ml_logistic_regression_models import MLLogisticRegressionCoeff, MLLogisticRegressionResults
 from models import NetworkAnalyticsReport_ByPlacement
 from django.utils import timezone
 import datetime
+import math
 
 class mlPlacementsSet:
     placements = None
@@ -23,11 +25,11 @@ class mlPlacementsSet:
                                 SELECT
                                   placement_id AS id,
                                   extract (dow from hour) "dow",
-                                  case SUM(total_convs) when 0 then 0 else SUM(cost)::float/SUM(total_convs) end CPA,
-                                  case SUM(imps) when 0 then 0 else SUM(clicks)::float/SUM(imps) end CTR,
-                                  case SUM(imps) when 0 then 0 else SUM(total_convs)::float/SUM(imps) end CVR,
-                                  case SUM(clicks) when 0 then 0 else SUM(cost)::float/SUM(clicks) end CPC,
-                                  case SUM(imps) when 0 then 0 else SUM(cost)::float/SUM(imps) end CPM
+                                  case SUM(total_convs) when 0 then 0 else SUM(cost)::float/SUM(total_convs) end cpa,
+                                  case SUM(imps) when 0 then 0 else SUM(clicks)::float/SUM(imps) end ctr,
+                                  case SUM(imps) when 0 then 0 else SUM(total_convs)::float/SUM(imps) end cvr,
+                                  case SUM(clicks) when 0 then 0 else SUM(cost)::float/SUM(clicks) end cpc,
+                                  case SUM(imps) when 0 then 0 else SUM(cost)::float/SUM(imps) end cpm
                                 FROM
                                   network_analytics_report_by_placement
                                 WHERE
@@ -147,41 +149,135 @@ class mlPlacementInfo:
                     self.features.append(float(tableFeatures[iDay]["cpa"]) / float(maxData[0].maxcpa))
 
 
+class mlPlacementsInfoLogreg:
+    placements = None
+    placementsProbability = None
+    good_direction = ""
+
+    def __init__(self, test_number, placementsIds):
+        if test_number == 0:
+            print "Wrong test number"
+            return
+
+        #getting of good direction and logreg coefficients
+        queryResult = MLLogisticRegressionCoeff.objects.filter(
+            day=7,
+            test_number=test_number
+        )
+        if not queryResult:
+            print "Logreg is not taught"
+            return
+        self.good_direction = queryResult[0].good_direction
+        coefficients = queryResult[0].coeff
+        for i in xrange(len(coefficients)):
+            coefficients[i] = float(coefficients[i])
+        self.placements = []#getting placements for a set
+        sqlPlacementsList = '('
+        for plId in placementsIds:
+            self.placements.append(plId)
+            sqlPlacementsList += (str(plId) + ',')
+
+        sqlPlacementsList = sqlPlacementsList[:-1]
+        sqlPlacementsList += ')'
+        #query for getting all placements features
+        queryResult = NetworkAnalyticsReport_ByPlacement.objects.raw("""
+                        SELECT
+                          placement_id AS id,
+                          extract (dow from hour) "dow",
+                          case SUM(total_convs) when 0 then 0 else SUM(cost)::float/SUM(total_convs) end cpa,
+                          case SUM(imps) when 0 then 0 else SUM(clicks)::float/SUM(imps) end ctr,
+                          case SUM(imps) when 0 then 0 else SUM(total_convs)::float/SUM(imps) end cvr,
+                          case SUM(clicks) when 0 then 0 else SUM(cost)::float/SUM(clicks) end cpc,
+                          case SUM(imps) when 0 then 0 else SUM(cost)::float/SUM(imps) end cpm
+                        FROM
+                          network_analytics_report_by_placement
+                        WHERE
+                          placement_id IN """ + sqlPlacementsList + """
+                        group by
+                          placement_id, extract (dow from hour)
+                        ORDER BY
+                          id, dow;
+                        """
+        )
+
+        if not queryResult:
+            print "Network analytics by placement is empty"
+            return
+
+        self.placementsProbability = []
+        onePlacementFeatures = []
+        curFeature = 0
+        allFeaturesNumb = 0
+        numbFeaturesInDay = 0
+        numbDays = 7
+
+        if test_number == 3:
+            numbFeaturesInDay = 5
+            allFeaturesNumb = numbFeaturesInDay * numbDays
+        #save probabilities into array
+        for row in queryResult:
+            onePlacementFeatures.append(float(row.ctr))
+            onePlacementFeatures.append(float(row.cvr))
+            onePlacementFeatures.append(float(row.cpc))
+            onePlacementFeatures.append(float(row.cpm))
+            onePlacementFeatures.append(float(row.cpa))
+            curFeature += 5
+            if curFeature == allFeaturesNumb:
+                functionValue = 0  # calc value of decision function
+                for i in xrange(len(onePlacementFeatures)):
+                    functionValue += (onePlacementFeatures[i] * coefficients[i])
+                prob = 1.0 / (1.0 + math.exp(functionValue))  # calc probability of class
+                self.placementsProbability.append(prob)
+                onePlacementFeatures = []
+                curFeature = 0
+
+
 def mlBuildROC(test_type = "kmeans", test_name = "ctr_cvr_cpc_cpm_cpa", date = -1):
+    test_number = mlGetTestNumber(test_type=test_type, test_name=test_name)
+    if test_number == 0:
+        return -1, -1
+
     numbDays = 8
     samplesNumb = 127
+
+    testPlacementsIds = []
+    if date == -1:  # getting latest test dataset and adding it placements to our list
+        max_date = MLTestDataSet.objects.latest("created")
+        res = MLTestDataSet.objects.filter(created=max_date.created).values("data")
+
+        if not res:
+            print "None test set is available"
+            return -1, -1
+
+        for record in res[0]["data"]:
+            testPlacementsIds.append(record["placement_id"])
+    else:
+        pass  # TODO getting data from exactly date test dataset
+
+    testSamples = MLExpertsPlacementsMarks.objects.filter(
+        placement_id__in=testPlacementsIds,
+        expert_decision__isnull=False
+    )
+
+    if len(testSamples) != samplesNumb:
+        print "Not all placements are marked by experts"
+        return -1, -1
+
+    goodPlacements = []
+    badPlacements = []
+    for placement in testSamples:
+        if placement.expert_decision == "good":
+            goodPlacements.append(placement.placement_id)
+        if placement.expert_decision == "bad":
+            badPlacements.append(placement.placement_id)
+
     if test_type == "kmeans":
         goodClusters = mlGetGoodClusters(test_name)
         if goodClusters == -1:
-            print "System isn't taught"
+            print "Kmeans model isn't taught"
             return -1, -1
 
-        testPlacementsIds = []
-        if date == -1:#getting latest test dataset and adding it placements to our list
-            max_date = MLTestDataSet.objects.latest("created")
-            res = MLTestDataSet.objects.filter(created=max_date.created).values("data")
-            for record in res[0]["data"]:
-                testPlacementsIds.append(record["placement_id"])
-        else:
-            pass#TODO getting data from exactly date test dataset
 
-        testSamples = MLExpertsPlacementsMarks.objects.filter(
-            placement_id__in=testPlacementsIds,
-            expert_decision__isnull=False
-        )
-
-
-        if len(testSamples) != samplesNumb:
-            print "Not all placements are marked by experts"
-            return -1, -1
-
-        goodPlacements = []
-        badPlacements = []
-        for placement in testSamples:  # CHANGE TO ADDING EXPERTS TRUE TEST SAMPLES
-            if placement.expert_decision == "good":
-                goodPlacements.append(placement.placement_id)
-            if placement.expert_decision == "bad":
-                badPlacements.append(placement.placement_id)
         goodClusterSamples = mlPlacementsSet(goodPlacements, False, test_type, test_name)
         badClusterSamples = mlPlacementsSet(badPlacements, False, test_type, test_name)
 
@@ -229,7 +325,7 @@ def mlBuildROC(test_type = "kmeans", test_name = "ctr_cvr_cpc_cpm_cpa", date = -
         rocSensetivities.append(sensetivity)
         rocFalsePositivesRates.append(falsePositiveRate)
         # first cluster is going out of second
-        while True:#checkpoint
+        while True:
             #set up variables for getting new ROC coord
             testResults["true_positives"] = 0.0
             testResults["false_negatives"] = 0.0
@@ -325,10 +421,99 @@ def mlBuildROC(test_type = "kmeans", test_name = "ctr_cvr_cpc_cpm_cpa", date = -
         return rocSensetivities, rocFalsePositivesRates
 
     if test_type == "log":
-        return
+        queryResult = MLLogisticRegressionCoeff.objects.filter(
+            day=7,
+            test_number=test_number
+        )
+        if not queryResult:
+            print "Logreg model is not taught"
+            return
+        goodClusterSamples = mlPlacementsInfoLogreg(test_number=test_number, placementsIds=goodPlacements)
+        badClusterSamples = mlPlacementsInfoLogreg(test_number=test_number,placementsIds=badPlacements)
 
+        delta = 0.0001
+        rocSensetivities = []
+        rocFalsePositivesRates = []
+        cut_off = 0.0
+        good_direction = goodClusterSamples.good_direction
+        if good_direction != "lower" and good_direction != "lower":
+            print "Wrong good direction"
+            return -1, -1
+
+        if good_direction == "lower":
+            while cut_off < 1.0:
+                # set up variables for getting new ROC coord
+                testResults = {}
+                testResults["true_positives"] = 0.0
+                testResults["false_negatives"] = 0.0
+                testResults["true_negatives"] = 0.0
+                testResults["false_positives"] = 0.0
+
+                for probability in goodClusterSamples.placementsProbability:
+                    if probability > cut_off:
+                        testResults["false_positives"] += 1
+                    else:
+                        testResults["true_negatives"] += 1
+
+                for probability in badClusterSamples.placementsProbability:
+                    if probability > cut_off:
+                        testResults["true_positives"] += 1
+                    else:
+                        testResults["false_negatives"] += 1
+
+                falsePositiveRate = float(testResults["false_positives"]) / float((
+                    testResults["false_positives"] + testResults["true_negatives"])) * 100
+                sensetivity = float(testResults["true_positives"]) / (
+                    testResults["true_positives"] + testResults["false_negatives"]) * 100
+                newPoint = True  # check if that is new point on the chart
+                for i in xrange(len(rocSensetivities)):
+                    if sensetivity == rocSensetivities[i]:
+                        if falsePositiveRate == rocFalsePositivesRates[i]:
+                            newPoint = False
+                            break
+                if newPoint == True:
+                    rocSensetivities.append(sensetivity)
+                    rocFalsePositivesRates.append(falsePositiveRate)
+                cut_off += delta
+
+        if good_direction == "higher":
+            while cut_off < 1.0:
+                # set up variables for getting new ROC coord
+                testResults = {}
+                testResults["true_positives"] = 0.0
+                testResults["false_negatives"] = 0.0
+                testResults["true_negatives"] = 0.0
+                testResults["false_positives"] = 0.0
+
+                for probability in goodClusterSamples.placementsProbability:
+                    if probability > cut_off:
+                        testResults["true_negatives"] += 1
+                    else:
+                        testResults["false_positives"] += 1
+
+                for probability in badClusterSamples.placementsProbability:
+                    if probability > cut_off:
+                        testResults["false_negatives"] += 1
+                    else:
+                        testResults["true_positives"] += 1
+
+                falsePositiveRate = float(testResults["false_positives"]) / float((
+                    testResults["false_positives"] + testResults["true_negatives"])) * 100
+                sensetivity = float(testResults["true_positives"]) / (
+                    testResults["true_positives"] + testResults["false_negatives"]) * 100
+                newPoint = True  # check if that is new point on the chart
+                for i in xrange(len(rocSensetivities)):
+                    if sensetivity == rocSensetivities[i]:
+                        if falsePositiveRate == rocFalsePositivesRates[i]:
+                            newPoint = False
+                            break
+                if newPoint == True:
+                    rocSensetivities.append(sensetivity)
+                    rocFalsePositivesRates.append(falsePositiveRate)
+                cut_off += delta
+        return rocSensetivities, rocFalsePositivesRates
     print "Wrong test type"
-    return -1
+    return -1, -1
 
 def quickSort(FPR, sens):
    quickSortHelper(FPR,0,len(FPR)-1, sens)
@@ -374,6 +559,9 @@ def partition(FPR,first,last, sens):
    return rightmark
 
 def mlCalcAuc(test_type = "kmeans", test_name = "ctr_cvr_cpc_cpm_cpa", date = -1):
+    test_number = mlGetTestNumber(test_type=test_type, test_name=test_name)
+    if test_number == 0:
+        return -1
     rocSensetivities, rocFalsePositivesRates = mlBuildROC(test_type, test_name)
     if rocSensetivities == -1:
         return -1

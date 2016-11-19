@@ -15,13 +15,21 @@
     vm.culcReady = false;
     vm.chartCoord = [];
     var buttonIndicator, buttonIndicator1;
+    vm.selectType = 'kmeans';
     vm.popUpHide = function () {
       vm.popUpIf = false;
     };
     vm.auc = null;
+    vm.titlePred = '';
 
-    valuationByExpertS.MLGetAUC()
+    valuationByExpertS.MLGetAUC(vm.selectType)
       .then(function (res) {
+        if (vm.selectType == "log") {
+          vm.titlePred = "Logistic regression";
+        }
+        if (vm.selectType == "kmeans") {
+          vm.titlePred = "K-means";
+        }
         vm.auc = res.auc;
         vm.chartCoord = res.chartCoord;
         vm.culcReady = true;
@@ -128,8 +136,14 @@
         onClick: function (data) {
           data.component.option("text", "Calculate");
           buttonIndicator.option("visible", true);
-          valuationByExpertS.MLGetAUC()
+          valuationByExpertS.MLGetAUC(vm.selectType)
             .then(function (res) {
+              if (vm.selectType == "log") {
+                vm.titlePred = "Logistic regression";
+              }
+              if (vm.selectType == "kmeans") {
+                vm.titlePred = "K-means";
+              }
               vm.auc = res.auc;
               vm.chartCoord = res.chartCoord;
               vm.culcReady = true;
@@ -164,6 +178,22 @@
               buttonIndicator1.option("visible", false);
               data.component.option("text", "Create test set");
             });
+        }
+      },
+      test_type: {
+        items: [
+          "K-means",
+          "Logistic regression"
+        ],
+        value: "K-means",
+        width: 200,
+        onValueChanged: function(data) {
+          if (data.selectedItem == "Logistic regression") {
+            vm.selectType = "log";
+          }
+          if (data.selectedItem == "K-means") {
+            vm.selectType = "kmeans";
+          }
         }
       },
       ROC_curve: {
@@ -374,25 +404,25 @@
             caption: 'Good/Bad',
             columnIndex: 16,
             dataField: 'goodBad',
-            width:100,
+            width:125,
             allowEditing: false,
             cellTemplate: function (container, options) {
               var tpl = $compile(
                 '<div class="goodBad">' +
                 '<div class="button goodButtonAnaliticCO' + options.data.placement_id + '"></div>' +
-                '<div class="badButtonAnaliticCO' + options.data.placement_id + '"></div>' +
+                '<div class="button badButtonAnaliticCO' + options.data.placement_id + '"></div>' +
                 '</div>')($scope);
               tpl.appendTo(container);
 
               var trueButton = $window.$(".goodButtonAnaliticCO" + options.data.placement_id).dxButton({
                 text: 'Good',
-                width: 80,
                 disabled: false,
                 onClick: function () {
                   $window.$(".badButtonAnaliticCO" + options.data.placement_id).removeClass('active-white');
                   $window.$(".goodButtonAnaliticCO" + options.data.placement_id).addClass('active-white');
                   valuationByExpertS.goodBadSend(options.data.placement_id, 'good')
                     .then(function (res) {
+                      options.data.mark = 'good';
                       return res;
                     });
                 }
@@ -401,12 +431,12 @@
               var falseButton = $window.$(".badButtonAnaliticCO" + options.data.placement_id).dxButton({
                 text: 'Bad',
                 disabled: false,
-                width: 80,
                 onClick: function () {
                   $window.$(".badButtonAnaliticCO" + options.data.placement_id).addClass('active-white');
                   $window.$(".goodButtonAnaliticCO" + options.data.placement_id).removeClass('active-white');
                   valuationByExpertS.goodBadSend(options.data.placement_id, 'bad')
                     .then(function (res) {
+                      options.data.mark = 'bad';
                       return res;
                     });
                 }

@@ -447,7 +447,8 @@ def mlBuildROC(test_type = "kmeans", test_name = "ctr_cvr_cpc_cpm_cpa", date = -
 
         MLLogisticRegressionResults.objects.all().update(
             probability=-1,
-            expert_decision=None
+            expert_decision=None,
+            good=None
         )
 
         queryResult = MLLogisticRegressionCoeff.objects.filter(

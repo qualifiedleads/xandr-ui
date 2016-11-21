@@ -55,7 +55,7 @@ def mlPredictNewPlacementsCron():
             FROM
               network_analytics_report_by_placement
             WHERE
-              placement_id NOT IN (SELECT DISTINCT placement_id FROM ml_logistic_regression_results WHERE test_number = 3)
+              placement_id NOT IN (SELECT DISTINCT placement_id FROM ml_logistic_regression_results WHERE test_number = 3 AND probability != -1)
             GROUP BY
               placement_id
             HAVING

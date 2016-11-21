@@ -148,10 +148,12 @@ def mlPredictOnePlacementLogisticRegression(placement_id, test_name = "ctr_cvr_c
         print "Wrong test name"
         return -1
     #get regression coefficients
-    coefficients = MLLogisticRegressionCoeff.objects.filter(
+    queryRes = MLLogisticRegressionCoeff.objects.filter(
         test_number=test_number,
         day=7
-    )[0].coeff
+    )[0]
+    coefficients = queryRes.coeff
+    good_direction = queryRes.good_direction
     for i in xrange(len(coefficients)):
         coefficients[i] = float(coefficients[i])
     if check_days:#checking: is placement has data for every weekday
@@ -198,12 +200,25 @@ def mlPredictOnePlacementLogisticRegression(placement_id, test_name = "ctr_cvr_c
         prob = 0
     else:
         prob = 1.0 / (1.0 + math.exp(functionValue))#calc probability of class
+
+    good = None
+    if good_direction == "lower":
+        if prob < 0.5:
+            good = True
+        else:
+            good = False
+    if good_direction == "higher":
+        if prob > 0.5:
+            good = True
+        else:
+            good = False
     MLLogisticRegressionResults.objects.update_or_create(
         placement_id=placement_id,
         day=7,
         test_number=3,
         defaults={
-            "probability": prob
+            "probability": prob,
+            "good": good
         }
     )
     print "Placement " + str(placement_id) + " predicted"

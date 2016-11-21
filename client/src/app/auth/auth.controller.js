@@ -22,8 +22,8 @@
         (($cookies.get('permission') == 'userfull') || $cookies.get('permission') == 'userread')) {
       $window.$('.reg-form-wrapper')[0].classList.add('hide');
       $window.$('.advertiser-wrapper')[0].classList.add('show');
-      $window.$('.admin-btn')[0].classList.remove('show');
-      $window.$('.admin-btn')[1].classList.add('show');
+      $window.$('.admin-btn')[0].classList.add('show');
+      $window.$('.admin-btn')[1].classList.remove('show');
     }
 
     vm.selectAdvertisersStore = Auth.selectAdvertisersStore();

@@ -1,19 +1,28 @@
 <div class="admin">
-  <div class="location">
-    <div class="location-language">
-    <a ng-click="root.changeLang('ru')">
-      <i class="fa fa-globe fa-fw"></i> Русский
-    </a>
-    /
-    <a ng-click="root.changeLang('en')">
-      <i class="fa fa-globe fa-fw"></i> English
-    </a>
+  <div class="col-lg-12 col-md-12 col-sm-12">
+    <div class="home-navigation">
+      <a href="#" class="btn btn-primary admin-btn" ui-sref="auth">
+        <span class="glyphicon glyphicon-home"></span> {{ 'COMMON.TO-MAIN-PAGE' | translate }}
+      </a>
+    </div>
+    <div class="location">
+      <div class="location-language">
+        <a ng-click="root.changeLang('ru')">
+          <i class="fa fa-globe fa-fw"></i> Русский
+        </a>
+        /
+        <a ng-click="root.changeLang('en')">
+          <i class="fa fa-globe fa-fw"></i> English
+        </a>
       </div>
-    <input type="button" class="btn btn-danger admin-btn" ng-click="root.logout()" value="{{ 'COMMON.LOGOUT' | translate }}">
-    <input type="button" class="btn btn-primary admin-btn" ng-click="admin.goToMainPage()" value="{{ 'COMMON.TO-MAIN-PAGE' | translate }}">
-
+      <!--<input type="button" class="btn btn-danger admin-btn" ng-click="root.logout()" value="{{ 'COMMON.LOGOUT' | translate }}">-->
+      <!--<input type="button" class="btn btn-primary admin-btn" ng-click="admin.goToMainPage()" value="{{ 'COMMON.TO-MAIN-PAGE' | translate }}">-->
+      <a class="btn btn-danger admin-btn "  ng-click="root.logout()" >
+        <span class="glyphicon glyphicon-log-out"></span> {{ 'COMMON.LOGOUT' | translate }}
+      </a>
+    </div>
   </div>
-  <div class="row">
+  <div class="row content-admin">
     <div class="col-lg-3 col-md-3 col-sm-12 form-add-user">
       <h3>{{ 'ADMIN.ANU.ADD-NEW-USER' | translate }}</h3>
       <form name="admin.userForm" ng-submit="admin.submitForm(admin.user)" novalidate>

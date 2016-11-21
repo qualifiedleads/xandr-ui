@@ -7,7 +7,7 @@
     'COMMON': {
       'GO-TO-ADMIN-PANEL': 'Admin panel',
       'LOGOUT': 'Log out',
-      'TO-MAIN-PAGE': 'Main page',
+      'TO-MAIN-PAGE': 'Home',
       'CANCEL': 'Cancel'
     },
     'AUTH':{

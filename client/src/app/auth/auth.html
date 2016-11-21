@@ -1,15 +1,21 @@
 <div class="location">
-<div class="location-language">
-  <a ng-click="root.changeLang('ru')">
-    <i class="fa fa-globe fa-fw"></i> Русский
-  </a>
-  /
-  <a ng-click="root.changeLang('en')">
-    <i class="fa fa-globe fa-fw"></i> English
-  </a>
+  <div class="location-language">
+    <a ng-click="root.changeLang('ru')">
+      <i class="fa fa-globe fa-fw"></i> Русский
+    </a>
+    /
+    <a ng-click="root.changeLang('en')">
+      <i class="fa fa-globe fa-fw"></i> English
+    </a>
   </div>
-  <input type="button" class="btn btn-primary admin-btn hide" ng-click="auth.goToAdminPanel()" value="{{ 'COMMON.GO-TO-ADMIN-PANEL' | translate }}">
-  <input type="button" class="btn btn-danger admin-btn hide" ng-click="auth.logout()" value="{{ 'COMMON.LOGOUT' | translate }}">
+
+  <a class="btn btn-danger admin-btn hide"  ng-click="auth.logout()" >
+    <span class="glyphicon glyphicon-log-out"></span> {{ 'COMMON.LOGOUT' | translate }}
+  </a>
+
+  <a href="#" class="btn btn-primary admin-btn hide" ui-sref="admin">
+    <span class="glyphicon glyphicon-user"></span> {{ 'COMMON.GO-TO-ADMIN-PANEL' | translate }}
+  </a>
 </div>
 
 <div class="authorization container">

@@ -10,6 +10,7 @@
     var vm = this;
     vm.advertiser = {};
     vm.isEven = false;
+    vm.userAuth = false;
 
     if (($rootScope.id == null) && ($rootScope.name == null) && ($localStorage.campaign != null)) {
       $rootScope.id = $localStorage.campaign.id;
@@ -19,16 +20,14 @@
     if (($cookies.get('token')) &&
       (($cookies.get('permission') =='adminfull') || $cookies.get('permission') =='adminread')){
       vm.isEven = true;
+      vm.userAuth =true;
     }
 
     if (($cookies.get('token')) &&
       (($cookies.get('permission') =='userfull') || $cookies.get('permission') =='userread')){
       vm.isEven = false;
+      vm.userAuth = true;
     }
-
-    vm.goToMainPage = function () {
-      $state.go('auth');
-    };
 
     if($localStorage.advertiser == null){
       $state.go('auth');
@@ -41,11 +40,7 @@
         wrapper.classList.remove('hidden-menu');
       }
     };
-    function goToAdminPanel() {
-      $state.go('admin');
-    }
 
-    vm.goToAdminPanel = goToAdminPanel;
 
   }
 })();

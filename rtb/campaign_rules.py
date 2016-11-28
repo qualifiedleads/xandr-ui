@@ -45,8 +45,14 @@ def recursionParseRule(rule, queryString):
             queryString = queryString + '( ' + recursionParseRule(arrayIf, '')
             queryString = queryString + ' )'
         if type(arrayIf) is dict and arrayIf['type'] == 'condition':
-            queryString = str(queryString) + str(arrayIf['payment']) + str(arrayIf['compare']) + str(
-                arrayIf['value']) + ' '
+            if arrayIf['payment'] == 'prediction1' or arrayIf['payment'] == 'prediction2':
+                if arrayIf['value'] == 'bad':
+                    queryString = str(queryString) + str(arrayIf['payment']) + str(arrayIf['compare']) + 'false '
+                else:
+                    queryString = str(queryString) + str(arrayIf['payment']) + str(arrayIf['compare']) + 'true '
+            else:
+                queryString = str(queryString) + str(arrayIf['payment']) + str(arrayIf['compare']) + str(
+                    arrayIf['value']) + ' '
         if type(arrayIf) is dict and arrayIf['type'] == 'logic':
             queryString = str(queryString) + str(arrayIf['logicOrAnd']) + ' '
 

@@ -6,11 +6,24 @@
     .controller('HomeController', HomeController);
 
   /** @ngInject */
-  function HomeController($localStorage, $state, $cookies, $window, $rootScope) {
+  function HomeController($localStorage, $state, $cookies, $window, $rootScope, AdminService) {
     var vm = this;
     vm.advertiser = {};
     vm.isEven = false;
     vm.userAuth = false;
+
+
+
+    vm.bannerText = AdminService.bannerTextReturn();
+    if (!vm.bannerText) {
+        vm.banner = $window.$('#techBanner');
+        vm.banner.addClass('non-visible');
+    }
+
+    vm.hideBanner = function () {
+        vm.banner = $window.$('#techBanner');
+        vm.banner.addClass('non-visible');
+      };
 
     if (($rootScope.id == null) && ($rootScope.name == null) && ($localStorage.campaign != null)) {
       $rootScope.id = $localStorage.campaign.id;

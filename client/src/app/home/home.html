@@ -15,7 +15,7 @@
      <label class="btn" for="top-box"></label>-->
     <div class="main-nav navbar-header col-lg-11 col-md-10 col-sm-10 col-xs-10  col-lg-offset-1 col-md-offset-2 col-sm-offset-2 col-xs-offset-2">
       <div class="row">
-        <div class="col-lg-12 col-md-12 col-sm-12">
+        <div style="display: table" class="col-lg-12 col-md-12 col-sm-12">
           <div class="home-navigation">
           <a href="#" class="btn btn-primary admin-btn" ui-sref="auth">
             <span class="glyphicon glyphicon-home"></span> {{ 'COMMON.TO-MAIN-PAGE' | translate }}
@@ -28,6 +28,12 @@
             <span class="icon-bar"></span>
           </button>
           <a ui-sref="home.main" class="navbar-brand" > {{ 'INDEX.ADVERTISER_TITLE' | translate }} {{ home.advertiser.name }}</a>
+          <div class="wrapping-tech-banner" id="techBanner">
+            <div class="tech-banner">
+              {{home.bannerText}}
+            </div>
+            <span ng-click=home.hideBanner() class='close-block'></span>
+          </div>
           <div class="location">
             <div class="location-language">
               <a ng-click="root.changeLang('ru')">

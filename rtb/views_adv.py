@@ -23,6 +23,7 @@ from rest_framework import status
 from models.rtb_impression_tracker import RtbImpressionTrackerPlacement, RtbImpressionTrackerPlacementDomain
 from django.db import connection
 from django.utils import timezone
+from rtb.models.technical_works import AttentionMessage, TechnicalWork
 
 import bisect
 from django.contrib.auth.decorators import login_required, user_passes_test
@@ -1068,3 +1069,68 @@ def saveCampaignRules(request, id):
     res["campaign_id"] = id
     res["rule"] = rule
     return Response(res)
+
+@api_view(['GET', 'POST'])
+# @check_user_advertiser_permissions(campaign_id_num=0)
+def handler(request):
+    """
+Get all list works
+
+## Url format: /api/v1/technicalwork
+
++ Parameters
+
+    + id(Number) - id for getting information about company
+
+
+    """
+    if request.method == "GET":
+        k = getAll(request)
+        return Response(k)
+    if request.method == "POST":
+        k = addNewStatus(request)
+        return Response(k)
+
+
+def getAll(request):
+    lists = list(TechnicalWork.objects.all())
+    array = []
+    for item in lists:
+        array.append({
+            id: item.id,
+            status: item.status
+        })
+    return array
+
+
+def addNewStatus(request):
+    try:
+        request.data.get("value")
+        TechnicalWork(status=request.data.get("value"), date=timezone.make_aware(datetime.datetime.now(), timezone.get_default_timezone())).save()
+        print "Added new status for technical work - " + request.data.get("value")
+        return request.data.get("value")
+    except Exception, e:
+        print 'Error: ' + str(e)
+
+
+@api_view(['GET'])
+# @check_user_advertiser_permissions(campaign_id_num=0)
+def getLast(request):
+    """
+Get last status works
+
+## Url format: /api/v1/technicalwork/last
+
++ Parameters
+
+    + id(Number) - id for getting information about company
+    """
+    try:
+        if not TechnicalWork.objects.all():
+            return Response("off")
+        else:
+            k = TechnicalWork.objects.latest('id')
+            print "Last status for technical work - " + k.status
+            return Response(k.status)
+    except Exception, e:
+        print 'Error: ' + str(e)

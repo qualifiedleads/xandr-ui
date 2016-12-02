@@ -44,13 +44,9 @@
       $window.$('#techRecords').dxDataGrid('instance').refresh();
     };
 
-   //   if($window.$('[checked="checked"]')) {
-   // vm.name = vm.name || $localStorage.valueOfTech;
-   //   }
-
-
-       vm.name = AdminService.getValueOfTech();
-
+    AdminService.getValueOfTech().then(function (data) {
+      vm.name = data;
+    });
 
     if(!$localStorage.button) {
       $localStorage.button = 'first';
@@ -131,67 +127,67 @@
 
 
 
-      vm.techRecords = {
-        remoteOperations: false,
-        showBorders: true,
-        alignment: 'left',
-        bindingOptions: {
-          dataSource: 'admin.techRecordStore'
-        },
-        headerFilter: {
-          visible: true
-        },
-        filterRow: {
-          visible: true,
-          applyFilter: "auto"
-        },
-        pager: {
-          showPageSizeSelector: true,
-          allowedPageSizes: [10, 30, 50],
-          visible: true,
-          showNavigationButtons: true
-        },
-        allowColumnReordering: true,
-        allowColumnResizing: true,
-        columnAutoWidth: true,
-        wordWrapEnabled: true,
-        howBorders: true,
-        showRowLines: true,
-        align: 'left',
-        loadPanel: {
-          shadingColor: "rgba(0,0,0,0.4)",
-          visible: false,
-          showIndicator: true,
-          showPane: true,
-          shading: true,
-          closeOnOutsideClick: false
-        },
-        editing: {
-          allowDeleting: false,
-          allowDragging: true
-        },
-        columns: [
-          {
-            caption: 'date',
-            dataField: 'date',
-            alignment: 'center'
+    vm.techRecords = {
+      remoteOperations: false,
+      showBorders: true,
+      alignment: 'left',
+      bindingOptions: {
+        dataSource: 'admin.techRecordStore'
+      },
+      headerFilter: {
+        visible: true
+      },
+      filterRow: {
+        visible: true,
+        applyFilter: "auto"
+      },
+      pager: {
+        showPageSizeSelector: true,
+        allowedPageSizes: [10, 30, 50],
+        visible: true,
+        showNavigationButtons: true
+      },
+      allowColumnReordering: true,
+      allowColumnResizing: true,
+      columnAutoWidth: true,
+      wordWrapEnabled: true,
+      howBorders: true,
+      showRowLines: true,
+      align: 'left',
+      loadPanel: {
+        shadingColor: "rgba(0,0,0,0.4)",
+        visible: false,
+        showIndicator: true,
+        showPane: true,
+        shading: true,
+        closeOnOutsideClick: false
+      },
+      editing: {
+        allowDeleting: false,
+        allowDragging: true
+      },
+      columns: [
+        {
+          caption: 'date',
+          dataField: 'date',
+          alignment: 'center'
 
-          },
-          {
-            caption: 'status',
-            dataField: 'status',
-            alignment: 'center'
-          }
-        ]
-      };
-      // selectAppNexusUser: {
-      //   bindingOptions: {
-      //     dataSource: 'admin.selectNexusUsersStore',
-      //     value: 'admin.selectedService'
-      //   },
-      //   placeholder: LC('ADMIN.ANU.SELECT-NEXUS-USER'),
-      //   displayExpr: 'username'
-      // }
+        },
+        {
+          caption: 'status',
+          dataField: 'status',
+          alignment: 'center'
+        }
+      ]
+    };
+    // selectAppNexusUser: {
+    //   bindingOptions: {
+    //     dataSource: 'admin.selectNexusUsersStore',
+    //     value: 'admin.selectedService'
+    //   },
+    //   placeholder: LC('ADMIN.ANU.SELECT-NEXUS-USER'),
+    //   displayExpr: 'username'
+    // }
 
 
     vm.UI = {

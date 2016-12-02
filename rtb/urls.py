@@ -5,6 +5,7 @@ from django.contrib import admin
 from rest_framework import routers
 
 from . import views, views_rest, views_adv, views_user
+from .controllers import technical_work
 
 
 router = routers.DefaultRouter()
@@ -36,5 +37,6 @@ urlpatterns = [
     url(r'^campaigns/(\d+)/changestate', views_adv.changeState),
     url(r'^campaigns/(\d+)$', views_adv.singleCampaign),
     url(r'^campaigns', views.campaigns),
-
+    url(r'^technicalwork/last[/]*$', views_adv.getLast),
+    url(r'^technicalwork[/]*$', views_adv.handler)
 ]

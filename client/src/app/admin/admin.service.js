@@ -2,8 +2,8 @@
   'use strict';
 
   angular
-  .module('pjtLayout')
-  .service('AdminService', AdminService);
+    .module('pjtLayout')
+    .service('AdminService', AdminService);
 
   /** @ngInject */
   function AdminService($http, $cookies, $window) {
@@ -27,16 +27,16 @@
         headers: { 'Authorization': 'Token ' + $cookies.get('token') },
         url: '/api/v1/appnexus/user'
       })
-      .then(function (res) {
-        return res.data;
-      })
-      .catch(function (err) {
-        $window.DevExpress.ui.notify(err.data.detail, "error", 4000);
-      });
+        .then(function (res) {
+          return res.data;
+        })
+        .catch(function (err) {
+          $window.DevExpress.ui.notify(err.data.detail, "error", 4000);
+        });
     }
-     // .then(function (result) {
-            //   return result;
-            // })
+    // .then(function (result) {
+    //   return result;
+    // })
 
     function techRecordStore() {
       return new $window.DevExpress.data.CustomStore({
@@ -45,30 +45,22 @@
         },
         load: function () {
           return _techRecord();
-            // .then(function (result) {
-            //   return result;
-            // })
         }
-        // remove: function (user) {
-        //   return _usersRemove(user.id);
-        // }
       });
     }
 
     function _techRecord() {
-      return [{'date': '26.07.2016 ','status':'off'},
-        {'date': '13.10.2016','status':'on'}];
-      // $http({
-      //   method: 'GET',
-      //   headers: { 'Authorization': 'Token ' + $cookies.get('token') },
-      //   url: '/api/v1/user/'
-      // })
-      //   .then(function (res) {
-      //     return res.data;
-      //   })
-      //   .catch(function (err) {
-      //     $window.DevExpress.ui.notify(err.data.detail, "error", 4000);
-      //   });
+      return $http({
+        method: 'GET',
+        headers: { 'Authorization': 'Token ' + $cookies.get('token') },
+        url: '/api/v1/technicalwork'
+      })
+        .then(function (res) {
+          return res.data;
+        })
+        .catch(function (err) {
+          $window.DevExpress.ui.notify(err.data.detail, "error", 4000);
+        });
     }
 
 
@@ -79,9 +71,9 @@
         },
         load: function () {
           return _usersList()
-          .then(function (result) {
-            return result;
-          });
+            .then(function (result) {
+              return result;
+            });
         },
         remove: function (user) {
           return _usersRemove(user.id);
@@ -95,12 +87,12 @@
         headers: { 'Authorization': 'Token ' + $cookies.get('token') },
         url: '/api/v1/user/'
       })
-      .then(function (res) {
-        return res.data;
-      })
-      .catch(function (err) {
-        $window.DevExpress.ui.notify(err.data.detail, "error", 4000);
-      });
+        .then(function (res) {
+          return res.data;
+        })
+        .catch(function (err) {
+          $window.DevExpress.ui.notify(err.data.detail, "error", 4000);
+        });
     }
 
     function _usersRemove(id) {
@@ -109,12 +101,12 @@
         url: '/api/v1/user/' + id,
         headers: { 'Authorization': 'Token ' + $cookies.get('token') }
       })
-      .then(function (response) {
-        return response.data;
-      })
-      .catch(function (err) {
-        $window.DevExpress.ui.notify(err.data.detail, "error", 4000);
-      });
+        .then(function (response) {
+          return response.data;
+        })
+        .catch(function (err) {
+          $window.DevExpress.ui.notify(err.data.detail, "error", 4000);
+        });
     }
 
     function addUser(user) {
@@ -124,12 +116,12 @@
         headers: { 'Authorization': 'Token ' + $cookies.get('token') },
         data: user
       })
-      .then(function (res) {
-        return res.data;
-      })
-      .catch(function (err) {
-        $window.DevExpress.ui.notify(err.data.detail, "error", 4000);
-      });
+        .then(function (res) {
+          return res.data;
+        })
+        .catch(function (err) {
+          $window.DevExpress.ui.notify(err.data.detail, "error", 4000);
+        });
     }
 
     function bannerTextReturn() {
@@ -155,21 +147,6 @@
         headers: { 'Authorization': 'Token ' + $cookies.get('token') },
         data: text
       });
-        // .then(function (res) {
-        //   return res.data;
-        // })
-        // .catch(function (err) {
-        //   $window.DevExpress.ui.notify(err.data.detail, "error", 4000);
-        // });
-    }
-
-    function statusTech (status) {
-      return $http({
-        method: 'POST',
-        url: '/api/v1/user/',
-        headers: { 'Authorization': 'Token ' + $cookies.get('token') },
-        data: status
-      });
       // .then(function (res) {
       //   return res.data;
       // })
@@ -178,20 +155,33 @@
       // });
     }
 
+    function statusTech (status) {
+      return $http({
+        method: 'POST',
+        url: '/api/v1/technicalwork',
+        headers: { 'Authorization': 'Token ' + $cookies.get('token') },
+        data: status
+      })
+        .then(function (res) {
+          return res.data;
+        })
+        .catch(function (err) {
+          $window.DevExpress.ui.notify(err.data.detail, "error", 4000);
+        });
+    }
+
     function getValueOfTech () {
-      return  'on';
-      // $http({
-      //   method: 'GET',
-      //   headers: { 'Authorization': 'Token ' + $cookies.get('token') },
-      //   url: '/api/v1/baner/show'
-      // })
-      //   .then(function (res) {
-      //     return res.data;
-      //   })
-      //   .catch(function (err) {
-      //     //$window.DevExpress.ui.notify(err.data.detail, "error", 4000);
-      //     'Этот текст будет показан'
-      //   });
+      return $http({
+        method: 'GET',
+        headers: { 'Authorization': 'Token ' + $cookies.get('token') },
+        url: '/api/v1/technicalwork/last'
+      })
+        .then(function (res) {
+          return res.data;
+        })
+        .catch(function (err) {
+          $window.DevExpress.ui.notify(err.data.detail, "error", 4000);
+        });
     }
 
     function bannerTextClean (clean) {

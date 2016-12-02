@@ -15,6 +15,7 @@
           <i class="fa fa-globe fa-fw"></i> English
         </a>
       </div>
+      <a href="#" class="btn btn-danger admin-btn" ng-click="root.logout()" >
          <span class="glyphicon glyphicon-log-out"></span> {{ 'COMMON.LOGOUT' | translate }}
       </a>
     </div>
@@ -77,7 +78,7 @@
     <div class="post-second non-active col-lg-12 col-md-12 col-sm-12">
       <div class="col-lg-4 col-md-4 col-sm-12">
      <span class="toggle-bg">
-    <input type="radio" name="toggle" ng-click="admin.valueOfTech(admin.name)" ng-change = admin.changeTechWork(admin.name) ng-model="admin.name" value="off" checked="checked">
+    <input type="radio" name="toggle" ng-click="admin.valueOfTech(admin.name)" ng-change = admin.changeTechWork(admin.name) ng-model="admin.name" value="off">
     <input type="radio" name="toggle" ng-click="admin.valueOfTech(admin.name)" ng-change = admin.changeTechWork(admin.name) ng-model="admin.name"  value="on">
     <span class="switch"></span>
       </span>

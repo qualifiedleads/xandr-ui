@@ -28,7 +28,7 @@
             <span class="icon-bar"></span>
           </button>
           <a ui-sref="home.main" class="navbar-brand" > {{ 'INDEX.ADVERTISER_TITLE' | translate }} {{ home.advertiser.name }}</a>
-          <div class="wrapping-tech-banner" id="techBanner">
+          <div ng-if="home.bannerText != ''" class="wrapping-tech-banner" id="techBanner">
             <div class="tech-banner">
               {{home.bannerText}}
             </div>

@@ -89,15 +89,16 @@
           <textarea   id="" cols="30" rows="10" ng-model="admin.bannerText" placeholder="Текст банера для пользователей с предупреждением о проведении технических работ на сайте/сервере">{{admin.bannerText}}</textarea>
         </div>
         <div class="form-group">
-          <button type="submit" class="btn btn-primary">Отправить</button>
-          <button type="button" class="btn btn-primary" ng-click="admin.cleanBannerText()">Очистить</button>
+          <button type="submit" class="btn btn-primary">ON</button>
+          <button type="button" class="btn btn-primary" ng-click="admin.cleanBannerText()">OFF</button>
+          <div style="float: right"><b>BANNER STATUS - <span style="color: #3c763d">{{admin.statusBanner}}</span></b></div>
         </div>
       </form>
       </div>
 
     <div class="col-lg-8 col-md-8 col-sm-12 tech-record">
       <h3>Журнал проведения технических работ</h3>
-      <div dx-data-grid="admin.techRecords" id="techRecords"></div>
+      <div dx-data-grid="admin.UI.techRecords" id="techRecords"></div>
     </div>
     </div>
     </div>

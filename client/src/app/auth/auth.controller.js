@@ -2,16 +2,29 @@
   'use strict';
 
   angular
-  .module('pjtLayout')
-  .controller('AuthController', AuthController);
+    .module('pjtLayout')
+    .controller('AuthController', AuthController);
 
   /** @ngInject */
-  function AuthController($window, $state, $localStorage, $translate, Auth, $cookies) {
+  function AuthController($window, $state, $localStorage, $translate, Auth, $cookies, AdminService) {
     var vm = this;
     var LC = $translate.instant;
+    vm.bannerShow = false;
+    if ($cookies.get('token')) {
+      AdminService.getValueOfTech()
+        .then(function (res) {
+          if (res == "on") {
+            vm.bannerShow = true;
+            return AdminService.bannerTextReturn().then(function (res) {
+              vm.bannerText = res.text;
+            })
+          }
+        });
+    }
+
 
     if (($cookies.get('token')) &&
-        (($cookies.get('permission') == 'adminfull') || $cookies.get('permission') == 'adminread')) {
+      (($cookies.get('permission') == 'adminfull') || $cookies.get('permission') == 'adminread')) {
       $window.$('.reg-form-wrapper')[0].classList.add('hide');
       $window.$('.advertiser-wrapper')[0].classList.add('show');
       $window.$('.admin-btn')[0].classList.add('show');
@@ -19,7 +32,7 @@
     }
 
     if (($cookies.get('token')) &&
-        (($cookies.get('permission') == 'userfull') || $cookies.get('permission') == 'userread')) {
+      (($cookies.get('permission') == 'userfull') || $cookies.get('permission') == 'userread')) {
       $window.$('.reg-form-wrapper')[0].classList.add('hide');
       $window.$('.advertiser-wrapper')[0].classList.add('show');
       $window.$('.admin-btn')[0].classList.add('show');
@@ -37,6 +50,15 @@
             $localStorage.$reset();
             $cookies.put('token', res.data.token);
             $cookies.put('permission', res.data.permission);
+            AdminService.getValueOfTech()
+              .then(function (res) {
+                if (res == "on") {
+                  vm.bannerShow = true;
+                  return AdminService.bannerTextReturn().then(function (res) {
+                    vm.bannerText = res.text;
+                  })
+                }
+              });
             if ((res.data.token) && ((res.data.permission == 'adminfull') || (res.data.permission == 'adminread'))) {
               $window.$('.reg-form-wrapper')[0].classList.add('hide');
               $window.$('.advertiser-wrapper')[0].classList.add('show');

@@ -125,34 +125,47 @@
     }
 
     function bannerTextReturn() {
-      return  'Этот текст будет показан при проведении технических работ';
-      // $http({
-      //   method: 'GET',
-      //   headers: { 'Authorization': 'Token ' + $cookies.get('token') },
-      //   url: '/api/v1/baner/show'
-      // })
-      //   .then(function (res) {
-      //     return res.data;
-      //   })
-      //   .catch(function (err) {
-      //     //$window.DevExpress.ui.notify(err.data.detail, "error", 4000);
-      //     'Этот текст будет показан'
-      //   });
+      //return  'Этот текст будет показан при проведении технических работ';
+      return $http({
+        method: 'GET',
+        headers: { 'Authorization': 'Token ' + $cookies.get('token') },
+        url: '/api/v1/banner'
+      })
+        .then(function (res) {
+          return res.data;
+        })
+        .catch(function (err) {
+          $window.DevExpress.ui.notify(err.data.detail, "error", 4000);
+        });
     }
 
     function bannerTextRecord (text) {
       return $http({
         method: 'POST',
-        url: '/api/v1/user/',
+        url: '/api/v1/banner',
         headers: { 'Authorization': 'Token ' + $cookies.get('token') },
         data: text
-      });
-      // .then(function (res) {
-      //   return res.data;
-      // })
-      // .catch(function (err) {
-      //   $window.DevExpress.ui.notify(err.data.detail, "error", 4000);
-      // });
+      })
+        .then(function (res) {
+          return res.data;
+        })
+        .catch(function (err) {
+          $window.DevExpress.ui.notify(err.data.detail, "error", 4000);
+        });
+    }
+
+    function bannerOff () {
+      return $http({
+        method: 'PUT',
+        url: '/api/v1/banner',
+        headers: { 'Authorization': 'Token ' + $cookies.get('token') }
+      })
+        .then(function (res) {
+          return res.data;
+        })
+        .catch(function (err) {
+          $window.DevExpress.ui.notify(err.data.detail, "error", 4000);
+        });
     }
 
     function statusTech (status) {
@@ -184,21 +197,6 @@
         });
     }
 
-    function bannerTextClean (clean) {
-      return $http({
-        method: 'POST',
-        url: '/api/v1/user/',
-        headers: { 'Authorization': 'Token ' + $cookies.get('token') },
-        data: clean
-      });
-      // .then(function (res) {
-      //   return res.data;
-      // })
-      // .catch(function (err) {
-      //   $window.DevExpress.ui.notify(err.data.detail, "error", 4000);
-      // });
-    }
-
 
     _this.selectNexusUsersStore = selectNexusUsersStore;
     _this.usersStore = usersStore;
@@ -208,6 +206,6 @@
     _this.bannerTextRecord = bannerTextRecord;
     _this.statusTech = statusTech;
     _this.getValueOfTech = getValueOfTech;
-    _this.bannerTextClean = bannerTextClean;
+    _this.bannerOff = bannerOff;
   }
 })();

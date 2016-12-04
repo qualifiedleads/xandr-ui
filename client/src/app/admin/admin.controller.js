@@ -9,29 +9,43 @@
   function AdminController($window, $state,  $translate, AdminService, $localStorage ) {
     var vm = this;
     var LC = $translate.instant;
-
+    vm.statusBanner = '';
     vm.goToMainPage = function () {
       $state.go('auth');
     };
 
-    vm.bannerText = AdminService.bannerTextReturn();
-    if (!$localStorage.bannerText) {
-      $localStorage.bannerText = vm.bannerText;
-    }
+    AdminService.bannerTextReturn().then(function (res) {
+      vm.bannerText = res.text;
+      if (res.status == true) {
+        vm.statusBanner = 'ON';
+      } else {
+        vm.statusBanner = 'OFF';
+      }
+
+    });
 
     vm.submitBannerText = function (bannerText) {
-      $localStorage.bannerText = bannerText;
       vm.newTextBaner = {
         text: bannerText,
-        date: new Date()
+        status: true
       };
-      AdminService.bannerTextRecord(vm.newTextBaner);
+      AdminService.bannerTextRecord(vm.newTextBaner).then(function (res) {
+        if (res.status == true) {
+          vm.statusBanner = 'ON';
+        } else {
+          vm.statusBanner = 'OFF';
+        }
+      });
     };
 
     vm.cleanBannerText = function () {
-      vm.bannerText = '';
-      vm.bannerText.$setPristine();
-      AdminService.bannerTextClean(vm.bannerText);
+      return AdminService.bannerOff().then(function (res) {
+        if (res.status == true) {
+          vm.statusBanner = 'ON';
+        } else {
+          vm.statusBanner = 'OFF';
+        }
+      });
     };
 
     vm.changeTechWork = function (val) {
@@ -125,71 +139,6 @@
     vm.selectNexusUsersStore = AdminService.selectNexusUsersStore();
     vm.techRecordStore = AdminService.techRecordStore();
 
-
-
-    vm.techRecords = {
-      remoteOperations: false,
-      showBorders: true,
-      alignment: 'left',
-      bindingOptions: {
-        dataSource: 'admin.techRecordStore'
-      },
-      headerFilter: {
-        visible: true
-      },
-      filterRow: {
-        visible: true,
-        applyFilter: "auto"
-      },
-      pager: {
-        showPageSizeSelector: true,
-        allowedPageSizes: [10, 30, 50],
-        visible: true,
-        showNavigationButtons: true
-      },
-      allowColumnReordering: true,
-      allowColumnResizing: true,
-      columnAutoWidth: true,
-      wordWrapEnabled: true,
-      howBorders: true,
-      showRowLines: true,
-      align: 'left',
-      loadPanel: {
-        shadingColor: "rgba(0,0,0,0.4)",
-        visible: false,
-        showIndicator: true,
-        showPane: true,
-        shading: true,
-        closeOnOutsideClick: false
-      },
-      editing: {
-        allowDeleting: false,
-        allowDragging: true
-      },
-      columns: [
-        {
-          caption: 'date',
-          dataField: 'date',
-          alignment: 'center'
-
-        },
-        {
-          caption: 'status',
-          dataField: 'status',
-          alignment: 'center'
-        }
-      ]
-    };
-    // selectAppNexusUser: {
-    //   bindingOptions: {
-    //     dataSource: 'admin.selectNexusUsersStore',
-    //     value: 'admin.selectedService'
-    //   },
-    //   placeholder: LC('ADMIN.ANU.SELECT-NEXUS-USER'),
-    //   displayExpr: 'username'
-    // }
-
-
     vm.UI = {
       listOfUsers: {
         remoteOperations: false,
@@ -275,6 +224,59 @@
         },
         placeholder: LC('ADMIN.ANU.SELECT-NEXUS-USER'),
         displayExpr: 'username'
+      },
+      techRecords: {
+        remoteOperations: false,
+        showBorders: true,
+        alignment: 'left',
+        bindingOptions: {
+          dataSource: 'admin.techRecordStore'
+        },
+        headerFilter: {
+          visible: true
+        },
+        filterRow: {
+          visible: true,
+          applyFilter: "auto"
+        },
+        pager: {
+          showPageSizeSelector: true,
+          allowedPageSizes: [10, 30, 50],
+          visible: true,
+          showNavigationButtons: true
+        },
+        allowColumnReordering: true,
+        allowColumnResizing: true,
+        columnAutoWidth: true,
+        wordWrapEnabled: true,
+        howBorders: true,
+        showRowLines: true,
+        align: 'left',
+        loadPanel: {
+          shadingColor: "rgba(0,0,0,0.4)",
+          visible: false,
+          showIndicator: true,
+          showPane: true,
+          shading: true,
+          closeOnOutsideClick: false
+        },
+        editing: {
+          allowDeleting: false,
+          allowDragging: true
+        },
+        columns: [
+          {
+            caption: 'date',
+            dataField: 'date',
+            alignment: 'center',
+            sortOrder: 'desc',
+          },
+          {
+            caption: 'status',
+            dataField: 'status',
+            alignment: 'center'
+          }
+        ]
       }
     };
   }

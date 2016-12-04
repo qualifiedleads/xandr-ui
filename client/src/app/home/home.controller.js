@@ -11,19 +11,18 @@
     vm.advertiser = {};
     vm.isEven = false;
     vm.userAuth = false;
+    vm.bannerText = '';
 
-
-
-    vm.bannerText = AdminService.bannerTextReturn();
-    if (!vm.bannerText) {
-        vm.banner = $window.$('#techBanner');
-        vm.banner.addClass('non-visible');
-    }
+    AdminService.bannerTextReturn().then(function (res) {
+      if (res.status == true) {
+        vm.bannerText = res.text || '';
+      }
+    });
 
     vm.hideBanner = function () {
-        vm.banner = $window.$('#techBanner');
-        vm.banner.addClass('non-visible');
-      };
+      vm.banner = $window.$('#techBanner');
+      vm.banner.addClass('non-visible');
+    };
 
     if (($rootScope.id == null) && ($rootScope.name == null) && ($localStorage.campaign != null)) {
       $rootScope.id = $localStorage.campaign.id;

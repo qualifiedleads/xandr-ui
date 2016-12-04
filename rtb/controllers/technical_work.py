@@ -1,10 +1,7 @@
 from rest_framework.decorators import api_view, parser_classes
-from django.http import HttpResponse
 from rest_framework.response import Response
-from django.core import serializers
 from django.utils import timezone
 import datetime
-import json
 from pytz import utc
 from rtb.models.technical_works import AttentionMessage, TechnicalWork
 
@@ -13,14 +10,19 @@ from rtb.models.technical_works import AttentionMessage, TechnicalWork
 # @check_user_advertiser_permissions(campaign_id_num=0)
 def handler(request):
     """
-Get all list works
+GET all list works
+
+## Url format: /api/v1/technicalwork
+
+
+
+POST Add new work
 
 ## Url format: /api/v1/technicalwork
 
 + Parameters
 
-    + id(Number) - id for getting information about company
-
+    + value(Number) - value on/off
 
     """
     if request.method == "GET":
@@ -32,10 +34,13 @@ Get all list works
 
 
 def getAll(request):
-    lists = TechnicalWork.objects.all()
-    ddd = json.loads(str(lists))
-    return ddd
-
+    try:
+        lists = list(TechnicalWork.objects.filter().values('id', 'status', 'date'))
+        for item in lists:
+            item['date'] = item['date'].strftime("%Y-%m-%d %H:%M:%S")
+        return lists
+    except Exception, e:
+        print 'Error: ' + str(e)
 
 def addNewStatus(request):
     try:
@@ -55,9 +60,6 @@ Get last status works
 
 ## Url format: /api/v1/technicalwork/last
 
-+ Parameters
-
-    + id(Number) - id for getting information about company
     """
     try:
         if not TechnicalWork.objects.all():
@@ -70,7 +72,73 @@ Get last status works
         print 'Error: ' + str(e)
 
 
+@api_view(['GET', 'POST', 'PUT'])
+# @check_user_advertiser_permissions(campaign_id_num=0)
+def banner(request):
+    """
+GET
+Get last banner
+## Url format: /api/v1/baner
+
+POST
+Add banner
+## Url format: /api/v1/baner
+
+PUT
+change status banner
+## Url format: /api/v1/baner
+    """
+    if request.method == "GET":
+        k = getBanner()
+        return Response(k)
+    if request.method == "POST":
+        k = addBanner(request)
+        return Response(k)
+    if request.method == "PUT":
+        k = statusBanner()
+        return Response(k)
 
 
+def getBanner():
+    try:
+        print "Get message"
+        if not AttentionMessage.objects.all():
+            return {'text': '', 'status': False}
+        else:
+            message = AttentionMessage.objects.latest('id')
+            return {'text': str(message.message), 'status': message.status}
+    except Exception, e:
+        print 'Error: ' + str(e)
 
+
+def addBanner(request):
+    try:
+        if not AttentionMessage.objects.all():
+            AttentionMessage(message=str(request.data.get("text")), status=request.data.get("status")).save()
+            return {'text': str(request.data.get("text")), 'status': request.data.get("status")}
+        else:
+            message = AttentionMessage.objects.latest('id')
+            message.message = request.data.get("text")
+            message.status = request.data.get("status")
+            message.save()
+            print "Added new banner - " + str(request.data.get("text"))
+            return {'text': str(message.message), 'status': message.status}
+    except Exception, e:
+        print 'Error: ' + str(e)
+
+
+def statusBanner():
+    try:
+        if not AttentionMessage.objects.all():
+            AttentionMessage(message='', status=False).save()
+            print "Change status - OFF"
+            return {'text': '', 'status': False}
+        else:
+            message = AttentionMessage.objects.latest('id')
+            message.status = False
+            message.save()
+            print "Change status - OFF"
+            return {'text': str(message.message), 'status': message.status}
+    except Exception, e:
+        print 'Error: ' + str(e)
 

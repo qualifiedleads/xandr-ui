@@ -37,6 +37,7 @@ urlpatterns = [
     url(r'^campaigns/(\d+)/changestate', views_adv.changeState),
     url(r'^campaigns/(\d+)$', views_adv.singleCampaign),
     url(r'^campaigns', views.campaigns),
-    url(r'^technicalwork/last[/]*$', views_adv.getLast),
-    url(r'^technicalwork[/]*$', views_adv.handler)
+    url(r'^technicalwork/last[/]?$', technical_work.getLast),
+    url(r'^technicalwork[/]?$', technical_work.handler),
+    url(r'^banner[/]?$', technical_work.banner)
 ]

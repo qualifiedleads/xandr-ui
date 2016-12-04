@@ -11,8 +11,7 @@ class TechnicalWork(models.Model):
 class AttentionMessage(models.Model):
     id = models.AutoField(primary_key=True)
     message = models.TextField(null=True, blank=True)
-    date = models.DateTimeField(null=True, blank=True)
+    status = models.BooleanField(default=False)
 
     class Meta:
         db_table = "attention_message"
-

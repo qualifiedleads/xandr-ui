@@ -52,6 +52,18 @@
         'APNEXUS-ID':'Id пользователя AppNexus',
         'APNEXUS-NAME':'Имя пользователя AppNexus',
         'PERMISSION':'Разрешение'
+      },
+      "TECHNICAL-WORK": {
+        "EDIT-USERS" : "Редактировать пользователей",
+        'TECH-WORK':'Технические работы',
+        'TECH-WORK-SWITCHER':'проведение технических работ на сайте',
+        'TECH-JOURNAL':'Журнал проведения технических работ',
+        'TECH-DATE':'Дата',
+        'TECH-STATUS':'Статус',
+        'TECH-STATUS-BANNER':'СТАТУС БАННЕРА',
+        'APNEXUS-ID':'Id пользователя AppNexus',
+        'APNEXUS-NAME':'Имя пользователя AppNexus',
+        'PERMISSION':'Разрешение'
       }
     },
     'INDEX':{

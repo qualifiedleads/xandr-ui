@@ -266,13 +266,13 @@
         },
         columns: [
           {
-            caption: 'date',
+            caption:  LC('ADMIN.TECHNICAL-WORK.TECH-DATE'),
             dataField: 'date',
             alignment: 'center',
-            sortOrder: 'desc',
+            sortOrder: 'desc'
           },
           {
-            caption: 'status',
+            caption: LC('ADMIN.TECHNICAL-WORK.TECH-STATUS'),
             dataField: 'status',
             alignment: 'center'
           }

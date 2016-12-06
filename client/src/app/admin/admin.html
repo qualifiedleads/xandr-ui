@@ -22,8 +22,8 @@
   </div>
   <div class="col-lg-12 col-md-12 col-sm-12 tabs">
     <ul class="nav_posts">
-      <li class="btn btn-success link-first" ng-click="admin.changeTab('first')">Редактировать пользователей</li> |
-      <li class="btn btn-default link-second" ng-click="admin.changeTab('second')">Технические работы</li>
+      <li class="btn btn-success link-first" ng-click="admin.changeTab('first')">{{ 'ADMIN.TECHNICAL-WORK.EDIT-USERS' | translate }}</li> |
+      <li class="btn btn-default link-second" ng-click="admin.changeTab('second')">{{'ADMIN.TECHNICAL-WORK.TECH-WORK' | translate }}</li>
     </ul>
     <div class="post-first active">
   <div class="row content-admin">
@@ -82,7 +82,7 @@
     <input type="radio" name="toggle" ng-click="admin.valueOfTech(admin.name)" ng-change = admin.changeTechWork(admin.name) ng-model="admin.name"  value="on">
     <span class="switch"></span>
       </span>
-      <span class="checkbox-value">{{admin.name}}</span> - проведение технических работ на сайте
+      <span class="checkbox-value">{{admin.name}}</span> - {{ 'ADMIN.TECHNICAL-WORK.TECH-WORK-SWITCHER' | translate }}
 
       <form class="admin-banner"  ng-submit="admin.submitBannerText(admin.bannerText)">
         <div class="form-group">
@@ -91,13 +91,13 @@
         <div class="form-group">
           <button type="submit" class="btn btn-primary">ON</button>
           <button type="button" class="btn btn-primary" ng-click="admin.cleanBannerText()">OFF</button>
-          <div style="float: right"><b>BANNER STATUS - <span style="color: #3c763d">{{admin.statusBanner}}</span></b></div>
+          <div style="float: right"><b>{{ 'ADMIN.TECHNICAL-WORK.TECH-STATUS-BANNER' | translate }} - <span style="color: #3c763d">{{admin.statusBanner}}</span></b></div>
         </div>
       </form>
       </div>
 
     <div class="col-lg-8 col-md-8 col-sm-12 tech-record">
-      <h3>Журнал проведения технических работ</h3>
+      <h3>{{ 'ADMIN.TECHNICAL-WORK.TECH-JOURNAL' | translate }}</h3>
       <div dx-data-grid="admin.UI.techRecords" id="techRecords"></div>
     </div>
     </div>

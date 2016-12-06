@@ -10,7 +10,10 @@
     var vm = this;
     var LC = $translate.instant;
     vm.bannerShow = false;
-    if ($cookies.get('token')) {
+    vm.userLogOut = false;
+    vm.adminPanel = false;
+    if (($cookies.get('token')) &&
+      (($cookies.get('permission') == 'userfull') || $cookies.get('permission') == 'userread')) {
       AdminService.getValueOfTech()
         .then(function (res) {
           if (res == "on") {
@@ -22,21 +25,20 @@
         });
     }
 
-
     if (($cookies.get('token')) &&
       (($cookies.get('permission') == 'adminfull') || $cookies.get('permission') == 'adminread')) {
       $window.$('.reg-form-wrapper')[0].classList.add('hide');
       $window.$('.advertiser-wrapper')[0].classList.add('show');
-      $window.$('.admin-btn')[0].classList.add('show');
-      $window.$('.admin-btn')[1].classList.add('show');
+      vm.userLogOut = true;
+      vm.adminPanel = true;
     }
 
     if (($cookies.get('token')) &&
       (($cookies.get('permission') == 'userfull') || $cookies.get('permission') == 'userread')) {
       $window.$('.reg-form-wrapper')[0].classList.add('hide');
       $window.$('.advertiser-wrapper')[0].classList.add('show');
-      $window.$('.admin-btn')[0].classList.add('show');
-      $window.$('.admin-btn')[1].classList.remove('show');
+      vm.userLogOut = true;
+      vm.adminPanel = false;
     }
 
     vm.selectAdvertisersStore = Auth.selectAdvertisersStore();
@@ -50,26 +52,26 @@
             $localStorage.$reset();
             $cookies.put('token', res.data.token);
             $cookies.put('permission', res.data.permission);
-            AdminService.getValueOfTech()
-              .then(function (res) {
-                if (res == "on") {
-                  vm.bannerShow = true;
-                  return AdminService.bannerTextReturn().then(function (res) {
-                    vm.bannerText = res.text;
-                  })
-                }
-              });
             if ((res.data.token) && ((res.data.permission == 'adminfull') || (res.data.permission == 'adminread'))) {
               $window.$('.reg-form-wrapper')[0].classList.add('hide');
               $window.$('.advertiser-wrapper')[0].classList.add('show');
-              $window.$('.admin-btn')[0].classList.add('show');
-              $window.$('.admin-btn')[1].classList.add('show');
+              vm.userLogOut = true;
+              vm.adminPanel = true;
             }
             if ((res.data.token) && ((res.data.permission == 'userfull') || (res.data.permission == 'userread'))) {
               $window.$('.reg-form-wrapper')[0].classList.add('hide');
               $window.$('.advertiser-wrapper')[0].classList.add('show');
-              $window.$('.admin-btn')[0].classList.remove('show');
-              $window.$('.admin-btn')[1].classList.add('show');
+              vm.userLogOut = true;
+              vm.adminPanel = false;
+              AdminService.getValueOfTech()
+                .then(function (res) {
+                  if (res == "on") {
+                    vm.bannerShow = true;
+                    return AdminService.bannerTextReturn().then(function (res) {
+                      vm.bannerText = res.text;
+                    })
+                  }
+                });
             }
           } else {
             $cookies.remove('permission');

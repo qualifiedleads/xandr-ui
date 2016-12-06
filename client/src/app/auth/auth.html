@@ -9,11 +9,11 @@
     </a>
   </div>
 
-  <a class="btn btn-danger admin-btn hide"  ng-click="auth.logout()" >
+  <a class="btn btn-danger admin-btn" ng-show="auth.userLogOut" ng-click="auth.logout()" >
     <span class="glyphicon glyphicon-log-out"></span> {{ 'COMMON.LOGOUT' | translate }}
   </a>
 
-  <a href="#" class="btn btn-primary admin-btn hide" ui-sref="admin">
+  <a href="#" class="btn btn-primary admin-btn" ng-show="auth.adminPanel" ui-sref="admin">
     <span class="glyphicon glyphicon-user"></span> {{ 'COMMON.GO-TO-ADMIN-PANEL' | translate }}
   </a>
 </div>

@@ -26,9 +26,11 @@
         controller: 'MainController',
         controllerAs: 'main',
         resolve: {
-          TWStatus: function (AdminService, $stateParams, $state) {
+          TWStatus: function (AdminService, $stateParams, $state, $cookies) {
             return AdminService.getValueOfTech().then(function (res) {
-              if (res == "on") {
+              if ((res == "on") &&
+                ($cookies.get('token')) &&
+                (($cookies.get('permission') == 'userfull') || $cookies.get('permission') == 'userread')) {
                 $state.go('auth');
               }
             });
@@ -49,9 +51,11 @@
               return res
             });
           },
-          TWStatus: function (AdminService, $stateParams, $state) {
+          TWStatus: function (AdminService, $stateParams, $state, $cookies) {
             return AdminService.getValueOfTech().then(function (res) {
-              if (res == "on") {
+              if ((res == "on") &&
+                ($cookies.get('token')) &&
+                (($cookies.get('permission') == 'userfull') || $cookies.get('permission') == 'userread')) {
                 $state.go('auth');
               }
             });
@@ -72,9 +76,11 @@
               return res
             });
           },
-          TWStatus: function (AdminService, $stateParams, $state) {
+          TWStatus: function (AdminService, $stateParams, $state, $cookies) {
             return AdminService.getValueOfTech().then(function (res) {
-              if (res == "on") {
+              if ((res == "on") &&
+                ($cookies.get('token')) &&
+                (($cookies.get('permission') == 'userfull') || $cookies.get('permission') == 'userread')) {
                 $state.go('auth');
               }
             });
@@ -87,9 +93,11 @@
         controller: 'valuationByExpertController',
         controllerAs: 'VBE',
         resolve: {
-          TWStatus: function (AdminService, $stateParams, $state) {
+          TWStatus: function (AdminService, $stateParams, $state, $cookies) {
             return AdminService.getValueOfTech().then(function (res) {
-              if (res == "on") {
+              if ((res == "on") &&
+                ($cookies.get('token')) &&
+                (($cookies.get('permission') == 'userfull') || $cookies.get('permission') == 'userread')) {
                 $state.go('auth');
               }
             });
@@ -116,9 +124,11 @@
               return res
             });
           },
-          TWStatus: function (AdminService, $stateParams, $state) {
+          TWStatus: function (AdminService, $stateParams, $state, $cookies) {
             return AdminService.getValueOfTech().then(function (res) {
-              if (res == "on") {
+              if ((res == "on") &&
+                ($cookies.get('token')) &&
+                (($cookies.get('permission') == 'userfull') || $cookies.get('permission') == 'userread')) {
                 $state.go('auth');
               }
             });
@@ -171,9 +181,11 @@
                 return err;
               });
           },
-          TWStatus: function (AdminService, $stateParams, $state) {
+          TWStatus: function (AdminService, $stateParams, $state, $cookies) {
             return AdminService.getValueOfTech().then(function (res) {
-              if (res == "on") {
+              if ((res == "on") &&
+                ($cookies.get('token')) &&
+                (($cookies.get('permission') == 'userfull') || $cookies.get('permission') == 'userread')) {
                 $state.go('auth');
               }
             });

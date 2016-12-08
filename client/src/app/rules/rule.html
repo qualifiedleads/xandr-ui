@@ -1,4 +1,4 @@
-<div class="logic-rule" ng-if="rulesC.typeOfLogic(rule)" ng-hide="hideRules">
+<div class="logic-rule" ng-if="rulesC.typeOfLogic(rule)" >
   <button class=" btn-danger removeF" ng-click="rulesC.deleteFilds($parent,IndexF)" data-title="Delete">X</button>
 
   <div class="RadioRule">
@@ -21,108 +21,8 @@
 
   </div>
 </div>
-<div class="RuleString" ng-show="hideRules">
+<div class="object-rule" ng-if="rulesC.typeOfObject(rule)">
   <div ng-if="$index == 0">
-    <button class="btn green addfieldsG" ng-click="rulesC.addField($parent)" data-title="Add Field">F+</button>
-    <button class="btn green addgroupG" ng-click="rulesC.addGroup($parent, IndexF)" data-title="Add Group">G+</button>
-  </div>
-  <div class="AllRule" ng-if="rule.type == 'condition'">
-
-    <div class="chek">
-      <p class="onoff">
-        <input type="checkbox" class="onoff1" ng-model="hideGroup" id="hideGroup">
-        <label class="hideGroup" for="hideGroup">
-        </label>
-      </p>
-    </div>
-
-    <div class="infoRule">
-      <div class="infotarget">{{rule.target}}</div>
-      <div class="info"> {{rule.payment}}{{rule.compare}}{{rule.value}}</div>
-    </div>
-
-    <div class="RuleShow" ng-show="hideGroup">
-      <div class="dropdown" ng-show="hideGroup">
-               <span >
-                  <select class="select0"  data-ng-model="rule.target">
-                    <option ng-selected="rule.target == 'Placement/App'">Placement/App</option>
-                    <!--<option ng-selected="rule.target == 'Carrier'">Carrier</option>-->
-                    <!--<option ng-selected="rule.target == 'Device'">Device</option>-->
-                    <!--<option ng-selected="rule.target == 'OS'">OS</option>-->
-                    <!--<option ng-selected="rule.target == 'Ad exchange'">Ad exchange</option>-->
-                  </select>
-                </span>
-      </div>
-      <div class="dropdown1" ng-show="hideGroup">
-        if
-        <span>
-          <select class="select1" data-ng-model="rule.payment">
-            <option ng-selected="rule.payment == 'cpa'">cpa</option>
-            <option ng-selected="rule.payment == 'prediction1'">prediction1</option>
-            <option ng-selected="rule.payment == 'prediction2'">prediction2</option>
-            <option ng-selected="rule.payment == 'spent'">spent</option>
-            <option ng-selected="rule.payment == 'impressions'">impressions</option>
-            <option ng-selected="rule.payment == 'clicks'">clicks</option>
-            <option ng-selected="rule.payment == 'ctr'">ctr</option>
-            <option ng-selected="rule.payment == 'cpc'">cpc</option>
-            <option ng-selected="rule.payment == 'cvr'">cvr</option>
-          </select>
-          </span>
-
-      </div>
-      <div ng-if="rule.payment != 'prediction1' || rule.payment != 'prediction2'" class="dropdown2" ng-show="hideGroup">
-        compare
-        <span>
-          <select class="select2" data-ng-model="rule.compare">
-            <option ng-selected="rule.compare == '>'">&#x3e;</option>
-            <option ng-selected="rule.compare == '<'">&#x3c;</option>
-            <option ng-selected="rule.compare == '='">=</option>
-            <option ng-selected="rule.compare == '>='">&#x3e;=</option>
-            <option ng-selected="rule.compare == '<='">&#x3c;=</option>
-          </select>
-        </span>
-      </div>
-      <div ng-if="rule.payment != 'prediction1'  || rule.payment != 'prediction2'" class="inputm" ng-show="hideGroup">
-        <label>
-          Value
-          <input class="money" type="number" ng-model="rule.value" min="0">
-        </label>
-      </div>
-
-      <div ng-if="rule.payment == 'prediction1'  || rule.payment == 'prediction2'" class="dropdown2" ng-show="hideGroup">
-        compare
-        <span>
-          <select class="select2" data-ng-model="rule.compare">
-            <option ng-selected="rule.compare = '='">=</option>
-          </select>
-        </span>
-      </div>
-      <div ng-if="rule.payment == 'prediction1'  || rule.payment == 'prediction2'" class="inputm" ng-show="hideGroup">
-        <label>
-          Value
-          <input class="money" type="text" ng-model="rule.value">
-        </label>
-      </div>
-    </div>
-
-
-  </div>
-
-
-  <div class="Infologic" ng-if="rule.type == 'logic'">
-    <button class=" btn-danger removeInfo" ng-click="rulesC.deleteFilds($parent,IndexF)"data-title="Delete">X</button>
-    <div class="InfoOr" ng-if="rule.logicOrAnd == 'or'">
-      OR
-    </div>
-    <div class="InfoAnd" ng-if="rule.logicOrAnd == 'and'">
-      AND
-    </div>
-  </div>
-</div>
-
-
-<div class="object-rule" ng-if="rulesC.typeOfObject(rule)" ng-hide="hideRules">
-  <div ng-if="$index == 0" ng-hide="hideRules">
     <button class="btn green addfields" ng-click="rulesC.addField($parent)" data-title="Add Field" >F+</button>
     <button class="btn green addgroup" ng-click="rulesC.addGroup($parent, IndexF)" data-title="Add Group">G+</button>
   </div>
@@ -144,7 +44,6 @@
       if
       <span>
       <select class="select1" data-ng-model="rule.payment">
-
         <option ng-selected="rule.payment == 'cpa'">cpa</option>
         <option ng-selected="rule.payment == 'spent'">spent</option>
         <option ng-selected="rule.payment == 'prediction1'">prediction1</option>
@@ -154,11 +53,10 @@
         <option ng-selected="rule.payment == 'ctr'">ctr</option>
         <option ng-selected="rule.payment == 'cpc'">cpc</option>
         <option ng-selected="rule.payment == 'cvr'">cvr</option>
-
       </select>
       </span>
     </div>
-    <!-- START OTHER-->
+        <!-- START OTHER-->
     <div ng-if="rule.payment != 'prediction1'  || rule.payment != 'prediction2'" class="dropdown2">
       compare
       <span>
@@ -174,25 +72,20 @@
     <div ng-if="rule.payment != 'prediction1'  || rule.payment != 'prediction2'" class="inputm">
       <label>
         Value
-        <input class="money" type="number" ng-model="rule.value" min="0">
+        <input class="money" type="number" ng-model="rule.value">
       </label>
     </div>
     <!-- END OTHER-->
 
     <!-- START PREDICTION-->
     <div ng-if="rule.payment == 'prediction1'  || rule.payment == 'prediction2'" class="dropdown2">
-
-      <span>
-        <select ng-hide="true" class="select2" data-ng-model="rule.compare">
-          <option ng-selected="rule.compare == '='">=</option>
-        </select>
-      </span>
+      {{rule.compare='='}}
     </div>
     <div ng-if="rule.payment == 'prediction1'  || rule.payment == 'prediction2'" class="inputm">
       <label>
         Value
         <select class="money" data-ng-model="rule.value">
-          <option ng-selected="rule.value == 'good' || !rule.value">good</option>
+          <option ng-selected="rule.value == 'good' || !rule.value?rule.value='good':rule.value">good</option>
           <option ng-selected="rule.value == 'bad'">bad</option>
         </select>
       </label>
@@ -209,7 +102,7 @@
   <!--  -->
   <div class="object-group" ng-if="rulesC.typeOfArray(rule) ">
     <div class="bracet-begin"></div>
-    <div class="GroupRepeat" ng-repeat="(IndexF,rule) in rule" ng-include="'app/rules/rule.html'" ng-hide="hideGroup">
+    <div class="GroupRepeat" ng-repeat="(IndexF,rule) in rule" ng-include="'app/rules/rule.html'">
     </div>
     <div class="bracet-end"></div>
   </div>

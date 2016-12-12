@@ -1,5 +1,5 @@
 #!/bin/env python
-from rtb.models.rtb_impression_tracker import RtbImpressionTracker, RtbImpressionTrackerPlacement, RtbImpressionTrackerPlacementDomain
+from rtb.models.rtb_impression_tracker import RtbImpressionTracker, RtbImpressionTrackerPlacement, RtbImpressionTrackerPlacementDomain, RtbClickTracker, RtbConversionTracker
 from datetime import timedelta
 from pytz import utc
 import socket
@@ -12,10 +12,6 @@ from django.utils import timezone
 from django.db.models import Sum, Min, Max, Avg, Value, When, Case, F, Q, Func, FloatField, Count
 
 
-def convert_date(s):
-    return datetime.datetime.strptime(s, '%Y-%m-%d')
-
-
 def issetValue(s):
     if re.match(r'\$', s) or s == '':
         return ' '
@@ -24,37 +20,62 @@ def issetValue(s):
 
 
 def get():
-    impTracker()
+    end = ''
+
+    # Impression Tracker
+    start_ = RtbImpressionTracker.objects.aggregate(Max("Date"))["Date__max"] + timedelta(seconds=1)
+    if start_ is None:
+        start = ''
+    else:
+        start = start_.strftime('%Y-%m-%d %H:%M:%S')
+    try:
+        impTracker(start, end, 'Impression')
+    except Exception as e:
+        print 'Impression Error: ' + str(e)
+
+    # Click Tracker
+    start_ = RtbClickTracker.objects.aggregate(Max("Date"))["Date__max"] + timedelta(seconds=1)
+    if start_ is None:
+        start = ''
+    else:
+        start = start_.strftime('%Y-%m-%d %H:%M:%S')
+    try:
+        impTracker(start, end, 'Click')
+    except Exception as e:
+        print 'Click Error: ' + str(e)
+
+    # Conversion Tracker
+    start_ = RtbConversionTracker.objects.aggregate(Max("Date"))["Date__max"] + timedelta(seconds=1)
+    if start_ is None:
+        start = ''
+    else:
+        start = start_.strftime('%Y-%m-%d %H:%M:%S')
+    try:
+        impTracker(start, end, 'Conversion')
+    except Exception as e:
+        print ' Conversion Error: ' + str(e)
+
+    print 'Happy End'
 
 
-#############################################3
-def impTracker(timeStart = None, timeFinish = None):
+#############################################
+def impTracker(timeStart=None, timeFinish=None, type=None):
     # Create a TCP/IP socket
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     # Connect the socket to the port where the server is listening
     server_address = ('imp.rtb.cat', 8002)
-    #server_address = ('192.168.1.121', 8002)
+    # server_address = ('192.168.1.112', 8002)
     print >> sys.stderr, 'connecting to %s port %s' % server_address
     sock.connect(server_address)
 
     try:
-        #   message = 'empty'
-        #   start=2016-09-29 17:04&end=2016-09-29 17:06
-        if timeStart is None or timeFinish is None:
-            start_ = RtbImpressionTracker.objects.aggregate(Max("Date"))["Date__max"]
-            if not start_ == '':
-                start = (datetime.datetime.now(utc) - timedelta(hours=4)).strftime('%Y-%m-%d %H:%M')
-            else:
-                start = start_.strftime('%Y-%m-%d %H:%M')
-            end = datetime.datetime.now(utc).strftime('%Y-%m-%d %H:%M')
-        else:
-            start = timeStart
-            end = timeFinish
-        if start is None or end is None:
+        #   start=2016-09-29 17:04&end=2016-09-29 17:06&type=Impression or Click or Conversion
+
+        if timeStart is None or timeFinish is None or type is None:
             message = 'empty'
         else:
-            message = 'start=' + start + '&end=' + end
+            message = 'start=' + timeStart + '&end=' + timeFinish + '&type=' + type
 
         print >> sys.stderr, 'sending "%s"' % message
         sock.sendall(message)
@@ -71,6 +92,17 @@ def impTracker(timeStart = None, timeFinish = None):
         print >> sys.stderr, 'closing socket'
         sock.close()
 
+    if type == 'Impression':
+        Impression(decompressed_data)
+
+    if type == 'Click':
+        Click(decompressed_data)
+
+    if type == 'Conversion':
+        Conversion(decompressed_data)
+
+
+def Impression(decompressed_data):
     bulkITAll = []
     bulkITP = []
     for item in decompressed_data:
@@ -104,6 +136,8 @@ def impTracker(timeStart = None, timeFinish = None):
         tempJson['SeqCodes'] = issetValue(item['Data']['SeqCodes'])
         tempJson['CustomModelLeafName'] = issetValue(item['Data']['CustomModelLeafName'])
         tempJson['XForwardedFor'] = issetValue(item['Data']['XForwardedFor'])
+        tempJson['AdvId'] = issetValue(item['Data']['AdvId'])
+        tempJson['CreativeId'] = issetValue(item['Data']['CreativeId'])
         tempJson['Date'] = item['Time']
         bulkITP.append({'placement': tempJson['PlacementId'], 'domain': tempJson['LocationsOrigins']})
         bulkITAll.append(RtbImpressionTracker(
@@ -133,6 +167,8 @@ def impTracker(timeStart = None, timeFinish = None):
             SeqCodes=tempJson['SeqCodes'],
             CustomModelLeafName=tempJson['CustomModelLeafName'],
             XForwardedFor=tempJson['XForwardedFor'],
+            AdvId=tempJson['AdvId'],
+            CreativeId=tempJson['CreativeId'],
             Date=timezone.make_aware(datetime.datetime.strptime(re.sub('\..*', '', item['Time']), "%Y-%m-%d %H:%M:%S"), timezone.get_default_timezone())
         ))
 
@@ -151,7 +187,7 @@ def impTracker(timeStart = None, timeFinish = None):
                     )
                 except ValueError, e:
                     print "Can't save domain. Error: " + str(e)
-                     #CODE FOR ADDING TO RtbImpressionTrackerPlacementDomain clear domain
+                    #CODE FOR ADDING TO RtbImpressionTrackerPlacementDomain clear domain
 
     for item in bulkITP:
         if item["placement"].strip() != '':
@@ -198,4 +234,55 @@ def impTracker(timeStart = None, timeFinish = None):
             except Exception, e:
                 print "Can't save domain. Error: " + str(e)
 
-    print 'Happy End'
+
+def Click(decompressed_data):
+    try:
+        bulkITAll = []
+        for item in decompressed_data:
+            tempJson = {}
+            tempJson['CpId'] = issetValue(item['Data']['CpId'])
+            tempJson['AdvId'] = issetValue(item['Data']['AdvId'])
+            tempJson['CreativeId'] = issetValue(item['Data']['CreativeId'])
+            tempJson['AuctionId'] = issetValue(item['Data']['AuctionId'])
+            tempJson['Date'] = item['Time']
+
+            bulkITAll.append(RtbClickTracker(
+                CpId=tempJson['CpId'],
+                AdvId=tempJson['AdvId'],
+                CreativeId=tempJson['CreativeId'],
+                AuctionId=tempJson['AuctionId'],
+                Date=timezone.make_aware(datetime.datetime.strptime(re.sub('\..*', '', item['Time']), "%Y-%m-%d %H:%M:%S"),
+                                         timezone.get_default_timezone())
+            ))
+
+
+            RtbClickTracker.objects.bulk_create(bulkITAll)
+    except Exception, e:
+        print "Can't save Clicks. Error: " + str(e)
+
+
+def Conversion(decompressed_data):
+    try:
+        bulkITAll = []
+        for item in decompressed_data:
+            tempJson = {}
+            tempJson['CpId'] = issetValue(item['Data']['CpId'])
+            tempJson['AdvId'] = issetValue(item['Data']['AdvId'])
+            tempJson['CreativeId'] = issetValue(item['Data']['CreativeId'])
+            tempJson['AuctionId'] = issetValue(item['Data']['AuctionId'])
+            tempJson['Date'] = item['Time']
+
+            bulkITAll.append(RtbConversionTracker(
+                CpId=tempJson['CpId'],
+                AdvId=tempJson['AdvId'],
+                CreativeId=tempJson['CreativeId'],
+                AuctionId=tempJson['AuctionId'],
+                Date=timezone.make_aware(datetime.datetime.strptime(re.sub('\..*', '', item['Time']), "%Y-%m-%d %H:%M:%S"),
+                                         timezone.get_default_timezone())
+            ))
+
+
+            RtbConversionTracker.objects.bulk_create(bulkITAll)
+    except Exception, e:
+        print "Can't save Conversions. Error: " + str(e)
+

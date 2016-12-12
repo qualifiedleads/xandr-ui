@@ -29,6 +29,8 @@ class RtbImpressionTracker(models.Model):
     SeqCodes = models.TextField(null=True, blank=True)
     CustomModelLeafName = models.TextField(null=True, blank=True)
     XForwardedFor = models.TextField(null=True, blank=True)
+    CreativeId = models.TextField(null=True, blank=True)
+    AdvId = models.TextField(null=True, blank=True)
     Date = models.DateTimeField(null=True, blank=True, db_index=True)
 
     class Meta:
@@ -45,6 +47,7 @@ class RtbImpressionTrackerPlacement(models.Model):
         db_table = "rtb_impression_tracker_placement"
         unique_together = (('placement', 'domain'),)
 
+
 class RtbImpressionTrackerPlacementDomain(models.Model):
 
     id = models.AutoField(primary_key=True)
@@ -53,3 +56,27 @@ class RtbImpressionTrackerPlacementDomain(models.Model):
 
     class Meta:
         db_table = "rtb_impression_tracker_placement_domain"
+
+
+class RtbClickTracker(models.Model):
+    id = models.AutoField(primary_key=True, db_index=True)
+    CpId = models.TextField(null=True, blank=True)
+    AdvId = models.TextField(null=True, blank=True)
+    CreativeId = models.TextField(null=True, blank=True)
+    AuctionId = models.TextField(null=True, blank=True)
+    Date = models.DateTimeField(null=True, blank=True, db_index=True)
+
+    class Meta:
+        db_table = "rtb_click_tracker"
+
+
+class RtbConversionTracker(models.Model):
+    id = models.AutoField(primary_key=True, db_index=True)
+    CpId = models.TextField(null=True, blank=True)
+    AdvId = models.TextField(null=True, blank=True)
+    CreativeId = models.TextField(null=True, blank=True)
+    AuctionId = models.TextField(null=True, blank=True)
+    Date = models.DateTimeField(null=True, blank=True, db_index=True)
+
+    class Meta:
+        db_table = "rtb_conversion_tracker"

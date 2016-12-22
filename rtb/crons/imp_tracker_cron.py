@@ -21,41 +21,41 @@ def issetValue(s):
 
 def get():
     end = ''
-
     # Impression Tracker
-    start_ = RtbImpressionTracker.objects.aggregate(Max("Date"))["Date__max"] + timedelta(seconds=1)
+    print 'Impression start'
+    start_ = RtbImpressionTracker.objects.aggregate(Max("Date"))["Date__max"]
     if start_ is None:
         start = ''
     else:
-        start = start_.strftime('%Y-%m-%d %H:%M:%S')
+        start = (start_ + timedelta(seconds=1)).strftime('%Y-%m-%d %H:%M:%S')
     try:
         impTracker(start, end, 'Impression')
     except Exception as e:
         print 'Impression Error: ' + str(e)
-
+    print 'Impression completed'
     # Click Tracker
-    start_ = RtbClickTracker.objects.aggregate(Max("Date"))["Date__max"] + timedelta(seconds=1)
+    print 'Click start'
+    start_ = RtbClickTracker.objects.aggregate(Max("Date"))["Date__max"]
     if start_ is None:
         start = ''
     else:
-        start = start_.strftime('%Y-%m-%d %H:%M:%S')
+        start = (start_ + timedelta(seconds=1)).strftime('%Y-%m-%d %H:%M:%S')
     try:
         impTracker(start, end, 'Click')
     except Exception as e:
         print 'Click Error: ' + str(e)
-
+    print 'Click completed'
     # Conversion Tracker
-    start_ = RtbConversionTracker.objects.aggregate(Max("Date"))["Date__max"] + timedelta(seconds=1)
+    print 'Conversion start'
+    start_ = RtbConversionTracker.objects.aggregate(Max("Date"))["Date__max"]
     if start_ is None:
         start = ''
     else:
-        start = start_.strftime('%Y-%m-%d %H:%M:%S')
+        start = (start_ + timedelta(seconds=1)).strftime('%Y-%m-%d %H:%M:%S')
     try:
         impTracker(start, end, 'Conversion')
     except Exception as e:
         print ' Conversion Error: ' + str(e)
-
-    print 'Happy End'
 
 
 #############################################
@@ -255,8 +255,7 @@ def Click(decompressed_data):
                                          timezone.get_default_timezone())
             ))
 
-
-            RtbClickTracker.objects.bulk_create(bulkITAll)
+        RtbClickTracker.objects.bulk_create(bulkITAll)
     except Exception, e:
         print "Can't save Clicks. Error: " + str(e)
 
@@ -281,8 +280,7 @@ def Conversion(decompressed_data):
                                          timezone.get_default_timezone())
             ))
 
-
-            RtbConversionTracker.objects.bulk_create(bulkITAll)
+        RtbConversionTracker.objects.bulk_create(bulkITAll)
     except Exception, e:
         print "Can't save Conversions. Error: " + str(e)
 

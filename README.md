@@ -1,7 +1,7 @@
 ## Django-angular application
 
 #### Setup locally
-````
+
 1. Create virtutalenv and install requirements
 pip install -r requirements.txt
 python manage.py runserver
@@ -52,12 +52,31 @@ python manage.py mlcreatecsvresult
 5. Check if placement good or bad
 python manage.py mlcheckplacement <placement_id> <test_type> <test_name>
 ======================================
-imp_tracker
+##imp_tracker
 1. Add new shedule jobs
 python manage.py crontab add
 python manage.py crontab show
 2. To get the data manually
-python manage.py imp_tracker '2016-10-10 22:00' '2016-10-21 23:00'
+python manage.py imp_tracker '2016-10-10 22:00' '2016-10-21 23:00' Impression/Click/Conversion
+                    
+####Tables in database
+rtb_impression_tracker — table for impressions from imp_tracker.
+
+rtb_impression_tracker_placement — table for placement and domain from table  rtb_impression_tracker.
+
+rtb_impression_tracker_placement_domain — table for placement and domain from table rtb_impression_tracker_placement . Every one placement have your domain or parts domain's level 
+
+rtb_click_tracker — table for clicks from imp_tracker. With fields:
+CpId - ${ADV_ID} 
+AdvId - ${CP_ID} 
+CreativeId - ${CREATIVE_ID} 
+AuctionId - ${AUCTION_ID}
+
+rtb_conversion_tracker — table for conversions from imp_tracker. With fields
+CpId - ${ADV_ID} 
+AdvId - ${CP_ID} 
+CreativeId - ${CREATIVE_ID} 
+AuctionId - ${AUCTION_ID}
 ========================================
 cron jobs
 ('* * * * *', 'rtb.crons.placement_state_cron.change_state_placement_by_cron_settings')
@@ -85,4 +104,3 @@ This task updates materialized view for ML purposes.
 
 ('0 */1 * * *', 'rtb.crons.campaign_rules_cron.checkRulesByCron')
 Those rules check condition and change placements states
-````

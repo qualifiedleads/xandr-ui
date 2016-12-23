@@ -875,7 +875,7 @@
           vm.confirmPopup.option('visible', false);
           $scope.$apply();
         }
-      },
+      }
     };
 
 
@@ -915,7 +915,7 @@
         showIndicator: true,
         showPane: true,
         shading: true,
-        closeOnOutsideClick: false,
+        closeOnOutsideClick: false
       },
       bindingOptions: {
         dataSource: 'campmain.gridStore'

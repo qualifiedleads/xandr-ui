@@ -11,32 +11,56 @@
         <li ng-if="home.isEven == true"><a  ui-sref="home.valuationByExpert" translate="INDEX.LEFT_NAV.EXPERT" ></a></li>
       </ul>
     </div>
-     <!-- <input class="open" id="top-box"  ng-model="home.value" ng-click="home.checked(home.value)" type="checkbox" value="true"  hidden>
-      <label class="btn" for="top-box"></label>-->
+    <!-- <input class="open" id="top-box"  ng-model="home.value" ng-click="home.checked(home.value)" type="checkbox" value="true"  hidden>
+     <label class="btn" for="top-box"></label>-->
     <div class="main-nav navbar-header col-lg-11 col-md-10 col-sm-10 col-xs-10  col-lg-offset-1 col-md-offset-2 col-sm-offset-2 col-xs-offset-2">
       <div class="row">
-        <div class="col-lg-12 col-md-12 col-sm-12">
-      <button type="button" data-target="#navbarCollapse" data-toggle="collapse" class="navbar-toggle">
-        <span class="sr-only">Toggle navigation</span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-      </button>
-      <a ui-sref="home.main" class="navbar-brand" > {{ 'INDEX.ADVERTISER_TITLE' | translate }} {{ home.advertiser.name }}</a>
-      <div class="location">
-        <div class="location-language">
-        <a ng-click="root.changeLang('ru')">
-          <i class="fa fa-globe fa-fw"></i> Русский
-        </a>
-        /
-        <a ng-click="root.changeLang('en')">
-          <i class="fa fa-globe fa-fw"></i> English
-        </a>
+        <div style="display: table" class="col-lg-12 col-md-12 col-sm-12">
+          <div class="home-navigation">
+          <a href="#" class="btn btn-primary admin-btn" ui-sref="auth">
+            <span class="glyphicon glyphicon-home"></span> {{ 'COMMON.TO-MAIN-PAGE' | translate }}
+          </a>
+        </div>
+          <button type="button" data-target="#navbarCollapse" data-toggle="collapse" class="navbar-toggle">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a ui-sref="home.main" class="navbar-brand" > {{ 'INDEX.ADVERTISER_TITLE' | translate }} {{ home.advertiser.name }}</a>
+          <div ng-if="home.bannerText != ''" class="wrapping-tech-banner" id="techBanner">
+            <div class="tech-banner">
+              {{home.bannerText}}
+            </div>
+            <span ng-click=home.hideBanner() class='close-block'></span>
           </div>
-        <input type="button" class="btn btn-danger admin-btn"  ng-click="root.logout()" value="{{ 'COMMON.LOGOUT' | translate }}">
-        <input type="button" class="btn btn-primary admin-btn" ng-click="home.goToMainPage()" value="{{ 'COMMON.TO-MAIN-PAGE' | translate }}">
-        <input type="button" id="homeAdm" ng-show="home.isEven" class="btn btn-primary admin-btn" ng-click="home.goToAdminPanel()" value="{{ 'COMMON.GO-TO-ADMIN-PANEL' | translate }}">
-      </div>
+          <div class="location">
+            <div class="location-language">
+              <a ng-click="root.changeLang('ru')">
+                <i class="fa fa-globe fa-fw"></i> Русский
+              </a>
+              /
+              <a ng-click="root.changeLang('en')">
+                <i class="fa fa-globe fa-fw"></i> English
+              </a>
+            </div>
+
+            <a href="#" class="btn btn-danger admin-btn" ng-click="root.logout()" >
+              <span class="glyphicon glyphicon-log-out"></span> {{ 'COMMON.LOGOUT' | translate }}
+            </a>
+
+            <a href="#" class="btn btn-primary admin-btn" ng-show="home.isEven" ui-sref="admin">
+              <span class="glyphicon glyphicon-user"></span> {{ 'COMMON.GO-TO-ADMIN-PANEL' | translate }}
+            </a>
+
+
+
+
+            <!--<input type="button" id="homeAdm" ng-show="home.isEven" class="btn btn-primary admin-btn" ng-click="home.goToAdminPanel()" value="{{ 'COMMON.GO-TO-ADMIN-PANEL' | translate }}">-->
+
+
+
+          </div>
         </div>
       </div>
     </div>

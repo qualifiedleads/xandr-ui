@@ -1,21 +1,27 @@
 <div class="location">
-<div class="location-language">
-  <a ng-click="root.changeLang('ru')">
-    <i class="fa fa-globe fa-fw"></i> Русский
-  </a>
-  /
-  <a ng-click="root.changeLang('en')">
-    <i class="fa fa-globe fa-fw"></i> English
-  </a>
+  <div class="location-language">
+    <a ng-click="root.changeLang('ru')">
+      <i class="fa fa-globe fa-fw"></i> Русский
+    </a>
+    /
+    <a ng-click="root.changeLang('en')">
+      <i class="fa fa-globe fa-fw"></i> English
+    </a>
   </div>
-  <input type="button" class="btn btn-primary admin-btn hide" ng-click="auth.goToAdminPanel()" value="{{ 'COMMON.GO-TO-ADMIN-PANEL' | translate }}">
-  <input type="button" class="btn btn-danger admin-btn hide" ng-click="auth.logout()" value="{{ 'COMMON.LOGOUT' | translate }}">
+
+  <a class="btn btn-danger admin-btn" ng-show="auth.userLogOut" ng-click="auth.logout()" >
+    <span class="glyphicon glyphicon-log-out"></span> {{ 'COMMON.LOGOUT' | translate }}
+  </a>
+
+  <a href="#" class="btn btn-primary admin-btn" ng-show="auth.adminPanel" ui-sref="admin">
+    <span class="glyphicon glyphicon-user"></span> {{ 'COMMON.GO-TO-ADMIN-PANEL' | translate }}
+  </a>
 </div>
 
 <div class="authorization container">
 
   <div class="row">
-    <div class="Absolute-Center is-Responsive reg-form-wrapper">
+    <div ng-show="!auth.bannerShow" class="Absolute-Center is-Responsive reg-form-wrapper">
       <form name="auth.userForm" ng-submit="auth.submitForm(auth.user)" novalidate>
         <div class="col-sm-10">
           <div class="form-group" ng-class="{ 'has-error' : auth.userForm.email.$invalid && !auth.userForm.email.$pristine }">
@@ -39,7 +45,7 @@
         </div>
       </form>
     </div>
-    <div class="advertiser-wrapper">
+    <div ng-show="!auth.bannerShow" class="advertiser-wrapper">
       <div class="Absolute-Center is-Responsive">
         <div class="col-sm-12 col-md-10 col-md-offset-1">
           <div class="mode-button">
@@ -48,6 +54,9 @@
           </div>
         </div>
       </div>
+    </div>
+    <div ng-show="auth.bannerShow" class="Absolute-Center is-Responsive banner-show">
+      <div class="banner-place">{{auth.bannerText}}</div>
     </div>
   </div>
 </div>

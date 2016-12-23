@@ -56,7 +56,7 @@
         }
       });
 
-    wrapper.classList.remove('hidden-menu');
+    //wrapper.classList.remove('hidden-menu');
 
 
     vm.addField = function (rule) {

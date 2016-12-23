@@ -7,7 +7,7 @@
     'COMMON': {
       'GO-TO-ADMIN-PANEL': 'Admin panel',
       'LOGOUT': 'Log out',
-      'TO-MAIN-PAGE': 'Main page',
+      'TO-MAIN-PAGE': 'Home',
       'CANCEL': 'Cancel'
     },
     'AUTH':{
@@ -52,6 +52,18 @@
         'APNEXUS-ID':'AppNexus user id',
         'APNEXUS-NAME':'AppNexus user name',
         'PERMISSION':'Permission'
+      },
+      "TECHNICAL-WORK": {
+        "EDIT-USERS" : "Edit users",
+        'TECH-WORK':'Technical works',
+        'TECH-WORK-SWITCHER':'carrying out technical works on the site',
+        'TECH-JOURNAL':'Journal of carrying out technical works Journal',
+        'TECH-DATE':'Date',
+        'TECH-STATUS':'Status',
+        'TECH-STATUS-BANNER':'BANNER STATUS',
+        'APNEXUS-ID':'Id пользователя AppNexus',
+        'APNEXUS-NAME':'Имя польeзователя AppNexus',
+        'PERMISSION':'Разрешение'
       }
     },
     'INDEX':{

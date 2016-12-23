@@ -1,19 +1,32 @@
 <div class="admin">
-  <div class="location">
-    <div class="location-language">
-    <a ng-click="root.changeLang('ru')">
-      <i class="fa fa-globe fa-fw"></i> Русский
-    </a>
-    /
-    <a ng-click="root.changeLang('en')">
-      <i class="fa fa-globe fa-fw"></i> English
-    </a>
+  <div class="col-lg-12 col-md-12 col-sm-12">
+    <div class="home-navigation">
+      <a href="#" class="btn btn-primary admin-btn" ui-sref="auth">
+        <span class="glyphicon glyphicon-home"></span> {{ 'COMMON.TO-MAIN-PAGE' | translate }}
+      </a>
+    </div>
+    <div class="location">
+      <div class="location-language">
+        <a ng-click="root.changeLang('ru')">
+          <i class="fa fa-globe fa-fw"></i> Русский
+        </a>
+        /
+        <a ng-click="root.changeLang('en')">
+          <i class="fa fa-globe fa-fw"></i> English
+        </a>
       </div>
-    <input type="button" class="btn btn-danger admin-btn" ng-click="root.logout()" value="{{ 'COMMON.LOGOUT' | translate }}">
-    <input type="button" class="btn btn-primary admin-btn" ng-click="admin.goToMainPage()" value="{{ 'COMMON.TO-MAIN-PAGE' | translate }}">
-
+      <a href="#" class="btn btn-danger admin-btn" ng-click="root.logout()" >
+         <span class="glyphicon glyphicon-log-out"></span> {{ 'COMMON.LOGOUT' | translate }}
+      </a>
+    </div>
   </div>
-  <div class="row">
+  <div class="col-lg-12 col-md-12 col-sm-12 tabs">
+    <ul class="nav_posts">
+      <li class="btn btn-success link-first" ng-click="admin.changeTab('first')">{{ 'ADMIN.TECHNICAL-WORK.EDIT-USERS' | translate }}</li> |
+      <li class="btn btn-default link-second" ng-click="admin.changeTab('second')">{{'ADMIN.TECHNICAL-WORK.TECH-WORK' | translate }}</li>
+    </ul>
+    <div class="post-first active">
+  <div class="row content-admin">
     <div class="col-lg-3 col-md-3 col-sm-12 form-add-user">
       <h3>{{ 'ADMIN.ANU.ADD-NEW-USER' | translate }}</h3>
       <form name="admin.userForm" ng-submit="admin.submitForm(admin.user)" novalidate>
@@ -60,4 +73,35 @@
       <div dx-data-grid="admin.UI.listOfUsers" id="usersList"></div>
     </div>
   </div>
-</div>
+    </div>
+
+    <div class="post-second non-active col-lg-12 col-md-12 col-sm-12">
+      <div class="col-lg-4 col-md-4 col-sm-12">
+     <span class="toggle-bg">
+    <input type="radio" name="toggle" ng-click="admin.valueOfTech(admin.name)" ng-change = admin.changeTechWork(admin.name) ng-model="admin.name" value="off">
+    <input type="radio" name="toggle" ng-click="admin.valueOfTech(admin.name)" ng-change = admin.changeTechWork(admin.name) ng-model="admin.name"  value="on">
+    <span class="switch"></span>
+      </span>
+      <span class="checkbox-value">{{admin.name}}</span> - {{ 'ADMIN.TECHNICAL-WORK.TECH-WORK-SWITCHER' | translate }}
+
+      <form class="admin-banner"  ng-submit="admin.submitBannerText(admin.bannerText)">
+        <div class="form-group">
+          <textarea   id="" cols="30" rows="10" ng-model="admin.bannerText" placeholder="Текст банера для пользователей с предупреждением о проведении технических работ на сайте/сервере">{{admin.bannerText}}</textarea>
+        </div>
+        <div class="form-group">
+          <button type="submit" class="btn btn-primary">ON</button>
+          <button type="button" class="btn btn-primary" ng-click="admin.cleanBannerText()">OFF</button>
+          <div style="float: right"><b>{{ 'ADMIN.TECHNICAL-WORK.TECH-STATUS-BANNER' | translate }} - <span style="color: #3c763d">{{admin.statusBanner}}</span></b></div>
+        </div>
+      </form>
+      </div>
+
+    <div class="col-lg-8 col-md-8 col-sm-12 tech-record">
+      <h3>{{ 'ADMIN.TECHNICAL-WORK.TECH-JOURNAL' | translate }}</h3>
+      <div dx-data-grid="admin.UI.techRecords" id="techRecords"></div>
+    </div>
+    </div>
+    </div>
+  </div>
+</div>-
+

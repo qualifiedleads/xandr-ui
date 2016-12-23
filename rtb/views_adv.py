@@ -23,6 +23,7 @@ from rest_framework import status
 from models.rtb_impression_tracker import RtbImpressionTrackerPlacement, RtbImpressionTrackerPlacementDomain
 from django.db import connection
 from django.utils import timezone
+from rtb.models.technical_works import AttentionMessage, TechnicalWork
 
 import bisect
 from django.contrib.auth.decorators import login_required, user_passes_test
@@ -1068,3 +1069,4 @@ def saveCampaignRules(request, id):
     res["campaign_id"] = id
     res["rule"] = rule
     return Response(res)
+

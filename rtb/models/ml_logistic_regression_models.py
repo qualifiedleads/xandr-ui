@@ -21,6 +21,7 @@ class MLLogisticRegressionResults(models.Model):
     probability = models.DecimalField(max_digits=35, decimal_places=10)
     test_number = models.IntegerField(null=True, db_index=True)
     expert_decision = models.NullBooleanField(null=True, db_index=True)
+    good = models.NullBooleanField(null=True)
 
     class Meta:
         db_table = "ml_logistic_regression_results"

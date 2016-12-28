@@ -1,5 +1,6 @@
 from ml_learn_kmeans import mlGetGoodClusters, mlGetCentroids, mlGetTestNumber, mlCalcCluster
 from ml_logistic_regression import mlLearnLogisticRegression
+from ml_decision_tree import mlCreateDecisionClassifierTree, mlPredictDecisionClassifierTree
 from models.ml_kmeans_model import MLPlacementDailyFeatures, MLClustersCentroidsKmeans, MLPlacementsClustersKmeans, \
     MLNormalizationData, MLExpertsPlacementsMarks, MLTestDataSet
 from models.ml_logistic_regression_models import MLLogisticRegressionCoeff, MLLogisticRegressionResults
@@ -542,6 +543,41 @@ def mlBuildROC(test_type = "kmeans", test_name = "ctr_cvr_cpc_cpm_cpa", date = -
                     rocFalsePositivesRates.append(falsePositiveRate)
                 cut_off += delta
         return rocSensetivities, rocFalsePositivesRates
+
+    if test_type == "tree":
+        goodLearnIds = []
+        badLearnIds = []
+        if len(badPlacements) % 2 == 1:
+            badCount = (len(badPlacements) / 2) + 1
+        else:
+            badCount = len(badPlacements) / 2
+        if len(goodPlacements) % 2 == 1:
+            goodCount = (len(goodPlacements) / 2) + 1
+        else:
+            goodCount = len(goodPlacements) / 2
+
+        for i in xrange(goodCount):
+            goodLearnIds.append(goodPlacements[i])
+        for i in xrange(badCount):
+            badLearnIds.append(badPlacements[i])
+
+        goodPlacements = goodPlacements[goodCount:]
+        badPlacements = badPlacements[badCount:]
+        mlCreateDecisionClassifierTree(test_name="ctr_cvr_cpc_cpm_cpa",
+                                       goodPlacementsIds=goodLearnIds,
+                                       badPlacementsIds=badLearnIds)
+        success = 0
+
+        for goodPlacementId in goodPlacements:
+            if mlPredictDecisionClassifierTree(placement_id=goodPlacementId, test_name=test_name) == True:
+                success += 1
+
+        for badPlacementId in badPlacements:
+            if mlPredictDecisionClassifierTree(placement_id=badPlacementId, test_name=test_name) == False:
+                success += 1
+
+        return (float(success) / float((len(goodPlacements) + len(badPlacements))))
+
     print "Wrong test type"
     return -1, -1
 
@@ -592,6 +628,14 @@ def mlCalcAuc(test_type = "kmeans", test_name = "ctr_cvr_cpc_cpm_cpa", date = -1
     test_number = mlGetTestNumber(test_type=test_type, test_name=test_name)
     if test_number == 0:
         return -1
+    if test_type == "tree":
+        ans = mlBuildROC(test_type, test_name)
+        if ans == -1:
+            return -1
+        res = {}
+        res["quality"] = ans
+        return res
+
     rocSensetivities, rocFalsePositivesRates = mlBuildROC(test_type, test_name)
     if rocSensetivities == -1:
         return -1

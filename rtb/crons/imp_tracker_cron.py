@@ -1,5 +1,6 @@
 #!/bin/env python
-from rtb.models.rtb_impression_tracker import RtbImpressionTracker, RtbImpressionTrackerPlacement, RtbImpressionTrackerPlacementDomain, RtbClickTracker, RtbConversionTracker
+from rtb.models.rtb_impression_tracker import RtbImpressionTracker, RtbImpressionTrackerPlacement, \
+    RtbImpressionTrackerPlacementDomain, RtbClickTracker, RtbConversionTracker, RtbAdStartTracker
 from datetime import timedelta
 from pytz import utc
 import socket
@@ -21,6 +22,7 @@ def issetValue(s):
 
 def get():
     end = ''
+
     # Impression Tracker
     print 'Impression start'
     start_ = RtbImpressionTracker.objects.aggregate(Max("Date"))["Date__max"]
@@ -33,6 +35,7 @@ def get():
     except Exception as e:
         print 'Impression Error: ' + str(e)
     print 'Impression completed'
+
     # Click Tracker
     print 'Click start'
     start_ = RtbClickTracker.objects.aggregate(Max("Date"))["Date__max"]
@@ -45,6 +48,7 @@ def get():
     except Exception as e:
         print 'Click Error: ' + str(e)
     print 'Click completed'
+
     # Conversion Tracker
     print 'Conversion start'
     start_ = RtbConversionTracker.objects.aggregate(Max("Date"))["Date__max"]
@@ -56,6 +60,18 @@ def get():
         impTracker(start, end, 'Conversion')
     except Exception as e:
         print ' Conversion Error: ' + str(e)
+
+    # AdStart Tracker
+    print 'Ad-start start'
+    start_ = RtbAdStartTracker.objects.aggregate(Max("Date"))["Date__max"]
+    if start_ is None:
+        start = ''
+    else:
+        start = (start_ + timedelta(seconds=1)).strftime('%Y-%m-%d %H:%M:%S')
+    try:
+        impTracker(start, end, 'AdStart')
+    except Exception as e:
+        print ' Ad-start Error: ' + str(e)
 
 
 #############################################
@@ -100,6 +116,9 @@ def impTracker(timeStart=None, timeFinish=None, type=None):
 
     if type == 'Conversion':
         Conversion(decompressed_data)
+
+    if type == 'AdStart':
+        AdStart(decompressed_data)
 
 
 def Impression(decompressed_data):
@@ -283,4 +302,31 @@ def Conversion(decompressed_data):
         RtbConversionTracker.objects.bulk_create(bulkITAll)
     except Exception, e:
         print "Can't save Conversions. Error: " + str(e)
+
+
+def AdStart(decompressed_data):
+    try:
+        bulkITAll = []
+        for item in decompressed_data:
+            tempJson = {}
+            tempJson['CpId'] = issetValue(item['Data']['CpId'])
+            tempJson['AdvId'] = issetValue(item['Data']['AdvId'])
+            tempJson['CreativeId'] = issetValue(item['Data']['CreativeId'])
+            tempJson['AuctionId'] = issetValue(item['Data']['AuctionId'])
+            tempJson['cpvm'] = issetValue(item['Data']['CPVM'])
+            tempJson['Date'] = item['Time']
+
+            bulkITAll.append(RtbAdStartTracker(
+                CpId=tempJson['CpId'],
+                AdvId=tempJson['AdvId'],
+                CreativeId=tempJson['CreativeId'],
+                AuctionId=tempJson['AuctionId'],
+                cpvm=tempJson['cpvm'],
+                Date=timezone.make_aware(datetime.datetime.strptime(re.sub('\..*', '', item['Time']), "%Y-%m-%d %H:%M:%S"),
+                                         timezone.get_default_timezone())
+            ))
+
+        RtbAdStartTracker.objects.bulk_create(bulkITAll)
+    except Exception, e:
+        print "Can't save ad-start. Error: " + str(e)
 

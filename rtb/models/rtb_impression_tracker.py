@@ -80,3 +80,17 @@ class RtbConversionTracker(models.Model):
 
     class Meta:
         db_table = "rtb_conversion_tracker"
+
+
+class RtbAdStartTracker(models.Model):
+    id = models.AutoField(primary_key=True, db_index=True)
+    CpId = models.TextField(null=True, blank=True)
+    AdvId = models.TextField(null=True, blank=True)
+    CreativeId = models.TextField(null=True, blank=True)
+    AuctionId = models.TextField(null=True, blank=True)
+    cpvm = models.TextField(null=True, blank=True)
+    Date = models.DateTimeField(null=True, blank=True, db_index=True)
+
+    class Meta:
+        db_table = "rtb_adstart_tracker"
+

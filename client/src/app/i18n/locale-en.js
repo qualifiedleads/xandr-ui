@@ -56,6 +56,7 @@
       "TECHNICAL-WORK": {
         "EDIT-USERS" : "Edit users",
         'TECH-WORK':'Technical works',
+        'ADVERTISER-LIST':'Advertiser list',
         'TECH-WORK-SWITCHER':'carrying out technical works on the site',
         'TECH-JOURNAL':'Journal of carrying out technical works Journal',
         'TECH-DATE':'Date',
@@ -64,6 +65,11 @@
         'APNEXUS-ID':'Id пользователя AppNexus',
         'APNEXUS-NAME':'Имя польeзователя AppNexus',
         'PERMISSION':'Разрешение'
+      },
+      "ADVERTISER-LIST": {
+        'NAME' : 'Name',
+        'ID' : 'Id',
+        'AD-TYPE': 'Type of the advertiser'
       }
     },
     'INDEX':{

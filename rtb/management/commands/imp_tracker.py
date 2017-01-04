@@ -21,6 +21,6 @@ class Command(BaseCommand):
         type = options.get('type')
 
         if options.get('start') is None or options.get('end') is None or options.get('type') is None:
-            print "You must put three parameters - start: 2016-10-19 22:00, end: 2016-10-19 23:00, type: Impression/Click/Conversion"
+            print "You must put three parameters - start: 2016-10-19 22:00, end: 2016-10-19 23:00, type: Impression/Click/Conversion/AdStart"
         else:
             impTracker(start, end, type)

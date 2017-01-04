@@ -5,7 +5,7 @@ from django.contrib import admin
 from rest_framework import routers
 
 from . import views, views_rest, views_adv, views_user
-from .controllers import technical_work
+from .controllers import technical_work, video_ad
 
 
 router = routers.DefaultRouter()
@@ -39,5 +39,6 @@ urlpatterns = [
     url(r'^campaigns', views.campaigns),
     url(r'^technicalwork/last[/]?$', technical_work.getLast),
     url(r'^technicalwork[/]?$', technical_work.handler),
+    url(r'^advertisersType[/]?$', video_ad.apiSetAdType),
     url(r'^banner[/]?$', technical_work.banner)
 ]

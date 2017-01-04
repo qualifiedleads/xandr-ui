@@ -1384,7 +1384,7 @@
         showCheckBoxesMode: 'always'
       },
       onEditorPreparing: function (info) {
-        if ((info.parentType == 'filterRow') && (info.caption == 'State')) {
+        if ((info.parentType == 'filterRow') && (info.dataField == 'state')) {
           info.editorElement.dxSelectBox({
             dataSource: [
               {

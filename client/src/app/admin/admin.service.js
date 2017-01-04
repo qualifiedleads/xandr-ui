@@ -81,6 +81,34 @@
       });
     }
 
+    function advertiserListStore() {
+      return new $window.DevExpress.data.CustomStore({
+        totalCount: function () {
+          return 0;
+        },
+        load: function () {
+          return _advertiserList()
+            .then(function (result) {
+              return result;
+            });
+        }
+      });
+    }
+
+    function _advertiserList() {
+      return $http({
+        method: 'GET',
+        headers: { 'Authorization': 'Token ' + $cookies.get('token') },
+        url: '/api/v1/advertisers'
+      })
+        .then(function (res) {
+          return res.data;
+        })
+        .catch(function (err) {
+          $window.DevExpress.ui.notify(err.data.detail, "error", 4000);
+        });
+    }
+
     function _usersList() {
       return $http({
         method: 'GET',
@@ -124,6 +152,23 @@
         });
     }
 
+    function editAdvertiserList(id, adType) {
+      return $http({
+        method: 'PUT',
+        url: '/api/v1/advertisersType',
+        headers: { 'Authorization': 'Token ' + $cookies.get('token') },
+        data: {
+          id: id,
+          ad_type: adType
+        }
+      })
+        .then(function (res) {
+          return res.data;
+        })
+        .catch(function (err) {
+          $window.DevExpress.ui.notify(err.data.detail, "error", 4000);
+        });
+    }
     function bannerTextReturn() {
       //return  'Этот текст будет показан при проведении технических работ';
       return $http({
@@ -199,6 +244,8 @@
 
 
     _this.selectNexusUsersStore = selectNexusUsersStore;
+    _this.editAdvertiserList = editAdvertiserList;
+    _this.advertiserListStore = advertiserListStore;
     _this.usersStore = usersStore;
     _this.addUser = addUser;
     _this.bannerTextReturn = bannerTextReturn;

@@ -305,6 +305,8 @@ class Advertiser(models.Model):
     is_malicious = models.NullBooleanField(null=True, blank=True)
     #object_stats	object #should be in sepparait model if needed
     #thirdparty_pixels	array # see the model AdvertiserThirdpartyPixels below
+    ad_type = models.TextField(null=True, blank=True) #type of advertiser (usualAd/videoAd)
+
     def __unicode__(self):
         return self.name
     api_endpoint = 'advertiser'

@@ -37,6 +37,23 @@
           }
         }
       })
+      .state('home.videomain', {
+        url: '/videomain',
+        templateUrl: 'app/videomain/videomain.html',
+        controller: 'VideoMainController',
+        controllerAs: 'vmain',
+        resolve: {
+          TWStatus: function (AdminService, $stateParams, $state, $cookies) {
+            return AdminService.getValueOfTech().then(function (res) {
+              if ((res == "on") &&
+                ($cookies.get('token')) &&
+                (($cookies.get('permission') == 'userfull') || $cookies.get('permission') == 'userread')) {
+                $state.go('auth');
+              }
+            });
+          }
+        }
+      })
       .state('home.campaign', {
         url: '/campaign/:id',
         templateUrl: 'app/campaignmain/campmain.html',

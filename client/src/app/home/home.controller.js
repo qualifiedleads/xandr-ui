@@ -12,6 +12,15 @@
     vm.isEven = false;
     vm.userAuth = false;
     vm.bannerText = '';
+    vm.video= false;
+    vm.usual= false;
+
+    if ($localStorage.advertiser.ad_type === "videoAds") {
+      vm.video= true;
+    }
+    if ($localStorage.advertiser.ad_type === "usualAds" || $localStorage.advertiser.ad_type === null) {
+      vm.usual= true;
+    }
 
     AdminService.bannerTextReturn().then(function (res) {
       if (res.status == true) {
@@ -52,7 +61,6 @@
         wrapper.classList.remove('hidden-menu');
       }
     };
-
 
   }
 })();

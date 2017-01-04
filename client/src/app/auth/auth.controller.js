@@ -98,13 +98,17 @@
         text: LC('AUTH.GO_BUTTON'),
         onClick: function () {
           $localStorage.advertiser = vm.selectedService;
-          $state.go('home.main');
+          if (vm.selectedService.ad_type === "usualAds" || vm.selectedService.ad_type === null) {
+            $state.go('home.main');
+          }
+          if (vm.selectedService.ad_type == "videoAds") {
+            $state.go('home.videomain');
+          }
+
         }
       },
       selectAdvertisers: {
-
         bindingOptions: {
-
           dataSource: 'auth.selectAdvertisersStore',
           value: 'auth.selectedService'
         },

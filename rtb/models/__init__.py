@@ -7,4 +7,5 @@ from .ml_decision_tree_model import *
 from .placement_state import *
 from .rtb_impression_tracker import *
 from .technical_works import *
+from .video_ad_models import *
 

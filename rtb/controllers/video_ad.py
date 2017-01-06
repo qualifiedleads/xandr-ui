@@ -23,14 +23,14 @@ def apiSetAdType(request):
 @api_view(["GET"])
 # @check_user_advertiser_permissions(campaign_id_num=0)
 def apiSendVideoCampaingData(request):
+    params = parse_get_params(request.GET)
+    from_date = params["from_date"]
+    to_date = params["to_date"]
     advertiser_id = request.GET.get("advertiser_id")
-    from_date = request.GET.get("from_date")
-    to_date = request.GET.get("to_date")
-
     queryRes = VideoAdCampaigns.objects.raw("""
             SELECT
               vac.id,
-              vac.campaign_id,
+              camp.id AS campaign_id,
               camp.name,
               vac.imp_hour,
               vac.ad_starts_hour,
@@ -173,9 +173,15 @@ def apiSendVideoCampaingData(request):
         answer["total_ad_starts"] += int(answer["campaigns"][-1]["ad_starts"])
         answer["total_cpvm"] += float(answer["campaigns"][-1]["cpvm"])
         answer["total_profit_loss"] += answer["campaigns"][-1]["profit_loss"]
-    answer["total_fill_rate"] = float(answer["total_ad_starts"]) / answer["total_sum_imps"]
-    answer["total_fill_rate_hour"] = float(answer["total_ad_starts_hour"]) / answer["total_imp_hour"]
-
+    if answer["total_sum_imps"] == 0:
+        answer["total_fill_rate"] = 0
+    else:
+        answer["total_fill_rate"] = float(answer["total_ad_starts"]) / answer["total_sum_imps"]
+    if answer["total_imp_hour"] == 0:
+        answer["total_fill_rate_hour"] = 0
+    else:
+        answer["total_fill_rate_hour"] = float(answer["total_ad_starts_hour"]) / answer["total_imp_hour"]
+    answer["total_count"] = len(answer["campaigns"])
     return Response(answer)
 
 @api_view(["GET"])

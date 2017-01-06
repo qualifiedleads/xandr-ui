@@ -129,7 +129,12 @@
             "VIEW_MEASURED_IMPS":"Измерено видимость показов",
             "VIEW_MEASUREMENT_RATE":"Измереная видимост",
             "VIEW_RATE":"Видимость",
-            "STATS": "Стат"
+            "STATS": "Стат",
+            "AD-STARTS": "Стартов реклам",
+            "FILL-RATE": "Рейтинг показов",
+            "PROFIT-LOSS": "Прибыль/убыток",
+            "FILL-RATE-HOUR": "Рейтинг показов за час",
+            "PROFIT-LOSS-HOUR": "Прибыль/убыток за час",
           }
         },
         'CHECKBOX':{

@@ -129,7 +129,12 @@
           "VIEW_MEASURED_IMPS":"Measured imp",
           "VIEW_MEASUREMENT_RATE":"Viewed measurement rate",
           "VIEW_RATE":"Viewed rate",
-          "STATS":"Stats"
+          "STATS":"Stats",
+          "AD-STARTS": "Ad starts",
+          "FILL-RATE": "Fill rate",
+          "PROFIT-LOSS": "Profit/loss",
+          "FILL-RATE-HOUR": "Delta Fill Rate",
+          "PROFIT-LOSS-HOUR": "Delta profit/loss",
         }
       },
       'CHECKBOX':{

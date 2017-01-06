@@ -6,12 +6,28 @@ from datetime import datetime, timedelta
 from django.db.models import Sum, Min, Max, Avg, Value, When, Case, F, Q, Func, FloatField
 
 def fillVideoAdDataCron():
+    print "Begin of collecting hourly data for video ad"
     now = timezone.make_aware(datetime.now(),
                         timezone.get_default_timezone())
     before = now - timedelta(hours=1)
+
+    last_date = VideoAdCampaigns.objects.aggregate(Max("date"))["date__max"]
+
+    if before < last_date:
+        print "1 hour hasn't pass"
+        return -1
+
+    allAdv = []
+    queryRes = Advertiser.objects.filter(
+        ad_type="videoAds"
+    )
+    for row in queryRes:
+        allAdv.append(row.id)
+
     queryRes = SiteDomainPerformanceReport.objects.filter(
         day__gte=before,
         day__lte=now,
+        advertiser_id__in=allAdv
     ).values(
         "advertiser_id", "campaign_id"
     ).annotate(
@@ -100,6 +116,8 @@ def fillVideoAdDataCron():
             profit_loss_hour=ans.profit_loss_hour
         ))
     if not bulkAll:
+        print "There is nothing to add to table"
         return -1
     VideoAdCampaigns.objects.bulk_create(bulkAll)
+    print "Video ad data has been added"
     return 1

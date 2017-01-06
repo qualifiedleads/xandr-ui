@@ -217,4 +217,72 @@ def apiSendMapImpsData(request):
 @api_view(["GET"])
 # @check_user_advertiser_permissions(campaign_id_num=0)
 def apiSendVideoCampaingStatistics(request):
-    return Response(status=status.HTTP_200_OK)
+    params = parse_get_params(request.GET)
+    from_date = params["from_date"]
+    to_date = params["to_date"]
+    advertiser_id = request.GET.get("advertiser_id")
+
+    queryRes = SiteDomainPerformanceReport.objects.raw("""
+            SELECT
+              DISTINCT m_rep.day::timestamp::date AS id,
+              report.sum_imp AS imp,
+              report.sum_spend AS spend,
+              video.ad_s AS ad_starts,
+              case report.sum_imp when 0 then 0 else video.ad_s::float / report.sum_imp::float end fill_rate,
+              report.cpm * report.sum_imp - video.cpvm * video.ad_s AS profit_loss
+            FROM
+              site_domain_performance_report m_rep
+              LEFT JOIN(
+                SELECT
+                  "Date"::timestamp::date AS dates,
+                  COUNT("AdvId") AS ad_s,
+                  case COUNT("AdvId") when 0 then 0 else SUM(cpvm::float)/COUNT("AdvId") end cpvm
+                FROM
+                  rtb_adstart_tracker
+                WHERE
+                  "AdvId"='""" + str(advertiser_id) + """'
+                AND
+                  "Date" >= '""" + str(from_date) + """'
+                AND
+                  "Date" <= '""" + str(to_date) + """'
+                GROUP BY
+                  "Date"::timestamp::date
+              ) AS video
+              ON m_rep.day=video.dates
+              INNER JOIN(
+                SELECT
+                  day::timestamp::date AS sum_date,
+                  SUM(imps) AS sum_imp,
+                  SUM(media_cost) AS sum_spend,
+                  case SUM(imps) when 0 then 0 else SUM(media_cost)::float/SUM(imps) end cpm
+                FROM
+                  site_domain_performance_report
+                WHERE
+                  advertiser_id = """ + str(advertiser_id) + """
+                AND
+                  day >= '""" + str(from_date) + """'
+                AND
+                  day <= '""" + str(to_date) + """'
+                GROUP BY
+                  day::timestamp::date
+              ) AS report
+              ON m_rep.day=report.sum_date
+            WHERE
+              day >= '""" + str(from_date) + """'
+            AND
+              day <= '""" + str(to_date) + """'
+            ORDER BY
+              m_rep.day::timestamp::date
+            """)
+
+    answer = []
+    for row in queryRes:
+        answer.append({
+            "day": row.id,
+            "imp": row.imp,
+            "spend": row.spend,
+            "ad_starts": row.ad_starts,
+            "fill_rate": row.fill_rate,
+            "profit_loss": row.profit_loss
+        })
+    return Response(answer)

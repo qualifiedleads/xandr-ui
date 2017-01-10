@@ -15,9 +15,17 @@ from django.db.models import Sum, Min, Max, Avg, Value, When, Case, F, Q, Func, 
 
 def issetValue(s):
     if re.match(r'\$', s) or s == '':
-        return ' '
+        return None
     else:
         return s
+
+
+def is_number(str):
+    try:
+        float(str)
+        return True
+    except ValueError:
+        return False
 
 
 def get():
@@ -132,31 +140,31 @@ def Impression(decompressed_data):
             tempJson['LocationsOrigins'] = issetValue(item['Data']['LocationsOrigins'][0])
         tempJson['UserCountry'] = issetValue(item['Data']['UserCountry'])
         tempJson['SessionFreq'] = issetValue(item['Data']['SessionFreq'])
-        tempJson['PricePaid'] = issetValue(item['Data']['PricePaid'])
+        tempJson['PricePaid'] = item['Data']['PricePaid'] if is_number(item['Data']['PricePaid']) else None
         tempJson['AdvFreq'] = issetValue(item['Data']['AdvFreq'])
         tempJson['UserState'] = issetValue(item['Data']['UserState'])
-        tempJson['CpgId'] = issetValue(item['Data']['CpgId'])
+        tempJson['CpgId'] = item['Data']['CpgId'] if is_number(item['Data']['CpgId']) else None
         tempJson['CustomModelLastModified'] = issetValue(item['Data']['CustomModelLastModified'])
-        tempJson['UserId'] = issetValue(item['Data']['UserId'])
+        tempJson['UserId'] = item['Data']['UserId'] if is_number(item['Data']['UserId']) else None
         tempJson['XRealIp'] = issetValue(item['Data']['XRealIp'])
-        tempJson['BidPrice'] = issetValue(item['Data']['BidPrice'])
+        tempJson['BidPrice'] = item['Data']['BidPrice'] if is_number(item['Data']['BidPrice']) else None
         tempJson['SegIds'] = issetValue(item['Data']['SegIds'])
         tempJson['UserAgent'] = issetValue(item['Data']['UserAgent'])
-        tempJson['AuctionId'] = issetValue(issetValue(item['Data']['AuctionId']))
-        tempJson['RemUser'] = issetValue(item['Data']['RemUser'])
-        tempJson['CpId'] = issetValue(item['Data']['CpId'])
+        tempJson['AuctionId'] = item['Data']['AuctionId'] if is_number(item['Data']['AuctionId']) else None
+        tempJson['RemUser'] = item['Data']['RemUser'] if is_number(item['Data']['RemUser']) else None
+        tempJson['CpId'] = item['Data']['CpId'] if is_number(item['Data']['CpId']) else None
         tempJson['UserCity'] = issetValue(item['Data']['UserCity'])
-        tempJson['Age'] = issetValue(item['Data']['Age'])
-        tempJson['ReservePrice'] = issetValue(item['Data']['ReservePrice'])
-        tempJson['CacheBuster'] = issetValue(item['Data']['CacheBuster'])
-        tempJson['Ecp'] = issetValue(item['Data']['Ecp'])
-        tempJson['CustomModelId'] = issetValue(item['Data']['CustomModelId'])
-        tempJson['PlacementId'] = issetValue(item['Data']['PlacementId'])
+        tempJson['Age'] = item['Data']['Age'] if is_number(item['Data']['Age']) else None
+        tempJson['ReservePrice'] = item['Data']['ReservePrice'] if is_number(item['Data']['ReservePrice']) else None
+        tempJson['CacheBuster'] = item['Data']['CacheBuster'] if is_number(item['Data']['CacheBuster']) else None
+        tempJson['Ecp'] = item['Data']['Ecp'] if is_number(item['Data']['Ecp']) else None
+        tempJson['CustomModelId'] = item['Data']['CustomModelId'] if is_number(item['Data']['CustomModelId']) else None
+        tempJson['PlacementId'] = item['Data']['PlacementId'] if is_number(item['Data']['PlacementId']) else None
         tempJson['SeqCodes'] = issetValue(item['Data']['SeqCodes'])
         tempJson['CustomModelLeafName'] = issetValue(item['Data']['CustomModelLeafName'])
         tempJson['XForwardedFor'] = issetValue(item['Data']['XForwardedFor'])
-        tempJson['AdvId'] = issetValue(item['Data']['AdvId'])
-        tempJson['CreativeId'] = issetValue(item['Data']['CreativeId'])
+        tempJson['AdvId'] = item['Data']['AdvId'] if is_number(item['Data']['AdvId']) else None
+        tempJson['CreativeId'] = item['Data']['CreativeId'] if is_number(item['Data']['CreativeId']) else None
         tempJson['Date'] = item['Time']
         bulkITP.append({'placement': tempJson['PlacementId'], 'domain': tempJson['LocationsOrigins']})
         bulkITAll.append(RtbImpressionTracker(
@@ -193,6 +201,7 @@ def Impression(decompressed_data):
 
     try:
         RtbImpressionTracker.objects.bulk_create(bulkITAll)
+        print "Save domain."
     except ValueError, e:
         print "Can't save domain. Error: " + str(e)
 
@@ -258,11 +267,13 @@ def Click(decompressed_data):
     try:
         bulkITAll = []
         for item in decompressed_data:
+            if is_number(item['Data']['AuctionId']) == False:
+                continue
             tempJson = {}
-            tempJson['CpId'] = issetValue(item['Data']['CpId'])
-            tempJson['AdvId'] = issetValue(item['Data']['AdvId'])
-            tempJson['CreativeId'] = issetValue(item['Data']['CreativeId'])
-            tempJson['AuctionId'] = issetValue(item['Data']['AuctionId'])
+            tempJson['CpId'] = item['Data']['CpId'] if is_number(item['Data']['CpId']) else None
+            tempJson['AdvId'] = item['Data']['AdvId'] if is_number(item['Data']['AdvId']) else None
+            tempJson['CreativeId'] = item['Data']['CreativeId'] if is_number(item['Data']['CreativeId']) else None
+            tempJson['AuctionId'] = item['Data']['AuctionId'] if is_number(item['Data']['AuctionId']) else None
             tempJson['Date'] = item['Time']
 
             bulkITAll.append(RtbClickTracker(
@@ -283,11 +294,13 @@ def Conversion(decompressed_data):
     try:
         bulkITAll = []
         for item in decompressed_data:
+            if is_number(item['Data']['AuctionId']) == False:
+                continue
             tempJson = {}
-            tempJson['CpId'] = issetValue(item['Data']['CpId'])
-            tempJson['AdvId'] = issetValue(item['Data']['AdvId'])
-            tempJson['CreativeId'] = issetValue(item['Data']['CreativeId'])
-            tempJson['AuctionId'] = issetValue(item['Data']['AuctionId'])
+            tempJson['CpId'] = item['Data']['CpId'] if is_number(item['Data']['CpId']) else None
+            tempJson['AdvId'] = item['Data']['AdvId'] if is_number(item['Data']['AdvId']) else None
+            tempJson['CreativeId'] = item['Data']['CreativeId'] if is_number(item['Data']['CreativeId']) else None
+            tempJson['AuctionId'] = item['Data']['AuctionId'] if is_number(item['Data']['AuctionId']) else None
             tempJson['Date'] = item['Time']
 
             bulkITAll.append(RtbConversionTracker(
@@ -308,12 +321,15 @@ def AdStart(decompressed_data):
     try:
         bulkITAll = []
         for item in decompressed_data:
+            if is_number(item['Data']['AuctionId']) == False:
+                continue
+
             tempJson = {}
-            tempJson['CpId'] = issetValue(item['Data']['CpId'])
-            tempJson['AdvId'] = issetValue(item['Data']['AdvId'])
-            tempJson['CreativeId'] = issetValue(item['Data']['CreativeId'])
-            tempJson['AuctionId'] = issetValue(item['Data']['AuctionId'])
-            tempJson['cpvm'] = issetValue(item['Data']['CPVM'])
+            tempJson['CpId'] = item['Data']['CpId'] if is_number(item['Data']['CpId']) else None
+            tempJson['AdvId'] = item['Data']['AdvId'] if is_number(item['Data']['AdvId']) else None
+            tempJson['CreativeId'] = item['Data']['CreativeId'] if is_number(item['Data']['CreativeId']) else None
+            tempJson['AuctionId'] = item['Data']['AuctionId'] if is_number(item['Data']['AuctionId']) else None
+            tempJson['cpvm'] = item['Data']['CPVM'] if is_number(item['Data']['CPVM']) else None
             tempJson['Date'] = item['Time']
 
             bulkITAll.append(RtbAdStartTracker(

@@ -29,6 +29,7 @@ def apiSendVideoCampaignData(request):
     to_date = params["to_date"]
     advertiser_id = request.GET.get("advertiser_id")
     filt, order = getFilterQueryString(params["filter"], request.GET.get("sort"), request.GET.get("order"))
+    print filt
     queryRes = VideoAdCampaigns.objects.raw("""
             SELECT
               vac.id,
@@ -113,8 +114,7 @@ def apiSendVideoCampaignData(request):
                 ON max_vac_date.max_date=v.date
               ) AS vac
               ON report.campaign_id=vac.campaign_id
-            """+filt + ' ' + order + ' '+"""
-            LIMIT """ + str(params["take"]) + """ OFFSET """ + str(params["skip"]))
+            """+filt + ' ' + order + " LIMIT " + str(params["take"]) + " OFFSET " + str(params["skip"]))
     answer = {}
     answer["campaigns"] = []
 
@@ -260,7 +260,7 @@ def getVideoCampaignSummary(request):
 
 def getFilterQueryString(incFilters, incSort, incOrder):#
     vocabulary = {}
-    vocabulary["campaign"] = "camp.id"
+    vocabulary["campaign"] = "camp.name"
     vocabulary["spent"] = "report.sum_cost"
     vocabulary["sum_imps"] = "report.sum_imps"
     vocabulary["cpm"] = "report.cpm"
@@ -286,9 +286,17 @@ def getFilterQueryString(incFilters, incSort, incOrder):#
             return '', ansOrder
         else:
             filt = separatedFilters.string.split(' ')
-            return ansWhere + vocabulary[filt[0]] + filt[1] + filt[2], ansOrder
+            for i in xrange(3, len(filt)):
+                filt[2] += (' ' + filt[i])
+            if filt[0] == "campaign":
+                return ansWhere + vocabulary[filt[0]] + " LIKE '" + filt[2] + "%%'", ansOrder
+            else:
+                return ansWhere + vocabulary[filt[0]] + filt[1] + filt[2], ansOrder
     for filt in separatedFilters:
-        ansWhere = ansWhere + vocabulary[filt[0]] + filt[1] + filt[2] + " AND "
+        if filt[0] == "campaign":
+            ansWhere = ansWhere + vocabulary[filt[0]] + " LIKE '" + filt[2] + "%%' AND "
+        else:
+            ansWhere = ansWhere + vocabulary[filt[0]] + filt[1] + filt[2] + " AND "
     if ansWhere == "WHERE ":
         return '', ansOrder
     return ansWhere[:-5], ansOrder

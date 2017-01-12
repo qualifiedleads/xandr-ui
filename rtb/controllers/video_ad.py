@@ -28,7 +28,7 @@ def apiSendVideoCampaignData(request):
     from_date = params["from_date"]
     to_date = params["to_date"]
     advertiser_id = request.GET.get("advertiser_id")
-    filt = getFilterQueryString(params["filter"])
+    filt, order = getFilterQueryString(params["filter"], request.GET.get("sort"), request.GET.get("order"))
     queryRes = VideoAdCampaigns.objects.raw("""
             SELECT
               vac.id,
@@ -75,7 +75,7 @@ def apiSendVideoCampaignData(request):
                   "CpId",
                   SUM(cpvm) AS allcpvm,
                   case COUNT("CpId") when 0 then 0 else COUNT("CpId") end ad_starts,
-                  case COUNT(id) when 0 then 0 else SUM(cpvm)/COUNT("CpId") end cpvm
+                  case COUNT("CpId") when 0 then 0 else SUM(cpvm)/COUNT("CpId") end cpvm
                 FROM
                   rtb_adstart_tracker
                 WHERE
@@ -113,7 +113,7 @@ def apiSendVideoCampaignData(request):
                 ON max_vac_date.max_date=v.date
               ) AS vac
               ON report.campaign_id=vac.campaign_id
-            """+filt+"""
+            """+filt + ' ' + order + ' '+"""
             LIMIT """ + str(params["take"]) + """ OFFSET """ + str(params["skip"]))
     answer = {}
     answer["campaigns"] = []
@@ -168,7 +168,7 @@ def getVideoCampaignSummary(request):
     from_date = params["from_date"]
     to_date = params["to_date"]
     advertiser_id = request.GET.get("advertiser_id")
-    filt = getFilterQueryString(params["filter"])
+    filt, order = getFilterQueryString(params["filter"], params["sort"], params["order"])
     queryRes = VideoAdCampaigns.objects.raw("""
                 SELECT
                   count(report.sum_cost) AS total_count,
@@ -258,7 +258,7 @@ def getVideoCampaignSummary(request):
     ans = list(queryRes)
     return ans[0]
 
-def getFilterQueryString(incFilters):
+def getFilterQueryString(incFilters, incSort, incOrder):#
     vocabulary = {}
     vocabulary["campaign"] = "camp.id"
     vocabulary["spent"] = "report.sum_cost"
@@ -272,22 +272,26 @@ def getFilterQueryString(incFilters):
     vocabulary["fill_rate_hour"] = "vac.fill_rate_hour"
     vocabulary["profit_loss_hour"] = "vac.profit_loss_hour"
 
-    ans = "WHERE "
+    ansWhere = "WHERE "
+    ansOrder = "ORDER BY "
+
+    ansOrder = ansOrder + vocabulary[str(incSort)] + ' ' + str(incOrder)
+
     clause = re.compile(r'\s*\[\s*"([^"]*)",\s*"([^"]*)",\s*(\w+|\d+(?:\.\d*)?|(?:"(?:[^"]|\\\S)*"))\s*\]')
     separatedFilters = re.findall(clause, incFilters)
     if not separatedFilters:
         clause = re.compile(r"^(.*?)(>|<|=|<>|>=|<=|\bcontains\b|\bnotcontains\b|\bstartswith\b|\bendswith\b)(.*)$")
         separatedFilters = re.match(clause, incFilters)
         if separatedFilters is None:
-            return ''
+            return '', ansOrder
         else:
             filt = separatedFilters.string.split(' ')
-            return ans + vocabulary[filt[0]] + filt[1] + filt[2]
+            return ansWhere + vocabulary[filt[0]] + filt[1] + filt[2], ansOrder
     for filt in separatedFilters:
-        ans = ans + vocabulary[filt[0]] + filt[1] + filt[2] + " AND "
-    if ans == "WHERE ":
-        return ''
-    return ans[:-5]
+        ansWhere = ansWhere + vocabulary[filt[0]] + filt[1] + filt[2] + " AND "
+    if ansWhere == "WHERE ":
+        return '', ansOrder
+    return ansWhere[:-5], ansOrder
 
 @api_view(["GET"])
 # @check_user_advertiser_permissions(campaign_id_num=0)

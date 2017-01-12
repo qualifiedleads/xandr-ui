@@ -131,6 +131,18 @@
       }
     };
 
+    function headerFilterColumn(source, dataField) {
+      return source.dataSource.postProcess = function (data) {
+        var list = $window._.uniqBy(data, dataField);
+        return list.map(function (item) {
+          return {
+            text: item[dataField],
+            value: item[dataField]
+          };
+        });
+      };
+    }
+
     function CheckLocalStorage() {
       for (var item in vm.checkChart) {
         if (vm.checkChart[item]) {
@@ -356,6 +368,11 @@
               $window.angular.element('<a href="#/home/campaign/' + options.data.campaign_id + '">' + options.data.campaign_name + ' (' + options.data.campaign_id +')</a>')
                 .appendTo(container);
             },
+            headerFilter: {
+              dataSource: function (source) {
+                return headerFilterColumn(source, 'campaign_name');
+              }
+            },
             alignment: 'center'
           },
           {
@@ -365,6 +382,11 @@
             dataType: 'number',
             format:'currency',
             precision:2,
+            headerFilter: {
+              dataSource: function (source) {
+                return headerFilterColumn(source, 'spent');
+              }
+            }
           },
           {
             caption: LC('MAIN.CAMPAIGN.COLUMNS.IMP'),
@@ -372,7 +394,12 @@
             sortOrder: 'desc',
             alignment: 'center',
             format:'fixedPoint',
-            dataType: 'number'
+            dataType: 'number',
+            headerFilter: {
+              dataSource: function (source) {
+                return headerFilterColumn(source, 'sum_imps');
+              }
+            },
           },
           {
             caption: LC('MAIN.CAMPAIGN.COLUMNS.CPM') + ' ,$',
@@ -380,14 +407,24 @@
             alignment: 'center',
             dataType: 'number',
             precision:2,
-            format:'currency'
+            format:'currency',
+            headerFilter: {
+              dataSource: function (source) {
+                return headerFilterColumn(source, 'cpm');
+              }
+            },
           },
           {
             caption: LC('MAIN.CAMPAIGN.COLUMNS.AD-STARTS'),
             dataField: 'ad_starts',
             alignment: 'center',
             format:'fixedPoint',
-            dataType: 'number'
+            dataType: 'number',
+            headerFilter: {
+              dataSource: function (source) {
+                return headerFilterColumn(source, 'ad_starts');
+              }
+            },
           },
           {
             caption: LC('MAIN.CAMPAIGN.COLUMNS.FILL-RATE'),
@@ -396,6 +433,11 @@
             dataType: 'number',
             format:'percent',
             precision:4,
+            headerFilter: {
+              dataSource: function (source) {
+                return headerFilterColumn(source, 'fill_rate');
+              }
+            },
           },
           {
             caption: LC('MAIN.CAMPAIGN.COLUMNS.PROFIT-LOSS'),
@@ -403,7 +445,12 @@
             alignment: 'center',
             dataType: 'number',
             precision: 2,
-            format:'currency'
+            format:'currency',
+            headerFilter: {
+              dataSource: function (source) {
+                return headerFilterColumn(source, 'profit_loss');
+              }
+            },
           },
           {
             caption: LC('MAIN.CAMPAIGN.COLUMNS.FILL-RATE-HOUR'),
@@ -412,6 +459,11 @@
             dataType: 'number',
             format:'percent',
             precision:1,
+            headerFilter: {
+              dataSource: function (source) {
+                return headerFilterColumn(source, 'fill_rate_hour');
+              }
+            },
           },
           {
             caption: LC('MAIN.CAMPAIGN.COLUMNS.PROFIT-LOSS-HOUR'),
@@ -419,11 +471,17 @@
             alignment: 'center',
             dataType: 'number',
             precision: 2,
-            format:'currency'
+            format:'currency',
+            headerFilter: {
+              dataSource: function (source) {
+                return headerFilterColumn(source, 'profit_loss_hour');
+              }
+            },
           },
           {
             width: 200,
             dataField: LC('MAIN.CAMPAIGN.COLUMNS.STATS'),
+            allowFiltering: false,
             cellTemplate: function (container, options) {
               if (options.data.chart) {
                 var chartOptions = {

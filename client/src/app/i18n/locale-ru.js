@@ -138,6 +138,9 @@
           }
         },
         'CHECKBOX':{
+          "ad_starts": "ad_starts",
+          "fill_rate": "fill_rate",
+          "profit_loss": "profit_loss",
           "IMPRESSIONS":"Показы",
           "CVR":"CVR",
           "CPC":"CPC",

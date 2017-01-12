@@ -32,6 +32,17 @@
         params: {advertiser_id: advertiser_id, from_date: from_date, to_date: to, by: by}
       })
       .then(function (res) {
+        return [
+          {"fill_rate":1,"profit_loss":5,"spend":100.115817,"imp":89901,"ad_starts":4,"day":"2016-06-21"},
+          {"fill_rate":5,"profit_loss":4,"spend":37.901687,"imp":62183,"ad_starts":5,"day":"2016-06-22"},
+          {"fill_rate":4,"profit_loss":3,"spend":0.112469,"imp":206,"ad_starts":6,"day":"2016-06-23"},
+          {"fill_rate":8,"profit_loss":5,"spend":100.115817,"imp":89901,"ad_starts":7,"day":"2016-06-24"},
+          {"fill_rate":4,"profit_loss":7,"spend":37.901687,"imp":62183,"ad_starts":9,"day":"2016-06-25"},
+          {"fill_rate":8,"profit_loss":6,"spend":0.112469,"imp":206,"ad_starts":4,"day":"2016-06-26"},
+          {"fill_rate":9,"profit_loss":9,"spend":100.115817,"imp":89901,"ad_starts":1,"day":"2016-06-27"},
+          {"fill_rate":8,"profit_loss":4,"spend":37.901687,"imp":62183,"ad_starts":0,"day":"2016-06-28"},
+          {"fill_rate":7,"profit_loss":1,"spend":0.112469,"imp":206,"ad_starts":1,"day":"2016-06-29"},
+          ];
         return res.data;
       })
       .catch(function (err) {
@@ -108,6 +119,20 @@
           "spent": res.data.total_spent,
           "sum_imps": res.data.total_sum_imps
         };
+
+        for(var i=0; i < res.data.campaigns.length; i++) {
+          res.data.campaigns[i].chart = [
+          {"fill_rate":1,"profit_loss":5,"spend":100.115817,"imp":89901,"ad_starts":4,"day":"2016-06-21"},
+          {"fill_rate":5,"profit_loss":4,"spend":37.901687,"imp":62183,"ad_starts":5,"day":"2016-06-22"},
+          {"fill_rate":4,"profit_loss":3,"spend":0.112469,"imp":206,"ad_starts":6,"day":"2016-06-23"},
+          {"fill_rate":8,"profit_loss":5,"spend":100.115817,"imp":89901,"ad_starts":7,"day":"2016-06-24"},
+          {"fill_rate":4,"profit_loss":7,"spend":37.901687,"imp":62183,"ad_starts":9,"day":"2016-06-25"},
+          {"fill_rate":8,"profit_loss":6,"spend":0.112469,"imp":206,"ad_starts":4,"day":"2016-06-26"},
+          {"fill_rate":9,"profit_loss":9,"spend":100.115817,"imp":89901,"ad_starts":1,"day":"2016-06-27"},
+          {"fill_rate":8,"profit_loss":4,"spend":37.901687,"imp":62183,"ad_starts":0,"day":"2016-06-28"},
+          {"fill_rate":7,"profit_loss":1,"spend":0.112469,"imp":206,"ad_starts":1,"day":"2016-06-29"},
+          ];
+        }
 
         return res.data;
       })

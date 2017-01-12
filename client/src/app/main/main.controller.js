@@ -11,7 +11,7 @@
     vm.advertiser = $localStorage.advertiser;
     vm.Main = Main;
     vm.multipleTotalCount = 0;
-    vm.checkChart = [];
+    vm.checkChart = {};
     vm.Init = [];
     vm.by = 'imp,cvr,cpc,clicks,spend,conv,ctr';
     vm.selectedItems = [];
@@ -21,25 +21,24 @@
     var LC = $translate.instant;
 
     /** LOCAL STORAGE CHECKBOX - START **/
-    if ($localStorage.checkChart == null) {
-      $localStorage.checkChart = {
-        'imp': true,
-        'cvr': false,
-        'cpc': false,
-        'clicks': false,
-        'spend': false,
-        'conv': false,
-        'ctr': false
-      };
-    }
+    vm.checkChart = {
+      'imp': true,
+      'cvr': false,
+      'cpc': false,
+      'clicks': false,
+      'spend': false,
+      'conv': false,
+      'ctr': false
+    };
+
     var chartSeries = [
-      {valueField: 'imp', name: 'Impressions', axis: 'imp', visible: $localStorage.checkChart.imp},
-      {valueField: 'cvr', name: 'CVR', axis: 'cvr', visible: $localStorage.checkChart.cvr},
-      {valueField: 'cpc', name: 'CPC', axis: 'cpc', visible: $localStorage.checkChart.cpc},
-      {valueField: 'clicks', name: 'Clicks', axis: 'clicks', visible: $localStorage.checkChart.clicks},
-      {valueField: 'spend', name: 'Cost', axis: 'spend', visible: $localStorage.checkChart.spend},
-      {valueField: 'conv', name: 'Conversions', axis: 'conv', visible: $localStorage.checkChart.conv},
-      {valueField: 'ctr', name: 'CTR', axis: 'ctr', visible: $localStorage.checkChart.ctr}
+      {valueField: 'imp', name: 'Impressions', axis: 'imp', visible: vm.checkChart.imp},
+      {valueField: 'cvr', name: 'CVR', axis: 'cvr', visible: vm.checkChart.cvr},
+      {valueField: 'cpc', name: 'CPC', axis: 'cpc', visible: vm.checkChart.cpc},
+      {valueField: 'clicks', name: 'Clicks', axis: 'clicks', visible: vm.checkChart.clicks},
+      {valueField: 'spend', name: 'Cost', axis: 'spend', visible: vm.checkChart.spend},
+      {valueField: 'conv', name: 'Conversions', axis: 'conv', visible: vm.checkChart.conv},
+      {valueField: 'ctr', name: 'CTR', axis: 'ctr', visible: vm.checkChart.ctr}
     ];
 
     /** DATE PIKER - START **/
@@ -153,8 +152,8 @@
     };
 
     function CheckLocalStorage() {
-      for (var item in $localStorage.checkChart) {
-        if ($localStorage.checkChart[item]) {
+      for (var item in vm.checkChart) {
+        if (vm.checkChart[item]) {
           if (item == 'imp') {
             vm.chartOptionsFunc.getSeriesByName('Impressions').show();
           }
@@ -209,7 +208,7 @@
      */
     vm.updateCharts = function (seriesName, seriesShortName, selected) {
       var gridCharts = {};
-      $localStorage.checkChart[seriesShortName] = selected;
+      vm.checkChart[seriesShortName] = selected;
       var i = 0;
       if (selected) {
         vm.chartOptionsFunc.getSeriesByName(seriesName).show();
@@ -286,7 +285,7 @@
         columnAutoWidth: true,
         wordWrapEnabled: true,
         loadingIndicator: {
-                    show: false
+          show: false
         },
         columnChooser: {
           enabled: true
@@ -305,7 +304,6 @@
         },
         showBorders: true,
         showRowLines: true,
-
         columns: [
           {
             caption: LC('MAIN.CAMPAIGN.COLUMNS.CAMPAIGN'),
@@ -536,7 +534,7 @@
             var update = [];
             var flag = 'left';
             vm.UI.chartOptions.valueAxis.forEach(function (item, index) {
-              var visible = $localStorage.checkChart[item.name];
+              var visible = vm.checkChart[item.name];
               update.push({
                 name: item.name,
                 position: flag,
@@ -741,7 +739,7 @@
       },
       impressions: {
         text: LC('MAIN.CHECKBOX.IMPRESSIONS'),
-        value: $localStorage.checkChart.imp,
+        value: vm.checkChart.imp,
         onInitialized: function (data) {
           vm.Init.push(data.component);
         },
@@ -755,7 +753,7 @@
       },
       CVR: {
         text: LC('MAIN.CHECKBOX.CVR'),
-        value: $localStorage.checkChart.cvr,
+        value: vm.checkChart.cvr,
         onInitialized: function (data) {
           vm.Init.push(data.component);
         },
@@ -769,7 +767,7 @@
       },
       CPC: {
         text: LC('MAIN.CHECKBOX.CPC'),
-        value: $localStorage.checkChart.cpc,
+        value: vm.checkChart.cpc,
         onInitialized: function (data) {
           vm.Init.push(data.component);
         },
@@ -783,7 +781,7 @@
       },
       clicks: {
         text: LC('MAIN.CHECKBOX.CLICKS'),
-        value: $localStorage.checkChart.clicks,
+        value: vm.checkChart.clicks,
         onInitialized: function (data) {
           vm.Init.push(data.component);
         },
@@ -797,7 +795,7 @@
       },
       cost: {
         text: LC('MAIN.CHECKBOX.COST'),
-        value: $localStorage.checkChart.spend,
+        value: vm.checkChart.spend,
         onInitialized: function (data) {
           vm.Init.push(data.component);
         },
@@ -811,7 +809,7 @@
       },
       conversions: {
         text: LC('MAIN.CHECKBOX.CONVERSIONS'),
-        value: $localStorage.checkChart.conv,
+        value: vm.checkChart.conv,
         onInitialized: function (data) {
           vm.Init.push(data.component);
         },
@@ -825,7 +823,7 @@
       },
       CTR: {
         text: LC('MAIN.CHECKBOX.CTR'),
-        value: $localStorage.checkChart.ctr,
+        value: vm.checkChart.ctr,
         onInitialized: function (data) {
           vm.Init.push(data.component);
         },

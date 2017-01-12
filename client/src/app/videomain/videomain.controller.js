@@ -11,35 +11,27 @@
     vm.advertiser = $localStorage.advertiser;
     vm.VideoMain = VideoMain;
     vm.multipleTotalCount = 0;
-    vm.checkChart = [];
     vm.Init = [];
-    vm.by = 'imp,cvr,cpc,clicks,spend,conv,ctr';
+    vm.by = ['imp', 'spend', 'ad_starts', 'fill_rate', 'profit_loss'];
     vm.selectedItems = [];
     vm.chartOptionsFuncgrid = [];
     vm.charIsUpdating = false;
     $rootScope.id = null;
     var LC = $translate.instant;
-
     /** LOCAL STORAGE CHECKBOX - START **/
-    if ($localStorage.checkChart == null) {
-      $localStorage.checkChart = {
+    vm.checkChart = {
         'imp': true,
-        'cvr': false,
-        'cpc': false,
-        'clicks': false,
-        'spend': false,
-        'conv': false,
-        'ctr': false
-      };
-    }
+        'ad_starts': false,
+        'fill_rate': false,
+        'profit_loss': false,
+        'spend': false
+    };
     var chartSeries = [
-      {valueField: 'imp', name: 'Impressions', axis: 'imp', visible: $localStorage.checkChart.imp},
-      {valueField: 'cvr', name: 'CVR', axis: 'cvr', visible: $localStorage.checkChart.cvr},
-      {valueField: 'cpc', name: 'CPC', axis: 'cpc', visible: $localStorage.checkChart.cpc},
-      {valueField: 'clicks', name: 'Clicks', axis: 'clicks', visible: $localStorage.checkChart.clicks},
-      {valueField: 'spend', name: 'Cost', axis: 'spend', visible: $localStorage.checkChart.spend},
-      {valueField: 'conv', name: 'Conversions', axis: 'conv', visible: $localStorage.checkChart.conv},
-      {valueField: 'ctr', name: 'CTR', axis: 'ctr', visible: $localStorage.checkChart.ctr}
+      {valueField: 'imp', name: 'Impressions', axis: 'imp', visible: vm.checkChart.imp},
+      {valueField: 'ad_starts', name: 'ad_starts', axis: 'ad_starts', visible: vm.checkChart.ad_starts},
+      {valueField: 'fill_rate', name: 'fill_rate', axis: 'fill_rate', visible: vm.checkChart.fill_rate},
+      {valueField: 'profit_loss', name: 'profit_loss', axis: 'profit_loss', visible: vm.checkChart.profit_loss},
+      {valueField: 'spend', name: 'Cost', axis: 'spend', visible: vm.checkChart.spend},
     ];
 
     /** DATE PIKER - START **/
@@ -125,7 +117,7 @@
         }
       }
       if (value == true) {
-        if (checkTrue.length == 2 && checkFalse.length > 4) {
+        if (checkTrue.length == 2 && checkFalse.length > 2) {
           for (i = 0; i < checkFalse.length; i++) {
             checkFalse[i].option('disabled', true);
           }
@@ -140,50 +132,38 @@
     };
 
     function CheckLocalStorage() {
-      for (var item in $localStorage.checkChart) {
-        if ($localStorage.checkChart[item]) {
+      for (var item in vm.checkChart) {
+        if (vm.checkChart[item]) {
           if (item == 'imp') {
             vm.chartOptionsFunc.getSeriesByName('Impressions').show();
           }
-          if (item == 'cvr') {
-            vm.chartOptionsFunc.getSeriesByName('CVR').show();
+          if (item == 'ad_starts') {
+            vm.chartOptionsFunc.getSeriesByName('ad_starts').show();
           }
-          if (item == 'cpc') {
-            vm.chartOptionsFunc.getSeriesByName('CPC').show();
+          if (item == 'fill_rate') {
+            vm.chartOptionsFunc.getSeriesByName('fill_rate').show();
           }
-          if (item == 'clicks') {
-            vm.chartOptionsFunc.getSeriesByName('Clicks').show();
+          if (item == 'profit_loss') {
+            vm.chartOptionsFunc.getSeriesByName('profit_loss').show();
           }
           if (item == 'spend') {
             vm.chartOptionsFunc.getSeriesByName('Cost').show();
-          }
-          if (item == 'conv') {
-            vm.chartOptionsFunc.getSeriesByName('Conversions').show();
-          }
-          if (item == 'ctr') {
-            vm.chartOptionsFunc.getSeriesByName('CTR').show();
           }
         } else {
           if (item == 'imp') {
             vm.chartOptionsFunc.getSeriesByName('Impressions').hide();
           }
-          if (item == 'cvr') {
-            vm.chartOptionsFunc.getSeriesByName('CVR').hide();
+          if (item == 'ad_starts') {
+            vm.chartOptionsFunc.getSeriesByName('ad_starts').hide();
           }
-          if (item == 'cpc') {
-            vm.chartOptionsFunc.getSeriesByName('CPC').hide();
+          if (item == 'fill_rate') {
+            vm.chartOptionsFunc.getSeriesByName('fill_rate').hide();
           }
-          if (item == 'clicks') {
-            vm.chartOptionsFunc.getSeriesByName('Clicks').hide();
+          if (item == 'profit_loss') {
+            vm.chartOptionsFunc.getSeriesByName('profit_loss').hide();
           }
           if (item == 'spend') {
             vm.chartOptionsFunc.getSeriesByName('Cost').hide();
-          }
-          if (item == 'conv') {
-            vm.chartOptionsFunc.getSeriesByName('Conversions').hide();
-          }
-          if (item == 'ctr') {
-            vm.chartOptionsFunc.getSeriesByName('CTR').hide();
           }
         }
       }
@@ -196,7 +176,7 @@
      */
     vm.updateCharts = function (seriesName, seriesShortName, selected) {
       var gridCharts = {};
-      $localStorage.checkChart[seriesShortName] = selected;
+      vm.checkChart[seriesShortName] = selected;
       var i = 0;
       if (selected) {
         vm.chartOptionsFunc.getSeriesByName(seriesName).show();
@@ -222,7 +202,7 @@
       });
 
     vm.chartStore = VideoMain.chartStore(vm.advertiser.id, vm.dataStart, vm.dataEnd, ['imp', 'spend', 'ad_starts', 'fill_rate', 'profit_loss']);
-    vm.multipleStore = VideoMain.multipleStore(vm.advertiser.id, vm.dataStart, vm.dataEnd, vm.by);
+    vm.multipleStore = VideoMain.multipleStore(vm.advertiser.id, vm.dataStart, vm.dataEnd, ['imp', 'spend', 'ad_starts', 'fill_rate', 'profit_loss']);
     vm.UI = {
       datePiker: {
         items: products,
@@ -422,7 +402,7 @@
             dataField: 'profit_loss',
             alignment: 'center',
             dataType: 'number',
-            precision: 4,
+            precision: 2,
             format:'currency'
           },
           {
@@ -441,114 +421,112 @@
             precision: 2,
             format:'currency'
           },
-          // {
-          //   width: 200,
-          //   dataField: LC('MAIN.CAMPAIGN.COLUMNS.STATS'),
-          //   cellTemplate: function (container, options) {
-          //     if (options.data.chart) {
-          //       var chartOptions = {
-          //         onInitialized: function (data) {
-          //           vm.chartOptionsFuncgrid[options.rowIndex] = data.component;
-          //         },
-          //         dataSource: options.data.chart,
-          //         size: {
-          //           height: 80,
-          //           width: 185
-          //         },
-          //         commonSeriesSettings: {
-          //           argumentField: 'day',
-          //           type: 'line',
-          //           point: {
-          //             size: 2,
-          //             hoverStyle: {
-          //               border: {
-          //                 visible: true,
-          //                 width: 1
-          //               },
-          //               size: 4
-          //             }
-          //           }
-          //         },
-          //         commonAxisSettings: {
-          //           label: {
-          //             visible: false
-          //           },
-          //           grid: {visible: false}
-          //         },
-          //         valueAxis: [
-          //           {name: 'imp'},
-          //           {name: 'cvr'},
-          //           {name: 'cpc'},
-          //           {name: 'clicks'},
-          //           {name: 'spend'},
-          //           {name: 'conv'},
-          //           {name: 'ctr'}
-          //         ],
-          //         argumentAxis: {
-          //           valueMarginsEnabled: false,
-          //           discreteAxisDivisionMode: 'crossLabels',
-          //
-          //           grid: {
-          //             visible: false
-          //           },
-          //           label: {
-          //             visible: false
-          //           },
-          //           minorGrid: {
-          //             visible: false
-          //           },
-          //           minorTick: {
-          //             visible: false
-          //           },
-          //           tick: {
-          //             visible: false
-          //           }
-          //         },
-          //         series: chartSeries,
-          //         legend: {
-          //           visible: false
-          //         },
-          //         tooltip: {
-          //           enabled: true,
-          //           customizeTooltip: function (arg) {
-          //             if (arg.seriesName == 'Cost' || arg.seriesName == 'CPC') {
-          //               return {
-          //                 text: '$' + arg.valueText + ' ' + arg.seriesName
-          //               };
-          //             }
-          //             if (arg.seriesName == 'Impressions' ) {
-          //               return {
-          //                 text:arg.value.toString().split(/(?=(?:\d{3})+(?!\d))/).join()
-          //               };
-          //             }
-          //             if (arg.seriesName == 'CTR' || arg.seriesName == 'CVR') {
-          //               return {
-          //                 text: arg.valueText + '%' + ' ' + arg.seriesName
-          //               };
-          //
-          //             } else {
-          //               return {
-          //                 text: arg.valueText + ' ' + arg.seriesName
-          //               };
-          //             }
-          //           }
-          //         }
-          //       };
-          //       container.addClass('img-container');
-          //       var chart = $window.$('<div class="chartMulti" ></div>');
-          //       chart.dxChart(chartOptions);
-          //       chart.appendTo(container);
-          //     } else {
-          //       container.addClass('img-container');
-          //       $window.$('<div id="chartMulti" ></div>')
-          //
-          //       //.attr("src", options.value)
-          //         .appendTo(container);
-          //     }
-          //
-          //
-          //   }
-          // }
+          {
+            width: 200,
+            dataField: LC('MAIN.CAMPAIGN.COLUMNS.STATS'),
+            cellTemplate: function (container, options) {
+              if (options.data.chart) {
+                var chartOptions = {
+                  onInitialized: function (data) {
+                    vm.chartOptionsFuncgrid[options.rowIndex] = data.component;
+                  },
+                  dataSource: options.data.chart,
+                  size: {
+                    height: 80,
+                    width: 185
+                  },
+                  commonSeriesSettings: {
+                    argumentField: 'day',
+                    type: 'line',
+                    point: {
+                      size: 2,
+                      hoverStyle: {
+                        border: {
+                          visible: true,
+                          width: 1
+                        },
+                        size: 4
+                      }
+                    }
+                  },
+                  commonAxisSettings: {
+                    label: {
+                      visible: false
+                    },
+                    grid: {visible: false}
+                  },
+                  valueAxis: [
+                    {name: 'imp'},
+                    {name: 'ad_starts'},
+                    {name: 'fill_rate'},
+                    {name: 'profit_loss'},
+                    {name: 'spend'},
+                  ],
+                  argumentAxis: {
+                    valueMarginsEnabled: false,
+                    discreteAxisDivisionMode: 'crossLabels',
+
+                    grid: {
+                      visible: false
+                    },
+                    label: {
+                      visible: false
+                    },
+                    minorGrid: {
+                      visible: false
+                    },
+                    minorTick: {
+                      visible: false
+                    },
+                    tick: {
+                      visible: false
+                    }
+                  },
+                  series: chartSeries,
+                  legend: {
+                    visible: false
+                  },
+                  tooltip: {
+                    enabled: true,
+                    customizeTooltip: function (arg) {
+                      if (arg.seriesName == 'Cost' || arg.seriesName == 'CPC') {
+                        return {
+                          text: '$' + arg.valueText + ' ' + arg.seriesName
+                        };
+                      }
+                      if (arg.seriesName == 'Impressions' ) {
+                        return {
+                          text:arg.value.toString().split(/(?=(?:\d{3})+(?!\d))/).join()
+                        };
+                      }
+                      if (arg.seriesName == 'CTR' || arg.seriesName == 'CVR') {
+                        return {
+                          text: arg.valueText + '%' + ' ' + arg.seriesName
+                        };
+
+                      } else {
+                        return {
+                          text: arg.valueText + ' ' + arg.seriesName
+                        };
+                      }
+                    }
+                  }
+                };
+                container.addClass('img-container');
+                var chart = $window.$('<div class="chartMulti" ></div>');
+                chart.dxChart(chartOptions);
+                chart.appendTo(container);
+              } else {
+                container.addClass('img-container');
+                $window.$('<div id="chartMulti" ></div>')
+
+                //.attr("src", options.value)
+                  .appendTo(container);
+              }
+
+
+            }
+          }
         ],
         onSelectionChanged: function (data) {
           vm.selectedItems = data.selectedRowsData;
@@ -562,7 +540,7 @@
             var update = [];
             var flag = 'left';
             vm.UI.chartOptions.valueAxis.forEach(function (item, index) {
-              var visible = $localStorage.checkChart[item.name];
+              var visible = vm.checkChart[item.name];
               update.push({
                 name: item.name,
                 position: flag,
@@ -576,25 +554,18 @@
                     if (Array.isArray(major) && maxMajor < major[major.length - 1].value) {
                       maxMajor = major[major.length - 1].value;
                     }
-
-
                     if (this.value == maxMajor) {
-
                       switch (item.name) {
                         case 'imp':
-                          return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('MAIN.CHECKBOX.IMPRESSIONS') +'</span><br>' + this.value.toString().split(/(?=(?:\d{3})+(?!\d))/).join();;
-                        case 'cvr':
-                          return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('MAIN.CHECKBOX.CVR') +'%' + '</span><br>' + this.value+'%';
-                        case 'cpc':
-                          return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + '$' + LC('MAIN.CHECKBOX.CPC') + '</span><br>' + '$' +this.value;
-                        case 'clicks':
-                          return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('MAIN.CHECKBOX.CLICKS') + '</span><br>' + this.value;
+                          return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('MAIN.CHECKBOX.IMPRESSIONS') +'</span><br>' + this.value.toString().split(/(?=(?:\d{3})+(?!\d))/).join();
+                        case 'ad_starts':
+                          return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('MAIN.CHECKBOX.fill_rate') +'' + '</span><br>' + this.value+'';
+                        case 'fill_rate':
+                          return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + '' + LC('MAIN.CHECKBOX.fill_rate') + '</span><br>' + '' +this.value;
+                        case 'profit_loss':
+                          return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('MAIN.CHECKBOX.profit_loss') + '</span><br>' + this.value;
                         case 'spend':
-                          return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('MAIN.CHECKBOX.COST') + '</span><br>' + '$' +this.value;
-                        case 'conv':
-                          return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('MAIN.CHECKBOX.CONVERSIONS') + '</span><br>' + this.value;
-                        case 'ctr':
-                          return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('MAIN.CHECKBOX.CTR')+'%' + '</span><br>' + this.value+'%';
+                          return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('MAIN.CHECKBOX.COST') + '</span><br>' + '' +this.value;
                         default:
                           return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + item.name + '</span><br>' + this.value;
                       }
@@ -602,14 +573,12 @@
                       switch (item.name) {
                         case 'imp':
                           return this.value.toString().split(/(?=(?:\d{3})+(?!\d))/).join();
-                        case 'cvr':
-                          return this.value+'%';
-                        case 'cpc':
-                          return '$'+this.value;
-                        case 'spend':
-                          return '$' + this.value;
-                        case 'ctr':
-                          return  this.value+'%';
+                        // case 'cvr':
+                        //   return this.value+'%';
+                        // case 'fill_rate':
+                        //   return '$'+this.value;
+                        // case 'spend':
+                        //   return '$' + this.value;
                       }}
                     return this.value;
                   }
@@ -651,21 +620,21 @@
 
           customizeTooltip: function (arg) {
             //console.log(arg);
-            if (arg.seriesName == 'Cost' || arg.seriesName == 'CPC') {
-              return {
-                text: '$' + arg.valueText
-              };
-            }
-            if (arg.point.series.name == 'Impressions') {
-              return {
-                text: arg.valueText.toString().split(/(?=(?:\d{3})+(?!\d))/).join()}
-            }
-
-            if ((arg.seriesName == 'CTR') || (arg.seriesName == 'CVR')) {
-              return {
-                text: arg.valueText + '%'
-              };
-            }
+            // if (arg.seriesName == 'Cost' || arg.seriesName == 'CPC') {
+            //   return {
+            //     text: '$' + arg.valueText
+            //   };
+            // }
+            // if (arg.point.series.name == 'Impressions') {
+            //   return {
+            //     text: arg.valueText.toString().split(/(?=(?:\d{3})+(?!\d))/).join()}
+            // }
+            //
+            // if ((arg.seriesName == 'CTR') || (arg.seriesName == 'CVR')) {
+            //   return {
+            //     text: arg.valueText + '%'
+            //   };
+            // }
             return {
               text: arg.valueText
             };
@@ -681,8 +650,6 @@
           horizontalLine: {
             label: {
               visible: true,
-
-
               customizeText: function (arg) {
                 //console.log(arg);
                 if (arg.point.series.name == 'Cost' || arg.point.series.name == 'CPC') {
@@ -702,7 +669,6 @@
               visible: true
             }
           }
-
         },
         commonAxisSettings: {
           valueMarginsEnabled: true,
@@ -714,47 +680,32 @@
         argumentAxis: {
           //valueMarginsEnabled: false,
           discreteAxisDivisionMode: 'crossLabels',
-
-
           grid: {
             visible: true
           }
         },
-
         valueAxis: [
           {
             name: 'imp',
             position: 'left',
             label:{
               format:'percent',
-            },
+            }
           },
           {
-            name: 'cvr',
+            name: 'ad_starts',
             position: 'left'
           },
           {
-            name: 'cpc',
+            name: 'fill_rate',
             position: 'left',
-            label:{   format:'currency'},
-
-
-          },
-          {
-            name: 'clicks',
-            position: 'left',
-
           },
           {
             name: 'spend',
             position: 'left'
           },
           {
-            name: 'conv',
-            position: 'left'
-          },
-          {
-            name: 'ctr',
+            name: 'profit_loss',
             position: 'left'
           }
         ],
@@ -767,7 +718,7 @@
       },
       impressions: {
         text: LC('MAIN.CHECKBOX.IMPRESSIONS'),
-        value: $localStorage.checkChart.imp,
+        value: vm.checkChart.imp,
         onInitialized: function (data) {
           vm.Init.push(data.component);
         },
@@ -779,42 +730,42 @@
           CheckLocalStorage();
         }
       },
-      CVR: {
-        text: LC('MAIN.CHECKBOX.CVR'),
-        value: $localStorage.checkChart.cvr,
+      ad_starts: {
+        text: LC('MAIN.CHECKBOX.ad_starts'),
+        value: vm.checkChart.ad_starts,
         onInitialized: function (data) {
           vm.Init.push(data.component);
         },
         onValueChanged: function (e) {
-          vm.updateCharts('CVR', 'cvr', e.value);
+          vm.updateCharts('ad_starts', 'ad_starts', e.value);
           vm.onlyTwo(e.value);
           vm.charIsUpdating = false;
           vm.UI.chartOptions.onDone();
           CheckLocalStorage();
         }
       },
-      CPC: {
-        text: LC('MAIN.CHECKBOX.CPC'),
-        value: $localStorage.checkChart.cpc,
+      fill_rate: {
+        text: LC('MAIN.CHECKBOX.fill_rate'),
+        value: vm.checkChart.fill_rate,
         onInitialized: function (data) {
           vm.Init.push(data.component);
         },
         onValueChanged: function (e) {
-          vm.updateCharts('CPC', 'cpc', e.value);
+          vm.updateCharts('fill_rate', 'fill_rate', e.value);
           vm.onlyTwo(e.value);
           vm.charIsUpdating = false;
           vm.UI.chartOptions.onDone();
           CheckLocalStorage();
         }
       },
-      clicks: {
-        text: LC('MAIN.CHECKBOX.CLICKS'),
-        value: $localStorage.checkChart.clicks,
+      profit_loss: {
+        text: LC('MAIN.CHECKBOX.profit_loss'),
+        value: vm.checkChart.profit_loss,
         onInitialized: function (data) {
           vm.Init.push(data.component);
         },
         onValueChanged: function (e) {
-          vm.updateCharts('Clicks', 'clicks', e.value);
+          vm.updateCharts('profit_loss', 'profit_loss', e.value);
           vm.onlyTwo(e.value);
           vm.charIsUpdating = false;
           vm.UI.chartOptions.onDone();
@@ -823,40 +774,12 @@
       },
       cost: {
         text: LC('MAIN.CHECKBOX.COST'),
-        value: $localStorage.checkChart.spend,
+        value: vm.checkChart.spend,
         onInitialized: function (data) {
           vm.Init.push(data.component);
         },
         onValueChanged: function (e) {
           vm.updateCharts('Cost', 'spend', e.value);
-          vm.onlyTwo(e.value);
-          vm.charIsUpdating = false;
-          vm.UI.chartOptions.onDone();
-          CheckLocalStorage();
-        }
-      },
-      conversions: {
-        text: LC('MAIN.CHECKBOX.CONVERSIONS'),
-        value: $localStorage.checkChart.conv,
-        onInitialized: function (data) {
-          vm.Init.push(data.component);
-        },
-        onValueChanged: function (e) {
-          vm.updateCharts('Conversions', 'conv', e.value);
-          vm.onlyTwo(e.value);
-          vm.charIsUpdating = false;
-          vm.UI.chartOptions.onDone();
-          CheckLocalStorage();
-        }
-      },
-      CTR: {
-        text: LC('MAIN.CHECKBOX.CTR'),
-        value: $localStorage.checkChart.ctr,
-        onInitialized: function (data) {
-          vm.Init.push(data.component);
-        },
-        onValueChanged: function (e) {
-          vm.updateCharts('CTR', 'ctr', e.value);
           vm.onlyTwo(e.value);
           vm.charIsUpdating = false;
           vm.UI.chartOptions.onDone();
@@ -920,7 +843,7 @@
           checkFalse.push(vm.Init[i]);
         }
       }
-      if (checkTrue.length >= 2 && checkFalse.length > 4) {
+      if (checkTrue.length >= 2 && checkFalse.length > 2) {
         for (i = 0; i < checkFalse.length; i++) {
           checkFalse[i].option('disabled', true);
         }

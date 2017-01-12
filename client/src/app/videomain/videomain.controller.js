@@ -353,7 +353,7 @@
             fixed: true,
             cellTemplate: function (container, options) {
               container.addClass('a-campaign');
-              $window.angular.element('<a href="#/home/campaign/' + options.data.campaign_id + '">' + options.data.campaign_name + '</a>')
+              $window.angular.element('<a href="#/home/campaign/' + options.data.campaign_id + '">' + options.data.campaign_name + ' (' + options.data.campaign_id +')</a>')
                 .appendTo(container);
             },
             alignment: 'center'

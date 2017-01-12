@@ -29,7 +29,6 @@ def apiSendVideoCampaignData(request):
     to_date = params["to_date"]
     advertiser_id = request.GET.get("advertiser_id")
     filt, order = getFilterQueryString(params["filter"], request.GET.get("sort"), request.GET.get("order"))
-    print filt
     queryRes = VideoAdCampaigns.objects.raw("""
             SELECT
               vac.id,
@@ -289,12 +288,12 @@ def getFilterQueryString(incFilters, incSort, incOrder):#
             for i in xrange(3, len(filt)):
                 filt[2] += (' ' + filt[i])
             if filt[0] == "campaign":
-                return ansWhere + vocabulary[filt[0]] + " LIKE '" + filt[2] + "%%'", ansOrder
+                return ansWhere + vocabulary[filt[0]] + " LIKE '%%" + filt[2] + "%%'", ansOrder
             else:
                 return ansWhere + vocabulary[filt[0]] + filt[1] + filt[2], ansOrder
     for filt in separatedFilters:
         if filt[0] == "campaign":
-            ansWhere = ansWhere + vocabulary[filt[0]] + " LIKE '" + filt[2] + "%%' AND "
+            ansWhere = ansWhere + vocabulary[filt[0]] + " LIKE '%%" + filt[2] + "%%' AND "
         else:
             ansWhere = ansWhere + vocabulary[filt[0]] + filt[1] + filt[2] + " AND "
     if ansWhere == "WHERE ":

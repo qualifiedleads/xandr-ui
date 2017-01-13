@@ -293,7 +293,7 @@ def getFilterQueryString(incFilters, incSort, incOrder):#
                 return ansWhere + vocabulary[filt[0]] + filt[1] + filt[2], ansOrder
     for filt in separatedFilters:
         if filt[0] == "campaign":
-            ansWhere = ansWhere + vocabulary[filt[0]] + " LIKE '%%" + filt[2] + "%%' AND "
+            ansWhere = ansWhere + vocabulary[filt[0]] + " LIKE '%%" + filt[2][1:-1] + "%%' AND "
         else:
             ansWhere = ansWhere + vocabulary[filt[0]] + filt[1] + filt[2] + " AND "
     if ansWhere == "WHERE ":

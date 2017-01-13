@@ -19,19 +19,23 @@
     $rootScope.id = null;
     var LC = $translate.instant;
     /** LOCAL STORAGE CHECKBOX - START **/
-    vm.checkChart = {
+
+    if ($localStorage.checkChartVideo == null) {
+      $localStorage.checkChartVideo = {
         'imp': true,
         'ad_starts': false,
         'fill_rate': false,
         'profit_loss': false,
         'spend': false
-    };
+      };
+    }
+
     var chartSeries = [
-      {valueField: 'imp', name: 'Impressions', axis: 'imp', visible: vm.checkChart.imp},
-      {valueField: 'ad_starts', name: 'ad_starts', axis: 'ad_starts', visible: vm.checkChart.ad_starts},
-      {valueField: 'fill_rate', name: 'fill_rate', axis: 'fill_rate', visible: vm.checkChart.fill_rate},
-      {valueField: 'profit_loss', name: 'profit_loss', axis: 'profit_loss', visible: vm.checkChart.profit_loss},
-      {valueField: 'spend', name: 'Cost', axis: 'spend', visible: vm.checkChart.spend},
+      {valueField: 'imp', name: 'Impressions', axis: 'imp', visible: $localStorage.checkChartVideo.imp},
+      {valueField: 'ad_starts', name: 'ad_starts', axis: 'ad_starts', visible: $localStorage.checkChartVideo.ad_starts},
+      {valueField: 'fill_rate', name: 'fill_rate', axis: 'fill_rate', visible: $localStorage.checkChartVideo.fill_rate},
+      {valueField: 'profit_loss', name: 'profit_loss', axis: 'profit_loss', visible: $localStorage.checkChartVideo.profit_loss},
+      {valueField: 'spend', name: 'Cost', axis: 'spend', visible: $localStorage.checkChartVideo.spend},
     ];
 
     /** DATE PIKER - START **/
@@ -144,8 +148,8 @@
     }
 
     function CheckLocalStorage() {
-      for (var item in vm.checkChart) {
-        if (vm.checkChart[item]) {
+      for (var item in $localStorage.checkChartVideo) {
+        if ($localStorage.checkChartVideo[item]) {
           if (item == 'imp') {
             vm.chartOptionsFunc.getSeriesByName('Impressions').show();
           }
@@ -188,7 +192,7 @@
      */
     vm.updateCharts = function (seriesName, seriesShortName, selected) {
       var gridCharts = {};
-      vm.checkChart[seriesShortName] = selected;
+      $localStorage.checkChartVideo[seriesShortName] = selected;
       var i = 0;
       if (selected) {
         vm.chartOptionsFunc.getSeriesByName(seriesName).show();
@@ -598,7 +602,7 @@
             var update = [];
             var flag = 'left';
             vm.UI.chartOptions.valueAxis.forEach(function (item, index) {
-              var visible = vm.checkChart[item.name];
+              var visible = $localStorage.checkChartVideo[item.name];
               update.push({
                 name: item.name,
                 position: flag,
@@ -776,7 +780,7 @@
       },
       impressions: {
         text: LC('MAIN.CHECKBOX.IMPRESSIONS'),
-        value: vm.checkChart.imp,
+        value: $localStorage.checkChartVideo.imp,
         onInitialized: function (data) {
           vm.Init.push(data.component);
         },
@@ -790,7 +794,7 @@
       },
       ad_starts: {
         text: LC('MAIN.CHECKBOX.ad_starts'),
-        value: vm.checkChart.ad_starts,
+        value: $localStorage.checkChartVideo.ad_starts,
         onInitialized: function (data) {
           vm.Init.push(data.component);
         },
@@ -804,7 +808,7 @@
       },
       fill_rate: {
         text: LC('MAIN.CHECKBOX.fill_rate'),
-        value: vm.checkChart.fill_rate,
+        value: $localStorage.checkChartVideo.fill_rate,
         onInitialized: function (data) {
           vm.Init.push(data.component);
         },
@@ -818,7 +822,7 @@
       },
       profit_loss: {
         text: LC('MAIN.CHECKBOX.profit_loss'),
-        value: vm.checkChart.profit_loss,
+        value: $localStorage.checkChartVideo.profit_loss,
         onInitialized: function (data) {
           vm.Init.push(data.component);
         },
@@ -832,7 +836,7 @@
       },
       cost: {
         text: LC('MAIN.CHECKBOX.COST'),
-        value: vm.checkChart.spend,
+        value: $localStorage.checkChartVideo.spend,
         onInitialized: function (data) {
           vm.Init.push(data.component);
         },

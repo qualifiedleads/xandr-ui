@@ -1,123 +1,117 @@
 from rtb.models.video_ad_models import VideoAdCampaigns
-from rtb.models import Advertiser, SiteDomainPerformanceReport
-from rtb.models.rtb_impression_tracker import RtbAdStartTracker, RtbImpressionTracker
+from rtb.models import Advertiser
 from django.utils import timezone
 from datetime import datetime, timedelta
-from django.db.models import Sum, Min, Max, Avg, Value, When, Case, F, Q, Func, FloatField
+from django.db.models import Max
 
 def fillVideoAdDataCron():
     print "Begin of collecting hourly data for video ad"
-    now = timezone.make_aware(datetime.now(),
-                        timezone.get_default_timezone())
-    before = now - timedelta(hours=1)
+    now = timezone.make_aware(datetime.now(), timezone.get_default_timezone())
 
-    last_date = VideoAdCampaigns.objects.aggregate(Max("date"))["date__max"]
+    last_date = VideoAdCampaigns.objects.aggregate(Max("date"))
+    if not last_date:
+        last_date = now - timedelta(hours=1)
+    else:
+        last_date = last_date["date__max"]
 
-    if before < last_date:
-        print "1 hour hasn't pass"
-        return -1
+    after = last_date + timedelta(hours=1) - timedelta(microseconds=1)
 
-    allAdv = []
-    queryRes = Advertiser.objects.filter(
-        ad_type="videoAds"
-    )
-    for row in queryRes:
-        allAdv.append(row.id)
-
-    queryRes = SiteDomainPerformanceReport.objects.filter(
-        day__gte=before,
-        day__lte=now,
-        advertiser_id__in=allAdv
-    ).values(
-        "advertiser_id", "campaign_id"
-    ).annotate(
-        spend=Sum("media_cost"),
-        imp=Sum("imps"),
-    ).annotate(
-        cpm=Case(When(~Q(imp=0), then=1.0 * F('spend') / F('imp') * 1000), output_field=FloatField()),
-    )
-    bulkAll = []
-    for row in queryRes:
-        query = RtbAdStartTracker.objects.raw("""
-                SELECT
-                  "CpId" as id,
-                  SUM(cpvm::float) AS allcpvm,
-                  COUNT(id) AS ad_starts,
-                  case COUNT(id) when 0 then 0 else SUM(cpvm::float)/COUNT(id) end cpvm
-                FROM
-                  rtb_adstart_tracker
-                WHERE
-                  "CpId" = '""" + str(row["campaign_id"]) + """'
-                  AND
-                  "Date" >='""" + str(before) + """'
-                  AND
-                  "Date" <='""" + str(now) + """'
-                GROUP BY
-                  "CpId"
-                  """
-                                              )
-        ans = VideoAdCampaigns()
-        temp = 0
-        for r in query:
-            temp = r
-        if temp == 0:
-            ans.ad_starts_hour = 0
-            ans.cpvm_hour = 0
-            ans.spent_cpvm_hour = 0
-            ans.fill_rate_hour = 0
-            ans.profit_loss_hour = row["cpm"] * row["imp"]
+    while after < now:
+        bulkAll = []
+        queryRes = Advertiser.objects.raw("""
+        SELECT
+          advertiser.id,
+          camp.id AS campaign_id,
+          report.sum_cost,
+          report.sum_imps,
+          report.cpm,
+          video.allcpvm,
+          video.ad_starts,
+          video.cpvm,
+          imp_tracker.price_paid,
+          imp_tracker.bid_price,
+          CASE report.sum_imps WHEN 0 THEN 0 ELSE video.ad_starts/report.sum_imps*100 end fill_rate,
+          coalesce(report.cpm * report.sum_imps - video.cpvm * video.ad_starts,report.cpm * report.sum_imps,-video.cpvm * video.ad_starts,0) AS profit_loss
+        FROM
+          advertiser
+          LEFT JOIN (
+          SELECT
+            id,
+            advertiser_id
+          FROM
+            campaign
+          ) AS camp
+          ON camp.advertiser_id=advertiser.id
+          LEFT JOIN(
+            SELECT
+              campaign_id,
+              SUM(media_cost) AS sum_cost,
+              SUM(imps) AS sum_imps,
+              case SUM(imps) when 0 then 0 else SUM(media_cost)/SUM(imps) end cpm
+            FROM
+              site_domain_performance_report
+            WHERE
+              day >= '""" + str(last_date) + """'
+              AND
+              day <= '""" + str(after) + """'
+            GROUP BY
+              campaign_id
+          ) AS report
+          ON camp.id=report.campaign_id
+          LEFT JOIN(
+            SELECT
+              "CpId",
+              SUM(cpvm) AS allcpvm,
+              case COUNT("CpId") when 0 then 0 else COUNT("CpId") end ad_starts,
+              case COUNT(id) when 0 then 0 else SUM(cpvm)/COUNT("CpId") end cpvm
+            FROM
+              rtb_adstart_tracker
+            WHERE
+              "Date" >='""" + str(last_date) + """'
+              AND
+              "Date" <='""" + str(after) + """'
+            GROUP BY
+              "CpId"
+          ) AS video
+          ON camp.id=video."CpId"
+          LEFT JOIN (
+            SELECT
+              "CpId",
+              SUM("PricePaid") AS price_paid,
+              SUM("BidPrice") AS bid_price
+            FROM
+              rtb_impression_tracker
+            WHERE
+              "Date" >='""" + str(last_date) + """'
+            AND
+              "Date" <='""" + str(after) + """'
+            GROUP BY
+              "CpId"
+          ) AS imp_tracker
+          ON camp.id=imp_tracker."CpId"
+        WHERE advertiser.ad_type='videoAds';
+        """)
+        for row in queryRes:
+            bulkAll.append(VideoAdCampaigns(
+                advertiser_id=row.id,
+                campaign_id=row.campaign_id,
+                date=after,
+                imp_hour=row.sum_imps,
+                ad_starts_hour=row.ad_starts,
+                spent_hour=row.sum_cost,
+                cpm_hour=row.cpm,
+                spent_cpm_hour=row.price_paid,
+                bid_hour=row.bid_price,
+                cpvm_hour=row.cpvm,
+                spent_cpvm_hour=row.allcpvm,
+                fill_rate_hour=row.fill_rate,
+                profit_loss_hour=row.profit_loss
+            ))
+        if not bulkAll:
+            print "There is nothing to add to table from " + str(last_date) + " to " + str(after)
         else:
-            ans.ad_starts_hour = temp.ad_starts
-            ans.cpvm_hour = temp.cpvm
-            ans.spent_cpvm_hour = temp.allcpvm
-            ans.fill_rate_hour = float(temp.ad_starts) / float(row["imp"])
-            ans.profit_loss_hour = row["cpm"] * row["imp"] - temp.cpvm * float(temp.ad_starts)
-
-        query = RtbImpressionTracker.objects.raw("""
-                            SELECT
-                              "CpId" as id,
-                              SUM("PricePaid"::float) AS price_paid,
-                              SUM("BidPrice"::float) AS bid_price
-                            FROM
-                              rtb_impression_tracker
-                            WHERE
-                              "CpId" = '""" + str(row["campaign_id"]) + """'
-                              AND
-                              "Date" >='""" + str(before) + """'
-                              AND
-                              "Date" <='""" + str(now) + """'
-                            GROUP BY
-                              "CpId"
-                              """
-                                                 )
-        temp = 0
-        for r in query:
-            temp = r
-        if temp == 0:
-            ans.bid_hour = 0
-            ans.spent_cpm_hour = 0
-        else:
-            ans.bid_hour = temp.bid_price
-            ans.spent_cpm_hour = temp.price_paid
-
-        bulkAll.append(VideoAdCampaigns(
-            advertiser_id=row["advertiser_id"],
-            campaign_id=row["campaign_id"],
-            date=now,
-            imp_hour=row["imp"],
-            ad_starts_hour=ans.ad_starts_hour,
-            spent_hour=row["spend"],
-            cpm_hour=row["cpm"],
-            spent_cpm_hour=ans.spent_cpm_hour,
-            bid_hour=ans.bid_hour,
-            cpvm_hour=ans.cpvm_hour,
-            spent_cpvm_hour=ans.spent_cpvm_hour,
-            fill_rate_hour=ans.fill_rate_hour,
-            profit_loss_hour=ans.profit_loss_hour
-        ))
-    if not bulkAll:
-        print "There is nothing to add to table"
-        return -1
-    VideoAdCampaigns.objects.bulk_create(bulkAll)
-    print "Video ad data has been added"
-    return 1
+            VideoAdCampaigns.objects.bulk_create(bulkAll)
+            print "Video ad data from " + str(last_date) + " to " + str(after) + " has been added"
+        last_date = last_date + timedelta(hours=1)
+        after = last_date + timedelta(hours=1) - timedelta(microseconds=1)
+    print "Refreshing of the video ad hourly data is finished"

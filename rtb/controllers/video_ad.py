@@ -1,6 +1,6 @@
 from rest_framework.decorators import api_view, parser_classes
 from rest_framework.response import Response
-from rtb.models import Advertiser, SiteDomainPerformanceReport, GeoAnaliticsReport
+from rtb.models import Advertiser, SiteDomainPerformanceReport, GeoAnaliticsReport, RtbAdStartTracker
 from rest_framework import status
 from django.db.models import Sum
 from django.http import JsonResponse
@@ -8,6 +8,8 @@ from rtb.utils import parse_get_params
 import rtb.countries
 from rtb.models.video_ad_models import VideoAdCampaigns
 import re
+import collections
+import datetime
 
 
 @api_view(["PUT"])
@@ -361,68 +363,66 @@ def apiSendVideoCampaignStatistics(request):
     advertiser_id = request.GET.get("advertiser_id")
 
     queryRes = SiteDomainPerformanceReport.objects.raw("""
-            SELECT
-              DISTINCT m_rep.day::timestamp::date AS id,
-              report.sum_imp AS imp,
-              report.sum_spend AS spend,
-              video.ad_s AS ad_starts,
-              case report.sum_imp when 0 then 0 else video.ad_s::float / report.sum_imp end fill_rate,
-              report.cpm * report.sum_imp - video.cpvm * video.ad_s AS profit_loss
-            FROM
-              site_domain_performance_report m_rep
-              LEFT JOIN(
-                SELECT
-                  "Date"::timestamp::date AS dates,
-                  COUNT("AdvId") AS ad_s,
-                  case COUNT("AdvId") when 0 then 0 else SUM(cpvm)/COUNT("AdvId") end cpvm
-                FROM
-                  rtb_adstart_tracker
-                WHERE
-                  "AdvId"=""" + str(advertiser_id) + """
-                AND
-                  "Date" >= '""" + str(from_date) + """'
-                AND
-                  "Date" <= '""" + str(to_date) + """'
-                GROUP BY
-                  "Date"::timestamp::date
-              ) AS video
-              ON m_rep.day=video.dates
-              INNER JOIN(
-                SELECT
-                  day::timestamp::date AS sum_date,
-                  SUM(imps) AS sum_imp,
-                  SUM(media_cost) AS sum_spend,
-                  case SUM(imps) when 0 then 0 else SUM(media_cost)::float/SUM(imps) end cpm
-                FROM
-                  site_domain_performance_report
-                WHERE
-                  advertiser_id = """ + str(advertiser_id) + """
-                AND
-                  day >= '""" + str(from_date) + """'
-                AND
-                  day <= '""" + str(to_date) + """'
-                GROUP BY
-                  day::timestamp::date
-              ) AS report
-              ON m_rep.day=report.sum_date
-            WHERE
-              day >= '""" + str(from_date) + """'
-            AND
-              day <= '""" + str(to_date) + """'
-            ORDER BY
-              m_rep.day::timestamp::date
-            """)
-
-    answer = []
+    SELECT
+      day::timestamp::date AS id,
+      SUM(imps) AS sum_imp,
+      SUM(media_cost) AS sum_spend,
+      case SUM(imps) when 0 then 0 else SUM(media_cost)::float/SUM(imps) end cpm
+    FROM
+      site_domain_performance_report
+    WHERE
+      advertiser_id = """ + str(advertiser_id) + """
+    AND
+      day >= '""" + str(from_date) + """'
+    AND
+      day <= '""" + str(to_date) + """'
+    GROUP BY
+      day::timestamp::date
+    """)
+    dictAns = {}
+    allCpms = {}
     for row in queryRes:
-        answer.append({
+        dictAns[row.id] = {
             "day": row.id,
-            "imp": row.imp,
-            "spend": row.spend,
-            "ad_starts": row.ad_starts,
-            "fill_rate": row.fill_rate,
-            "profit_loss": row.profit_loss
-        })
+            "imp": checkInt(row.sum_imp),
+            "spend": checkFloat(row.sum_spend)
+        }
+        allCpms[row.id] = checkFloat(row.cpm)
+
+    queryRes = RtbAdStartTracker.objects.raw("""
+        SELECT
+          "Date"::TIMESTAMP::DATE AS id,
+          COUNT("AdvId") AS ad_starts,
+          case COUNT("AdvId") when 0 then 0 else SUM(cpvm)/COUNT("AdvId") end cpvm
+        FROM
+          rtb_adstart_tracker
+        WHERE
+          "AdvId" = """ + str(advertiser_id) + """
+        AND
+          "Date" >= '""" + str(from_date) + """'
+        AND
+          "Date" <= '""" + str(to_date) + """'
+        GROUP BY
+          "Date"::TIMESTAMP::DATE;
+    """)
+    for row in queryRes:
+        if row.id in dictAns:
+            dictAns[row.id]["ad_starts"] = checkInt(row.ad_starts)
+            dictAns[row.id]["fill_rate"] = 0 if dictAns[row.id]["imp"] == 0 else (float(dictAns[row.id]["ad_starts"]) / dictAns[row.id]["imp"] * 100)
+            dictAns[row.id]["profit_loss"] = allCpms[row.id] * dictAns[row.id]["imp"] - float(row.cpvm) * row.ad_starts
+        else:
+            dictAns[row.id] = {
+                "day": row.id,
+                "imp": 0,
+                "spend": 0,
+                "ad_starts": checkInt(row.ad_starts),
+                "fill_rate": 0,
+                "profit_loss": (-checkFloat(row.cpvm) * row.ad_starts)
+            }
+    answer = []
+    orderedAns = collections.OrderedDict(sorted(dictAns.items()))
+    for key, value in orderedAns.iteritems():
+        answer.append(value)
     return Response(answer)
 
 def checkFloat(number):

@@ -271,7 +271,7 @@ def getFilterQueryString(incFilters, incSort, incOrder):#
     vocabulary["fill_rate_hour"] = "vac.fill_rate_hour"
     vocabulary["profit_loss_hour"] = "vac.profit_loss_hour"
 
-    ansWhere = "WHERE "
+    ansWhere = "WHERE ("
     ansOrder = "ORDER BY "
 
     ansOrder = ansOrder + vocabulary[str(incSort)] + ' ' + str(incOrder)
@@ -288,17 +288,39 @@ def getFilterQueryString(incFilters, incSort, incOrder):#
             for i in xrange(3, len(filt)):
                 filt[2] += (' ' + filt[i])
             if filt[0] == "campaign":
-                return ansWhere + vocabulary[filt[0]] + " LIKE '%%" + filt[2] + "%%'", ansOrder
+                if filt[1] == "<>":
+                    return ansWhere + vocabulary[filt[0]] + " NOT LIKE '%%" + filt[2] + "%%')", ansOrder
+                else:
+                    return ansWhere + vocabulary[filt[0]] + " LIKE '%%" + filt[2] + "%%')", ansOrder
             else:
-                return ansWhere + vocabulary[filt[0]] + filt[1] + filt[2], ansOrder
-    for filt in separatedFilters:
-        if filt[0] == "campaign":
-            ansWhere = ansWhere + vocabulary[filt[0]] + " LIKE '%%" + filt[2][1:-1] + "%%' AND "
+                return ansWhere + vocabulary[filt[0]] + filt[1] + filt[2] + ')', ansOrder
+    if separatedFilters[0][0] == "campaign":
+        if separatedFilters[0][1] == "<>":
+            ansWhere = ansWhere + vocabulary[separatedFilters[0][0]] + " NOT LIKE '%%" + separatedFilters[0][2][1:-1] + "%%'"
         else:
-            ansWhere = ansWhere + vocabulary[filt[0]] + filt[1] + filt[2] + " AND "
-    if ansWhere == "WHERE ":
-        return '', ansOrder
-    return ansWhere[:-5], ansOrder
+            ansWhere = ansWhere + vocabulary[separatedFilters[0][0]] + " LIKE '%%" + separatedFilters[0][2][
+                                                                                     1:-1] + "%%'"
+    else:
+        ansWhere = ansWhere + vocabulary[separatedFilters[0][0]] + separatedFilters[0][1] + separatedFilters[0][2]
+    lastColumn = separatedFilters[0][0]
+
+    for i in xrange(1, len(separatedFilters)):
+        if lastColumn == separatedFilters[i][0] and separatedFilters[i][1] == '=':
+            ansWhere += " OR "
+        else:
+            ansWhere += ") AND ("
+        if separatedFilters[i][0] == "campaign":
+            if separatedFilters[i][1] == "<>":
+                ansWhere = ansWhere + vocabulary[separatedFilters[i][0]] + " NOT LIKE '%%" + separatedFilters[i][2][1:-1] + "%%'"
+            else:
+                ansWhere = ansWhere + vocabulary[separatedFilters[i][0]] + " LIKE '%%" + separatedFilters[i][2][
+                                                                                         1:-1] + "%%'"
+        else:
+            ansWhere = ansWhere + vocabulary[separatedFilters[i][0]] + separatedFilters[i][1] + separatedFilters[i][2]
+        lastColumn = separatedFilters[i][0]
+    ansWhere += ')'
+
+    return ansWhere, ansOrder
 
 @api_view(["GET"])
 # @check_user_advertiser_permissions(campaign_id_num=0)

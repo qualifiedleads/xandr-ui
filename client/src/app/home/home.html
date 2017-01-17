@@ -14,10 +14,10 @@
       <div class="row">
         <div style="display: table" class="col-lg-12 col-md-12 col-sm-12">
           <div class="home-navigation">
-          <a href="#" class="btn btn-primary admin-btn" ui-sref="auth">
-            <span class="glyphicon glyphicon-home"></span> {{ 'COMMON.TO-MAIN-PAGE' | translate }}
-          </a>
-        </div>
+            <a href="#" class="btn btn-primary admin-btn" ui-sref="auth">
+              <span class="glyphicon glyphicon-home"></span> {{ 'COMMON.TO-MAIN-PAGE' | translate }}
+            </a>
+          </div>
           <a ui-sref="home.main" ng-show="home.usual" class="navbar-brand" > {{ 'INDEX.ADVERTISER_TITLE' | translate }} {{ home.advertiser.name }}</a>
           <a ui-sref="home.videomain" ng-show="home.video" class="navbar-brand" > {{ 'INDEX.ADVERTISER_TITLE' | translate }} {{ home.advertiser.name }}</a>
           <div ng-if="home.bannerText != ''" class="wrapping-tech-banner" id="techBanner">
@@ -26,7 +26,13 @@
             </div>
             <span ng-click=home.hideBanner() class='close-block'></span>
           </div>
+
           <div class="location">
+            <div class="location-help">
+              <div>
+                <a href="https://rtbcat.atlassian.net/wiki/display/RCHW/RTB+Cat+Help+Wiki?src=spacemenu" target="_blank">Help</a>
+              </div>
+            </div>
             <div class="location-language">
               <a ng-click="root.changeLang('ru')">
                 <i class="fa fa-globe fa-fw"></i> Русский

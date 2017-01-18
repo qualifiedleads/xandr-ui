@@ -27,6 +27,7 @@ from models import Advertiser, Campaign, SiteDomainPerformanceReport, Profile, L
 
 from pytz import utc
 from utils import get_all_classes_in_models, get_current_time, clean_old_files
+from rtb.crons.video_ad_cron import fillVideoAdDataCron
 
 table_names = {c._meta.db_table: c for c in get_all_classes_in_models(models)}
 
@@ -679,6 +680,7 @@ def dayly_task(day=None, load_objects_from_services=True, output=None):
         sys.stdout, sys.stderr = old_stdout, old_error
         if file_output:
             file_output.close()
+    fillVideoAdDataCron()
     print "OK"
 
 

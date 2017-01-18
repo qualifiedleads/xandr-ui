@@ -75,7 +75,12 @@ FROM
                 day <='""" + str(to_date) + """'
              ) AS report
            ON report.campaign_id=vac.campaign_id
-         where vac.campaign_id=video_ad_campaigns.campaign_id
+         where
+           vac.campaign_id=video_ad_campaigns.campaign_id
+         AND
+           coalesce(vac.date, report.day) >='""" + str(from_date) + """'
+         AND
+           coalesce(vac.date, report.day) <='""" + str(to_date) + """'
          group by vac.campaign_id,coalesce(vac.date, report.day))) stats
     FROM
       video_ad_campaigns

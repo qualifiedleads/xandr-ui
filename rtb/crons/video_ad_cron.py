@@ -6,10 +6,10 @@ from django.db.models import Max
 
 def fillVideoAdDataCron():
     print "Begin of collecting hourly data for video ad"
-    now = timezone.make_aware(datetime.now(), timezone.get_default_timezone())
+    now = datetime.now()
 
     last_date = VideoAdCampaigns.objects.aggregate(Max("date"))
-    if not last_date:
+    if last_date["date__max"] is None:
         last_date = now - timedelta(hours=1)
     else:
         last_date = last_date["date__max"]

@@ -32,9 +32,8 @@ def fillVideoAdDataCron():
                       imp_tracker.price_paid,
                       imp_tracker.bid_price,
                       CASE report.sum_imps WHEN 0 THEN 0 ELSE video.ad_starts::float/report.sum_imps*100 end fill_rate,
-                      --report.cpm/1000 ???
-                      coalesce(video.cpvm * video.ad_starts - report.cpm * report.sum_imps,-report.cpm * report.sum_imps,video.cpvm * video.ad_starts,0) AS profit_loss,
-                      --coalesce(video.allcpvm-report.sum_cost,-report.sum_cost,video.allcpvm,0) AS profit_loss
+                      --coalesce(video.cpvm * video.ad_starts - report.cpm * report.sum_imps,-report.cpm * report.sum_imps,video.cpvm * video.ad_starts,0) AS profit_loss,
+                      coalesce(video.allcpvm-report.sum_cost,-report.sum_cost,video.allcpvm,0) AS profit_loss
                     FROM
                       advertiser
                       LEFT JOIN (

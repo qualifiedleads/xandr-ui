@@ -32,6 +32,10 @@
         params: {advertiser_id: advertiser_id, from_date: from_date, to_date: to, by: by}
       })
       .then(function (res) {
+        for (var index in res.data) {
+          res.data[index].day = $window.moment(res.data[index].day).format('DD/MM');
+        }
+
         return res.data;
       })
       .catch(function (err) {

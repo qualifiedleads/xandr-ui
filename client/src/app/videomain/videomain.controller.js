@@ -332,7 +332,7 @@
               column: "fill_rate",
               summaryType: "sum",
               customizeText: function (data) {
-                data.valueText = 'Fill rate: ' + VideoMain.totalSummary.fill_rate.toFixed(4);
+                data.valueText = 'Fill rate: ' + VideoMain.totalSummary.fill_rate.toFixed(4)+'%';
                 return data.valueText;
               }
             },
@@ -348,7 +348,7 @@
               column: "fill_rate_hour",
               summaryType: "sum",
               customizeText: function (data) {
-                data.valueText = 'Fill rate hour: $' + VideoMain.totalSummary.fill_rate_hour.toFixed(4);
+                data.valueText = 'Delta fill rate: ' + VideoMain.totalSummary.fill_rate_hour.toFixed(4)+'%';
                 return data.valueText;
               }
             },
@@ -356,7 +356,7 @@
               column: "profit_loss_hour",
               summaryType: "sum",
               customizeText: function (data) {
-                data.valueText = 'Profit loss hour: $'  + VideoMain.totalSummary.profit_loss_hour.toFixed(2);
+                data.valueText = 'Delta profit loss: $'  + VideoMain.totalSummary.profit_loss_hour.toFixed(2);
                 return data.valueText;
               }
             }
@@ -403,7 +403,7 @@
               dataSource: function (source) {
                 return headerFilterColumn(source, 'sum_imps');
               }
-            },
+            }
           },
           {
             caption: LC('MAIN.CAMPAIGN.COLUMNS.CPM') + ' ,$',
@@ -416,7 +416,7 @@
               dataSource: function (source) {
                 return headerFilterColumn(source, 'cpm');
               }
-            },
+            }
           },
           {
             caption: LC('MAIN.CAMPAIGN.COLUMNS.AD-STARTS'),
@@ -428,7 +428,7 @@
               dataSource: function (source) {
                 return headerFilterColumn(source, 'ad_starts');
               }
-            },
+            }
           },
           {
             caption: LC('MAIN.CAMPAIGN.COLUMNS.FILL-RATE'),
@@ -436,12 +436,12 @@
             alignment: 'center',
             dataType: 'number',
             format:'percent',
-            precision:4,
+            precision:2,
             headerFilter: {
               dataSource: function (source) {
                 return headerFilterColumn(source, 'fill_rate');
               }
-            },
+            }
           },
           {
             caption: LC('MAIN.CAMPAIGN.COLUMNS.PROFIT-LOSS'),
@@ -449,12 +449,12 @@
             alignment: 'center',
             dataType: 'number',
             precision: 2,
-            format:'currency',
+            format:'fixedPoint',
             headerFilter: {
               dataSource: function (source) {
                 return headerFilterColumn(source, 'profit_loss');
               }
-            },
+            }
           },
           {
             caption: LC('MAIN.CAMPAIGN.COLUMNS.FILL-RATE-HOUR'),
@@ -467,7 +467,7 @@
               dataSource: function (source) {
                 return headerFilterColumn(source, 'fill_rate_hour');
               }
-            },
+            }
           },
           {
             caption: LC('MAIN.CAMPAIGN.COLUMNS.PROFIT-LOSS-HOUR'),
@@ -480,7 +480,7 @@
               dataSource: function (source) {
                 return headerFilterColumn(source, 'profit_loss_hour');
               }
-            },
+            }
           },
           {
             width: 200,

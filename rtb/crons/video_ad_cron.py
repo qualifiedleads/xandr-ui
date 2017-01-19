@@ -31,8 +31,10 @@ def fillVideoAdDataCron():
                       video.cpvm,
                       imp_tracker.price_paid,
                       imp_tracker.bid_price,
-                      CASE report.sum_imps WHEN 0 THEN 0 ELSE video.ad_starts/report.sum_imps*100 end fill_rate,
-                      coalesce(report.cpm * report.sum_imps - video.cpvm * video.ad_starts,report.cpm * report.sum_imps,-video.cpvm * video.ad_starts,0) AS profit_loss
+                      CASE report.sum_imps WHEN 0 THEN 0 ELSE video.ad_starts::float/report.sum_imps*100 end fill_rate,
+                      --report.cpm/1000 ???
+                      coalesce(video.cpvm * video.ad_starts - report.cpm * report.sum_imps,-report.cpm * report.sum_imps,video.cpvm * video.ad_starts,0) AS profit_loss,
+                      --coalesce(video.allcpvm-report.sum_cost,-report.sum_cost,video.allcpvm,0) AS profit_loss
                     FROM
                       advertiser
                       LEFT JOIN (
@@ -49,7 +51,7 @@ def fillVideoAdDataCron():
                           campaign_id,
                           SUM(media_cost) AS sum_cost,
                           SUM(imps) AS sum_imps,
-                          case SUM(imps) when 0 then 0 else SUM(media_cost)/SUM(imps) end cpm
+                          case SUM(imps) when 0 then 0 else SUM(media_cost)/SUM(imps)*1000 end cpm
                         FROM
                           site_domain_performance_report
                         WHERE
@@ -65,7 +67,7 @@ def fillVideoAdDataCron():
                           "CpId",
                           SUM(cpvm) AS allcpvm,
                           case COUNT("CpId") when 0 then 0 else COUNT("CpId") end ad_starts,
-                          case COUNT(id) when 0 then 0 else SUM(cpvm)/COUNT("CpId") end cpvm
+                          case COUNT(id) when 0 then 0 else SUM(cpvm)/COUNT("CpId") end cpvm--???
                         FROM
                           rtb_adstart_tracker
                         WHERE

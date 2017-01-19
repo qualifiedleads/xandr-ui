@@ -39,8 +39,8 @@ def apiSendVideoCampaignData(request):
   report.sum_imps,
   report.cpm,
   sum_data.ad_starts,
-  case report.sum_imps when 0 then 0 else sum_data.ad_starts::float/report.sum_imps*100 end fill_rate,
-  coalesce(sum_data.cpvm * sum_data.ad_starts - report.cpm * report.sum_imps,-report.cpm * report.sum_imps,sum_data.cpvm * sum_data.ad_starts,0) AS profit_loss,
+  case report.sum_imps when 0 then 0 else sum_data.ad_starts::float/report.sum_imps end fill_rate,
+  coalesce(sum_data.spent_cpvm-report.spent,-report.spent,sum_data.spent_cpvm,0) AS profit_loss,
   video_ad_campaigns.fill_rate_hour,
   video_ad_campaigns.profit_loss_hour,
   stats
@@ -50,16 +50,15 @@ FROM
     SELECT
       campaign_id,
       SUM(video_ad_campaigns.ad_starts_hour) ad_starts,
-      SUM(video_ad_campaigns.cpvm_hour) cpvm,
+      SUM(video_ad_campaigns.spent_cpvm_hour) spent_cpvm,
       array((select
            json_build_object(
-           'campaign_id', vac.campaign_id,
            'day', coalesce(vac.date, report.day),
            'imp', SUM(report.imps),
            'spend', SUM(report.media_cost),
            'ad_starts', SUM(ad_starts_hour),
-           'fill_rate', case SUM(report.imps) when 0 then 0 else SUM(ad_starts_hour)/SUM(report.imps) end,
-           'profit_loss', coalesce(case SUM(report.imps) when 0 then 0 else SUM(report.media_cost)/SUM(report.imps)*1000 end * SUM(report.imps) - SUM(cpvm_hour) * SUM(ad_starts_hour),case SUM(report.imps) when 0 then 0 else SUM(report.media_cost)/SUM(report.imps) end * 1000 * SUM(report.imps),-SUM(cpvm_hour) * SUM(ad_starts_hour),0))
+           'fill_rate', case SUM(report.imps) when 0 then 0 else SUM(ad_starts_hour)::float/SUM(report.imps)*100 end,
+           'profit_loss', coalesce(SUM(spent_cpvm_hour)-SUM(report.media_cost), -SUM(report.media_cost), SUM(spent_cpvm_hour), 0))
          from video_ad_campaigns as vac
            full JOIN (
              select
@@ -168,7 +167,7 @@ def getVideoCampaignSummary(request):
   case SUM(report.sum_imps) when 0 then 0 else SUM(report.spent)/SUM(report.sum_imps)*1000 end total_cpm,
   SUM(sum_data.ad_starts) total_ad_starts,
   case SUM(report.sum_imps) when 0 then 0 else SUM(sum_data.ad_starts)::float/SUM(report.sum_imps)*100 end total_fill_rate,
-  SUM(coalesce(report.cpm * report.sum_imps - sum_data.cpvm * sum_data.ad_starts,-report.cpm * report.sum_imps,sum_data.cpvm * sum_data.ad_starts,0)) AS total_profit_loss,
+  SUM(coalesce(sum_data.spent_cpvm-report.spent,-report.spent,sum_data.spent_cpvm,0)) AS total_profit_loss,
   case SUM(video_ad_campaigns.imp_hour) when 0 then 0 else SUM(video_ad_campaigns.ad_starts_hour)::float/SUM(video_ad_campaigns.imp_hour)*100 end total_fill_rate_hour,
   SUM(video_ad_campaigns.profit_loss_hour) as total_profit_loss_hour
 FROM
@@ -177,7 +176,7 @@ FROM
     SELECT
       campaign_id,
       SUM(video_ad_campaigns.ad_starts_hour) ad_starts,
-      SUM(video_ad_campaigns.cpvm_hour) cpvm
+      SUM(video_ad_campaigns.spent_cpvm_hour) spent_cpvm
     FROM
       video_ad_campaigns
     WHERE
@@ -227,7 +226,7 @@ def getFilterQueryString(incFilters, incSort, incOrder):#
     vocabulary["cpm"] = "report.cpm"
     vocabulary["ad_starts"] = "sum_data.ad_starts"
     vocabulary["fill_rate"] = "CASE report.sum_imps WHEN 0 THEN 0 ELSE sum_data.ad_starts::float/report.sum_imps*100 end"
-    vocabulary["profit_loss"] = "coalesce(sum_data.cpvm * sum_data.ad_starts - report.cpm * report.sum_imps,-report.cpm * report.sum_imps,sum_data.cpvm * sum_data.ad_starts,0)"
+    vocabulary["profit_loss"] = "coalesce(sum_data.spent_cpvm - report.spent, -report.spent, sum_data.spent_cpvm, 0)"
     vocabulary["fill_rate_hour"] = "video_ad_campaigns.fill_rate_hour*100"
     vocabulary["profit_loss_hour"] = "video_ad_campaigns.profit_loss_hour"
 

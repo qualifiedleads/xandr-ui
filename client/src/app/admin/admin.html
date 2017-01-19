@@ -16,92 +16,98 @@
         </a>
       </div>
       <a href="#" class="btn btn-danger admin-btn" ng-click="root.logout()" >
-         <span class="glyphicon glyphicon-log-out"></span> {{ 'COMMON.LOGOUT' | translate }}
+        <span class="glyphicon glyphicon-log-out"></span> {{ 'COMMON.LOGOUT' | translate }}
       </a>
     </div>
   </div>
   <div class="col-lg-12 col-md-12 col-sm-12 tabs">
     <ul class="nav_posts">
-      <li class="btn btn-success link-first" ng-click="admin.changeTab('first')">{{ 'ADMIN.TECHNICAL-WORK.EDIT-USERS' | translate }}</li> |
-      <li class="btn btn-default link-second" ng-click="admin.changeTab('second')">{{'ADMIN.TECHNICAL-WORK.TECH-WORK' | translate }}</li>
+      <li class="btn btn-default btn-success link-first" ng-click="admin.changeTab('first')">{{ 'ADMIN.TECHNICAL-WORK.EDIT-USERS' | translate }}</li> |
+      <li class="btn btn-default link-second" ng-click="admin.changeTab('second')">{{'ADMIN.TECHNICAL-WORK.TECH-WORK' | translate }}</li> |
+      <li class="btn btn-default link-third" ng-click="admin.changeTab('third')">{{'ADMIN.TECHNICAL-WORK.ADVERTISER-LIST' | translate }}</li>
     </ul>
-    <div class="post-first active">
-  <div class="row content-admin">
-    <div class="col-lg-3 col-md-3 col-sm-12 form-add-user">
-      <h3>{{ 'ADMIN.ANU.ADD-NEW-USER' | translate }}</h3>
-      <form name="admin.userForm" ng-submit="admin.submitForm(admin.user)" novalidate>
-        <div class="form-group" ng-class="{ 'has-error' : admin.userForm.email.$invalid && !admin.userForm.email.$pristine }">
-          <input type="email" name= "email" class="form-control input-item-login"  placeholder="{{ 'ADMIN.ANU.EMAIL' | translate }}" ng-model="admin.user.email" required>
-          <p ng-show="admin.userForm.email.$invalid && !admin.userForm.email.$pristine && admin.userForm.email.$error.required" class="help-block">{{ 'ADMIN.ANU.MAIL-REQUIRED' | translate }}</p>
-          <p ng-show="!admin.userForm.email.$error.required && admin.userForm.email.$invalid && !admin.userForm.email.$pristine" class="help-block">{{ 'ADMIN.ANU.MAIL-VALID' | translate }}</p>
-        </div>
-        <div class="form-group"  ng-class="{ 'has-error' : admin.userForm.password.$invalid && !admin.userForm.password.$pristine }">
-          <input type="password" class="form-control" name="password" ng-model="admin.user.password" placeholder="{{ 'ADMIN.ANU.PASSWORD' | translate }}"  required>
-          <p ng-show="admin.userForm.password.$invalid && !admin.userForm.password.$pristine && admin.userForm.password.$error.required" class="help-block">{{ 'ADMIN.ANU.PASSWORD-REQUIRED' | translate }}</p>
-        </div>
-        <div class="form-group"  ng-class="{ 'has-error' : (admin.userForm.passwordconfirm.$invalid && !admin.userForm.passwordconfirm.$pristine) || ((admin.user.passwordconfirm !== admin.user.password) && !auth.userForm.password.$pristine)}">
-          <input type="password" class="form-control" name="passwordconfirm" ng-model="admin.user.passwordconfirm"  required placeholder="{{ 'ADMIN.ANU.CONFIRM-PASSWORD' | translate }}">
-          <p ng-show="!admin.userForm.passwordconfirm.$error.required && (admin.user.passwordconfirm !== admin.user.password) && !admin.userForm.passwordconfirm.$pristine" class="help-block">{{ 'ADMIN.ANU.CONFIRM-PASSWORD-INCORRECT' | translate }}</p>
-          <p ng-show="admin.userForm.passwordconfirm.$invalid && !admin.userForm.passwordconfirm.$pristine && admin.userForm.passwordconfirm.$error.required" class="help-block">{{ 'ADMIN.ANU.CONFIRM-PASSWORD-REQUIRED' | translate }}</p>
-        </div>
-        <div class="form-group" ng-class="{ 'has-error' : admin.userForm.first_name.$invalid && !admin.userForm.first_name.$pristine }">
-          <input type="text" name= "first_name" class="form-control input-item-login"  placeholder="{{ 'ADMIN.ANU.FIRST-NAME' | translate }}" ng-model="admin.user.first_name" required>
-          <p ng-show="admin.userForm.first_name.$invalid && !admin.userForm.first_name.$pristine && admin.userForm.first_name.$error.required" class="help-block">{{ 'ADMIN.ANU.FIRST-NAME-REQUIRED' | translate }}</p>
-        </div>
-        <div class="form-group" ng-class="{ 'has-error' : admin.userForm.last_name.$invalid && !admin.userForm.last_name.$pristine }">
-          <input type="text" name= "last_name" class="form-control input-item-login"  placeholder="{{ 'ADMIN.ANU.LAST-NAME' | translate }}" ng-model="admin.user.last_name" required>
-          <p ng-show="admin.userForm.last_name.$invalid && !admin.userForm.last_name.$pristine && admin.userForm.last_name.$error.required" class="help-block">{{ 'ADMIN.ANU.LAST-NAME-REQUIRED' | translate }}</p>
-        </div>
+    <div class="post-first " ng-show="admin.first">
+      <div class="row content-admin">
+        <div class="col-lg-3 col-md-3 col-sm-12 form-add-user">
+          <h3>{{ 'ADMIN.ANU.ADD-NEW-USER' | translate }}</h3>
+          <form name="admin.userForm" ng-submit="admin.submitForm(admin.user)" novalidate>
+            <div class="form-group" ng-class="{ 'has-error' : admin.userForm.email.$invalid && !admin.userForm.email.$pristine }">
+              <input type="email" name= "email" class="form-control input-item-login"  placeholder="{{ 'ADMIN.ANU.EMAIL' | translate }}" ng-model="admin.user.email" required>
+              <p ng-show="admin.userForm.email.$invalid && !admin.userForm.email.$pristine && admin.userForm.email.$error.required" class="help-block">{{ 'ADMIN.ANU.MAIL-REQUIRED' | translate }}</p>
+              <p ng-show="!admin.userForm.email.$error.required && admin.userForm.email.$invalid && !admin.userForm.email.$pristine" class="help-block">{{ 'ADMIN.ANU.MAIL-VALID' | translate }}</p>
+            </div>
+            <div class="form-group"  ng-class="{ 'has-error' : admin.userForm.password.$invalid && !admin.userForm.password.$pristine }">
+              <input type="password" class="form-control" name="password" ng-model="admin.user.password" placeholder="{{ 'ADMIN.ANU.PASSWORD' | translate }}"  required>
+              <p ng-show="admin.userForm.password.$invalid && !admin.userForm.password.$pristine && admin.userForm.password.$error.required" class="help-block">{{ 'ADMIN.ANU.PASSWORD-REQUIRED' | translate }}</p>
+            </div>
+            <div class="form-group"  ng-class="{ 'has-error' : (admin.userForm.passwordconfirm.$invalid && !admin.userForm.passwordconfirm.$pristine) || ((admin.user.passwordconfirm !== admin.user.password) && !auth.userForm.password.$pristine)}">
+              <input type="password" class="form-control" name="passwordconfirm" ng-model="admin.user.passwordconfirm"  required placeholder="{{ 'ADMIN.ANU.CONFIRM-PASSWORD' | translate }}">
+              <p ng-show="!admin.userForm.passwordconfirm.$error.required && (admin.user.passwordconfirm !== admin.user.password) && !admin.userForm.passwordconfirm.$pristine" class="help-block">{{ 'ADMIN.ANU.CONFIRM-PASSWORD-INCORRECT' | translate }}</p>
+              <p ng-show="admin.userForm.passwordconfirm.$invalid && !admin.userForm.passwordconfirm.$pristine && admin.userForm.passwordconfirm.$error.required" class="help-block">{{ 'ADMIN.ANU.CONFIRM-PASSWORD-REQUIRED' | translate }}</p>
+            </div>
+            <div class="form-group" ng-class="{ 'has-error' : admin.userForm.first_name.$invalid && !admin.userForm.first_name.$pristine }">
+              <input type="text" name= "first_name" class="form-control input-item-login"  placeholder="{{ 'ADMIN.ANU.FIRST-NAME' | translate }}" ng-model="admin.user.first_name" required>
+              <p ng-show="admin.userForm.first_name.$invalid && !admin.userForm.first_name.$pristine && admin.userForm.first_name.$error.required" class="help-block">{{ 'ADMIN.ANU.FIRST-NAME-REQUIRED' | translate }}</p>
+            </div>
+            <div class="form-group" ng-class="{ 'has-error' : admin.userForm.last_name.$invalid && !admin.userForm.last_name.$pristine }">
+              <input type="text" name= "last_name" class="form-control input-item-login"  placeholder="{{ 'ADMIN.ANU.LAST-NAME' | translate }}" ng-model="admin.user.last_name" required>
+              <p ng-show="admin.userForm.last_name.$invalid && !admin.userForm.last_name.$pristine && admin.userForm.last_name.$error.required" class="help-block">{{ 'ADMIN.ANU.LAST-NAME-REQUIRED' | translate }}</p>
+            </div>
 
-        <div class="form-group">
-          <select ng-model="admin.user.permission" name="permission" class="select-user-type form-control" title="user">
-            <option value="" disabled selected>{{ 'ADMIN.ANU.SELECT-PERMISSION' | translate }}</option>
-            <option value="adminfull">admin full</option>
-            <option value="adminread">admin read-only</option>
-            <option value="userfull">user full</option>
-            <option value="userread">user read-only</option>
-          </select>
+            <div class="form-group">
+              <select ng-model="admin.user.permission" name="permission" class="select-user-type form-control" title="user">
+                <option value="" disabled selected>{{ 'ADMIN.ANU.SELECT-PERMISSION' | translate }}</option>
+                <option value="adminfull">admin full</option>
+                <option value="adminread">admin read-only</option>
+                <option value="userfull">user full</option>
+                <option value="userread">user read-only</option>
+              </select>
+            </div>
+            <div ng-show="admin.user.permission=='userfull' || admin.user.permission=='userread'" class="form-group">
+              <div dx-select-box="admin.UI.selectAppNexusUser"></div>
+            </div>
+            <button type="submit" class="btn btn-primary" ng-disabled="admin.userForm.$invalid">{{ 'ADMIN.ANU.SUBMIT' | translate }}</button>
+          </form>
         </div>
-        <div ng-show="admin.user.permission=='userfull' || admin.user.permission=='userread'" class="form-group">
-          <div dx-select-box="admin.UI.selectAppNexusUser"></div>
+        <div class="col-lg-9 col-md-9 col-sm-12">
+          <h3>{{ 'ADMIN.LIST-USER.TITLE' | translate }}</h3>
+          <div dx-data-grid="admin.UI.listOfUsers" id="usersList"></div>
         </div>
-        <button type="submit" class="btn btn-primary" ng-disabled="admin.userForm.$invalid">{{ 'ADMIN.ANU.SUBMIT' | translate }}</button>
-      </form>
-    </div>
-    <div class="col-lg-9 col-md-9 col-sm-12">
-      <h3>{{ 'ADMIN.LIST-USER.TITLE' | translate }}</h3>
-      <div dx-data-grid="admin.UI.listOfUsers" id="usersList"></div>
-    </div>
-  </div>
+      </div>
     </div>
 
-    <div class="post-second non-active col-lg-12 col-md-12 col-sm-12">
+    <div class="post-second col-lg-12 col-md-12 col-sm-12" ng-show="admin.second">
       <div class="col-lg-4 col-md-4 col-sm-12">
      <span class="toggle-bg">
     <input type="radio" name="toggle" ng-click="admin.valueOfTech(admin.name)" ng-change = admin.changeTechWork(admin.name) ng-model="admin.name" value="off">
     <input type="radio" name="toggle" ng-click="admin.valueOfTech(admin.name)" ng-change = admin.changeTechWork(admin.name) ng-model="admin.name"  value="on">
     <span class="switch"></span>
       </span>
-      <span class="checkbox-value">{{admin.name}}</span> - {{ 'ADMIN.TECHNICAL-WORK.TECH-WORK-SWITCHER' | translate }}
+        <span class="checkbox-value">{{admin.name}}</span> - {{ 'ADMIN.TECHNICAL-WORK.TECH-WORK-SWITCHER' | translate }}
 
-      <form class="admin-banner"  ng-submit="admin.submitBannerText(admin.bannerText)">
-        <div class="form-group">
-          <textarea   id="" cols="30" rows="10" ng-model="admin.bannerText" placeholder="Текст банера для пользователей с предупреждением о проведении технических работ на сайте/сервере">{{admin.bannerText}}</textarea>
-        </div>
-        <div class="form-group">
-          <button type="submit" class="btn btn-primary">ON</button>
-          <button type="button" class="btn btn-primary" ng-click="admin.cleanBannerText()">OFF</button>
-          <div style="float: right"><b>{{ 'ADMIN.TECHNICAL-WORK.TECH-STATUS-BANNER' | translate }} - <span style="color: #3c763d">{{admin.statusBanner}}</span></b></div>
-        </div>
-      </form>
+        <form class="admin-banner"  ng-submit="admin.submitBannerText(admin.bannerText)">
+          <div class="form-group">
+            <textarea   id="" cols="30" rows="10" ng-model="admin.bannerText" placeholder="Текст банера для пользователей с предупреждением о проведении технических работ на сайте/сервере">{{admin.bannerText}}</textarea>
+          </div>
+          <div class="form-group">
+            <button type="submit" class="btn btn-primary">ON</button>
+            <button type="button" class="btn btn-primary" ng-click="admin.cleanBannerText()">OFF</button>
+            <div style="float: right"><b>{{ 'ADMIN.TECHNICAL-WORK.TECH-STATUS-BANNER' | translate }} - <span style="color: #3c763d">{{admin.statusBanner}}</span></b></div>
+          </div>
+        </form>
       </div>
 
-    <div class="col-lg-8 col-md-8 col-sm-12 tech-record">
-      <h3>{{ 'ADMIN.TECHNICAL-WORK.TECH-JOURNAL' | translate }}</h3>
-      <div dx-data-grid="admin.UI.techRecords" id="techRecords"></div>
+      <div class="col-lg-8 col-md-8 col-sm-12 tech-record">
+        <h3>{{ 'ADMIN.TECHNICAL-WORK.TECH-JOURNAL' | translate }}</h3>
+        <div dx-data-grid="admin.UI.techRecords" id="techRecords"></div>
+      </div>
     </div>
-    </div>
+
+    <div class="post-third col-lg-6 col-md-9 col-sm-12" ng-show="admin.third">
+      <h3>{{ 'ADMIN.TECHNICAL-WORK.ADVERTISER-LIST' | translate }}</h3>
+      <div dx-data-grid="admin.UI.advertiserList" ></div>
     </div>
   </div>
-</div>-
+</div>
+</div>
 

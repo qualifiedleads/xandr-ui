@@ -56,6 +56,7 @@
       "TECHNICAL-WORK": {
         "EDIT-USERS" : "Edit users",
         'TECH-WORK':'Technical works',
+        'ADVERTISER-LIST':'Advertiser list',
         'TECH-WORK-SWITCHER':'carrying out technical works on the site',
         'TECH-JOURNAL':'Journal of carrying out technical works Journal',
         'TECH-DATE':'Date',
@@ -64,6 +65,11 @@
         'APNEXUS-ID':'Id пользователя AppNexus',
         'APNEXUS-NAME':'Имя польeзователя AppNexus',
         'PERMISSION':'Разрешение'
+      },
+      "ADVERTISER-LIST": {
+        'NAME' : 'Name',
+        'ID' : 'Id',
+        'AD-TYPE': 'Type of the advertiser'
       }
     },
     'INDEX':{
@@ -123,10 +129,18 @@
           "VIEW_MEASURED_IMPS":"Measured imp",
           "VIEW_MEASUREMENT_RATE":"Viewed measurement rate",
           "VIEW_RATE":"Viewed rate",
-          "STATS":"Stats"
+          "STATS":"Stats",
+          "AD-STARTS": "Ad starts",
+          "FILL-RATE": "Fill rate",
+          "PROFIT-LOSS": "Profit/loss",
+          "FILL-RATE-HOUR": "Delta Fill Rate",
+          "PROFIT-LOSS-HOUR": "Delta profit/loss",
         }
       },
       'CHECKBOX':{
+        "ad_starts": "ad_starts",
+        "fill_rate": "fill_rate",
+        "profit_loss": "profit_loss",
         "IMPRESSIONS":"Impressions",
         "CVR":"CVR",
         "CPC":"CPC",

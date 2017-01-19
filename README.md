@@ -47,6 +47,10 @@ valid test names:
 python manage.py mlpredictkmeans <placement_id> <test_type> <test_name>
 Example for one placement: python manage.py mlpredictkmeans 3898 kmeans ctr_cvr_cpc_cpm_cpa
 Example for all placements: python manage.py mlpredictkmeans -1 log ctr_cvr_cpc_cpm_cpa
+Valid test types:
+  1) kmeans;
+  2) log;
+  3) tree - classifier decision tree
 4. Create csv-file with prediction results
 python manage.py mlcreatecsvresult
 5. Check if placement good or bad

@@ -72,6 +72,7 @@
         return err;
       });
     }
+
     function _campaignDomains(id, from, to, skip, take, sort, order, filter, totalSummary) {
       if (sort) {
         if (sort[0].desc === true) {

@@ -414,7 +414,7 @@
             dataField: 'cpa',
             dataType: 'number',
             alignment: 'center',
-               format:'currency',
+            format:'currency',
             precision:4,
             allowEditing: false,
             headerFilter: {
@@ -427,7 +427,7 @@
             caption: LC('CAMP.CAMPAIGN.COLUMNS.COST') + ' ,$',
             dataField: 'cost',
             alignment: 'center',
-          format:'currency',
+            format:'currency',
             precision:2,
             dataType: 'number',
             allowEditing: false,
@@ -454,7 +454,7 @@
             dataField: 'cpc',
             alignment: 'center',
             dataType: 'number',
-          format:'currency',
+            format:'currency',
             precision:4,
             allowEditing: false,
             headerFilter: {
@@ -972,7 +972,7 @@
           vm.dataGridOptionsMultipleFunc._controllers.columns._commandColumns[1].width = 35;
         },
         onEditorPreparing: function (info) {
-          if ((info.parentType == 'filterRow') && (info.caption == 'State')) {
+          if ((info.parentType == 'filterRow') && (info.dataField == 'state')) {
             info.editorElement.dxSelectBox({
               dataSource: [
                 {

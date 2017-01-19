@@ -305,6 +305,8 @@ class Advertiser(models.Model):
     is_malicious = models.NullBooleanField(null=True, blank=True)
     #object_stats	object #should be in sepparait model if needed
     #thirdparty_pixels	array # see the model AdvertiserThirdpartyPixels below
+    ad_type = models.TextField(null=True, blank=True, db_index=True) #type of advertiser (usualAd/videoAd)
+
     def __unicode__(self):
         return self.name
     api_endpoint = 'advertiser'
@@ -3415,6 +3417,7 @@ class SiteDomainPerformanceReport(models.Model):
     #https://wiki.appnexus.com/display/api/Site+Domain+Performance
     fetch_date = models.DateTimeField(null=True, blank=True, db_index=True)
     day = models.DateTimeField(null=True, blank=True, db_index=True)
+    hour = models.DateTimeField(null=True, blank=True, db_index=True)
     site_domain = models.TextField(null=True, blank=True, db_index=True)
     campaign = models.ForeignKey("Campaign", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)
     line_item = models.ForeignKey("LineItem", null=True, blank=True, db_constraint=False, on_delete = models.DO_NOTHING)

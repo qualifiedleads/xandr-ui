@@ -9,6 +9,9 @@
   function AdminController($window, $state,  $translate, AdminService, $localStorage ) {
     var vm = this;
     var LC = $translate.instant;
+    vm.first = true;
+    vm.second = false;
+    vm.third = false;
     vm.statusBanner = '';
     vm.goToMainPage = function () {
       $state.go('auth');
@@ -53,7 +56,6 @@
         value: val,
         date: new Date()
       };
-      $localStorage.valueOfTech = val;
       AdminService.statusTech(vm.status);
       $window.$('#techRecords').dxDataGrid('instance').refresh();
     };
@@ -62,58 +64,26 @@
       vm.name = data;
     });
 
-    if(!$localStorage.button) {
-      $localStorage.button = 'first';
-    }
-
-    if($localStorage.button) {
-      if($localStorage.button === 'second'){
-        $window.$('.post-first').addClass('non-active');
-        $window.$('.post-second').removeClass('non-active');
-        $window.$('.link-first').removeClass('btn-success');
-        $window.$('.link-first').addClass('btn-default');
-        $window.$('.link-second').addClass('btn-success');
-        $localStorage.button = null;
-        $localStorage.button = 'second';
-      }
-      if($localStorage.button === 'first'){
-        $window.$('.post-first').removeClass('non-active');
-        $window.$('.post-first').addClass('active');
-        $window.$('.post-second').addClass('non-active');
-        $window.$('.link-first').addClass('btn-success');
-        $window.$('.link-second').removeClass('btn-success');
-        $localStorage.button = null;
-        $localStorage.button = 'first';
-      }
-    }
-
-    vm.valueOfTech = function (name) {
-      $localStorage.valueOfTech = null;
-      $localStorage.valueOfTech = name;
-    };
-
-
     vm.changeTab = function(value) {
+      $window.$('.link-second').removeClass('btn-success');
+      $window.$('.link-first').removeClass('btn-success');
+      $window.$('.link-third').removeClass('btn-success');
+      vm.first = false;
+      vm.second = false;
+      vm.third = false;
       if (value ==="first") {
-        $window.$('.post-first').removeClass('non-active');
-        $window.$('.post-first').addClass('active');
-        $window.$('.post-second').addClass('non-active');
+        vm.first = true;
         $window.$('.link-first').addClass('btn-success');
-        $window.$('.link-second').removeClass('btn-success');
-        $localStorage.button = null;
-        $localStorage.button = value;
       }
       if (value ==='second') {
-        $window.$('.post-first').addClass('non-active');
-        $window.$('.post-second').removeClass('non-active');
-        $window.$('.link-first').removeClass('btn-success');
-        $window.$('.link-first').addClass('btn-default');
         $window.$('.link-second').addClass('btn-success');
-        $localStorage.button = null;
-        $localStorage.button = value;
+        vm.second = true;
+      }
+      if (value === 'third') {
+        $window.$('.link-third').addClass('btn-success');
+        vm.third = true;
       }
     };
-
 
     vm.submitForm = function (user) {
       if (vm.selectedService) {
@@ -136,6 +106,7 @@
     };
 
     vm.usersStore = AdminService.usersStore();
+    vm.advertiserListStore = AdminService.advertiserListStore();
     vm.selectNexusUsersStore = AdminService.selectNexusUsersStore();
     vm.techRecordStore = AdminService.techRecordStore();
 
@@ -162,7 +133,6 @@
         },
         allowColumnReordering: true,
         allowColumnResizing: true,
-        columnAutoWidth: true,
         wordWrapEnabled: true,
         howBorders: true,
         showRowLines: true,
@@ -275,6 +245,148 @@
             caption: LC('ADMIN.TECHNICAL-WORK.TECH-STATUS'),
             dataField: 'status',
             alignment: 'center'
+          }
+        ]
+      },
+      advertiserList: {
+        remoteOperations: false,
+        showBorders: true,
+        alignment: 'left',
+        bindingOptions: {
+          dataSource: 'admin.advertiserListStore'
+        },
+        headerFilter: {
+          visible: true
+        },
+        filterRow: {
+          visible: true,
+          applyFilter: "auto"
+        },
+        pager: {
+          showPageSizeSelector: true,
+          allowedPageSizes: [10, 30, 50],
+          visible: true,
+          showNavigationButtons: true
+        },
+        allowColumnReordering: true,
+        allowColumnResizing: true,
+        wordWrapEnabled: true,
+        howBorders: true,
+        showRowLines: true,
+        align: 'left',
+        loadPanel: {
+          shadingColor: "rgba(0,0,0,0.4)",
+          visible: false,
+          showIndicator: true,
+          showPane: true,
+          shading: true,
+          closeOnOutsideClick: false
+        },
+        columns: [
+          {
+            caption: LC('ADMIN.ADVERTISER-LIST.ID'),
+            dataField: 'id',
+            alignment: 'left'
+          },
+          {
+            caption: LC('ADMIN.ADVERTISER-LIST.NAME'),
+            dataField: 'name',
+            alignment: 'left'
+          },
+          {
+            caption: LC('ADMIN.ADVERTISER-LIST.AD-TYPE'),
+            width: 204,
+            columnIndex: 16,
+            allowEditing: false,
+            dataField: 'ad_type',
+            alignment: 'left',
+            cellTemplate: function (container, options) {
+              var usualAds = $window.$("<div />").dxButton({
+                text: 'Usual',
+                height: 30,
+                width: 89,
+                disabled: false,
+                onClick: function (e) {
+                  var w = $window.$('div.state-white'+ options.data.id);
+                  var b = $window.$('div.state-black'+ options.data.id);
+                  w.dxButton('instance').option('disabled',true);
+                  b.dxButton('instance').option('disabled',true);
+                  w.removeClass('active-white');
+                  b.removeClass('active-white');
+                  AdminService.editAdvertiserList(options.data.id, 'usualAds')
+                    .then(function (res) {
+                      w.dxButton('instance').option('disabled',false);
+                      b.dxButton('instance').option('disabled',false);
+                      if (res == 404) {
+                        $window.DevExpress.ui.notify("Not found", "warning", 4000);
+                        $('#gridContainerWhite').dxDataGrid('instance').refresh();
+                        return res;
+                      }
+                      if (res == 503) {
+                        $window.DevExpress.ui.notify("Not connect to appnexus server, please try again later", "warning", 4000);
+                        $window.$('#gridContainer2').dxDataGrid('instance').refresh();
+                        return res;
+                      }
+                      if (res !== 'Unactive') {
+                        w.addClass('active-white');
+                      }
+                      return res;
+                    })
+                    .catch(function (err) {
+                      return err;
+                    });
+                }
+              });
+
+              if (options.data.ad_type == 'usualAds') {
+                usualAds.addClass('state-white'+ options.data.id).addClass('active-white').appendTo(container);
+              } else {
+                usualAds.addClass('state-white'+ options.data.id).appendTo(container);
+              }
+
+              var videoAds = $window.$("<div />").dxButton({
+                text: 'Video',
+                height: 30,
+                width: 89,
+                disabled: false,
+                onClick: function (e) {
+                  var w = $window.$('div.state-white'+ options.data.id);
+                  var b = $window.$('div.state-black'+ options.data.id);
+                  w.dxButton('instance').option('disabled',true);
+                  b.dxButton('instance').option('disabled',true);
+                  w.removeClass('active-white');
+                  b.removeClass('active-white');
+                  AdminService.editAdvertiserList(options.data.id, 'videoAds')
+                    .then(function (res) {
+                      w.dxButton('instance').option('disabled',false);
+                      b.dxButton('instance').option('disabled',false);
+                      if (res == 404) {
+                        $window.DevExpress.ui.notify("Not found", "warning", 4000);
+                        $window.$('#gridContainer2').dxDataGrid('instance').refresh();
+                        return res;
+                      }
+                      if (res == 503) {
+                        $window.DevExpress.ui.notify("Not connect to appnexus server, please try again later", "warning", 4000);
+                        $window.$('#gridContainer2').dxDataGrid('instance').refresh();
+                        return res;
+                      }
+                      if (res !== 'Unactive') {
+                        b.addClass('active-white');
+                      }
+                      return res;
+                    })
+                    .catch(function (err) {
+                      return err;
+                    });
+                }
+              });
+
+              if (options.data.ad_type == 'videoAds') {
+                videoAds.addClass('state-black'+ options.data.id).addClass('active-white').appendTo(container);
+              } else {
+                videoAds.addClass('state-black'+ options.data.id).appendTo(container);
+              }
+            }
           }
         ]
       }

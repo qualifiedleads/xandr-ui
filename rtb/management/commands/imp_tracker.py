@@ -8,7 +8,7 @@ from django.core.management import BaseCommand
 # import re
 from rtb.crons.imp_tracker_cron import impTracker
 
-#   python manage.py imp_tracker '2016-10-19 22:00' '2016-10-19 23:00' Impression/Click/Conversion
+#   python manage.py imp_tracker '2016-10-19 22:00' '2016-10-19 23:00' Impression/Click/Conversion/Domain
 class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument('start', nargs='?')
@@ -21,6 +21,6 @@ class Command(BaseCommand):
         type = options.get('type')
 
         if options.get('start') is None or options.get('end') is None or options.get('type') is None:
-            print "You must put three parameters - start: 2016-10-19 22:00, end: 2016-10-19 23:00, type: Impression/Click/Conversion"
+            print "You must put three parameters - start: 2016-10-19 22:00, end: 2016-10-19 23:00, type: Impression/Click/Conversion/AdStart/Domain"
         else:
             impTracker(start, end, type)

@@ -321,7 +321,7 @@ def apiSendVideoCampaignStatistics(request):
 
     queryRes = SiteDomainPerformanceReport.objects.raw("""
     SELECT
-      day::timestamp::date AS id,
+      day AS id,
       SUM(imps) AS sum_imp,
       SUM(media_cost) AS sum_spend,
       case SUM(imps) when 0 then 0 else SUM(media_cost)::float/SUM(imps)*1000 end cpm

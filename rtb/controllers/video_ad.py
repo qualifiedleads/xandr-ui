@@ -379,7 +379,8 @@ def apiSendVideoCampaignStatistics(request):
                 "profit_loss": (checkFloat(row.cpvm) * checkInt(row.ad_starts))
             }
     answer = []
-    for key, value in dictAns.iteritems():
+    orderedAns = collections.OrderedDict(sorted(dictAns.items()))
+    for key, value in orderedAns.iteritems():
         answer.append(value)
     return Response(answer)
 

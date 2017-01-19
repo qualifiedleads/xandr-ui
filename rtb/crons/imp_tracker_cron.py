@@ -1,6 +1,6 @@
 #!/bin/env python
 from rtb.models.rtb_impression_tracker import RtbImpressionTracker, RtbImpressionTrackerPlacement, \
-    RtbImpressionTrackerPlacementDomain, RtbClickTracker, RtbConversionTracker, RtbAdStartTracker
+    RtbImpressionTrackerPlacementDomain, RtbClickTracker, RtbConversionTracker, RtbAdStartTracker, RtbDomainTracker
 from datetime import date, datetime, timedelta
 from rtb.models.placement_state import LastModified
 from pytz import utc
@@ -50,6 +50,30 @@ def get():
 
         LastModified(type='get_data_from_impression_tracker', date=timezone.make_aware(datetime.now(), timezone.get_default_timezone())).save()
 
+        # Domain Tracker
+        print 'Domain start'
+        start_ = RtbDomainTracker.objects.aggregate(Max("Date"))["Date__max"]
+        if start_ is None:
+            start = '2017-01-18 12:00:00'
+        else:
+            start = (start_ + timedelta(seconds=1)).strftime('%Y-%m-%d %H:%M:%S')
+        try:
+            start_date = datetime.strptime(start, '%Y-%m-%d %H:%M:%S')
+            end_date = datetime.now()
+            startStr = ''
+            for result in perdelta(start_date, end_date, timedelta(minutes=Verbtimedelta)):
+                endStr = result.strftime('%Y-%m-%d %H:%M:%S')+".999999999"
+                if startStr == '':
+                    startStr = result.strftime('%Y-%m-%d %H:%M:%S')
+                    continue
+                # Update time every circle
+                LastModified.objects.filter(type='get_data_from_impression_tracker').update(date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
+                impTracker(startStr, endStr, 'Domain')
+                startStr = (result + timedelta(seconds=1)).strftime('%Y-%m-%d %H:%M:%S')
+        except Exception as e:
+            print 'Domain Error: ' + str(e)
+        print 'Domain completed'
+
         # Impression Tracker
         print 'Impression start'
         start_ = RtbImpressionTracker.objects.aggregate(Max("Date"))["Date__max"]
@@ -73,6 +97,7 @@ def get():
         except Exception as e:
             print 'Impression Error: ' + str(e)
         print 'Impression completed'
+
 
         # Click Tracker
         print 'Click start'
@@ -156,8 +181,8 @@ def impTracker(timeStart=None, timeFinish=None, type=None):
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     # Connect the socket to the port where the server is listening
-    server_address = ('imp.rtb.cat', 8002)
-    # server_address = ('192.168.1.112', 8002)
+    # server_address = ('imp.rtb.cat', 8002)
+    server_address = ('192.168.1.112', 8002)
     print >> sys.stderr, 'connecting to %s port %s' % server_address
     sock.connect(server_address)
 
@@ -187,6 +212,9 @@ def impTracker(timeStart=None, timeFinish=None, type=None):
     if type == 'Impression':
         Impression(decompressed_data)
 
+    if type == 'Domain':
+        Domain(decompressed_data)
+
     if type == 'Click':
         Click(decompressed_data)
 
@@ -202,13 +230,8 @@ def Impression(decompressed_data):
         if decompressed_data is None:
             return
         bulkITAll = []
-        bulkITP = []
         for item in decompressed_data:
             tempJson = {}
-            if item['Data']['LocationsOrigins'] is None:
-                tempJson['LocationsOrigins'] = ' '
-            else:
-                tempJson['LocationsOrigins'] = issetValue(item['Data']['LocationsOrigins'][0])
             tempJson['UserCountry'] = issetValue(item['Data']['UserCountry'])
             tempJson['SessionFreq'] = issetValue(item['Data']['SessionFreq'])
             tempJson['PricePaid'] = item['Data']['PricePaid'] if is_number(item['Data']['PricePaid']) else None
@@ -237,7 +260,7 @@ def Impression(decompressed_data):
             tempJson['AdvId'] = item['Data']['AdvId'] if is_number(item['Data']['AdvId']) else None
             tempJson['CreativeId'] = item['Data']['CreativeId'] if is_number(item['Data']['CreativeId']) else None
             tempJson['Date'] = item['Time']
-            bulkITP.append({'placement': tempJson['PlacementId'], 'domain': tempJson['LocationsOrigins']})
+
             bulkITAll.append(RtbImpressionTracker(
                 LocationsOrigins=tempJson['LocationsOrigins'],
                 UserCountry=tempJson['UserCountry'],
@@ -274,69 +297,6 @@ def Impression(decompressed_data):
             RtbImpressionTracker.objects.bulk_create(bulkITAll)
         except ValueError, e:
             print "Can't save domain. Error: " + str(e)
-
-        for item in bulkITP:
-            try:
-                if item["placement"].strip() != '':
-                    if len(item['placement']) > 1 and item['domain'].strip() != '':
-                        try:
-                            obj, created = RtbImpressionTrackerPlacement.objects.update_or_create(
-                                placement_id=int(item['placement']),
-                                domain=str(item['domain'].strip())
-                            )
-                        except ValueError, e:
-                            print "Can't save domain. Error: " + str(e)
-                            #CODE FOR ADDING TO RtbImpressionTrackerPlacementDomain clear domain
-            except Exception, e:
-                print "Can't save domain. Error: " + str(e)
-
-        for item in bulkITP:
-            try:
-                if item["placement"].strip() != '':
-                    allDomainsQuery = RtbImpressionTrackerPlacement.objects.filter(placement_id=item["placement"]).distinct()
-                    if not allDomainsQuery:
-                        continue
-                    if len(allDomainsQuery) == 1:
-                        ans = allDomainsQuery[0].domain
-                    else:
-                        position = 1
-                        finish = False
-                        while True:
-                            for i in xrange(len(allDomainsQuery)):
-                                for j in xrange(len(allDomainsQuery)):
-                                    if i == j or allDomainsQuery[i].domain == "null":
-                                        continue
-
-                                    if len(allDomainsQuery[i].domain) < position or len(allDomainsQuery[j].domain) < position:
-                                        finish = True
-                                        break
-                                    if allDomainsQuery[i].domain[-position] != allDomainsQuery[j].domain[-position]:
-                                        finish = True
-                                        break
-                            if finish == True:
-                                break
-                            position += 1
-                        ans = "*"
-                        position -= 1
-                        while position != 0:
-                            ans += allDomainsQuery[0].domain[-position]
-                            position -= 1
-                    try:
-                        domainRecord = RtbImpressionTrackerPlacementDomain(
-                            placement_id=item["placement"],
-                            domain=ans
-                        )
-                        tempQuery = RtbImpressionTrackerPlacementDomain.objects.filter(placement_id=item["placement"])
-                        if not tempQuery:
-                            domainRecord.save()
-                        else:
-                            tempQuery.update(
-                                domain=ans
-                            )
-                    except Exception, e:
-                        print "Can't save domain. Error: " + str(e)
-            except Exception, e:
-                print "Can't save domain to rtb_impression_tracker_placement_domain. Error: " + str(e)
     except Exception, e:
         print "Impression tracker. Error: " + str(e)
 
@@ -429,4 +389,102 @@ def AdStart(decompressed_data):
         RtbAdStartTracker.objects.bulk_create(bulkITAll)
     except Exception, e:
         print "Can't save ad-start. Error: " + str(e)
+
+
+def Domain(decompressed_data):
+    try:
+        if decompressed_data is None:
+            return
+        bulkITAll = []
+        bulkITP = []
+        for item in decompressed_data:
+            if is_number(item['Data']['AuctionId']) == False:
+                continue
+
+            tempJson = {}
+            if item['Data']['LocationsOrigins'] is None:
+                tempJson['LocationsOrigins'] = None
+            else:
+                tempJson['LocationsOrigins'] = issetValue(item['Data']['LocationsOrigins'][0])
+            tempJson['AuctionId'] = item['Data']['AuctionId'] if is_number(item['Data']['AuctionId']) else None
+            tempJson['PlacementId'] = item['Data']['PlacementId'] if is_number(item['Data']['PlacementId']) else None
+            tempJson['UserId'] = item['Data']['UserId'] if is_number(item['Data']['UserId']) else None
+            tempJson['AdvId'] = item['Data']['AdvId'] if is_number(item['Data']['AdvId']) else None
+            tempJson['Date'] = item['Time']
+
+            bulkITP.append({'placement': tempJson['PlacementId'], 'domain': tempJson['LocationsOrigins']})
+            bulkITAll.append(RtbDomainTracker(
+                placement_id=tempJson['PlacementId'],
+                domain=tempJson['LocationsOrigins'],
+                advid=tempJson['AdvId'],
+                auctionid=tempJson['AuctionId'],
+                userid=tempJson['UserId'],
+                Date=timezone.make_aware(datetime.strptime(re.sub('\..*', '', item['Time']), "%Y-%m-%d %H:%M:%S"),
+                                         timezone.get_default_timezone())
+            ))
+
+        RtbDomainTracker.objects.bulk_create(bulkITAll)
+        for item in bulkITP:
+            try:
+                if item["placement"].strip() != '':
+                    if len(item['placement']) > 1 and item['domain'].strip() != '':
+                        try:
+                            obj, created = RtbImpressionTrackerPlacement.objects.update_or_create(
+                                placement_id=int(item['placement']),
+                                domain=str(item['domain'].strip())
+                            )
+                        except ValueError, e:
+                            print "Can't save domain. Error: " + str(e)
+            except Exception, e:
+                print "Can't save domain. Error: " + str(e)
+
+        for item in bulkITP:
+            try:
+                if item["placement"].strip() != '':
+                    allDomainsQuery = RtbImpressionTrackerPlacement.objects.filter(placement_id=item["placement"]).distinct()
+                    if not allDomainsQuery:
+                        continue
+                    if len(allDomainsQuery) == 1:
+                        ans = allDomainsQuery[0].domain
+                    else:
+                        position = 1
+                        finish = False
+                        while True:
+                            for i in xrange(len(allDomainsQuery)):
+                                for j in xrange(len(allDomainsQuery)):
+                                    if i == j or allDomainsQuery[i].domain == "null":
+                                        continue
+
+                                    if len(allDomainsQuery[i].domain) < position or len(allDomainsQuery[j].domain) < position:
+                                        finish = True
+                                        break
+                                    if allDomainsQuery[i].domain[-position] != allDomainsQuery[j].domain[-position]:
+                                        finish = True
+                                        break
+                            if finish == True:
+                                break
+                            position += 1
+                        ans = "*"
+                        position -= 1
+                        while position != 0:
+                            ans += allDomainsQuery[0].domain[-position]
+                            position -= 1
+                    try:
+                        domainRecord = RtbImpressionTrackerPlacementDomain(
+                            placement_id=item["placement"],
+                            domain=ans
+                        )
+                        tempQuery = RtbImpressionTrackerPlacementDomain.objects.filter(placement_id=item["placement"])
+                        if not tempQuery:
+                            domainRecord.save()
+                        else:
+                            tempQuery.update(
+                                domain=ans
+                            )
+                    except Exception, e:
+                        print "Can't save domain. Error: " + str(e)
+            except Exception, e:
+                print "Can't save domain to rtb_impression_tracker_placement_domain. Error: " + str(e)
+    except Exception, e:
+        print "Can't save Domain. Error: " + str(e)
 

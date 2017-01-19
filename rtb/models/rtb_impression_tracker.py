@@ -58,6 +58,19 @@ class RtbImpressionTrackerPlacementDomain(models.Model):
         db_table = "rtb_impression_tracker_placement_domain"
 
 
+class RtbDomainTracker(models.Model):
+    id = models.AutoField(primary_key=True)
+    placement = models.ForeignKey("Placement", db_constraint=False, on_delete=models.DO_NOTHING)
+    domain = models.TextField(null=True, blank=True, db_index=True)
+    auctionid = models.BigIntegerField(null=True, blank=True, db_index=True)
+    userid = models.BigIntegerField(null=True, blank=True)
+    advid = models.IntegerField(null=True, blank=True)
+    Date = models.DateTimeField(null=True, blank=True, db_index=True)
+
+    class Meta:
+        db_table = "rtb_domain_tracker"
+
+
 class RtbClickTracker(models.Model):
     id = models.AutoField(primary_key=True, db_index=True)
     CpId = models.IntegerField(null=True, blank=True, db_index=True)

@@ -54,6 +54,31 @@
           }
         }
       })
+      .state('home.videocampaign', {
+        url: '/videocampaign/:id',
+        templateUrl: 'app/videocampaign/videocampaign.html',
+        controller: 'VideoCampaignController',
+        controllerAs: 'videocamp',
+        resolve: {
+          Campaign: function (CampMain, $stateParams, $state) {
+            if (!$stateParams.id) {
+              $state.go('home.main');
+            }
+            return CampMain.nameCampaigns($stateParams.id).then(function (res) {
+              return res
+            });
+          },
+          TWStatus: function (AdminService, $stateParams, $state, $cookies) {
+            return AdminService.getValueOfTech().then(function (res) {
+              if ((res == "on") &&
+                ($cookies.get('token')) &&
+                (($cookies.get('permission') == 'userfull') || $cookies.get('permission') == 'userread')) {
+                $state.go('auth');
+              }
+            });
+          }
+        }
+      })
       .state('home.campaign', {
         url: '/campaign/:id',
         templateUrl: 'app/campaignmain/campmain.html',
@@ -132,6 +157,31 @@
         templateUrl: 'app/rules/rules.html',
         controller: 'rulesController',
         controllerAs: 'rulesC',
+        resolve: {
+          Campaign:  function(CampMain,$stateParams, $state){
+            if (!$stateParams.id) {
+              $state.go('home.main');
+            }
+            return CampMain.nameCampaigns($stateParams.id).then(function (res) {
+              return res
+            });
+          },
+          TWStatus: function (AdminService, $stateParams, $state, $cookies) {
+            return AdminService.getValueOfTech().then(function (res) {
+              if ((res == "on") &&
+                ($cookies.get('token')) &&
+                (($cookies.get('permission') == 'userfull') || $cookies.get('permission') == 'userread')) {
+                $state.go('auth');
+              }
+            });
+          }
+        }
+      })
+      .state('home.bcc', {
+        url: '/bcc/:id',
+        templateUrl: 'app/bcc/bcc.html',
+        controller: 'BCCController',
+        controllerAs: 'bcc',
         resolve: {
           Campaign:  function(CampMain,$stateParams, $state){
             if (!$stateParams.id) {

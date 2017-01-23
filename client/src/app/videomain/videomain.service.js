@@ -50,7 +50,7 @@
         },
         load: function (loadOptions) {
           if (loadOptions.searchOperation && loadOptions.dataField){
-            loadOptions.take = 999999;
+            loadOptions.take = 99999999;
           }
           return _statsCampaigns(id, dataStart, dataEnd, loadOptions.skip,
               loadOptions.take, loadOptions.sort, loadOptions.order,

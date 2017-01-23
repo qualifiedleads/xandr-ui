@@ -672,6 +672,7 @@ def dayly_task(day=None, load_objects_from_services=True, output=None):
             load_report(token, day, NetworkAnalyticsReport_ByPlacement)
             load_report(token, day, GeoAnaliticsReport)
             load_reports_for_all_advertisers(token, day, SiteDomainPerformanceReport)
+            fillVideoAdDataCron()
             day+=one_day
     except Exception as e:
         print 'Error by fetching data: %s' % e
@@ -680,7 +681,6 @@ def dayly_task(day=None, load_objects_from_services=True, output=None):
         sys.stdout, sys.stderr = old_stdout, old_error
         if file_output:
             file_output.close()
-    fillVideoAdDataCron()
     print "OK"
 
 

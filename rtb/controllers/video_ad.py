@@ -111,7 +111,7 @@ def getVideoCampaignSummary(request):
   COUNT(page.campaign_id) id,
   SUM(page.imps) total_sum_imps,
   SUM(page.spent) total_spent,
-  case SUM(page.imps) when 0 then 0 else SUM(page.spent)/SUM(page.imps) end total_cpm,
+  case SUM(page.imps) when 0 then 0 else SUM(page.spent)/SUM(page.imps)*1000 end total_cpm,
   SUM(page.ad_starts) total_ad_starts,
   case SUM(page.imps) when 0 then 0 else SUM(page.ad_starts)::float/SUM(page.imps)*100 end total_fill_rate,
   coalesce(SUM(page.cpvm) - SUM(page.spent), -SUM(page.spent), SUM(page.cpvm),0) total_profit_loss,

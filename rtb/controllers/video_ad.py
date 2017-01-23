@@ -37,10 +37,10 @@ select page.*,
   array((select
            json_build_object(
            'day', vac.date,
-           'imp', SUM(imp_hour),
-           'spend', SUM(spent_hour),
-           'ad_starts', SUM(ad_starts_hour),
-           'fill_rate', case SUM(imp_hour) when 0 then 0 else SUM(ad_starts_hour)::float/SUM(imp_hour) end,
+           'imp', coalesce(SUM(imp_hour),0),
+           'spend', coalesce(SUM(spent_hour),0),
+           'ad_starts', coalesce(SUM(ad_starts_hour),0),
+           'fill_rate', coalesce(case SUM(imp_hour) when 0 then 0 else SUM(ad_starts_hour)::float/SUM(imp_hour) end,0),
            'profit_loss', coalesce(SUM(spent_cpvm_hour) - SUM(spent_hour), -SUM(spent_hour), SUM(spent_cpvm_hour),0))
          from video_ad_campaigns vac
          where vac.campaign_id=page.campaign_id

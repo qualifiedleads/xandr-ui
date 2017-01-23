@@ -26,127 +26,74 @@ def apiSetAdType(request):
 @api_view(["GET"])
 # @check_user_advertiser_permissions(campaign_id_num=0)
 def apiSendVideoCampaignData(request):
+    now = datetime.datetime.now()
     params = parse_get_params(request.GET)
     from_date = params["from_date"]
     to_date = params["to_date"]
     advertiser_id = request.GET.get("advertiser_id")
     filt, order = getFilterQueryString(params["filter"], request.GET.get("sort"), request.GET.get("order"))
     queryRes = VideoAdCampaigns.objects.raw("""
-            select
-  video_ad_campaigns.campaign_id as id,
-  video_ad_campaigns.campaign_name,
-  report.spent,
-  report.sum_imps,
-  report.cpm,
-  sum_data.ad_starts,
-  case report.sum_imps when 0 then 0 else sum_data.ad_starts::float/report.sum_imps end fill_rate,
-  coalesce(sum_data.spent_cpvm-report.spent,-report.spent,sum_data.spent_cpvm,0) AS profit_loss,
-  video_ad_campaigns.fill_rate_hour,
-  video_ad_campaigns.profit_loss_hour,
-  stats
-FROM
-  video_ad_campaigns
-  full JOIN (
-    SELECT
-      campaign_id,
-      SUM(video_ad_campaigns.ad_starts_hour) ad_starts,
-      SUM(video_ad_campaigns.spent_cpvm_hour) spent_cpvm,
-      array((select
+select page.*,
+  array((select
            json_build_object(
-           'day', coalesce(vac.date, report.day),
-           'imp', SUM(report.imps),
-           'spend', SUM(report.media_cost),
-           'ad_starts', SUM(ad_starts_hour),
-           'fill_rate', case SUM(report.imps) when 0 then 0 else SUM(ad_starts_hour)::float/SUM(report.imps)*100 end,
-           'profit_loss', coalesce(SUM(spent_cpvm_hour)-SUM(report.media_cost), -SUM(report.media_cost), SUM(spent_cpvm_hour), 0))
-         from video_ad_campaigns as vac
-           full JOIN (
-             select
-               campaign_id,
-               day,
-               imps,
-               media_cost
-             from site_domain_performance_report
-             where advertiser_id=""" + str(advertiser_id) + """
-              AND
-                day >='""" + str(from_date) + """'
-              AND
-                day <='""" + str(to_date) + """'
-             ) AS report
-           ON report.campaign_id=vac.campaign_id
-         where
-           vac.campaign_id=video_ad_campaigns.campaign_id
-         AND
-           coalesce(vac.date, report.day) >='""" + str(from_date) + """'
-         AND
-           coalesce(vac.date, report.day) <='""" + str(to_date) + """'
-         group by vac.campaign_id,coalesce(vac.date, report.day))) stats
-    FROM
-      video_ad_campaigns
-    WHERE
-      advertiser_id=""" + str(advertiser_id) + """
-    AND
-      date >='""" + str(from_date) + """'
-    AND
-      date <='""" + str(to_date) + """'
-    GROUP BY
-      campaign_id
-    ) AS sum_data
-    ON video_ad_campaigns.campaign_id = sum_data.campaign_id
-  FULL OUTER JOIN(
-    SELECT
-      campaign_id,
-      SUM(media_cost) AS spent,
-      SUM(imps) AS sum_imps,
-      case SUM(imps) when 0 then 0 else SUM(media_cost)/SUM(imps)*1000 end cpm
-    FROM
-      site_domain_performance_report
-    WHERE
-      advertiser_id=""" + str(advertiser_id) + """
-    AND
-      day >='""" + str(from_date) + """'
-    AND
-      day <='""" + str(to_date) + """'
-    GROUP BY
-      campaign_id
-    ) AS report
-    ON video_ad_campaigns.campaign_id = report.campaign_id
-WHERE
-  advertiser_id=""" + str(advertiser_id) + """
-  and video_ad_campaigns.hour = (
-      SELECT
-        MAX(hour) max_date
+           'day', vac.date,
+           'imp', coalesce(SUM(imp_hour),0),
+           'spend', coalesce(SUM(spent_hour),0),
+           'ad_starts', coalesce(SUM(ad_starts_hour),0),
+           'fill_rate', coalesce(case SUM(imp_hour) when 0 then 0 else SUM(ad_starts_hour)::float/SUM(imp_hour) end,0),
+           'profit_loss', coalesce(SUM(spent_cpvm_hour) - SUM(spent_hour), -SUM(spent_hour), SUM(spent_cpvm_hour),0))
+         from video_ad_campaigns vac
+         where vac.campaign_id=page.campaign_id
+           AND date >='""" + str(from_date) + """' AND date <='""" + str(to_date) + """'
+         group by vac.campaign_id, vac.date
+         order by vac.date)) id
+from (
+      select distinct on (video_ad_campaigns.campaign_id)
+        video_ad_campaigns.campaign_id,
+        campaign.name,
+        SUM(video_ad_campaigns.imp_hour) over (partition by video_ad_campaigns.campaign_id) imps,
+        SUM(video_ad_campaigns.spent_hour) over (partition by video_ad_campaigns.campaign_id) spent,
+        case SUM(video_ad_campaigns.imp_hour) over (partition by video_ad_campaigns.campaign_id) when 0 then 0 else (SUM(video_ad_campaigns.spent_hour) over (partition by video_ad_campaigns.campaign_id))/(SUM(video_ad_campaigns.imp_hour) over (partition by video_ad_campaigns.campaign_id))*1000 end cpm,
+        SUM(video_ad_campaigns.ad_starts_hour) over (partition by video_ad_campaigns.campaign_id) ad_starts,
+        SUM(video_ad_campaigns.spent_cpvm_hour) over (partition by video_ad_campaigns.campaign_id) cpvm,
+        case SUM(video_ad_campaigns.imp_hour) over (partition by video_ad_campaigns.campaign_id) when 0 then 0 else (SUM(video_ad_campaigns.ad_starts_hour) over (partition by video_ad_campaigns.campaign_id))::float/(SUM(video_ad_campaigns.imp_hour) over (partition by video_ad_campaigns.campaign_id)) end fill_rate,
+        coalesce((SUM(video_ad_campaigns.spent_cpvm_hour) over (partition by video_ad_campaigns.campaign_id)) - (SUM(video_ad_campaigns.spent_hour) over (partition by video_ad_campaigns.campaign_id)), -(SUM(video_ad_campaigns.spent_hour) over (partition by video_ad_campaigns.campaign_id)), (SUM(video_ad_campaigns.spent_cpvm_hour) over (partition by video_ad_campaigns.campaign_id)), 0) AS profit_loss,
+        first_value(video_ad_campaigns.fill_rate_hour) over w as delta_fill_rate,
+        first_value(video_ad_campaigns.profit_loss_hour) over w as delta_profit_loss
       FROM
         video_ad_campaigns
+        LEFT JOIN campaign on campaign_id = campaign.id
       WHERE
-        advertiser_id=""" + str(advertiser_id) + """
-    )"""+filt + ' ' + order + " LIMIT " + str(params["take"]) + " OFFSET " + str(params["skip"]))
+        video_ad_campaigns.advertiser_id=""" + str(advertiser_id) + """
+        AND date >='""" + str(from_date) + """' AND date <='""" + str(to_date) + """'
+      WINDOW w as (partition by video_ad_campaigns.campaign_id order by hour desc)
+     ) page """ + ' ' + filt + ' ' + order +""" LIMIT """ + str(params["take"]) + """ OFFSET """ + str(params["skip"]))
     answer = {}
     answer["campaigns"] = []
 
     for row in queryRes:
         answer["campaigns"].append({
-            "campaign_id": row.id,
-            "campaign_name": row.campaign_name,
-            "fill_rate_hour": checkFloat(row.fill_rate_hour),
-            "profit_loss_hour": checkFloat(row.profit_loss_hour),
+            "campaign_id": row.campaign_id,
+            "campaign_name": row.campaign.name,
+            "fill_rate_hour": checkFloat(row.delta_fill_rate),
+            "profit_loss_hour": checkFloat(row.delta_profit_loss),
             "spent": checkFloat(row.spent),
-            "sum_imps": checkInt(row.sum_imps),
+            "sum_imps": checkInt(row.imps),
             "cpm": checkFloat(row.cpm),
             "ad_starts": checkInt(row.ad_starts),
             "fill_rate": checkFloat(row.fill_rate),
             "profit_loss": checkFloat(row.profit_loss),
-            "chart": row.stats
+            "chart": row.id
         })
 
     totals = getVideoCampaignSummary(request)#get totals
     answer["total_profit_loss_hour"] = checkFloat(totals.total_profit_loss_hour)
     answer["total_profit_loss"] = checkFloat(totals.total_profit_loss)
+
     answer["total_spent"] = checkFloat(totals.total_spent)
     answer["total_sum_imps"] = checkInt(totals.total_sum_imps)
     answer["total_cpm"] = checkFloat(totals.total_cpm)
     answer["total_ad_starts"] = checkInt(totals.total_ad_starts)
-
     answer["total_count"] = totals.id
 
     answer["total_fill_rate"] = checkFloat(totals.total_fill_rate)
@@ -160,91 +107,78 @@ def getVideoCampaignSummary(request):
     advertiser_id = request.GET.get("advertiser_id")
     filt, order = getFilterQueryString(params["filter"], params["sort"], params["order"])
     queryRes = VideoAdCampaigns.objects.raw("""
-                select
-  COUNT(video_ad_campaigns.profit_loss_hour) id,
-  SUM(report.spent) total_spent,
-  SUM(report.sum_imps) total_sum_imps,
-  case SUM(report.sum_imps) when 0 then 0 else SUM(report.spent)/SUM(report.sum_imps)*1000 end total_cpm,
-  SUM(sum_data.ad_starts) total_ad_starts,
-  case SUM(report.sum_imps) when 0 then 0 else SUM(sum_data.ad_starts)::float/SUM(report.sum_imps)*100 end total_fill_rate,
-  SUM(coalesce(sum_data.spent_cpvm-report.spent,-report.spent,sum_data.spent_cpvm,0)) AS total_profit_loss,
-  case SUM(video_ad_campaigns.imp_hour) when 0 then 0 else SUM(video_ad_campaigns.ad_starts_hour)::float/SUM(video_ad_campaigns.imp_hour)*100 end total_fill_rate_hour,
-  SUM(video_ad_campaigns.profit_loss_hour) as total_profit_loss_hour
-FROM
-  video_ad_campaigns
-  full JOIN (
-    SELECT
-      campaign_id,
-      SUM(video_ad_campaigns.ad_starts_hour) ad_starts,
-      SUM(video_ad_campaigns.spent_cpvm_hour) spent_cpvm
-    FROM
-      video_ad_campaigns
-    WHERE
-      advertiser_id=""" + str(advertiser_id) + """
-    AND
-      date >='""" + str(from_date) + """'
-    AND
-      date <='""" + str(to_date) + """'
-    GROUP BY campaign_id
-    ) AS sum_data
-    ON video_ad_campaigns.campaign_id = sum_data.campaign_id
-  FULL OUTER JOIN(
-    SELECT
-      campaign_id,
-      SUM(media_cost) AS spent,
-      SUM(imps) AS sum_imps,
-      case SUM(imps) when 0 then 0 else SUM(media_cost)/SUM(imps)*1000 end cpm
-    FROM
-      site_domain_performance_report
-    WHERE
-      advertiser_id=""" + str(advertiser_id) + """
-    AND
-      day >='""" + str(from_date) + """'
-    AND
-      day <='""" + str(to_date) + """'
-    GROUP BY campaign_id
-    ) AS report
-    ON video_ad_campaigns.campaign_id = report.campaign_id
-WHERE
-  advertiser_id=""" + str(advertiser_id) + """
-  and video_ad_campaigns.hour = (
-      SELECT
-        MAX(hour) max_date
+    select
+  COUNT(page.campaign_id) id,
+  SUM(page.imps) total_sum_imps,
+  SUM(page.spent) total_spent,
+  case SUM(page.imps) when 0 then 0 else SUM(page.spent)/SUM(page.imps) end total_cpm,
+  SUM(page.ad_starts) total_ad_starts,
+  case SUM(page.imps) when 0 then 0 else SUM(page.ad_starts)::float/SUM(page.imps)*100 end total_fill_rate,
+  coalesce(SUM(page.cpvm) - SUM(page.spent), -SUM(page.spent), SUM(page.cpvm),0) total_profit_loss,
+  SUM(delta_profit_loss) total_profit_loss_hour,
+  case SUM(page.last_imp_hour) when 0 then 0 else SUM(page.last_ad_starts_hour)::float/SUM(page.last_imp_hour)*100 end total_fill_rate_hour
+from (
+      select distinct on (video_ad_campaigns.campaign_id)
+        video_ad_campaigns.campaign_id,
+        campaign.name,
+        SUM(video_ad_campaigns.imp_hour) over (partition by video_ad_campaigns.campaign_id) imps,
+        SUM(video_ad_campaigns.spent_hour) over (partition by video_ad_campaigns.campaign_id) spent,
+        case SUM(video_ad_campaigns.imp_hour) over (partition by video_ad_campaigns.campaign_id) when 0 then 0 else (SUM(video_ad_campaigns.spent_hour) over (partition by video_ad_campaigns.campaign_id))/(SUM(video_ad_campaigns.imp_hour) over (partition by video_ad_campaigns.campaign_id))*1000 end cpm,
+        SUM(video_ad_campaigns.ad_starts_hour) over (partition by video_ad_campaigns.campaign_id) ad_starts,
+        SUM(video_ad_campaigns.spent_cpvm_hour) over (partition by video_ad_campaigns.campaign_id) cpvm,
+        case SUM(video_ad_campaigns.imp_hour) over (partition by video_ad_campaigns.campaign_id) when 0 then 0 else (SUM(video_ad_campaigns.ad_starts_hour) over (partition by video_ad_campaigns.campaign_id))::float/(SUM(video_ad_campaigns.imp_hour) over (partition by video_ad_campaigns.campaign_id)) end fill_rate,
+        coalesce((SUM(video_ad_campaigns.spent_cpvm_hour) over (partition by video_ad_campaigns.campaign_id)) - (SUM(video_ad_campaigns.spent_hour) over (partition by video_ad_campaigns.campaign_id)), -(SUM(video_ad_campaigns.spent_hour) over (partition by video_ad_campaigns.campaign_id)), (SUM(video_ad_campaigns.spent_cpvm_hour) over (partition by video_ad_campaigns.campaign_id)), 0) AS profit_loss,
+        first_value(video_ad_campaigns.imp_hour) over w as last_imp_hour,
+        first_value(video_ad_campaigns.ad_starts_hour) over w as last_ad_starts_hour,
+        first_value(video_ad_campaigns.fill_rate_hour) over w as delta_fill_rate,
+        first_value(video_ad_campaigns.profit_loss_hour) over w as delta_profit_loss
       FROM
         video_ad_campaigns
+        LEFT JOIN campaign on campaign_id = campaign.id
       WHERE
-        advertiser_id=""" + str(advertiser_id) + """
-    )"""+str(filt))
+        video_ad_campaigns.advertiser_id=""" + str(advertiser_id) + """
+        AND date >='""" + str(from_date) + """' AND date <='""" + str(to_date) + """'
+      WINDOW w as (partition by video_ad_campaigns.campaign_id order by hour desc)
+     ) page """ + str(filt))
     ans = list(queryRes)
     return ans[0]
 
 def getFilterQueryString(incFilters, incSort, incOrder):#
     vocabulary = {}
-    vocabulary["campaign"] = "video_ad_campaigns.campaign_name"
-    vocabulary["spent"] = "report.spent"
-    vocabulary["sum_imps"] = "report.sum_imps"
-    vocabulary["cpm"] = "report.cpm"
-    vocabulary["ad_starts"] = "sum_data.ad_starts"
-    vocabulary["fill_rate"] = "CASE report.sum_imps WHEN 0 THEN 0 ELSE sum_data.ad_starts::float/report.sum_imps*100 end"
-    vocabulary["profit_loss"] = "coalesce(sum_data.spent_cpvm - report.spent, -report.spent, sum_data.spent_cpvm, 0)"
-    vocabulary["fill_rate_hour"] = "video_ad_campaigns.fill_rate_hour*100"
-    vocabulary["profit_loss_hour"] = "video_ad_campaigns.profit_loss_hour"
+    vocabulary["campaign"] = "page.name"
+    vocabulary["spent"] = "page.spent"
+    vocabulary["sum_imps"] = "page.imps"
+    vocabulary["cpm"] = "page.cpm"
+    vocabulary["ad_starts"] = "page.ad_starts"
+    vocabulary["fill_rate"] = "page.fill_rate*100"
+    vocabulary["profit_loss"] = "page.profit_loss"
+    vocabulary["fill_rate_hour"] = "page.delta_fill_rate*100"
+    vocabulary["profit_loss_hour"] = "page.delta_profit_loss"
 
-    ansWhere = " AND("
+    ansWhere = "WHERE ("
     ansOrder = "ORDER BY "
 
-    ansOrder = ansOrder + vocabulary[str(incSort)] + ' ' + str(incOrder)
+    if str(incSort) == "campaign":
+        ansOrder = ansOrder + vocabulary[str(incSort)] + ' ' + str(incOrder)
+    else:
+        if str(incOrder) == "asc":
+            order = "desc"
+        else:
+            order = "asc"
+        ansOrder = ansOrder + '-' + vocabulary[str(incSort)] + ' ' + order
+    equlitiesMarks = ["=", "<=", ">="]
 
     clause = re.compile(r'\s*\[\s*"([^"]*)",\s*"([^"]*)",\s*(\w+|\d+(?:\.\d*)?|(?:"(?:[^"]|\\\S)*"))\s*\]')
     separatedFilters = re.findall(clause, incFilters)
+    #one condition
     if not separatedFilters:
         clause = re.compile(r"^(.*?)(>|<|=|<>|>=|<=|\bcontains\b|\bnotcontains\b|\bstartswith\b|\bendswith\b)(.*)$")
         separatedFilters = re.match(clause, incFilters)
-        if separatedFilters is None:
+        if separatedFilters is None:# without filtration
             return '', ansOrder
         else:
             filt = separatedFilters.string.split(' ')
-            for i in xrange(3, len(filt)):
+            for i in xrange(3, len(filt)):# if campaign name have spaces
                 filt[2] += (' ' + filt[i])
             if filt[0] == "campaign":
                 if filt[1] == "<>":
@@ -252,7 +186,16 @@ def getFilterQueryString(incFilters, incSort, incOrder):#
                 else:
                     return ansWhere + vocabulary[filt[0]] + " LIKE '%%" + filt[2] + "%%')", ansOrder
             else:
+                if filt[1] in equlitiesMarks and filt[2] == '0':
+                    filt[2] += (" OR " + vocabulary[filt[0]] + " IS NULL")
+                if filt[1] == "<>":
+                    if filt[2] == '0':
+                        filt[2] += (" OR " + vocabulary[filt[0]] + " IS NOT NULL")
+                    else:
+                        filt[2] += (" OR " + vocabulary[filt[0]] + " IS NULL")
+
                 return ansWhere + vocabulary[filt[0]] + filt[1] + filt[2] + ')', ansOrder
+    #multiple conditions
     if separatedFilters[0][0] == "campaign":
         if separatedFilters[0][1] == "<>":
             ansWhere = ansWhere + vocabulary[separatedFilters[0][0]] + " NOT LIKE '%%" + separatedFilters[0][2][1:-1] + "%%'"
@@ -260,11 +203,19 @@ def getFilterQueryString(incFilters, incSort, incOrder):#
             ansWhere = ansWhere + vocabulary[separatedFilters[0][0]] + " LIKE '%%" + separatedFilters[0][2][
                                                                                      1:-1] + "%%'"
     else:
-        ansWhere = ansWhere + vocabulary[separatedFilters[0][0]] + separatedFilters[0][1] + separatedFilters[0][2]
+        temp = str(separatedFilters[0][2])
+        if separatedFilters[0][1] in equlitiesMarks and separatedFilters[0][2] == '0':
+            temp = temp + " OR " + str(vocabulary[separatedFilters[0][0]]) + " IS NULL"
+        if separatedFilters[0][1] == "<>":
+            if separatedFilters[0][2] == '0':
+                temp += (" OR " + vocabulary[separatedFilters[0][0]] + " IS NOT NULL")
+            else:
+                temp += (" OR " + vocabulary[separatedFilters[0][0]] + " IS NULL")
+        ansWhere = ansWhere + vocabulary[separatedFilters[0][0]] + separatedFilters[0][1] + temp
     lastColumn = separatedFilters[0][0]
 
     for i in xrange(1, len(separatedFilters)):
-        if lastColumn == separatedFilters[i][0] and separatedFilters[i][1] == '=':
+        if lastColumn == separatedFilters[i][0] and separatedFilters[i][1] == '=':# for between
             ansWhere += " OR "
         else:
             ansWhere += ") AND ("
@@ -275,7 +226,15 @@ def getFilterQueryString(incFilters, incSort, incOrder):#
                 ansWhere = ansWhere + vocabulary[separatedFilters[i][0]] + " LIKE '%%" + separatedFilters[i][2][
                                                                                          1:-1] + "%%'"
         else:
-            ansWhere = ansWhere + vocabulary[separatedFilters[i][0]] + separatedFilters[i][1] + separatedFilters[i][2]
+            temp = str(separatedFilters[i][2])
+            if separatedFilters[i][1] in equlitiesMarks and separatedFilters[i][2] == '0':
+                temp = temp + " OR " + vocabulary[separatedFilters[i][0]] + " IS NULL"
+            if separatedFilters[i][1] == "<>":
+                if separatedFilters[i][2] == '0':
+                    temp += (" AND " + vocabulary[separatedFilters[i][0]] + " IS NOT NULL")
+                else:
+                    temp += (" OR " + vocabulary[separatedFilters[i][0]] + " IS NULL")
+            ansWhere = ansWhere + vocabulary[separatedFilters[i][0]] + separatedFilters[i][1] + temp
         lastColumn = separatedFilters[i][0]
     ansWhere += ')'
 
@@ -319,69 +278,38 @@ def apiSendVideoCampaignStatistics(request):
     to_date = params["to_date"]
     advertiser_id = request.GET.get("advertiser_id")
 
-    queryRes = SiteDomainPerformanceReport.objects.raw("""
-    SELECT
-      day AS id,
-      SUM(imps) AS sum_imp,
-      SUM(media_cost) AS sum_spend,
-      case SUM(imps) when 0 then 0 else SUM(media_cost)::float/SUM(imps)*1000 end cpm
-    FROM
-      site_domain_performance_report
-    WHERE
-      advertiser_id = """ + str(advertiser_id) + """
-    AND
-      day >= '""" + str(from_date) + """'
-    AND
-      day <= '""" + str(to_date) + """'
-    GROUP BY
-      day
+    queryRes = VideoAdCampaigns.objects.raw("""
+SELECT
+  date id,
+  coalesce(SUM(imp_hour),0) sum_imp,
+  coalesce(SUM(spent_hour),0) sum_spend,
+  coalesce(SUM(ad_starts_hour),0) ad_starts,
+  coalesce(case SUM(imp_hour) when 0 then 0 else SUM(ad_starts_hour)::float / SUM(imp_hour) end,0) fill_rate,
+  coalesce(SUM(spent_cpvm_hour)-SUM(spent_hour), -SUM(spent_hour),SUM(spent_cpvm_hour),0) profit_loss
+FROM
+  video_ad_campaigns
+WHERE
+  advertiser_id=""" + str(advertiser_id) + """
+  AND
+  date >='""" + str(from_date) + """'
+  AND
+  date <='""" + str(to_date) + """'
+GROUP BY
+  date
+ORDER BY
+  date;
     """)
-    dictAns = {}
-    allCpms = {}
-    for row in queryRes:
-        dictAns[row.id] = {
-            "day": row.id,
-            "imp": checkInt(row.sum_imp),
-            "spend": checkFloat(row.sum_spend),
-            "ad_starts": 0,
-            "fill_rate": 0,
-            "profit_loss": (-checkFloat(row.sum_spend)/checkInt(row.sum_imp)*1000 * checkInt(row.sum_imp))
-        }
-        allCpms[row.id] = checkFloat(row.cpm)
 
-    queryRes = RtbAdStartTracker.objects.raw("""
-    SELECT
-      date AS id,
-      SUM(video_ad_campaigns.ad_starts_hour) ad_starts,
-      SUM(video_ad_campaigns.cpvm_hour) cpvm
-    FROM
-      video_ad_campaigns
-    WHERE
-      advertiser_id=""" + str(advertiser_id) + """
-    AND
-      date >='""" + str(from_date) + """'
-    AND
-      date <='""" + str(to_date) + """'
-    GROUP BY date;
-    """)
-    for row in queryRes:
-        if row.id in dictAns:
-            dictAns[row.id]["ad_starts"] = checkInt(row.ad_starts)
-            dictAns[row.id]["fill_rate"] = 0 if dictAns[row.id]["imp"] == 0 else (float(dictAns[row.id]["ad_starts"]) / dictAns[row.id]["imp"] * 100)
-            dictAns[row.id]["profit_loss"] = allCpms[row.id] * dictAns[row.id]["imp"] - float(row.cpvm) * row.ad_starts
-        else:
-            dictAns[row.id] = {
-                "day": row.id,
-                "imp": 0,
-                "spend": 0,
-                "ad_starts": checkInt(row.ad_starts),
-                "fill_rate": 0,
-                "profit_loss": (checkFloat(row.cpvm) * checkInt(row.ad_starts))
-            }
     answer = []
-    orderedAns = collections.OrderedDict(sorted(dictAns.items()))
-    for key, value in orderedAns.iteritems():
-        answer.append(value)
+    for row in queryRes:
+        answer.append({
+            "day": row.id,
+            "imp": row.sum_imp,
+            "spend": row.sum_spend,
+            "ad_starts": row.ad_starts,
+            "fill_rate": row.fill_rate,
+            "profit_loss": row.profit_loss
+        })
     return Response(answer)
 
 def checkFloat(number):

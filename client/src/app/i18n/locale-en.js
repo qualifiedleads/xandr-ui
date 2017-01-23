@@ -80,6 +80,7 @@
         'CPA':"CPA",
         'BILLING':"Billing",
         'OPTIMIZER':"Optimizer",
+        'bcc':"Bulk campaigns creation",
         'Rules':"Rules",
         'EXPERT':"Expert"
       }
@@ -223,6 +224,9 @@
       'PAGE-NAME': 'Valuation by expert:',
       'CALCULATE-AUC': 'Calculate AUC',
       'CREATE-TEST-SET': 'Create test set'
+    },
+    "bcc": {
+
     }
   })
 })();

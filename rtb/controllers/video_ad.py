@@ -312,6 +312,37 @@ ORDER BY
         })
     return Response(answer)
 
+@api_view(["GET"])
+# @check_user_advertiser_permissions(campaign_id_num=0)
+def apiSendCampaignPageGraph(request, id):
+    params = parse_get_params(request.GET)
+    from_date = params["from_date"]
+    to_date = params["to_date"]
+    queryRes = VideoAdCampaigns.objects.raw("""
+    select array((select
+           json_build_object(
+           'day', date,
+           'imp', coalesce(SUM(imp_hour),0),
+           'spend', coalesce(SUM(spent_hour),0),
+           'ad_starts', coalesce(SUM(ad_starts_hour),0),
+           'fill_rate', coalesce(case SUM(imp_hour) when 0 then 0 else SUM(ad_starts_hour)::float / SUM(imp_hour) end,0),
+           'profit_loss', coalesce(SUM(spent_cpvm_hour)-SUM(spent_hour), -SUM(spent_hour),SUM(spent_cpvm_hour),0))
+         from
+             video_ad_campaigns
+         where
+           campaign_id='""" + str(id) + """'
+           AND
+             date >='""" + str(from_date) + """'
+           AND
+             date <='""" + str(to_date) + """'
+         group by date
+         order by date)) id;
+    """)
+    if not queryRes:
+        print "Can not find data for graph"
+        return Response(status=status.HTTP_404_NOT_FOUND)
+    return Response(queryRes[0].id)
+
 def checkFloat(number):
     return 0 if number is None else float(number)
 

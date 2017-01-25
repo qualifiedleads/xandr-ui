@@ -28,6 +28,7 @@ urlpatterns = [
     url(r'^map/imps[/]?$', video_ad.apiSendMapImpsData),
     url(r'^campaigns/(\d+)/cpabuckets', views_adv.bucketsCPA),
     url(r'^campaigns/(\d+)/graphinfo', views_adv.graphInfo),
+    url(r'^videocampaigns/(\d+)/graphinfo[/]?$', video_ad.apiSendCampaignPageGraph),
     url(r'^campaigns/(\d+)/cpareport', views_adv.cpaReport),
     url(r'^campaigns/(\d+)/domains', views_adv.campaignDomains),
     url(r'^campaigns/(\d+)/details', views_adv.campaignDetails),

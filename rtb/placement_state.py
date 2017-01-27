@@ -140,7 +140,6 @@ class PlacementState:
             print "change state placement - Not connect to appnexus server "
             return 503
 
-    """   Proverka statusa priostanovlenyih pleysmentov   """
     def suspend_state_middleware(self):
         suspendState = ModelPlacementState.objects.filter(state=1)
         if len(suspendState) < 1:
@@ -198,7 +197,6 @@ class PlacementState:
             print "remove_placement_from_targets_list - Not connect to appnexus server "
             return 503
 
-    """   Zagruzka white/black listov s apneksusa """
     def placement_targets_list(self):
         try:
             change_state = LastModified.objects.filter(type='platform_placement_targets')
@@ -323,7 +321,6 @@ class PlacementState:
             LastModified.objects.filter(type='platform_placement_targets').delete()
             print 'Error: ' + str(e)
 
-    """ Izmenenie statusa 1/2/4 i otpravka ih na apneksus """
     def change_state_by_state(self, stateGet):
         try:
             tempState = stateGet
@@ -376,7 +373,6 @@ class PlacementState:
             print "Fail sync white list to platform placement targets."
             return False
 
-    """ Ubrat dizAktivirovanyiy pleysment 0 """
     def remove_placement_from_targets_list_by_cron(self, stateGet):
         try:
             whiteBlackState = ModelPlacementState.objects.filter(Q(state=stateGet) & Q(change=True))
@@ -435,8 +431,7 @@ class PlacementState:
             print "Fail sync white list to platform placement targets."
             return False
 
-    """ V protsese """
-    def update_plasement_state_in_our_table(self, campaign_id, arrayFromAppexus):
+    def update_placement_state_in_our_table(self, campaign_id, arrayFromAppexus):
         campaign_id = 14574547
         arrayFromAppexus = [
                    {'action': 'exclude', 'deleted': False, 'id': 5988182},
@@ -484,10 +479,9 @@ class PlacementState:
 
         pass
 
-    """ Izmenennyie pleysmentyi otpravlyayutsya na appneksus """
     def change_state_placement_by_cron(self):
         try:
-            #self.update_plasement_state_in_our_table(None, None)
+            #self.update_placement_state_in_our_table(None, None)
             change_state = LastModified.objects.filter(type='change_state_placement_by_cron')
             if len(change_state) >= 1:
                 if timezone.make_aware(datetime.datetime.now(), timezone.get_default_timezone()) - change_state[0].date >= timedelta(minutes=45):

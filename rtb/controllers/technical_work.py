@@ -66,7 +66,6 @@ Get last status works
             return Response("off")
         else:
             k = TechnicalWork.objects.latest('id')
-            print "Last status for technical work - " + k.status
             return Response(k.status)
     except Exception, e:
         print 'Error: ' + str(e)
@@ -101,7 +100,6 @@ change status banner
 
 def getBanner():
     try:
-        print "Get message"
         if not AttentionMessage.objects.all():
             return {'text': '', 'status': False}
         else:

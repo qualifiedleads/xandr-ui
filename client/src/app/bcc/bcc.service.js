@@ -42,6 +42,7 @@
         })
         .catch(function (err) {
           $window.DevExpress.ui.notify(err.statusText, "error", 4000);
+          return false;
         });
     }
 

@@ -8,6 +8,7 @@
   </div>
   <div class="row camp-content1">
     <div class="row">
+      <div dx-load-panel="bcc.UI.loadPanel"></div>
       <div class="col-lg-4 col-md-4 col-sm-4">
         <div translate="BCC.SELECT-CAMPAIGN">Select Campaign:</div>
         <div dx-select-box="bcc.UI.searchOptions"></div>
@@ -19,6 +20,10 @@
       <div class="col-lg-2 col-md-2 col-sm-2">
         <div dx-button="bcc.UI.send" class="margin-top"></div>
       </div>
+    </div>
+    <div class="dx-toast-success dx-toast-content message" ng-show="bcc.message">
+      <div class="dx-toast-icon"></div>
+      {{ bcc.message }}
     </div>
   </div>
 </div>

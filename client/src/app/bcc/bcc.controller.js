@@ -6,13 +6,15 @@
     .controller('BCCController', BCCController);
 
   /** @ngInject */
-  function BCCController($window, $state, $rootScope, $localStorage, $translate, BCC, Campaign) {
+  function BCCController($window, $state, $localStorage, $translate, BCC, Campaign) {
     var vm = this;
     var LC = $translate.instant;
     var ruleSuspend = false;
     var ruleIndexPopUp = '';
     var selectCampaignId;
     var domainAreaText;
+    vm.loadindicatorVisible = false;
+    vm.message = false;
     vm.campName = Campaign.campaign;
     vm.campId = Campaign.id;
     vm.line_item = Campaign.line_item;
@@ -99,18 +101,37 @@
     //endregion
 
     vm.UI = {
+      loadPanel: {
+        shadingColor: "rgba(0,0,0,0.4)",
+        bindingOptions: {
+          visible: "bcc.loadindicatorVisible"
+        },
+        showIndicator: true,
+        showPane: true,
+        shading: true,
+        closeOnOutsideClick: false
+      },
       send: {
         text: LC('BCC.CREATE'),
         onClick: function () {
-          if ((!selectCampaignId)||(selectCampaignId==null)) {
+          if ((!selectCampaignId) || (selectCampaignId == null)) {
             $window.DevExpress.ui.notify("Select campaign please", "warning", 4000);
             return
           }
-          if ((!domainAreaText)||(domainAreaText==null)) {
+          if ((!domainAreaText) || (domainAreaText == null)) {
             $window.DevExpress.ui.notify("Insert the list of domains please", "warning", 4000);
             return
           }
-          return BCC.campaignCreateBulk($localStorage.advertiser.id, selectCampaignId, domainAreaText)
+          vm.loadindicatorVisible = true;
+          return BCC.campaignCreateBulk($localStorage.advertiser.id, selectCampaignId, domainAreaText).then(function (res) {
+            if (res == false) {
+              vm.loadindicatorVisible = false;
+              return
+            }
+            vm.message = 'Created campaigns: ' + res;
+            vm.loadindicatorVisible = false;
+            // $scope.$apply();
+          })
         }
       },
       searchOptions: {
@@ -127,8 +148,8 @@
       domainArea: {
         height: 150,
         placeholder: LC('BCC.PLACEHOLDER-DOMAIN'),
-        onValueChanged: function(data) {
-             domainAreaText = data.value;
+        onValueChanged: function (data) {
+          domainAreaText = data.value;
         }
       },
       datePiker: {

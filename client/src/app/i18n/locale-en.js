@@ -80,7 +80,7 @@
         'CPA':"CPA",
         'BILLING':"Billing",
         'OPTIMIZER':"Optimizer",
-        'bcc':"Bulk campaigns creation",
+        'BCC':"Bulk campaigns creation",
         'Rules':"Rules",
         'EXPERT':"Expert"
       }
@@ -225,8 +225,11 @@
       'CALCULATE-AUC': 'Calculate AUC',
       'CREATE-TEST-SET': 'Create test set'
     },
-    "bcc": {
-
+    "BCC": {
+      "SELECT-CAMPAIGN": "Select Campaign:",
+      "ADD-DOMAIN": "Put domain:",
+      "PLACEHOLDER-DOMAIN": "Put single domain in one line",
+      "CREATE": "Create"
     }
   })
 })();

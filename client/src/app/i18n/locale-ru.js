@@ -80,6 +80,7 @@
           'BILLING':"Биллинг",
           'CPA':"CPA",
           'OPTIMIZER':"Оптимизатор",
+          'BCC':"Массовое создание компаний",
           'Rules':"Правила",
           'EXPERT':"Оценка экспертом"
         }
@@ -223,6 +224,12 @@
         'PAGE-NAME': 'Valuation by expert:',
         'CALCULATE-AUC': 'Calculate AUC',
         'CREATE-TEST-SET': 'Create test set'
+      },
+      "BCC": {
+        "SELECT-CAMPAIGN": "Выберите компанию:",
+        "ADD-DOMAIN": "Введите домен:",
+        "PLACEHOLDER-DOMAIN": "Один домен в одну строку",
+        "CREATE": "Создать"
       }
     })
 })();

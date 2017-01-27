@@ -11,16 +11,21 @@
     var LC = $translate.instant;
     var ruleSuspend = false;
     var ruleIndexPopUp = '';
+    var selectCampaignId;
+    var domainAreaText;
     vm.campName = Campaign.campaign;
     vm.campId = Campaign.id;
     vm.line_item = Campaign.line_item;
     vm.line_item_id = Campaign.line_item_id;
 
+
     if ($localStorage.campaign == null) {
       $state.go('home.main');
     }
 
-    vm.selectCampaignStore = BCC.selectCampaignStore();
+    BCC.campaignList($localStorage.advertiser.id).then(function (res) {
+      vm.selectCampaignStore = res;
+    });
 
     //region DATE PIKER
     /** DATE PIKER **/
@@ -94,16 +99,37 @@
     //endregion
 
     vm.UI = {
+      send: {
+        text: LC('BCC.CREATE'),
+        onClick: function () {
+          if ((!selectCampaignId)||(selectCampaignId==null)) {
+            $window.DevExpress.ui.notify("Select campaign please", "warning", 4000);
+            return
+          }
+          if ((!domainAreaText)||(domainAreaText==null)) {
+            $window.DevExpress.ui.notify("Insert the list of domains please", "warning", 4000);
+            return
+          }
+          return BCC.campaignCreateBulk($localStorage.advertiser.id, selectCampaignId, domainAreaText)
+        }
+      },
       searchOptions: {
+        displayExpr: "name",
+        valueExpr: "id",
+        searchEnabled: true,
         bindingOptions: {
           dataSource: 'bcc.selectCampaignStore'
         },
-        displayExpr: "Name",
-        valueExpr: "ID",
-        searchEnabled: true
+        onValueChanged: function (res, data) {
+          selectCampaignId = res.value;
+        }
       },
       domainArea: {
-
+        height: 150,
+        placeholder: LC('BCC.PLACEHOLDER-DOMAIN'),
+        onValueChanged: function(data) {
+             domainAreaText = data.value;
+        }
       },
       datePiker: {
         items: products,

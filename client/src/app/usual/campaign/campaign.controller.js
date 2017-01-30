@@ -25,6 +25,11 @@
     if ($localStorage.campaign == null) {
       $state.go('home.main');
     }
+    $localStorage.campaign = {
+      "id":  Campaign.id,
+      "name": Campaign.campaign,
+      "line_item": Campaign.line_item
+    };
 
     vm.campName = Campaign.campaign;
     vm.campId = Campaign.id;

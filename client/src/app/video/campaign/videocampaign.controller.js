@@ -88,6 +88,8 @@
       }
     };
 
+    angular.element($window.document.querySelector("#wrapper"))[0].classList.remove('hidden-menu');
+
     function CheckLocalStorage() {
       for (var item in $localStorage.checkChartVideo) {
         if ($localStorage.checkChartVideo[item]) {

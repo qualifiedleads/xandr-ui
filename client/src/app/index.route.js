@@ -22,7 +22,7 @@
       })
       .state('home.main', {
         url: '/main',
-        templateUrl: 'app/main/main.html',
+        templateUrl: 'app/usual/main/main.html',
         controller: 'MainController',
         controllerAs: 'main',
         resolve: {
@@ -38,8 +38,8 @@
         }
       })
       .state('home.videomain', {
-        url: '/videomain',
-        templateUrl: 'app/videomain/videomain.html',
+        url: '/video/main',
+        templateUrl: 'app/video/main/videomain.html',
         controller: 'VideoMainController',
         controllerAs: 'vmain',
         resolve: {
@@ -56,7 +56,7 @@
       })
       .state('home.videocampaign', {
         url: '/video/campaign/:id',
-        templateUrl: 'app/videocampaign/videocampaign.html',
+        templateUrl: 'app/video/campaign/videocampaign.html',
         controller: 'VideoCampaignController',
         controllerAs: 'videocamp',
         resolve: {
@@ -81,7 +81,7 @@
       })
       .state('home.campaign', {
         url: '/campaign/:id',
-        templateUrl: 'app/campaignmain/campmain.html',
+        templateUrl: 'app/usual/campaign/campaign.html',
         controller: 'CampaignMainController',
         controllerAs: 'campmain',
         resolve: {
@@ -106,7 +106,7 @@
       })
       .state('home.optimiser', {
         url: '/optimiser/:id',
-        templateUrl: 'app/campaignOptimiser/campaignOptimiser.html',
+        templateUrl: 'app/usual/optimiser/optimiser.html',
         controller: 'CampaignOptimiserController',
         controllerAs: 'CO',
         resolve: {
@@ -154,7 +154,7 @@
       })
       .state('home.rules', {
         url: '/rules/:id',
-        templateUrl: 'app/rules/rules.html',
+        templateUrl: 'app/usual/rules/rules.html',
         controller: 'rulesController',
         controllerAs: 'rulesC',
         resolve: {
@@ -179,7 +179,7 @@
       })
       .state('home.bcc', {
         url: '/video/bcc/:id',
-        templateUrl: 'app/bcc/bcc.html',
+        templateUrl: 'app/video/bcc/bcc.html',
         controller: 'BCCController',
         controllerAs: 'bcc',
         resolve: {
@@ -204,7 +204,7 @@
       })
       .state('home.cpa', {
         url: '/cpa/:id',
-        templateUrl: 'app/cpa/cpa.html',
+        templateUrl: 'app/usual/cpa/cpa.html',
         controller: 'CPAController',
         controllerAs: 'cpa',
         resolve: {

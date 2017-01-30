@@ -21,11 +21,7 @@
 
     vm.checkChart = [];
     vm.by = 'imp,cvr,cpc,clicks,spend,conv,ctr';
-    $localStorage.campaign = {
-      "id":  Campaign.id,
-      "name": Campaign.campaign,
-      "line_item": Campaign.line_item
-    };
+
     if ($localStorage.campaign == null) {
       $state.go('home.main');
     }

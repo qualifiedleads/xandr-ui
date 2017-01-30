@@ -44,12 +44,12 @@
     }
 
     function saveRules() {
-      Rules.saveRules($rootScope.id, vm.rulesArray);
+      Rules.saveRules(Campaign.id, vm.rulesArray);
     }
 
 
     Rules
-      .getRules($rootScope.id)
+      .getRules(Campaign.id)
       .then(function (rule) {
         if (rule){
           vm.rulesArray = rule;

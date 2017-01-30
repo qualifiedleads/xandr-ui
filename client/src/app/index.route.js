@@ -55,7 +55,7 @@
         }
       })
       .state('home.videocampaign', {
-        url: '/videocampaign/:id',
+        url: '/video/campaign/:id',
         templateUrl: 'app/videocampaign/videocampaign.html',
         controller: 'VideoCampaignController',
         controllerAs: 'videocamp',
@@ -178,7 +178,7 @@
         }
       })
       .state('home.bcc', {
-        url: '/bcc/:id',
+        url: '/video/bcc/:id',
         templateUrl: 'app/bcc/bcc.html',
         controller: 'BCCController',
         controllerAs: 'bcc',

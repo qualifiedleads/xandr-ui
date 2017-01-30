@@ -369,7 +369,7 @@
             fixed: true,
             cellTemplate: function (container, options) {
               container.addClass('a-campaign');
-              $window.angular.element('<a href="#/home/videocampaign/' + options.data.campaign_id + '">' + options.data.campaign_name + ' (' + options.data.campaign_id +')</a>')
+              $window.angular.element('<a href="#/home/video/campaign/' + options.data.campaign_id + '">' + options.data.campaign_name + ' (' + options.data.campaign_id +')</a>')
                 .appendTo(container);
             },
             headerFilter: {

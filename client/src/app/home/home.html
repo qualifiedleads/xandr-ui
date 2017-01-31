@@ -7,6 +7,7 @@
         <li><a ui-sref="home.optimiser ({id: $root.id})"  translate="INDEX.LEFT_NAV.OPTIMIZER"></a></li>
         <!-- <li><a href="#/" translate="INDEX.LEFT_NAV.BILLING">Billing</a></li>-->
         <li class="active"><a ui-sref="home.rules ({id: $root.id})" translate="INDEX.LEFT_NAV.Rules"></a></li>
+        <li><a ui-sref="home.bcc ({id: $root.id})" translate="INDEX.LEFT_NAV.BCC"></a></li>
         <li ng-if="home.isEven == true"><a  ui-sref="home.valuationByExpert" translate="INDEX.LEFT_NAV.EXPERT" ></a></li>
       </ul>
       <ul class="nav nav-list" ng-if="home.video">

@@ -3,20 +3,17 @@
 
   angular
     .module('pjtLayout')
-    .service('BCC', BCC);
+    .service('AutomaticCpm', AutomaticCpm);
 
   /** @ngInject */
-  function BCC($http, $cookies, $window) {
+  function AutomaticCpm($http, $cookies, $window) {
     var _this = this;
 
-    function campaignList(advertiserId) {
+    function getList(id) {
       return $http({
         method: 'GET',
         headers: { Authorization: 'Token ' + $cookies.get('token') },
-        url: '/api/v1/advertiser/campaign/all',
-        params: {
-          id: advertiserId
-        }
+        url: '/api/v1/videocampaigns/' + id + '/mlgraph',
       })
         .then(function (res) {
           return res.data;
@@ -26,15 +23,13 @@
         });
     }
 
-    function campaignCreateBulk(advertiserId, campaignId, domain) {
+    function saveMethod(campaignId, backName) {
       return $http({
-        method: 'POST',
+        method: 'PUT',
         headers: { Authorization: 'Token ' + $cookies.get('token') },
-        url: '/api/v1/campaign/create/bulk',
+        url: '/api/v1/videocampaigns/' + campaignId + '/mlsetalgo',
         data: {
-          advertiserId: advertiserId,
-          campaignId: campaignId,
-          domain: domain
+          back_name: backName
         }
       })
         .then(function (res) {
@@ -46,7 +41,7 @@
         });
     }
 
-    _this.campaignList = campaignList;
-    _this.campaignCreateBulk = campaignCreateBulk;
+    _this.getList = getList;
+    _this.saveMethod = saveMethod;
   }
 })();

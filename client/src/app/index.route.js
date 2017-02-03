@@ -78,6 +78,31 @@
           }
         }
       })
+      .state('home.automaticcpm', {
+        url: '/video/automatic/CPM/:id',
+        templateUrl: 'app/video/automaticcpm/acpmc.html',
+        controller: 'AutomaticCpmController',
+        controllerAs: 'acpmc',
+        resolve: {
+          Campaign: function (CampMain, $stateParams, $state) {
+            if (!$stateParams.id) {
+              $state.go('home.main');
+            }
+            return CampMain.nameCampaigns($stateParams.id).then(function (res) {
+              return res
+            });
+          },
+          TWStatus: function (AdminService, $stateParams, $state, $cookies) {
+            return AdminService.getValueOfTech().then(function (res) {
+              if ((res == "on") &&
+                ($cookies.get('token')) &&
+                (($cookies.get('permission') == 'userfull') || $cookies.get('permission') == 'userread')) {
+                $state.go('auth');
+              }
+            });
+          }
+        }
+      })
       .state('home.campaign', {
         url: '/campaign/:id',
         templateUrl: 'app/usual/campaign/campaign.html',

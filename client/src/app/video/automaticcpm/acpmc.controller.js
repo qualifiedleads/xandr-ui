@@ -11,6 +11,7 @@
     var LC = $translate.instant;
     $rootScope.id = Campaign.id;
     var selectMethod = null;
+    vm.charIsUpdating = false;
     vm.loadindicatorVisible = false;
     $rootScope.name = Campaign.campaign;
     $rootScope.line_item = Campaign.line_item;
@@ -24,22 +25,30 @@
 
     vm.cpmGraph = [
       {
-        cpm: null,
-        cpmTrue: null,
+        true_cpm: null,
+        gradient_cpm: null,
+        abtree_cpm: null,
+        random_forest_cpm: null,
         day: null
       },
     ];
 
     vm.fillrateGraph = [
       {
-        fill_rate: null,
+        true_fillrate: null,
+        gradient_fillrate: null,
+        abtree_fillrate: null,
+        random_forest_fillrate: null,
         day: null
       },
     ];
 
     vm.profitGraph = [
       {
-        profit: null,
+        true_profit: null,
+        gradient_profit: null,
+        abtree_cpm: null,
+        random_forest_cpm: null,
         day: null
       }
     ];
@@ -49,7 +58,11 @@
     }
 
     AutomaticCpm.getList(Campaign.id).then(function (res) {
-      vm.selectMethod = res.choice_list;
+      if (res == undefined) {
+        return;
+      }
+
+      vm.selectMethod = res.choice_list ? res.choice_list : null;
       vm.cpmGraph = res.cpm_graph;
       vm.fillrateGraph = res.fillrate_graph;
       vm.profitGraph = res.profit_graph;
@@ -130,14 +143,16 @@
     vm.UI = {
       chartCPM: {
         series: [
-          { valueField: 'cpm', name: 'CPM' },
-          { valueField: 'cpmTrue', name: 'CPM True' },
+          { valueField: 'true_cpm', axis: 'true_cpm', name: 'CPM True' },
+          { valueField: 'gradient_cpm', name: 'Gradient CPM' },
+          { valueField: 'abtree_cpm', name: 'Adaboost tree CPM' },
+          { valueField: 'random_forest_cpm', name: 'Random forest CPM' },
         ],
         bindingOptions: {
           dataSource: 'acpmc.cpmGraph'
         },
         commonSeriesSettings: {
-          argumentField: 'day',
+          argumentField: 'date',
           type: 'Line',
           point: {
             size: 6,
@@ -166,25 +181,10 @@
             label: {
               visible: true,
               customizeText: function (arg) {
-                if (arg.point.series.name == 'Cost' || arg.point.series.name == 'CPC') {
-                  return '$' + this.value;
-                }
-
-                if (arg.point.series.name == 'Impressions')  {
-                  return this. value.toString().split(/(?=(?:\d{3})+(?!\d))/).join();
-                }
-
-                if ((arg.point.series.name == 'CTR') || (arg.point.series.name == 'CVR')) {
-                  return this.value + '%';
-                }
+                return this.value;
               },
             },
           },
-          verticalLine: {
-            label: {
-              visible: true
-            }
-          }
         },
         commonAxisSettings: {
           valueMarginsEnabled: true,
@@ -199,15 +199,10 @@
           }
         },
         valueAxis: [
-          {
-            name: 'cpm',
-            position: 'left'
-          },
-          {
-            name: 'cpmTrue',
-            position: 'left'
-          },
-
+          { name: 'true_cpm' },
+          { name: 'gradient_cpm' },
+          { name: 'abtree_cpm' },
+          { name: 'random_forest_cpm' }
         ],
         legend: {
           verticalAlignment: 'bottom',
@@ -217,13 +212,16 @@
       },
       chartFillRate: {
         series: [
-          { valueField: 'fill_rate', name: 'Fill rate' },
+          { valueField: 'true_fillrate', name: 'True fill rate' },
+          { valueField: 'gradient_fillrate', name: 'Gradient fill rate' },
+          { valueField: 'abtree_fillrate', name: 'Abtree fill rate' },
+          { valueField: 'random_forest_fillrate', name: 'Random forest fill rate' },
         ],
         bindingOptions: {
           dataSource: 'acpmc.fillrateGraph'
         },
         commonSeriesSettings: {
-          argumentField: 'day',
+          argumentField: 'date',
           type: 'Line',
           point: {
             size: 6,
@@ -252,17 +250,7 @@
             label: {
               visible: true,
               customizeText: function (arg) {
-                if (arg.point.series.name == 'Cost' || arg.point.series.name == 'CPC') {
-                  return '$' + this.value;
-                }
-
-                if (arg.point.series.name == 'Impressions')  {
-                  return this. value.toString().split(/(?=(?:\d{3})+(?!\d))/).join();
-                }
-
-                if ((arg.point.series.name == 'CTR') || (arg.point.series.name == 'CVR')) {
-                  return this.value + '%';
-                }
+                return this.value;
               },
             },
           },
@@ -285,10 +273,10 @@
           }
         },
         valueAxis: [
-          {
-            name: 'fill_rate',
-            position: 'left'
-          },
+          { name: 'true_fillrate', position: 'left' },
+          { name: 'gradient_fillrate', position: 'left' },
+          { name: 'abtree_fillrate', position: 'left' },
+          { name: 'random_forest_fillrate', position: 'left' },
         ],
         legend: {
           verticalAlignment: 'bottom',
@@ -298,13 +286,16 @@
       },
       chartProfit: {
         series: [
-          { valueField: 'profit', name: 'Profit' },
+          { valueField: 'true_profit', name: 'True profit' },
+          { valueField: 'gradient_profit', name: 'Gradient profit' },
+          { valueField: 'abtree_cpm', name: 'Abtree CPM' },
+          { valueField: 'random_forest_cpm', name: 'Random forest CPM' },
         ],
         bindingOptions: {
           dataSource: 'acpmc.profitGraph'
         },
         commonSeriesSettings: {
-          argumentField: 'day',
+          argumentField: 'date',
           type: 'Line',
           point: {
             size: 6,
@@ -333,17 +324,7 @@
             label: {
               visible: true,
               customizeText: function (arg) {
-                if (arg.point.series.name == 'Cost' || arg.point.series.name == 'CPC') {
-                  return '$' + this.value;
-                }
-
-                if (arg.point.series.name == 'Impressions')  {
-                  return this. value.toString().split(/(?=(?:\d{3})+(?!\d))/).join();
-                }
-
-                if ((arg.point.series.name == 'CTR') || (arg.point.series.name == 'CVR')) {
-                  return this.value + '%';
-                }
+                return this.value;
               },
             },
           },
@@ -375,10 +356,10 @@
               }
             ]
           },
-          {
-            name: 'profit',
-            position: 'left'
-          }
+          { name: 'true_profit', position: 'left' },
+          { name: 'gradient_profit', position: 'left' },
+          { name: 'abtree_cpm', position: 'left' },
+          { name: 'random_forest_cpm', position: 'left' },
         ],
         legend: {
           verticalAlignment: 'bottom',
@@ -405,7 +386,8 @@
           }
 
           vm.loadindicatorVisible = true;
-          return AutomaticCpm.saveMethod(vm.campId, selectMethod).then(function (res) {
+          return AutomaticCpm.saveMethod($localStorage.advertiser.id, vm.campId, selectMethod)
+            .then(function (res) {
             if (res == false) {
               vm.loadindicatorVisible = false;
               return;
@@ -443,4 +425,3 @@
 
   }
 })();
-

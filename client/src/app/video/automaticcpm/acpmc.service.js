@@ -23,13 +23,14 @@
         });
     }
 
-    function saveMethod(campaignId, backName) {
+    function saveMethod(advertiserId, campaignId, backName) {
       return $http({
         method: 'PUT',
         headers: { Authorization: 'Token ' + $cookies.get('token') },
         url: '/api/v1/videocampaigns/' + campaignId + '/mlsetalgo',
         data: {
-          back_name: backName
+          advertiserId: advertiserId,
+          back_name: backName,
         }
       })
         .then(function (res) {

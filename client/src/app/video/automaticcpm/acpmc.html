@@ -4,9 +4,12 @@
     <a href="" ui-sref="home.videocampaign({id: acpmc.campId})">{{acpmc.campName}} ({{acpmc.campId}}) </a>
       </span>
     <br><span translate="CAMP.LINE_ITEM" class="camp-header"></span><span class="camp-line-item"> {{acpmc.line_item}} ({{acpmc.line_item_id}})</span>
-    <div class="control pull-right" dx-select-box="acpmc.UI.datePiker"></div>
+
   </div>
-  <div class="row camp-content1">
+  <div class="row container-camp">
+    <h2><b>Current method -</b>
+      {{ acpmc.currentAlgo }}
+    </h2>
     <div dx-load-panel="acpmc.UI.loadPanel"></div>
     <div class="col-lg-4 col-md-5 col-sm-6">
       <div translate="ACPMC.CHOICE-LIST"></div>

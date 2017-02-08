@@ -63,7 +63,7 @@ def apiSendMLGraphInfo(request, id):
     allProfit["true"] = []
 
     for i in xrange(len(data)):
-        allDate.append(data[i][6])
+        allDate.append(datetime.strftime(data[i][6], "%Y-%m-%d %H:%M:%S"))
         allFillRate["true"].append(data[i][3])
         allCpm["true"].append(data[i][4])
         allProfit["true"].append(data[i][5])
@@ -135,7 +135,7 @@ def apiSetCampaignAlgo(request, id):
                 advertiser_id=request.data.get("advertiserId"),
                 campaign_id=id,
             ).delete()
-            return Response(status=status.HTTP_200_OK)
+            return Response({"current_algo": "None"})
         queryRes = MLVideoAdCampaignsModelsInfo.objects.filter(
             campaign_id=id,
             type=request.data.get("back_name")
@@ -148,7 +148,11 @@ def apiSetCampaignAlgo(request, id):
                 "type": queryRes[0].type
             }
         )
-        return Response(status=status.HTTP_200_OK)
+        frontCaptions = {}
+        frontCaptions["gradient"] = "Gradient boosting"
+        frontCaptions["random_forest"] = "Random forest"
+        frontCaptions["abtree"] = "Decision tree"
+        return Response({"current_algo": frontCaptions[request.data.get("back_name")]})
     except Exception, e:
         print "Can't save model fot the campaign. Error: " + str(e)
         return Response(status=status.HTTP_400_BAD_REQUEST)

@@ -324,7 +324,8 @@
                 return;
               }
 
-              vm.message = 'Save method: ' + res;
+              $window.DevExpress.ui.notify('Saved method: ' + res.current_algo, 'success', 4000);
+              vm.currentAlgo = res.current_algo;
               vm.loadindicatorVisible = false;
             });
         }

@@ -6,6 +6,7 @@ from rest_framework import routers
 
 from . import views, views_rest, views_adv, views_user
 from .controllers import technical_work, video_ad, campaign_create
+from .ml import ml_video_ad
 
 
 router = routers.DefaultRouter()
@@ -29,6 +30,8 @@ urlpatterns = [
     url(r'^campaigns/(\d+)/cpabuckets', views_adv.bucketsCPA),
     url(r'^campaigns/(\d+)/graphinfo', views_adv.graphInfo),
     url(r'^videocampaigns/(\d+)/graphinfo[/]?$', video_ad.apiSendCampaignPageGraph),
+    url(r'^videocampaigns/(\d+)/mlgraph[/]?$', ml_video_ad.apiSendMLGraphInfo),
+    url(r'^videocampaigns/(\d+)/mlsetalgo[/]?$', ml_video_ad.apiSetCampaignAlgo),
     url(r'^campaigns/(\d+)/cpareport', views_adv.cpaReport),
     url(r'^campaigns/(\d+)/domains', views_adv.campaignDomains),
     url(r'^campaigns/(\d+)/details', views_adv.campaignDetails),

@@ -17,7 +17,7 @@ pympler
 requests
 NumPy
 SciPy
-scikit-learn
+scikit-learn==0.18
 graphviz
 pydot
 deap

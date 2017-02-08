@@ -8,4 +8,5 @@ from .placement_state import *
 from .rtb_impression_tracker import *
 from .technical_works import *
 from .video_ad_models import *
+from .ml_video_ad_model import *
 

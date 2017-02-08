@@ -104,9 +104,10 @@ def get_auth_token():
 
 
 one_day = datetime.timedelta(days=1)
+one_hour = datetime.timedelta(hours=1)
 
 
-def get_specified_report(ReportClass, query_data=None, token=None, day=None, columns=None):
+def get_specified_report(ReportClass, query_data=None, token=None, day=None, columns=None, isHour=False):
     if not query_data: query_data={}
     report_type = ReportClass.api_report_name
     if not token:
@@ -122,13 +123,23 @@ def get_specified_report(ReportClass, query_data=None, token=None, day=None, col
             "format": "csv"
         }
     }
-    if not day:
-        # report_data['report']['report_interval'] = "last_hour" if report_type not in no_hours_reports else "yesterday"
-        report_data['report']['report_interval'] = "yesterday"
+    if isHour == False:
+        if not day:
+            # report_data['report']['report_interval'] = "last_hour" if report_type not in no_hours_reports else "yesterday"
+            report_data['report']['report_interval'] = "yesterday"
+        else:
+            report_data['report']["start_date"] = day.strftime("%Y-%m-%d")
+            report_data['report']["end_date"] = (
+                day + one_day).strftime("%Y-%m-%d")
     else:
-        report_data['report']["start_date"] = day.strftime("%Y-%m-%d")
-        report_data['report']["end_date"] = (
-            day + one_day).strftime("%Y-%m-%d")
+        if not day:
+            report_data['report']['report_interval'] = "last_hour"
+        else:
+            report_data['report']["start_date"] = day.strftime("%Y-%m-%d %H:%M:%S")
+            report_data['report']["end_date"] = (
+                day + one_hour).strftime("%Y-%m-%d %H:%M:%S")
+
+
     report_data['report'].update(query_data)
 
     headers = {"Authorization": token, 'Content-Type': 'application/json'}

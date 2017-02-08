@@ -622,6 +622,63 @@ def load_depending_data(token, force_update=False, daily_load=True):
 #     def __exit__(self, exc_type, exc_val, exc_tb):
 #         pass
 
+
+def hourlyTask(dayWithHour=None, load_objects_from_services=True, output=None):
+    old_stdout, old_error = sys.stdout, sys.stderr
+    file_output = None
+    try:
+        if not output:
+            if hasattr(settings, 'LOG_DIR') and settings.LOG_DIR:
+                catalog_name = settings.LOG_DIR
+            else:
+                catalog_name = os.path.join(os.path.dirname(__file__), 'logs')
+            clean_old_files(catalog_name)
+            log_file_name = 'Dayly_Task_%s.log' % get_current_time().strftime('%Y-%m-%dT%H-%M-%S')
+            log_file_name = os.path.join(catalog_name, log_file_name)
+            file_output = open(log_file_name, 'w', 1)  # line buffered file
+            file_output.write('Begin write log file {}\n'.format(get_current_time()))
+            output = file_output
+    except:
+        pass
+    if output:
+        sys.stdout, sys.stderr = output, output
+
+    # report.get_specifed_report('network_analytics')
+
+    one_hour = datetime.timedelta(hours=1)
+
+    if dayWithHour:
+        dayWithHour = datetime.datetime(hour=dayWithHour.hour, day=dayWithHour.day, month=dayWithHour.month, year=dayWithHour.year, tzinfo=utc)
+        last_day = dayWithHour
+    else:
+        dayWithHour = SiteDomainPerformanceReport.objects.aggregate(m=Max('hour'))['m']
+        print 'Last loaded hour', dayWithHour
+
+        if dayWithHour:
+            dayWithHour = datetime.datetime(hour=dayWithHour.hour, day=dayWithHour.day, month=dayWithHour.month,
+                                            year=dayWithHour.year, tzinfo=utc)
+        else:
+            dayWithHour = dayWithHour - one_hour
+
+    dateNow = datetime.datetime.utcnow().replace(minute=0, second=0, microsecond=0, tzinfo=utc)
+    try:
+        token = get_auth_token()
+        # if load_objects_from_services:
+        #      load_depending_data(token, True)
+        while dayWithHour <= dateNow:
+            load_reports_for_all_advertisers(token, dayWithHour, SiteDomainPerformanceReport, isHour=True)
+            # fillVideoAdDataCron()
+            dayWithHour += one_hour
+    except Exception as e:
+        print 'Error by fetching data: %s' % e
+        print traceback.print_exc(file=output)
+    finally:
+        sys.stdout, sys.stderr = old_stdout, old_error
+        if file_output:
+            file_output.close()
+    print "OK"
+
+
 # Task, executed once in day. Get new data from NexusApp
 def dayly_task(day=None, load_objects_from_services=True, output=None):
     old_stdout, old_error = sys.stdout, sys.stderr
@@ -671,7 +728,7 @@ def dayly_task(day=None, load_objects_from_services=True, output=None):
             #load_report(token, day, NetworkAnalyticsReport)
             load_report(token, day, NetworkAnalyticsReport_ByPlacement)
             load_report(token, day, GeoAnaliticsReport)
-            load_reports_for_all_advertisers(token, day, SiteDomainPerformanceReport)
+            load_reports_for_all_advertisers(token, day, SiteDomainPerformanceReport, isHour=False)
             fillVideoAdDataCron()
             day+=one_day
     except Exception as e:
@@ -711,7 +768,7 @@ def load_report(token, day, ReportClass):
         ReportClass.post_load(day)
 
 
-def load_reports_for_all_advertisers(token, day, ReportClass):
+def load_reports_for_all_advertisers(token, day, ReportClass, isHour=False):
     if not day:
         day = datetime.datetime.utcnow()-datetime.timedelta(days=1)
         day = day.replace(hour=0,minute=0,second=0,microsecond=0,tzinfo=utc)
@@ -719,11 +776,18 @@ def load_reports_for_all_advertisers(token, day, ReportClass):
         token = get_auth_token()
     # 5 report service processes per user admitted
     worker_pool = ThreadPool(5)
-    try:
-        ReportClass._meta.get_field('day')
-        filter_params = {"day": day}
-    except:  # Hour
-        filter_params = {"hour__date": day}
+    if isHour == False:
+        try:
+            ReportClass._meta.get_field('day')
+            filter_params = {"day": day}
+        except:  # Hour
+            filter_params = {"hour__date": day}
+    else:
+        try:
+            ReportClass._meta.get_field('hour')
+            filter_params = {"hour": day}
+        except:  # Hour
+            filter_params = {"day": day}
 
     # this prevent zero id value
     # filter_params['pk__gt'] = 0
@@ -747,8 +811,12 @@ def load_reports_for_all_advertisers(token, day, ReportClass):
     campaign_dict = dict(Campaign.objects.all().values_list('id', 'name'))
     all_line_items = set(LineItem.objects.values_list("id", flat=True))
 
-    filenames = worker_pool.map(lambda id: get_specified_report(
-        ReportClass, {'advertiser_id': id}, token, day), advertisers_need_load)
+    if isHour == False:
+        filenames = worker_pool.map(lambda id: get_specified_report(
+        ReportClass, {'advertiser_id': id}, token, day, columns=None, isHour=False), advertisers_need_load)
+    else:
+        filenames = worker_pool.map(lambda id: get_specified_report(
+        ReportClass, {'advertiser_id': id}, token, day, columns=None, isHour=True), advertisers_need_load)
     try:
         for f, advertiser_id in izip(filenames, advertisers_need_load):
             analize_csv(f, ReportClass,

@@ -658,16 +658,17 @@ def hourlyTask(dayWithHour=None, load_objects_from_services=True, output=None):
             dayWithHour = datetime.datetime(hour=dayWithHour.hour, day=dayWithHour.day, month=dayWithHour.month,
                                             year=dayWithHour.year, tzinfo=utc)
         else:
-            dayWithHour = dayWithHour - one_hour
+            dayWithHour -= one_hour
 
     dateNow = datetime.datetime.utcnow().replace(minute=0, second=0, microsecond=0, tzinfo=utc)
     try:
         token = get_auth_token()
-        # if load_objects_from_services:
-        #      load_depending_data(token, True)
+        if load_objects_from_services:
+             load_depending_data(token, True)
         while dayWithHour <= dateNow:
+            load_report(token, dayWithHour, NetworkAnalyticsReport_ByPlacement, isHour=True)
             load_reports_for_all_advertisers(token, dayWithHour, SiteDomainPerformanceReport, isHour=True)
-            # fillVideoAdDataCron()
+            fillVideoAdDataCron()
             dayWithHour += one_hour
     except Exception as e:
         print 'Error by fetching data: %s' % e
@@ -720,17 +721,17 @@ def dayly_task(day=None, load_objects_from_services=True, output=None):
         last_day=yesterday
     try:
         token = get_auth_token()
-        if load_objects_from_services:
-            load_depending_data(token, True)
+        # if load_objects_from_services:
+            # load_depending_data(token, True)
         while day<=last_day:
-            load_report(token, day, NetworkCarrierReport_Simple)
-            load_report(token, day, NetworkDeviceReport_Simple)
-            #load_report(token, day, NetworkAnalyticsReport)
-            load_report(token, day, NetworkAnalyticsReport_ByPlacement)
-            load_report(token, day, GeoAnaliticsReport)
+            load_report(token, day, NetworkCarrierReport_Simple, isHour=False)        # only day
+            load_report(token, day, NetworkDeviceReport_Simple, isHour=False)         # only day
+            # load_report(token, day, NetworkAnalyticsReport, isHour=False            # not used
+            load_report(token, day, GeoAnaliticsReport, isHour=False)                 # only day
+            load_report(token, day, NetworkAnalyticsReport_ByPlacement, isHour=False)
             load_reports_for_all_advertisers(token, day, SiteDomainPerformanceReport, isHour=False)
             fillVideoAdDataCron()
-            day+=one_day
+            day += one_day
     except Exception as e:
         print 'Error by fetching data: %s' % e
         print traceback.print_exc(file=output)
@@ -742,26 +743,41 @@ def dayly_task(day=None, load_objects_from_services=True, output=None):
 
 
 # load report data, which is not linked with advertiser
-def load_report(token, day, ReportClass):
-    if not day:
-        day = datetime.datetime.utcnow()-datetime.timedelta(days=1)
-        day = day.replace(hour=0,minute=0,second=0,microsecond=0,tzinfo=utc)
-    if not token:
-        token = get_auth_token()
-    try:
-        ReportClass._meta.get_field('day')
-        filter_params = {"day": day}
-    except:  # Hour
-        filter_params = {"hour__date": day}
+def load_report(token, day, ReportClass, isHour=False):
+    if isHour == False:
+        if not day:
+            day = datetime.datetime.utcnow()-datetime.timedelta(days=1)
+            day = day.replace(hour=0, minute=0, second=0, microsecond=0, tzinfo=utc)
+        if not token:
+            token = get_auth_token()
+        try:
+            ReportClass._meta.get_field('day')
+            filter_params = {"day": day}
+        except:  # Hour
+            filter_params = {"hour__date": day}
+    else:
+        if not day:
+            day = datetime.datetime.utcnow()-datetime.timedelta(hours=1)
+            day = day.replace(minute=0, second=0, microsecond=0, tzinfo=utc)
+        if not token:
+            token = get_auth_token()
+        try:
+            ReportClass._meta.get_field('hour')
+            filter_params = {"hour": day}
+        except:  # Hour
+            filter_params = {"day": day}
     q = ReportClass.objects.filter(**filter_params).count()
-    if q % 4000 == 0 and q>0:
+    if q % 4000 == 0 and q > 0:
         print 'Delete partially loaded data (load_report)'
         ReportClass.objects.filter(**filter_params).delete()
         q = 0
     if q > 0:
         print "There is %d records in %s, nothing to do." % (q, ReportClass._meta.db_table)
         return
-    f_name = get_specified_report(ReportClass, {}, token, day)
+    if isHour == False:
+        f_name = get_specified_report(ReportClass, {}, token, day, columns=None, isHour=False)
+    else:
+        f_name = get_specified_report(ReportClass, {}, token, day, columns=None, isHour=True)
     analize_csv(f_name, ReportClass, {})
     os.remove(f_name)
     if hasattr(ReportClass,'post_load'):

@@ -182,16 +182,18 @@ def getMLCpmData(campaignId, fromDate=None, toDate=None, windowSize=None):
         data[len(data) - 1].append(row.profit_loss)
         data[len(data) - 1].append(row.id)
         data[len(data) - 1].append(row.rpm)
-    if data[len(data) - 1][0] != toDate.hour:
-        data.append([])
-        data[len(data) - 1].append(toDate.hour)
-        data[len(data) - 1].append(0)
-        data[len(data) - 1].append(0)
-        data[len(data) - 1].append(0)
-        data[len(data) - 1].append(0)
-        data[len(data) - 1].append(0)
-        data[len(data) - 1].append(data[len(data) - 1][6]+timedelta(hours=1))
-        data[len(data) - 1].append(0)
+
+    if len(data) != 0:
+        if data[len(data) - 1][0] != toDate.hour:
+            data.append([])
+            data[len(data) - 1].append(toDate.hour)
+            data[len(data) - 1].append(0)
+            data[len(data) - 1].append(0)
+            data[len(data) - 1].append(0)
+            data[len(data) - 1].append(0)
+            data[len(data) - 1].append(0)
+            data[len(data) - 1].append(data[len(data) - 2][6]+timedelta(hours=1))
+            data[len(data) - 1].append(0)
     return data
 
 def mlRefreshAlgoListCron():
@@ -216,7 +218,11 @@ def mlRefreshAlgoListCron():
         allCampaigns = Campaign.objects.filter(advertiser_id=advertiser.id)
         for campaign in allCampaigns:
             # filling campaign data
-            data = getMLCpmData(campaign.id)
+            data = getMLCpmData(
+                campaignId=campaign.id,
+                fromDate=datetime.now() - timedelta(days=30),
+                toDate=datetime.now()
+            )
 
             # check of the data for learning amount
             if len(data) < 264:
@@ -251,7 +257,11 @@ def mlChangeCampaignCpmCron():
     algoVocabl.append("abtree")
     queryRes = MLVideoAdCampaignsModels.objects.all()
     for row in queryRes:
-        predictor = joblib.load(row.path)
+        if isfile(row.path):
+            predictor = joblib.load(row.path)
+        else:
+            print "File " + str(row.path) + " is not exist"
+            continue
         # loading data
         data = getMLCpmData(campaignId=row.campaign_id, windowSize=12)
         data, features, _ = getDataWindow(

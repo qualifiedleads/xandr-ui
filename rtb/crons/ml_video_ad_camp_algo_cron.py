@@ -38,17 +38,16 @@ def getDataWindow(type, data, windowSize=3):
         # EMA(fill_rate)
         # 3
         if type == 1:
-            onePlacementFeatures = np.zeros(3)
+            onePlacementFeatures = np.zeros(4)
             onePlacementFeatures[0] = data[i][0]  # hour from day start
+            onePlacementFeatures[1] = data[i][1]  # imps
+            onePlacementFeatures[2] = data[i][2]  # ad_starts
             for j in xrange(windowSize):
                 if j == 0:
-                    emaF = data[i-windowSize+1][3]
+                    emaF = data[i - windowSize + 1][3]
                 else:
-                    emaF = a * data[i-windowSize+j][3] + (1 - a) * emaF
-            onePlacementFeatures[1] = emaF # exponential moving average
-            for j in xrange(windowSize):
-                temp += data[i - j][3]
-            onePlacementFeatures[2] = temp / windowSize  # moving average
+                    emaF = a * data[i - windowSize + j][3] + (1 - a) * emaF
+            onePlacementFeatures[3] = emaF  # exponential moving average
 
         # RSI (relative strength index)
         # 6

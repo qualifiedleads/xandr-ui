@@ -869,3 +869,63 @@ def load_reports_for_all_advertisers(token, day, ReportClass, isHour=False):
 
 if __name__ == '__main__':
     dayly_task()
+
+
+def load_only_one_advertiser_data(token, force_update=False, daily_load=True, isLastModified=None, advId=None):
+    newCampaign = []
+    try:
+        cd = get_current_time()
+        with transaction.atomic():
+            advertisers = nexus_get_objects(
+                                            token,
+                                            {"id": advId},
+                                            Advertiser,
+                                            force_update,
+                                            {}
+                                            )
+            print 'There is %d advertisers' % len(advertisers)
+
+            for adv in advertisers:
+                # Get all of the profiles for the advertiser
+                profiles = nexus_get_objects(token,
+                                             {'advertiser_id': adv.id},
+                                             Profile, force_update, isLastModified=isLastModified)
+                print 'There is %d profiles' % len(profiles)
+            # adv = Advertiser.objects.values_list('id', 'name','profile_id')
+            foreign_ids = {i.profile_id: i.id for i in advertisers}
+            adv_names = {i.id: i.name for i in advertisers}
+            profiles_ids = set(Profile.objects.values_list('id', flat=True))
+            missing_profiles = set(foreign_ids) - profiles_ids
+            for i in missing_profiles:
+                p = Profile(pk=i)
+                fill_null_values(p)
+                p.created_on = cd
+                p.fetch_date = cd
+                p.advertiser_id = foreign_ids[i]
+                name = adv_names[foreign_ids[i]]
+                p.name = 'Missed profile for %s' % name
+                p.save()
+                print 'Created profile "%s"' % p.name
+
+        if daily_load:
+
+            for adv in advertisers:
+                advertiser_id = adv.id
+
+                # Get all of an advertiser's line items:
+                line_items = nexus_get_objects(token,
+                                               {'advertiser_id': advertiser_id},
+                                               LineItem, False, isLastModified=isLastModified)
+                print 'There is %d  line items' % len(line_items)
+                campaigns = nexus_get_objects(token,
+                                              {'advertiser_id': advertiser_id},
+                                              Campaign, False, isLastModified=isLastModified)
+                print 'There is %d campaigns ' % len(campaigns)
+
+            return 200
+        return 500
+
+    except Exception as e:
+        print "There is error in load_depending_data:", e
+        print e.message
+        print traceback.print_exc()

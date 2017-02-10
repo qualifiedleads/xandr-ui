@@ -5,7 +5,7 @@ from django.contrib import admin
 from rest_framework import routers
 
 from . import views, views_rest, views_adv, views_user
-from .controllers import technical_work, video_ad, campaign_create
+from .controllers import technical_work, video_ad, campaign_create, load_advertiser_data
 from .ml import ml_video_ad
 
 
@@ -45,6 +45,7 @@ urlpatterns = [
     url(r'^campaigns/(\d+)$', views_adv.singleCampaign),
     url(r'^campaigns', views.campaigns),
     url(r'^advertiser/campaign/all[/]?$', views_adv.advertisercampaigns),
+    url(r'^advertiser/(\d+)/update[/]?$', load_advertiser_data.loadAdvertiserData),
     url(r'^videocampaigns[/]?$', video_ad.apiSendVideoCampaignData),
     url(r'^technicalwork/last[/]?$', technical_work.getLast),
     url(r'^technicalwork[/]?$', technical_work.handler),

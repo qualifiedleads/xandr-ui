@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 from rtb.controllers.campaign_create import getToken, getCampaignById
 import requests
 import json
+from django.utils import timezone
 
 def getDataWindow(type, data, windowSize=3):
     allFeatures = []
@@ -241,9 +242,9 @@ def mlRefreshAlgoListCron():
                     type=algoVocabl[i],
                     defaults={
                         "path": "rtb/res/prediction_models_cpm/" + str(campaign.id) + "_" + str(algoVocabl[i]) + ".pkl",
-                        "start": data[0][6],
-                        "finish": data[len(data)-1][6],
-                        "evaluation_date": datetime.now()
+                        "start": timezone.make_aware(data[0][6], timezone.get_default_timezone()),
+                        "finish": timezone.make_aware(data[len(data)-1][6], timezone.get_default_timezone()),
+                        "evaluation_date": timezone.make_aware(datetime.now(), timezone.get_default_timezone())
                     }
                 )
 
@@ -296,7 +297,7 @@ def mlChangeCampaignCpmCron():
         MLVideoAdCampaignsResults(
             advertiser_id=row.advertiser_id,
             campaign_id=row.campaign_id,
-            res_date=datetime.now(),
+            res_date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()),
             type=row.type,
             fill_rate=ans,
             cpm=cpm,

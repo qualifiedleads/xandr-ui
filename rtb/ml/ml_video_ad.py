@@ -91,24 +91,24 @@ def apiSendMLGraphInfo(request, id):
     for i in xrange(len(allDate)):
         cpmGraph.append({
             "date": allDate[i],
-            "true_cpm": allCpm["true"][i],
-            "gradient_cpm": allCpm[algoVocabl[0]][i-windowSize] if (algoVocabl[0] in allCpm and i >= windowSize) else None,
-            "random_forest_cpm": allCpm[algoVocabl[1]][i-windowSize] if (algoVocabl[1] in allCpm and i >= windowSize) else None,
-            "abtree_cpm": allCpm[algoVocabl[2]][i-windowSize] if (algoVocabl[2] in allCpm and i >= windowSize) else None
+            "true_cpm": round(allCpm["true"][i],2),
+            "gradient_cpm": round(allCpm[algoVocabl[0]][i-windowSize],2) if (algoVocabl[0] in allCpm and i >= windowSize) else None,
+            "random_forest_cpm": round(allCpm[algoVocabl[1]][i-windowSize],2) if (algoVocabl[1] in allCpm and i >= windowSize) else None,
+            "abtree_cpm": round(allCpm[algoVocabl[2]][i-windowSize],2) if (algoVocabl[2] in allCpm and i >= windowSize) else None
         })
         fillrateGraph.append({
             "date": allDate[i],
-            "true_fillrate": allFillRate["true"][i],
-            "gradient_fillrate": allFillRate[algoVocabl[0]][i-windowSize] if (algoVocabl[0] in allFillRate and i >=windowSize) else None,
-            "random_forest_fillrate": allFillRate[algoVocabl[1]][i-windowSize] if (algoVocabl[1] in allFillRate and i >=windowSize) else None,
-            "abtree_fillrate": allFillRate[algoVocabl[2]][i-windowSize] if (algoVocabl[2] in allFillRate and i >=windowSize) else None
+            "true_fillrate": round(allFillRate["true"][i],2),
+            "gradient_fillrate": round(allFillRate[algoVocabl[0]][i-windowSize],2) if (algoVocabl[0] in allFillRate and i >=windowSize) else None,
+            "random_forest_fillrate": round(allFillRate[algoVocabl[1]][i-windowSize],2) if (algoVocabl[1] in allFillRate and i >=windowSize) else None,
+            "abtree_fillrate": round(allFillRate[algoVocabl[2]][i-windowSize],2) if (algoVocabl[2] in allFillRate and i >=windowSize) else None
         })
         profitGraph.append({
             "date": allDate[i],
-            "true_profit": allProfit["true"][i],
-            "gradient_profit": allProfit[algoVocabl[0]][i-windowSize] if (algoVocabl[0] in allProfit and i >=windowSize) else None,
-            "random_forest_profit": allProfit[algoVocabl[1]][i-windowSize] if (algoVocabl[1] in allProfit and i >=windowSize) else None,
-            "abtree_profit": allProfit[algoVocabl[2]][i-windowSize] if (algoVocabl[2] in allProfit and i >=windowSize) else None
+            "true_profit": round(allProfit["true"][i],2),
+            "gradient_profit": round(allProfit[algoVocabl[0]][i-windowSize],2) if (algoVocabl[0] in allProfit and i >=windowSize) else None,
+            "random_forest_profit": round(allProfit[algoVocabl[1]][i-windowSize],2) if (algoVocabl[1] in allProfit and i >=windowSize) else None,
+            "abtree_profit": round(allProfit[algoVocabl[2]][i-windowSize],2) if (algoVocabl[2] in allProfit and i >=windowSize) else None
             })
 
     queryAns = {}

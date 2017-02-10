@@ -224,7 +224,7 @@ class PlacementState:
                 print 'Error: ' + str(e)
             print 'upload from appnexus'
             try:
-                load_depending_data(self.get_token(), True, False)
+                load_depending_data(self.get_token(), True, False, isLastModified=True)
             except ValueError, e:
                 print "Failed to load profile platform placement targets. Error: " + str(e)
                 return False

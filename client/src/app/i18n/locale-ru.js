@@ -88,7 +88,7 @@
       },
       'MAIN': {
         'HOME':"Главная",
-
+        'ADVERTISER_UPDATED': 'Рекламодатель обновлен',
         'DATE_PICKER': {
           'YESTERDAY': 'Вчера',
           'LAST_3_DAYS': 'Последние 3 дня',

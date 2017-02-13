@@ -163,6 +163,21 @@
       });
     }
 
+    function updateCampaign(advertiserId) {
+      return $http({
+        method: 'GET',
+        url: '/api/v1/advertiser/' + advertiserId + '/update',
+        headers: { Authorization: 'Token ' + $cookies.get('token') },
+      })
+      .then(function (res) {
+        return res.status;
+      })
+      .catch(function (err) {
+        $window.DevExpress.ui.notify(err.data.detail, 'error', 4000);
+      });
+    }
+
+    _this.updateCampaign = updateCampaign;
     _this.multipleStore = multipleStore;
     _this.chartStore = chartStore;
     _this.statsTotals = statsTotals;

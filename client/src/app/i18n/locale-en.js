@@ -88,6 +88,7 @@
       },
       'MAIN': {
         'HOME': "Home",
+        'ADVERTISER_UPDATED': 'Advertiser updated',
         'DATE_PICKER': {
           'YESTERDAY': 'Yesterday',
           'LAST_3_DAYS': 'Last 3 days',

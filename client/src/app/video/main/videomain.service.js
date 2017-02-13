@@ -10,11 +10,12 @@
     var _this = this;
     var _multipleTotalCount = 0;
 
-    function chartStore (id, dataStart, dataEnd, by) {
+    function chartStore(id, dataStart, dataEnd, by) {
       return new $window.DevExpress.data.CustomStore({
         totalCount: function () {
           return 0;
         },
+
         load: function () {
           return _statsChart(id, dataStart, dataEnd, by)
           .then(function (result) {
@@ -28,8 +29,8 @@
       return $http({
         method: 'GET',
         url: '/api/v1/videostatistics',
-        headers: {'Authorization': 'Token ' + $cookies.get('token')},
-        params: {advertiser_id: advertiser_id, from_date: from_date, to_date: to, by: by}
+        headers: { Authorization: 'Token ' + $cookies.get('token') },
+        params: { advertiser_id: advertiser_id, from_date: from_date, to_date: to, by: by }
       })
       .then(function (res) {
         for (var index in res.data) {
@@ -39,7 +40,7 @@
         return res.data;
       })
       .catch(function (err) {
-        $window.DevExpress.ui.notify(err.data.detail, "error", 4000);
+        $window.DevExpress.ui.notify(err.data.detail, 'error', 4000);
       });
     }
 
@@ -48,10 +49,12 @@
         totalCount: function () {
           return _multipleTotalCount;
         },
+
         load: function (loadOptions) {
-          if (loadOptions.searchOperation && loadOptions.dataField){
+          if (loadOptions.searchOperation && loadOptions.dataField) {
             loadOptions.take = 99999999;
           }
+
           return _statsCampaigns(id, dataStart, dataEnd, loadOptions.skip,
               loadOptions.take, loadOptions.sort, loadOptions.order,
               by, loadOptions.filter, loadOptions.totalSummary)
@@ -66,18 +69,21 @@
     function _statsCampaigns(advertiser_id, from_date, to, skip, take, sort, order, stat_by, filters, totalSummary) {
       if (sort) {
         if (sort[0].desc === true) {
-          order = 'desc'
+          order = 'desc';
         } else {
-          order = 'asc'
+          order = 'asc';
         }
+
         sort = sort[0].selector;
       } else {
         sort = 'campaign';
         order = 'DESC';
       }
+
       if (take == null) {
         take = 20;
       }
+
       if (skip == null) {
         skip = 0;
       }
@@ -85,7 +91,7 @@
       return $http({
         method: 'GET',
         url: '/api/v1/videocampaigns',
-        headers: {'Authorization': 'Token ' + $cookies.get('token')},
+        headers: { Authorization: 'Token ' + $cookies.get('token') },
         params: {
           advertiser_id: advertiser_id,
           from_date: from_date,
@@ -102,20 +108,20 @@
       .then(function (res) {
 
         _this.totalSummary = {
-          "campaign": res.data.total_count || 0,
-          "ad_starts": res.data.total_ad_starts,
-          "cpm": res.data.total_cpm,
-          "fill_rate": res.data.total_fill_rate,
-          "fill_rate_hour": res.data.total_fill_rate_hour,
-          "profit_loss": res.data.total_profit_loss,
-          "profit_loss_hour": res.data.total_profit_loss_hour,
-          "spent": res.data.total_spent,
-          "sum_imps": res.data.total_sum_imps
+          campaign: res.data.total_count || 0,
+          ad_starts: res.data.total_ad_starts,
+          cpm: res.data.total_cpm,
+          fill_rate: res.data.total_fill_rate,
+          fill_rate_hour: res.data.total_fill_rate_hour,
+          profit_loss: res.data.total_profit_loss,
+          profit_loss_hour: res.data.total_profit_loss_hour,
+          spent: res.data.total_spent,
+          sum_imps: res.data.total_sum_imps
         };
         return res.data;
       })
       .catch(function (err) {
-        $window.DevExpress.ui.notify(err.data.detail, "error", 4000);
+        $window.DevExpress.ui.notify(err.data.detail, 'error', 4000);
       });
     }
 
@@ -123,17 +129,32 @@
       return $http({
         method: 'GET',
         url: '/api/v1/map/imps',
-        headers: {'Authorization': 'Token ' + $cookies.get('token')},
-        params: {advertiser_id: advertiser_id, from_date: from_date, to_date: to}
+        headers: { Authorization: 'Token ' + $cookies.get('token') },
+        params: { advertiser_id: advertiser_id, from_date: from_date, to_date: to }
       })
       .then(function (res) {
         return res.data;
       })
       .catch(function (err) {
-        $window.DevExpress.ui.notify(err.data.detail, "error", 4000);
+        $window.DevExpress.ui.notify(err.data.detail, 'error', 4000);
       });
     }
 
+    function updateCampaign(advertiserId) {
+      return $http({
+        method: 'GET',
+        url: '/api/v1/advertiser/' + advertiserId + '/update',
+        headers: { Authorization: 'Token ' + $cookies.get('token') },
+      })
+      .then(function (res) {
+        return res.status;
+      })
+      .catch(function (err) {
+        $window.DevExpress.ui.notify(err.data.detail, 'error', 4000);
+      });
+    }
+
+    _this.updateCampaign = updateCampaign;
     _this.multipleStore = multipleStore;
     _this.chartStore = chartStore;
     _this.statsMap = statsMap;

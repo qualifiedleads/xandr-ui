@@ -10,6 +10,8 @@ from rtb.controllers.campaign_create import getToken, getCampaignById
 import requests
 import json
 from django.utils import timezone
+from rtb.models.placement_state import LastModified
+
 
 def getDataWindow(type, data, windowSize=3):
     allFeatures = []
@@ -197,109 +199,148 @@ def getMLCpmData(campaignId, fromDate=None, toDate=None, windowSize=None):
     return data
 
 def mlRefreshAlgoListCron():
-    print "Start of the campaigns CPM prediction learning"
-    algoVocabl = []
-    algoVocabl.append("gradient")
-    algoVocabl.append("random_forest")
-    algoVocabl.append("abtree")
-    algoList = []
-    algoList.append(GradientBoostingRegressor())
-    algoList.append(RandomForestRegressor(
-        n_estimators=200,
-        max_depth=10
-    ))
-    algoList.append(AdaBoostRegressor(
-        DecisionTreeRegressor(max_depth=10),
-        n_estimators=500,
-        random_state=np.random.RandomState(1)
-    ))
-    allAdvertisers = Advertiser.objects.filter(ad_type="videoAds")
-    for advertiser in allAdvertisers:
-        allCampaigns = Campaign.objects.filter(advertiser_id=advertiser.id)
-        for campaign in allCampaigns:
-            # filling campaign data
-            data = getMLCpmData(
-                campaignId=campaign.id,
-                fromDate=datetime.now() - timedelta(days=30),
-                toDate=datetime.now()
-            )
+    try:
+        change_state = LastModified.objects.filter(type='mlRefreshAlgoListCron')
+        if len(change_state) >= 1:
+            if timezone.make_aware(datetime.now(), timezone.get_default_timezone()) - change_state[0].date >= timedelta(minutes=15):
+                LastModified.objects.filter(type='mlRefreshAlgoListCron').delete()
+            else:
+                print "mlRefreshAlgoListCron is busy, wait..."
+                return None
+        LastModified(type='mlRefreshAlgoListCron',
+                     date=timezone.make_aware(datetime.now(), timezone.get_default_timezone())).save()
 
-            # check of the data for learning amount
-            if len(data) < 264:
-                print "Not enough data for the campaign " + str(campaign.id)
-                continue
-            # models learning
-            for i in xrange(len(algoList)):
-                if isfile("rtb/res/prediction_models_cpm/" + str(campaign.id) + "_" + str(algoVocabl[i]) + ".pkl"):
-                    continue
-                tempData, allFeaturesForLearning, allResultsLearning = getDataWindow(
-                    i, data, 12)
-                algoList[i].fit(allFeaturesForLearning, allResultsLearning)
-                # TODO: make a check for getting a better algo
-                joblib.dump(algoList[i], "rtb/res/prediction_models_cpm/" + str(campaign.id) + "_" + str(algoVocabl[i]) + ".pkl", compress=1)
-                MLVideoAdCampaignsModelsInfo.objects.update_or_create(
-                    campaign_id=campaign.id,
-                    type=algoVocabl[i],
-                    defaults={
-                        "path": "rtb/res/prediction_models_cpm/" + str(campaign.id) + "_" + str(algoVocabl[i]) + ".pkl",
-                        "start": timezone.make_aware(data[0][6], timezone.get_default_timezone()),
-                        "finish": timezone.make_aware(data[len(data)-1][6], timezone.get_default_timezone()),
-                        "evaluation_date": timezone.make_aware(datetime.now(), timezone.get_default_timezone())
-                    }
+        print "Start of the campaigns CPM prediction learning"
+        algoVocabl = []
+        algoVocabl.append("gradient")
+        algoVocabl.append("random_forest")
+        algoVocabl.append("abtree")
+        algoList = []
+        algoList.append(GradientBoostingRegressor())
+        algoList.append(RandomForestRegressor(
+            n_estimators=200,
+            max_depth=10
+        ))
+        algoList.append(AdaBoostRegressor(
+            DecisionTreeRegressor(max_depth=10),
+            n_estimators=500,
+            random_state=np.random.RandomState(1)
+        ))
+        allAdvertisers = Advertiser.objects.filter(ad_type="videoAds")
+        for advertiser in allAdvertisers:
+            allCampaigns = Campaign.objects.filter(advertiser_id=advertiser.id)
+            for campaign in allCampaigns:
+                # filling campaign data
+                data = getMLCpmData(
+                    campaignId=campaign.id,
+                    fromDate=datetime.now() - timedelta(days=30),
+                    toDate=datetime.now()
                 )
 
-    print "Campaigns cpm prediction learning finished"
+                LastModified.objects.filter(type='mlRefreshAlgoListCron')\
+                    .update(date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
+
+                # check of the data for learning amount
+                if len(data) < 264:
+                    print "Not enough data for the campaign " + str(campaign.id)
+                    continue
+                # models learning
+                for i in xrange(len(algoList)):
+                    if isfile("rtb/res/prediction_models_cpm/" + str(campaign.id) + "_" + str(algoVocabl[i]) + ".pkl"):
+                        continue
+                    tempData, allFeaturesForLearning, allResultsLearning = getDataWindow(
+                        i, data, 12)
+                    algoList[i].fit(allFeaturesForLearning, allResultsLearning)
+                    # TODO: make a check for getting a better algo
+                    joblib.dump(algoList[i], "rtb/res/prediction_models_cpm/" + str(campaign.id) + "_" + str(algoVocabl[i]) + ".pkl", compress=1)
+                    MLVideoAdCampaignsModelsInfo.objects.update_or_create(
+                        campaign_id=campaign.id,
+                        type=algoVocabl[i],
+                        defaults={
+                            "path": "rtb/res/prediction_models_cpm/" + str(campaign.id) + "_" + str(algoVocabl[i]) + ".pkl",
+                            "start": timezone.make_aware(data[0][6], timezone.get_default_timezone()),
+                            "finish": timezone.make_aware(data[len(data)-1][6], timezone.get_default_timezone()),
+                            "evaluation_date": timezone.make_aware(datetime.now(), timezone.get_default_timezone())
+                        }
+                    )
+
+        LastModified.objects.filter(type='mlRefreshAlgoListCron').delete()
+        print "Campaigns cpm prediction learning finished"
+    except Exception, e:
+        LastModified.objects.filter(type='mlRefreshAlgoListCron').delete()
+        print 'Cron job - mlRefreshAlgoListCron Error: ' + str(e)
+
 
 def mlChangeCampaignCpmCron():
-    algoVocabl = []
-    algoVocabl.append("gradient")
-    algoVocabl.append("random_forest")
-    algoVocabl.append("abtree")
-    queryRes = MLVideoAdCampaignsModels.objects.all()
-    for row in queryRes:
-        if isfile(row.path):
-            predictor = joblib.load(row.path)
-        else:
-            print "File " + str(row.path) + " is not exist"
-            continue
-        # loading data
-        data = getMLCpmData(campaignId=row.campaign_id, windowSize=12)
-        data, features, _ = getDataWindow(
-            type=algoVocabl.index(row.type),
-            data=data,
-            windowSize=12,
-        )
-        if data == -1:
-            print "Can not predict CPM with that amount of the data for the campaign " + str(row.campaign_id)
-            continue
-        # getting answer from the predictor
-        ans = predictor.predict(features)[0]
-        if ans < 0:
-            ans = 0
-        cpm = (ans / 100.0) * float(data[0][7])
-        # send to appnexus
-        campInfo = getCampaignById(row.campaign_id)
-        campInfo["base_bid"] = float(cpm)
-        campInfo["cpm_bid_type"] = "base"
-        url = 'https://api.appnexus.com/campaign?id=' + str(row.campaign_id)+"&advertiser_id="+str(campInfo["advertiser_id"])
-        headers = {"Authorization": getToken(), 'Content-Type': 'application/json'}
-        data = json.dumps({
-            "campaign": campInfo
-        })
-        apnxResponse = json.loads(requests.put(url=url, headers=headers, data=data).content)
-        try:
-            apnxResponse['response']['error']
-            print "Appnexus error on the changing of CPM for campaign " + str(row.campaign_id)
-            continue
-        except:
-            pass
-        # save in db
-        MLVideoAdCampaignsResults(
-            advertiser_id=row.advertiser_id,
-            campaign_id=row.campaign_id,
-            res_date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()),
-            type=row.type,
-            fill_rate=ans,
-            cpm=cpm,
-            profit_loss=None
-        ).save()
+    try:
+        change_state = LastModified.objects.filter(type='mlChangeCampaignCpmCron')
+        if len(change_state) >= 1:
+            if timezone.make_aware(datetime.now(), timezone.get_default_timezone()) - change_state[0].date >= timedelta(
+                    minutes=15):
+                LastModified.objects.filter(type='mlChangeCampaignCpmCron').delete()
+            else:
+                print "mlChangeCampaignCpmCron is busy, wait..."
+                return None
+        LastModified(type='mlChangeCampaignCpmCron',
+                     date=timezone.make_aware(datetime.now(), timezone.get_default_timezone())).save()
+
+        algoVocabl = []
+        algoVocabl.append("gradient")
+        algoVocabl.append("random_forest")
+        algoVocabl.append("abtree")
+        queryRes = MLVideoAdCampaignsModels.objects.all()
+        for row in queryRes:
+            if isfile(row.path):
+                predictor = joblib.load(row.path)
+            else:
+                print "File " + str(row.path) + " is not exist"
+                continue
+            # loading data
+            data = getMLCpmData(campaignId=row.campaign_id, windowSize=12)
+            data, features, _ = getDataWindow(
+                type=algoVocabl.index(row.type),
+                data=data,
+                windowSize=12,
+            )
+            if data == -1:
+                print "Can not predict CPM with that amount of the data for the campaign " + str(row.campaign_id)
+                continue
+            # getting answer from the predictor
+            ans = predictor.predict(features)[0]
+            if ans < 0:
+                ans = 0
+            cpm = (ans / 100.0) * float(data[0][7])
+            # send to appnexus
+            campInfo = getCampaignById(row.campaign_id)
+            campInfo["base_bid"] = float(cpm)
+            campInfo["cpm_bid_type"] = "base"
+            url = 'https://api.appnexus.com/campaign?id=' + str(row.campaign_id)+"&advertiser_id="+str(campInfo["advertiser_id"])
+            headers = {"Authorization": getToken(), 'Content-Type': 'application/json'}
+            data = json.dumps({
+                "campaign": campInfo
+            })
+            apnxResponse = json.loads(requests.put(url=url, headers=headers, data=data).content)
+            try:
+                apnxResponse['response']['error']
+                print "Appnexus error on the changing of CPM for campaign " + str(row.campaign_id)
+                continue
+            except:
+                pass
+            # save in db
+            MLVideoAdCampaignsResults(
+                advertiser_id=row.advertiser_id,
+                campaign_id=row.campaign_id,
+                res_date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()),
+                type=row.type,
+                fill_rate=ans,
+                cpm=cpm,
+                profit_loss=None
+            ).save()
+            LastModified.objects.filter(type='mlChangeCampaignCpmCron') \
+                .update(date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
+
+        LastModified.objects.filter(type='mlChangeCampaignCpmCron').delete()
+    except Exception, e:
+        LastModified.objects.filter(type='mlChangeCampaignCpmCron').delete()
+        print 'Cron job - mlChangeCampaignCpmCron Error: ' + str(e)
+

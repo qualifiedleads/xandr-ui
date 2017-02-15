@@ -6,8 +6,9 @@
     .controller('MainController', MainController);
 
   /** @ngInject */
-  function MainController($window, $state, $timeout, $localStorage, $translate, Main, $rootScope) {
+  function MainController($window, $state, $timeout, $localStorage, $translate, Main, $rootScope, VideoMain) {
     var vm = this;
+    var buttonIndicator;
     vm.advertiser = $localStorage.advertiser;
     vm.Main = Main;
     vm.multipleTotalCount = 0;
@@ -251,6 +252,34 @@
           //$('#gridContainer1').dxDataGrid('instance').refresh();
           //$('#gridContainer2').dxDataGrid('instance').refresh();
           $state.reload();
+        }
+      },
+      update: {
+        text: LC('MAIN.UPDATE_CAMPAIGN'),
+        template: function (data, container) {
+          $("<div class='button-indicator' style='float: left;'></div><span class='dx-button-text' style='float: left;'>&nbsp;" + data.text + '</span>').appendTo(container);
+          buttonIndicator = container.find('.button-indicator').dxLoadIndicator({
+              visible: false,
+              height: 15,
+              width: 15
+            }).dxLoadIndicator('instance');
+        },
+
+        onClick: function (data) {
+          data.component.option('text', LC('MAIN.UPDATE_CAMPAIGN'));
+          buttonIndicator.option('visible', true);
+          VideoMain.updateCampaign(vm.advertiser.id).then(function (res) {
+            if (res == 200) {
+              buttonIndicator.option('visible', false);
+              data.component.option('text', LC('MAIN.UPDATE_CAMPAIGN'));
+              $window.DevExpress.ui.notify(LC('MAIN.ADVERTISER_UPDATED'), 'success', 4000);
+              $state.reload();
+            } else {
+              buttonIndicator.option('visible', false);
+              data.component.option('text', LC('MAIN.UPDATE_CAMPAIGN'));
+            }
+
+          });
         }
       },
       dataGridOptionsMultiple: {

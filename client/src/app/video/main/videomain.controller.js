@@ -8,6 +8,7 @@
   /** @ngInject */
   function VideoMainController($window, $state, $timeout, $localStorage, $translate, VideoMain, $rootScope) {
     var vm = this;
+    var buttonIndicator;
     vm.advertiser = $localStorage.advertiser;
     vm.VideoMain = VideoMain;
     vm.multipleTotalCount = 0;
@@ -246,6 +247,34 @@
           $state.reload();
         }
       },
+      update: {
+        text: LC('MAIN.UPDATE_CAMPAIGN'),
+        template: function (data, container) {
+          $("<div class='button-indicator' style='float: left;'></div><span class='dx-button-text' style='float: left;'>&nbsp;" + data.text + '</span>').appendTo(container);
+          buttonIndicator = container.find('.button-indicator').dxLoadIndicator({
+              visible: false,
+              height: 15,
+              width: 15
+            }).dxLoadIndicator('instance');
+        },
+
+        onClick: function (data) {
+          data.component.option('text', LC('MAIN.UPDATE_CAMPAIGN'));
+          buttonIndicator.option('visible', true);
+          VideoMain.updateCampaign(vm.advertiser.id).then(function (res) {
+            if (res == 200) {
+              buttonIndicator.option('visible', false);
+              data.component.option('text', LC('MAIN.UPDATE_CAMPAIGN'));
+              $window.DevExpress.ui.notify(LC('MAIN.ADVERTISER_UPDATED'), 'success', 4000);
+              $state.reload();
+            } else {
+              buttonIndicator.option('visible', false);
+              data.component.option('text', LC('MAIN.UPDATE_CAMPAIGN'));
+            }
+
+          });
+        }
+      },
       dataGridOptionsMultiple: {
         bindingOptions: {
           dataSource: 'vmain.multipleStore'
@@ -254,22 +283,22 @@
           vm.dataGridOptionsMultipleFunc = data.component;
         },
 
-        onContentReady: function () {
-          var update = $window.$('<div />').dxButton({
-            icon: 'upload',
-            class: 'dx-icon dx-icon-export-excel-button ng-scope',
-            disabled: false,
-            onClick: function () {
-              VideoMain.updateCampaign(vm.advertiser.id).then(function (res) {
-                if (res == 200) {
-                  $window.DevExpress.ui.notify(LC('MAIN.ADVERTISER_UPDATED'), 'success', 4000);
-                  $state.reload();
-                }
-              });
-            }
-          });
-          update.addClass('dx-datagrid-export-button dx-button dx-button-normal dx-widget dx-button-has-icon').appendTo('.dx-datagrid-header-panel');
-        },
+        // onContentReady: function () {
+        //   var update = $window.$('<div />').dxButton({
+        //     icon: 'upload',
+        //     class: 'dx-icon dx-icon-export-excel-button ng-scope',
+        //     disabled: false,
+        //     onClick: function () {
+        //       VideoMain.updateCampaign(vm.advertiser.id).then(function (res) {
+        //         if (res == 200) {
+        //           $window.DevExpress.ui.notify(LC('MAIN.ADVERTISER_UPDATED'), 'success', 4000);
+        //           $state.reload();
+        //         }
+        //       });
+        //     }
+        //   });
+        //   update.addClass('dx-datagrid-export-button dx-button dx-button-normal dx-widget dx-button-has-icon').appendTo('.dx-datagrid-header-panel');
+        // },
 
         loadPanel: {
           shadingColor: 'rgba(0,0,0,0.4)',

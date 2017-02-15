@@ -89,6 +89,7 @@
       'MAIN': {
         'HOME': "Home",
         'ADVERTISER_UPDATED': 'Advertiser updated',
+        'UPDATE_CAMPAIGN': 'Update campaign',
         'DATE_PICKER': {
           'YESTERDAY': 'Yesterday',
           'LAST_3_DAYS': 'Last 3 days',

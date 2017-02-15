@@ -30,6 +30,7 @@ from utils import get_all_classes_in_models, get_current_time, clean_old_files
 from rtb.crons.video_ad_cron import fillVideoAdDataCron
 from django.utils import timezone
 from datetime import timedelta
+from rtb.controllers.campaign_create import getToken
 table_names = {c._meta.db_table: c for c in get_all_classes_in_models(models)}
 
 _default_values_for_types = {
@@ -262,7 +263,7 @@ def analize_csv_direct(filename, modelClass):
             except Exception as e:
                 print e
 
-def analize_csv(filename, modelClass, metadata={}):
+def analize_csv(filename, modelClass, metadata={}, isHour=False):
     if _has_copy_from_support and hasattr(modelClass, 'direct_csv') and modelClass.direct_csv:
         analize_csv_direct(filename, modelClass)
         return
@@ -295,9 +296,10 @@ def analize_csv(filename, modelClass, metadata={}):
         context['foreign_fields'] = filter(
             lambda x: x in csv_fields, foreign_fields)
         context.update(metadata)
-        worker = Pool(
-            initializer=context_initializer, initargs=(
-                context,), maxtasksperchild=100000)
+        if isHour == False:
+            worker = Pool(
+                initializer=context_initializer, initargs=(
+                    context,), maxtasksperchild=100000)
         counter = 0
         reset_queries()
         try:
@@ -305,11 +307,16 @@ def analize_csv(filename, modelClass, metadata={}):
                 rows = list(islice(reader, 0, 4000))
                 if not rows:
                     break
-                if len(rows) > 100:
-                    objects_to_save = worker.map(create_object_from_dict, rows)
+                if isHour == False:
+                    if len(rows) > 100:
+                        objects_to_save = worker.map(create_object_from_dict, rows)
+                    else:
+                        context_initializer(context)
+                        objects_to_save = map(create_object_from_dict, rows)
                 else:
-                    context_initializer(context)
-                    objects_to_save = map(create_object_from_dict, rows)
+                    if len(rows) > 0:
+                        context_initializer(context)
+                        objects_to_save = map(create_object_from_dict, rows)
                 if len(rows) != len(objects_to_save):
                     print "There are error in multithreaded map"
                 if not all(objects_to_save):
@@ -342,8 +349,9 @@ def analize_csv(filename, modelClass, metadata={}):
             print traceback.print_exc()
         finally:
             gc.collect()
-            worker.close()
-            worker.join()
+            if isHour == False:
+                worker.close()
+                worker.join()
 
 
 # load data, needed for filling SiteDomainPerformanceReport
@@ -659,8 +667,6 @@ def hourlyTask(dayWithHour=None, load_objects_from_services=True, output=None):
     if output:
         sys.stdout, sys.stderr = output, output
 
-    # report.get_specifed_report('network_analytics')
-
     one_hour = datetime.timedelta(hours=1)
 
     if dayWithHour:
@@ -677,14 +683,18 @@ def hourlyTask(dayWithHour=None, load_objects_from_services=True, output=None):
 
     dateNow = datetime.datetime.utcnow().replace(minute=0, second=0, microsecond=0, tzinfo=utc)
     try:
-        token = get_auth_token()
+        token = getToken()
         if load_objects_from_services:
             load_depending_data(token, False, isLastModified=True)
         while dayWithHour <= dateNow:
+            print 'NetworkAnalyticsReport_ByPlacement  start', get_current_time().strftime('%Y-%m-%dT%H-%M-%S')
             load_report(token, dayWithHour, NetworkAnalyticsReport_ByPlacement, isHour=True)
+            print 'SiteDomainPerformanceReport  start', get_current_time().strftime('%Y-%m-%dT%H-%M-%S')
             load_reports_for_all_advertisers(token, dayWithHour, SiteDomainPerformanceReport, isHour=True)
+
             LastModified.objects.filter(type='hourlyTask')\
                 .update(date=timezone.make_aware(datetime.datetime.now(), timezone.get_default_timezone()))
+            token = getToken()
             dayWithHour += one_hour
         fillVideoAdDataCron()
     except Exception as e:
@@ -701,6 +711,18 @@ def hourlyTask(dayWithHour=None, load_objects_from_services=True, output=None):
 
 # Task, executed once in day. Get new data from NexusApp
 def dayly_task(day=None, load_objects_from_services=True, output=None):
+    change_state = LastModified.objects.filter(type='dayly_task')
+    if len(change_state) >= 1:
+        if timezone.make_aware(datetime.datetime.now(), timezone.get_default_timezone()) - change_state[0].date >= timedelta(
+                minutes=15):
+            LastModified.objects.filter(type='dayly_task').delete()
+        else:
+            print "dayly_task is busy, wait..."
+            return None
+
+    LastModified(type='dayly_task',
+                 date=timezone.make_aware(datetime.datetime.now(), timezone.get_default_timezone())).save()
+
     old_stdout, old_error = sys.stdout, sys.stderr
     file_output = None
     try:
@@ -740,8 +762,8 @@ def dayly_task(day=None, load_objects_from_services=True, output=None):
         last_day=yesterday
     try:
         token = get_auth_token()
-        # if load_objects_from_services:
-        #     load_depending_data(token, True)
+        if load_objects_from_services:
+            load_depending_data(token, True)
         while day<=last_day:
             load_report(token, day, NetworkCarrierReport_Simple, isHour=False)        # only day
             load_report(token, day, NetworkDeviceReport_Simple, isHour=False)         # only day
@@ -750,6 +772,8 @@ def dayly_task(day=None, load_objects_from_services=True, output=None):
             # load_report(token, day, NetworkAnalyticsReport_ByPlacement, isHour=False)
             # load_reports_for_all_advertisers(token, day, SiteDomainPerformanceReport, isHour=False)
             # fillVideoAdDataCron()
+            LastModified.objects.filter(type='dayly_task')\
+                .update(date=timezone.make_aware(datetime.datetime.now(), timezone.get_default_timezone()))
             day += one_day
     except Exception as e:
         print 'Error by fetching data: %s' % e
@@ -758,6 +782,7 @@ def dayly_task(day=None, load_objects_from_services=True, output=None):
         sys.stdout, sys.stderr = old_stdout, old_error
         if file_output:
             file_output.close()
+    LastModified.objects.filter(type='dayly_task').delete()
     print "OK"
 
 
@@ -844,7 +869,6 @@ def load_reports_for_all_advertisers(token, day, ReportClass, isHour=False):
     all_advertisers.pop(0, None)
     advertisers_need_load = set(all_advertisers) - advertisers_having_data
     campaign_dict = dict(Campaign.objects.all().values_list('id', 'name'))
-    all_line_items = set(LineItem.objects.values_list("id", flat=True))
 
     if isHour == False:
         filenames = worker_pool.map(lambda id: get_specified_report(
@@ -856,8 +880,7 @@ def load_reports_for_all_advertisers(token, day, ReportClass, isHour=False):
         for f, advertiser_id in izip(filenames, advertisers_need_load):
             analize_csv(f, ReportClass,
                         metadata={"campaign_dict": campaign_dict,
-                                  #"all_line_items": all_line_items,
-                                  "advertiser_id": advertiser_id})
+                                  "advertiser_id": advertiser_id}, isHour=isHour)
             print "%s for advertiser %s saved to DB" % (ReportClass, all_advertisers[advertiser_id])
         if hasattr(ReportClass, 'post_load'):
             ReportClass.post_load(day)
@@ -929,3 +952,4 @@ def load_only_one_advertiser_data(token, force_update=False, daily_load=True, is
         print "There is error in load_depending_data:", e
         print e.message
         print traceback.print_exc()
+

@@ -148,7 +148,8 @@ CRONJOBS = [
     ('0 */1 * * *', 'rtb.crons.ml_predict_new_placements_cron.mlPredictNewPlacementsCron'),
     ('0 6 * * 7', 'rtb.crons.ml_refresh_view_full_placements_data_cron.mlRefreshViewFullPlacementsDataCron'),
     ('0 */1 * * *', 'rtb.crons.ml_video_ad_camp_algo_cron.mlRefreshAlgoListCron'),
-    ('0 */1 * * *', 'rtb.crons.ml_video_ad_camp_algo_cron.mlChangeCampaignCpmCron')
+    ('0 */1 * * *', 'rtb.crons.ml_video_ad_camp_algo_cron.mlChangeCampaignCpmCron'),
+    ('5 */1 * * *', 'rtb.cron.hourlyTask')
 ]
 NEXUS_AUTH_DATA= {
     "username": "stats_api", 

@@ -23,31 +23,32 @@ def mlPredictNewPlacementsCron():
                      date=timezone.make_aware(datetime.datetime.now(), timezone.get_default_timezone())).save()
 
         impsBorder = 1000
-        # find new placements for test_number 2
-
-        newPlacementsList = NetworkAnalyticsReport_ByPlacement.objects.raw(
-            """SELECT
-              placement_id as id
-            FROM
-              network_analytics_report_by_placement
-            WHERE
-              placement_id NOT IN (SELECT DISTINCT placement_id FROM ml_placements_clusters_kmeans WHERE test_number = 2)
-            GROUP BY
-              placement_id
-            HAVING
-              COUNT(DISTINCT extract ( dow from hour)) = 7 and SUM(imps) >="""+ str(impsBorder)
-        )
-        # predict new placements for test_number 2
-        n = 0
-
         goodClusters = mlGetGoodClusters("ctr_cvr_cpc_cpm_cpa")
         if goodClusters == -1:
             print "K-means model is not taught"
         else:
+            # find new placements for test_number 2
+            newPlacementsList = NetworkAnalyticsReport_ByPlacement.objects.raw(
+                """SELECT
+                      t1.placement_id as id
+                    FROM
+                      network_analytics_report_by_placement t1
+                      left join ml_placements_clusters_kmeans t2 on t2.placement_id = t1.placement_id and test_number = 2
+                    where t2.placement_id is null
+                    GROUP BY
+                      t1.placement_id
+                    HAVING
+                      COUNT(DISTINCT extract ( dow from t1.hour)) = 7 and SUM(t1.imps) >="""+ str(impsBorder)
+            )
+            # predict new placements for test_number 2
+            n = 0
+            LastModified.objects.filter(type='mlPredictNewPlacementsCron') \
+                .update(date=timezone.make_aware(datetime.datetime.now(), timezone.get_default_timezone()))
+
             for row in newPlacementsList:
-                mlPredictKmeans(row.id, "ctr_cvr_cpc_cpm_cpa")
                 LastModified.objects.filter(type='mlPredictNewPlacementsCron') \
                     .update(date=timezone.make_aware(datetime.datetime.now(), timezone.get_default_timezone()))
+                mlPredictKmeans(row.id, "ctr_cvr_cpc_cpm_cpa")
                 n += 1
 
             print "K-means placements recognized: " + str(n)
@@ -59,22 +60,25 @@ def mlPredictNewPlacementsCron():
             print "Logistic regression model is not taught"
         else:
             newPlacementsList = NetworkAnalyticsReport_ByPlacement.objects.raw(
-                """SELECT
-                  placement_id as id
+                """
+                SELECT
+                  t1.placement_id as id
                 FROM
-                  network_analytics_report_by_placement
+                  network_analytics_report_by_placement t1
+                  left join ml_logistic_regression_results t2 on t2.placement_id = t1.placement_id and test_number = 3 and probability != -1
                 WHERE
-                  placement_id NOT IN (SELECT DISTINCT placement_id FROM ml_logistic_regression_results WHERE test_number = 3 AND probability != -1)
+                  t2.placement_id is null
                 GROUP BY
-                  placement_id
+                  t1.placement_id
                 HAVING
-                  COUNT(DISTINCT extract ( dow from hour)) = 7 and SUM(imps) >=""" + str(impsBorder)
+                  COUNT(DISTINCT extract (dow from t1.hour)) = 7 and SUM(t1.imps) >=""" + str(impsBorder)
             )
-
+            LastModified.objects.filter(type='mlPredictNewPlacementsCron') \
+                .update(date=timezone.make_aware(datetime.datetime.now(), timezone.get_default_timezone()))
             for row in newPlacementsList:
-                mlPredictLogisticRegression(row.placement_id, "ctr_cvr_cpc_cpm_cpa")
                 LastModified.objects.filter(type='mlPredictNewPlacementsCron') \
                     .update(date=timezone.make_aware(datetime.datetime.now(), timezone.get_default_timezone()))
+                mlPredictLogisticRegression(row.placement_id, "ctr_cvr_cpc_cpm_cpa")
                 n += 1
             print "Logistic regression placements recognized: " + str(n)
         print "New placements prediction completed"

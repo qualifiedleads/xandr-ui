@@ -2,6 +2,7 @@ from rtb.models.video_ad_models import VideoAdCampaigns
 from rtb.models import Advertiser
 from datetime import datetime, timedelta
 from django.db.models import Max
+from django.utils import timezone
 
 def fillVideoAdDataCron():
     print "Begin of collecting hourly data for video ad"
@@ -97,8 +98,8 @@ def fillVideoAdDataCron():
                 advertiser_id=row.id,
                 campaign_id=row.campaign_id,
                 campaign_name=row.name,
-                date=after.replace(hour=0, minute=0, second=0, microsecond=0),
-                hour=after,
+                date=timezone.make_aware(after.replace(hour=0, minute=0, second=0, microsecond=0), timezone.get_default_timezone()),
+                hour=timezone.make_aware(after, timezone.get_default_timezone()),
                 imp_hour=row.sum_imps,
                 ad_starts_hour=row.ad_starts,
                 spent_hour=row.sum_cost,

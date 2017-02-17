@@ -1,0 +1,29 @@
+<div class="container-fluid container-camp col-lg-12  col-md-12 col-sm-12">
+  <div class="row stats-header">
+    <span translate="CAMP.NAME" class="camp-header"></span><span class="camp-header">
+    <a href="" ui-sref="home.videocampaign({id: bcc.campId})">{{bcc.campName}} ({{bcc.campId}}) </a>
+      </span>
+    <br><span translate="CAMP.LINE_ITEM" class="camp-header"></span><span class="camp-line-item"> {{bcc.line_item}} ({{bcc.line_item_id}})</span>
+    <div class="control pull-right" dx-select-box="bcc.UI.datePiker"></div>
+  </div>
+  <div class="row camp-content1">
+    <div class="row">
+      <div dx-load-panel="bcc.UI.loadPanel"></div>
+      <div class="col-lg-4 col-md-4 col-sm-4">
+        <div translate="BCC.SELECT-CAMPAIGN">Select Campaign:</div>
+        <div dx-select-box="bcc.UI.searchOptions"></div>
+      </div>
+      <div class="col-lg-6 col-md-6 col-sm-6">
+        <div translate="BCC.ADD-DOMAIN">Add domain:</div>
+        <div dx-text-area="bcc.UI.domainArea"></div>
+      </div>
+      <div class="col-lg-2 col-md-2 col-sm-2">
+        <div dx-button="bcc.UI.send" class="margin-top"></div>
+      </div>
+    </div>
+    <div class="dx-toast-success dx-toast-content message" ng-show="bcc.message">
+      <div class="dx-toast-icon"></div>
+      {{ bcc.message }}
+    </div>
+  </div>
+</div>

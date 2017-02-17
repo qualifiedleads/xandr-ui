@@ -12,14 +12,15 @@
     vm.isEven = false;
     vm.userAuth = false;
     vm.bannerText = '';
-    vm.video= false;
-    vm.usual= false;
+    vm.video = false;
+    vm.usual = false;
 
-    if ($localStorage.advertiser.ad_type === "videoAds") {
-      vm.video= true;
+    if ($localStorage.advertiser.ad_type === 'videoAds') {
+      vm.video = true;
     }
-    if ($localStorage.advertiser.ad_type === "usualAds" || $localStorage.advertiser.ad_type === null) {
-      vm.usual= true;
+
+    if ($localStorage.advertiser.ad_type === 'usualAds' || $localStorage.advertiser.ad_type === null) {
+      vm.usual = true;
     }
 
     AdminService.bannerTextReturn().then(function (res) {
@@ -39,25 +40,26 @@
     }
 
     if (($cookies.get('token')) &&
-      (($cookies.get('permission') =='adminfull') || $cookies.get('permission') =='adminread')){
+      (($cookies.get('permission') == 'adminfull') || $cookies.get('permission') == 'adminread')) {
       vm.isEven = true;
-      vm.userAuth =true;
+      vm.userAuth = true;
     }
 
     if (($cookies.get('token')) &&
-      (($cookies.get('permission') =='userfull') || $cookies.get('permission') =='userread')){
+      (($cookies.get('permission') == 'userfull') || $cookies.get('permission') == 'userread')) {
       vm.isEven = false;
       vm.userAuth = true;
     }
 
-    if($localStorage.advertiser == null){
+    if ($localStorage.advertiser == null) {
       $state.go('auth');
     } else {
       vm.advertiser.name = $localStorage.advertiser.name;
     }
-    vm.checked = function(value) {
-      var wrapper = angular.element($window.document.querySelector("#wrapper"))[0];
-      if(wrapper.classList.add('hidden-menu')) {
+
+    vm.checked = function (value) {
+      var wrapper = angular.element($window.document.querySelector('#wrapper'))[0];
+      if (wrapper.classList.add('hidden-menu')) {
         wrapper.classList.remove('hidden-menu');
       }
     };

@@ -77,16 +77,19 @@
         'LEFT_NAV':{
           'HOME':"Главная",
           'CAMPAIGN':"Кампания",
-          'BILLING':"Биллинг",
           'CPA':"CPA",
+          'BILLING':"Биллинг",
           'OPTIMIZER':"Оптимизатор",
+          'BCC':"Массовое создание кампаний",
           'Rules':"Правила",
+          'ACPMC': "Автомат. контроль CPM ",
           'EXPERT':"Оценка экспертом"
         }
       },
       'MAIN': {
         'HOME':"Главная",
-
+        'ADVERTISER_UPDATED': 'Рекламодатель обновлен',
+        'UPDATE_CAMPAIGN': 'Обновление кампаний',
         'DATE_PICKER': {
           'YESTERDAY': 'Вчера',
           'LAST_3_DAYS': 'Последние 3 дня',
@@ -223,6 +226,16 @@
         'PAGE-NAME': 'Valuation by expert:',
         'CALCULATE-AUC': 'Calculate AUC',
         'CREATE-TEST-SET': 'Create test set'
-      }
+      },
+      "BCC": {
+        "SELECT-CAMPAIGN": "Выберите компанию:",
+        "ADD-DOMAIN": "Введите домен:",
+        "PLACEHOLDER-DOMAIN": "Один домен в одну строку",
+        "CREATE": "Создать"
+      },
+      "ACPMC": {
+        "CHOICE-LIST": "Выберите метод:",
+        "SEND": 'Сохранить'
+      },
     })
 })();

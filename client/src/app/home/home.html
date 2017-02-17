@@ -7,14 +7,15 @@
         <li><a ui-sref="home.optimiser ({id: $root.id})"  translate="INDEX.LEFT_NAV.OPTIMIZER"></a></li>
         <!-- <li><a href="#/" translate="INDEX.LEFT_NAV.BILLING">Billing</a></li>-->
         <li class="active"><a ui-sref="home.rules ({id: $root.id})" translate="INDEX.LEFT_NAV.Rules"></a></li>
+        <li><a ui-sref="home.bcc ({id: $root.id})" translate="INDEX.LEFT_NAV.BCC"></a></li>
         <li ng-if="home.isEven == true"><a  ui-sref="home.valuationByExpert" translate="INDEX.LEFT_NAV.EXPERT" ></a></li>
       </ul>
       <ul class="nav nav-list" ng-if="home.video">
         <li><a ui-sref="home.videocampaign ({id: $root.id}) " translate="INDEX.LEFT_NAV.CAMPAIGN"></a></li>
         <!--<li><a ui-sref="home.videooptimiser ({id: $root.id})"  translate="INDEX.LEFT_NAV.OPTIMIZER"></a></li>-->
         <!--<li><a ui-sref="home.videorules ({id: $root.id})" translate="INDEX.LEFT_NAV.Rules"></a></li>-->
-        <li><a ui-sref="home.bcc ({id: $root.id})" translate="INDEX.LEFT_NAV.bcc"></a></li>
-        <!--<li ng-if="home.isEven == true"><a  ui-sref="home.valuationByExpert" translate="INDEX.LEFT_NAV.EXPERT" ></a></li>-->
+        <li><a ui-sref="home.bcc ({id: $root.id})" translate="INDEX.LEFT_NAV.BCC"></a></li>
+        <li><a ui-sref="home.automaticcpm ({id: $root.id})" translate="INDEX.LEFT_NAV.ACPMC"></a></li>
       </ul>
     </div>
     <div class="main-nav navbar-header col-lg-11 col-md-10 col-sm-10 col-xs-10  col-lg-offset-1 col-md-offset-2 col-sm-offset-2 col-xs-offset-2">

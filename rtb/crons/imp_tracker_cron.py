@@ -3,6 +3,7 @@ from rtb.models.rtb_impression_tracker import RtbImpressionTracker, RtbImpressio
     RtbImpressionTrackerPlacementDomain, RtbClickTracker, RtbConversionTracker, RtbAdStartTracker, RtbDomainTracker
 from datetime import date, datetime, timedelta
 from rtb.models.placement_state import LastModified
+from rtb.models.ml_video_ad_model import MLVideoImpsTracker
 from pytz import utc
 import socket
 import zlib
@@ -181,8 +182,8 @@ def impTracker(timeStart=None, timeFinish=None, type=None):
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     # Connect the socket to the port where the server is listening
-    # server_address = ('imp.rtb.cat', 8002)
-    server_address = ('192.168.1.112', 8002)
+    server_address = ('imp.rtb.cat', 8002)
+    # server_address = ('192.168.1.112', 8002)
     print >> sys.stderr, 'connecting to %s port %s' % server_address
     sock.connect(server_address)
 
@@ -230,6 +231,7 @@ def Impression(decompressed_data):
         if decompressed_data is None:
             return
         bulkITAll = []
+        bulkMLVideoImpsTracker = []
         for item in decompressed_data:
             tempJson = {}
             tempJson['UserCountry'] = issetValue(item['Data']['UserCountry'])
@@ -262,7 +264,7 @@ def Impression(decompressed_data):
             tempJson['Date'] = item['Time']
 
             bulkITAll.append(RtbImpressionTracker(
-                LocationsOrigins=tempJson['LocationsOrigins'],
+                LocationsOrigins=None,
                 UserCountry=tempJson['UserCountry'],
                 SessionFreq=tempJson['SessionFreq'],
                 PricePaid=tempJson['PricePaid'],
@@ -293,8 +295,43 @@ def Impression(decompressed_data):
                 Date=timezone.make_aware(datetime.strptime(re.sub('\..*', '', item['Time']), "%Y-%m-%d %H:%M:%S"), timezone.get_default_timezone())
             ))
 
+            bulkMLVideoImpsTracker.append(MLVideoImpsTracker(
+                LocationsOrigins=None,
+                UserCountry=tempJson['UserCountry'],
+                SessionFreq=tempJson['SessionFreq'],
+                PricePaid=tempJson['PricePaid'],
+                AdvFreq=tempJson['AdvFreq'],
+                UserState=tempJson['UserState'],
+                CpgId=tempJson['CpgId'],
+                CustomModelLastModified=tempJson['CustomModelLastModified'],
+                UserId=tempJson['UserId'],
+                XRealIp=tempJson['XRealIp'],
+                BidPrice=tempJson['BidPrice'],
+                SegIds=tempJson['SegIds'],
+                UserAgent=tempJson['UserAgent'],
+                CpId=tempJson['CpId'],
+                AuctionId=tempJson['AuctionId'],
+                RemUser=tempJson['RemUser'],
+                UserCity=tempJson['UserCity'],
+                Age=tempJson['Age'],
+                ReservePrice=tempJson['ReservePrice'],
+                CacheBuster=tempJson['CacheBuster'],
+                Ecp=tempJson['Ecp'],
+                CustomModelId=tempJson['CustomModelId'],
+                PlacementId=tempJson['PlacementId'],
+                SeqCodes=tempJson['SeqCodes'],
+                CustomModelLeafName=tempJson['CustomModelLeafName'],
+                XForwardedFor=tempJson['XForwardedFor'],
+                AdvId=tempJson['AdvId'],
+                CreativeId=tempJson['CreativeId'],
+                is_imp=True,
+                Date=timezone.make_aware(datetime.strptime(re.sub('\..*', '', item['Time']), "%Y-%m-%d %H:%M:%S"), timezone.get_default_timezone())
+            ))
+
+
         try:
             RtbImpressionTracker.objects.bulk_create(bulkITAll)
+            MLVideoImpsTracker.objects.bulk_create(bulkMLVideoImpsTracker)
         except ValueError, e:
             print "Can't save domain. Error: " + str(e)
     except Exception, e:
@@ -364,6 +401,7 @@ def AdStart(decompressed_data):
         if decompressed_data is None:
             return
         bulkITAll = []
+        bulkMLVideoImpsTracker = []
         for item in decompressed_data:
             if is_number(item['Data']['AuctionId']) == False:
                 continue
@@ -386,7 +424,19 @@ def AdStart(decompressed_data):
                                          timezone.get_default_timezone())
             ))
 
+            bulkMLVideoImpsTracker.append(MLVideoImpsTracker(
+                CpId=tempJson['CpId'],
+                AdvId=tempJson['AdvId'],
+                CreativeId=tempJson['CreativeId'],
+                AuctionId=tempJson['AuctionId'],
+                cpvm=tempJson['cpvm'],
+                is_imp=False,
+                Date=timezone.make_aware(datetime.strptime(re.sub('\..*', '', item['Time']), "%Y-%m-%d %H:%M:%S"),
+                                         timezone.get_default_timezone())
+            ))
+
         RtbAdStartTracker.objects.bulk_create(bulkITAll)
+        MLVideoImpsTracker.objects.bulk_create(bulkMLVideoImpsTracker)
     except Exception, e:
         print "Can't save ad-start. Error: " + str(e)
 

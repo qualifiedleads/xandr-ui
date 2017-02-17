@@ -30,6 +30,15 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 import json
 from ml_auc import mlCalcAuc
 
+
+@api_view()
+@check_user_advertiser_permissions(campaign_id_num=0)
+def advertisercampaigns(request):
+    id = int(request.GET.get('id'))
+    result = list(Campaign.objects.values('id', 'name').filter(advertiser_id=id))
+    return Response(result)
+
+
 @api_view()
 @check_user_advertiser_permissions(campaign_id_num=0)
 def singleCampaign(request, id):

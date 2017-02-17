@@ -104,9 +104,10 @@ def get_auth_token():
 
 
 one_day = datetime.timedelta(days=1)
+one_hour = datetime.timedelta(hours=1)
 
 
-def get_specified_report(ReportClass, query_data=None, token=None, day=None, columns=None):
+def get_specified_report(ReportClass, query_data=None, token=None, day=None, columns=None, isHour=False):
     if not query_data: query_data={}
     report_type = ReportClass.api_report_name
     if not token:
@@ -122,13 +123,23 @@ def get_specified_report(ReportClass, query_data=None, token=None, day=None, col
             "format": "csv"
         }
     }
-    if not day:
-        # report_data['report']['report_interval'] = "last_hour" if report_type not in no_hours_reports else "yesterday"
-        report_data['report']['report_interval'] = "yesterday"
+    if isHour == False:
+        if not day:
+            # report_data['report']['report_interval'] = "last_hour" if report_type not in no_hours_reports else "yesterday"
+            report_data['report']['report_interval'] = "yesterday"
+        else:
+            report_data['report']["start_date"] = day.strftime("%Y-%m-%d")
+            report_data['report']["end_date"] = (
+                day + one_day).strftime("%Y-%m-%d")
     else:
-        report_data['report']["start_date"] = day.strftime("%Y-%m-%d")
-        report_data['report']["end_date"] = (
-            day + one_day).strftime("%Y-%m-%d")
+        if not day:
+            report_data['report']['report_interval'] = "last_hour"
+        else:
+            report_data['report']["start_date"] = day.strftime("%Y-%m-%d %H:%M:%S")
+            report_data['report']["end_date"] = (
+                day + one_hour).strftime("%Y-%m-%d %H:%M:%S")
+
+
     report_data['report'].update(query_data)
 
     headers = {"Authorization": token, 'Content-Type': 'application/json'}
@@ -232,7 +243,8 @@ def nexus_get_objects(
         object_class,
         force_update=False,
         get_params=None,
-        new_objects=None):
+        new_objects=None,
+        isLastModified=None):
     if not token:
         token = get_auth_token()
     if not get_params:
@@ -255,11 +267,19 @@ def nexus_get_objects(
                 m=Max('fetch_date'))['m']
         elif object_class._meta.get_field('last_modified'):
             last_date = query_set.aggregate(m=Max('last_modified'))['m']
+
     if not last_date:
         last_date = unix_epoch
 
+    if isLastModified:
+        LastModified = datetime.datetime(second=last_date.second,  minute=last_date.minute, hour=last_date.hour, day=last_date.day, month=last_date.month,
+                                        year=last_date.year, tzinfo=utc) + datetime.timedelta(seconds=1)
+        LastModified = LastModified.strftime("%Y-%m-%d+%H:%M:%S")
+        get_params['nmin_last_modified'] = LastModified
+        # get_params['nmin_last_modified'] = '2017-01-26+08:53:03'
+
     objects_in_db = list(query_set)
-    if force_update or current_date - last_date > settings.INVALIDATE_TIME:
+    if force_update or current_date - last_date > settings.INVALIDATE_TIME and get_params.get('nmin_last_modified') == None:
         count, cur_records = -1, -2
         objects_by_api = []
         data_key_name = None
@@ -321,6 +341,125 @@ def nexus_get_objects(
             cur_records += response['num_elements']
 
         print "Objects succefully fetched from Nexus API (%d records)" % len(objects_by_api)
+        obj_by_code = {i.pk: i for i in objects_in_db}
+        primary_key_name = object_class._meta.pk.name
+        foreign_keys = {x.related_model._meta.db_table:x for x in object_class._meta.fields if isinstance(x, django_types.ForeignKey)}
+        for i in objects_by_api:
+            object_db = obj_by_code.get(i[primary_key_name])
+            if not object_db:
+                object_db = object_class()
+                objects_in_db.append(object_db)
+                if new_objects and hasattr(new_objects,'append'):
+                    new_objects.append(object_db)
+            update_object_from_dict(object_db, i)
+            if hasattr(object_db, "fetch_date"):
+                object_db.fetch_date = current_date
+            if hasattr(object_db, "TransformFields"):
+                object_db.TransformFields(i)
+            is_saved = False
+            tries = 0
+            while not is_saved and tries<len(foreign_keys)+1:
+                try:
+                    tries += 1
+                    object_db.save()
+                    is_saved = True
+                except IntegrityError as e:
+                    if e.message.find('foreign key constraint') < 0:
+                        print 'finded seeking error'
+                        print '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
+                        print e
+                        raise
+                    m = re.search(
+                        r'Key \((\w+)\)=\(([^\)]+)\) is not present in table "([^\"]+)"',
+                        e.message)
+                    if not m:
+                        return False
+                    key_field, key_value, table_name = m.groups()
+                    if key_field=='id':
+                        print '-' * 79
+                        print '!' * 79
+                        print 'Try of null-ing id! Previos error was ', e
+                        print '-' * 79
+                        time.sleep(15)
+                        continue
+
+                    fk = foreign_keys[table_name] # TODO what on multiple foreign keys to same table - ???
+                    val = getattr(object_db, key_field)
+                    t = type(val)
+                    # simple control - field is right
+                    if t(key_value) == val:
+                        setattr(object_db, key_field, None)
+                        print 'Nulling field %s on object %s (was %s)'%(fk.name, object_db, val)
+                except Exception as e:
+                    print "Error by saving ", e
+                    print sys.exc_info()
+                    print i
+                    break
+        if settings.DEBUG and len(objects_by_api) > 0:
+            # field_set_db = set(x.field_name for x in
+            # object_class._meta.get_fields())  # get_all_field_names())
+            print "Calc field lists difference..."
+            field_set_db = set(x.name for x in object_class._meta.fields)
+            field_set_json = set(objects_by_api[0])
+            print "Uncommon fields in DB:", field_set_db - field_set_json
+            print "Uncommon fields in API:", field_set_json - field_set_db
+            # print objects_by_api
+
+    if force_update == False and get_params.get('nmin_last_modified') and isLastModified:
+        count, cur_records = -1, -2
+        objects_by_api = []
+        data_key_name = None
+        start_time = datetime.datetime.utcnow()
+        while cur_records < count:
+            current_time = datetime.datetime.utcnow()
+            if current_time - start_time > settings.MAX_REPORT_WAIT:
+                break
+            if cur_records > 0:
+                params["start_element"] = cur_records
+                params["num_elements"] = min(100, count - cur_records)
+            try:
+                r = requests.get(
+                    url, params=get_params, headers={
+                        "Authorization": token})
+                response = json.loads(r.content)['response']
+            except Exception as e:
+                response = {'error': e.message, 'error_id': 'NODATA'}
+            if response.get('error'):
+                print response['error']
+                if error_classes[response['error_id']]:
+                    break
+                if response['error_id'] == 'NOAUTH':
+                    token = get_auth_token()
+                time.sleep(10)
+                continue
+            dbg_info = response['dbg_info']
+            try:
+                dbg_reads = dbg_info['reads']
+                dbg_limit = dbg_info['read_limit']
+            except:
+                dbg_reads = dbg_info['parent_dbg_info']['reads']
+                dbg_limit = dbg_info['parent_dbg_info']['read_limit']
+            limit = dbg_reads*1.0 / dbg_limit
+            if limit > 0.9:
+                time.sleep((limit - 0.9) * 300)
+            if not data_key_name:
+                data_key_name = list(set(response.keys()) - \
+                                     set([u'status', u'count', u'dbg_info', u'num_elements', u'start_element']))
+                if len(data_key_name) > 1:
+                    data_key_name = [
+                        x for x in data_key_name if x.startswith(last_word)]
+                if len(data_key_name) > 0:
+                    data_key_name = data_key_name[0]
+            print data_key_name
+            pack_of_objects = response.get(data_key_name, [])
+
+            if isinstance(pack_of_objects, list):
+                objects_by_api.extend(pack_of_objects)
+            else:
+                objects_by_api.append(pack_of_objects)
+            cur_records += response['num_elements']
+
+        print "Objects successfully fetched from Nexus API (%d records)" % len(objects_by_api)
         obj_by_code = {i.pk: i for i in objects_in_db}
         primary_key_name = object_class._meta.pk.name
         foreign_keys = {x.related_model._meta.db_table:x for x in object_class._meta.fields if isinstance(x, django_types.ForeignKey)}

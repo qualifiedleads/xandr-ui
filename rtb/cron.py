@@ -24,11 +24,13 @@ from models import Advertiser, Campaign, SiteDomainPerformanceReport, Profile, L
     YieldManagementProfile, PaymentRule, ConversionPixel, Country, Region, DemographicArea, AdQualityRule, Placement, \
     Creative, Brand, CreativeTemplate, Category, Company, MediaType, MediaSubType, CreativeFormat, CreativeFolder, \
     Language, NetworkAnalyticsReport_ByPlacement, NetworkCarrierReport_Simple, NetworkDeviceReport_Simple
-
+from models.placement_state import LastModified
 from pytz import utc
 from utils import get_all_classes_in_models, get_current_time, clean_old_files
 from rtb.crons.video_ad_cron import fillVideoAdDataCron
-
+from django.utils import timezone
+from datetime import timedelta
+from rtb.controllers.campaign_create import getToken
 table_names = {c._meta.db_table: c for c in get_all_classes_in_models(models)}
 
 _default_values_for_types = {
@@ -261,7 +263,7 @@ def analize_csv_direct(filename, modelClass):
             except Exception as e:
                 print e
 
-def analize_csv(filename, modelClass, metadata={}):
+def analize_csv(filename, modelClass, metadata={}, isHour=False):
     if _has_copy_from_support and hasattr(modelClass, 'direct_csv') and modelClass.direct_csv:
         analize_csv_direct(filename, modelClass)
         return
@@ -294,9 +296,10 @@ def analize_csv(filename, modelClass, metadata={}):
         context['foreign_fields'] = filter(
             lambda x: x in csv_fields, foreign_fields)
         context.update(metadata)
-        worker = Pool(
-            initializer=context_initializer, initargs=(
-                context,), maxtasksperchild=100000)
+        if isHour == False:
+            worker = Pool(
+                initializer=context_initializer, initargs=(
+                    context,), maxtasksperchild=100000)
         counter = 0
         reset_queries()
         try:
@@ -304,11 +307,16 @@ def analize_csv(filename, modelClass, metadata={}):
                 rows = list(islice(reader, 0, 4000))
                 if not rows:
                     break
-                if len(rows) > 100:
-                    objects_to_save = worker.map(create_object_from_dict, rows)
+                if isHour == False:
+                    if len(rows) > 100:
+                        objects_to_save = worker.map(create_object_from_dict, rows)
+                    else:
+                        context_initializer(context)
+                        objects_to_save = map(create_object_from_dict, rows)
                 else:
-                    context_initializer(context)
-                    objects_to_save = map(create_object_from_dict, rows)
+                    if len(rows) > 0:
+                        context_initializer(context)
+                        objects_to_save = map(create_object_from_dict, rows)
                 if len(rows) != len(objects_to_save):
                     print "There are error in multithreaded map"
                 if not all(objects_to_save):
@@ -341,27 +349,32 @@ def analize_csv(filename, modelClass, metadata={}):
             print traceback.print_exc()
         finally:
             gc.collect()
-            worker.close()
-            worker.join()
+            if isHour == False:
+                worker.close()
+                worker.join()
 
 
 # load data, needed for filling SiteDomainPerformanceReport
 # Data saved to local DB
-def load_depending_data(token, force_update=False, daily_load=True):
+def load_depending_data(token, force_update=False, daily_load=True, isLastModified=False):
     # nexus_get_objects\(.*?'(https://api.appnexus.com/[\w-]+)',\s*\{[^\}]*\},\s*(\w+)
     try:
         cd = get_current_time()
         with transaction.atomic():
-            advertisers = nexus_get_objects(token,
+            advertisers = nexus_get_objects(
+                                            token,
                                             {"id__gt": 0},
-                                            Advertiser, force_update, {})
+                                            Advertiser,
+                                            force_update,
+                                            {}
+                                            )
             print 'There is %d advertisers' % len(advertisers)
 
             for adv in advertisers:
                 # Get all of the profiles for the advertiser
                 profiles = nexus_get_objects(token,
                                              {'advertiser_id': adv.id},
-                                             Profile, force_update)
+                                             Profile, force_update, isLastModified=isLastModified)
                 print 'There is %d profiles' % len(profiles)
             # adv = Advertiser.objects.values_list('id', 'name','profile_id')
             foreign_ids = {i.profile_id: i.id for i in advertisers}
@@ -382,35 +395,35 @@ def load_depending_data(token, force_update=False, daily_load=True):
         if daily_load:
             developers = nexus_get_objects(token,
                                            {},
-                                           Developer, False)
+                                           Developer, False, isLastModified=isLastModified)
             print 'There is %d developers ' % len(developers)
             buyer_groups = nexus_get_objects(token,
                                              {},
-                                             BuyerGroup, False)
+                                             BuyerGroup, False, isLastModified=isLastModified)
             print 'There is %d buyer groups ' % len(buyer_groups)
 
             # There is mutual dependence
-            #with transaction.atomic():
+            # with transaction.atomic():
             ad_profiles = nexus_get_objects(token,
                                             {},
-                                            AdProfile, False)
+                                            AdProfile, False, isLastModified=isLastModified)
             print 'There is %d adware profiles ' % len(ad_profiles)
             members = nexus_get_objects(token,
                                         {},
-                                        Member, False)
+                                        Member, False, isLastModified=isLastModified)
             print 'There is %d members ' % len(members)
             #end transaction
 
             # Get all operating system families:
             operating_systems_families = nexus_get_objects(token,
                                                            {},
-                                                           OSFamily, False)
+                                                           OSFamily, False, isLastModified=isLastModified)
             print 'There is %d operating system families' % len(operating_systems_families)
 
             # Get all operating systems:
             operating_systems = nexus_get_objects(token,
                                                   {},
-                                                  OperatingSystemExtended, False)
+                                                  OperatingSystemExtended, False, isLastModified=isLastModified)
             print 'There is %d operating systems ' % len(operating_systems)
 
             #with transaction.atomic():
@@ -420,41 +433,41 @@ def load_depending_data(token, force_update=False, daily_load=True):
                 o1 = nexus_get_objects(token,
                                        {},  # {'type':'universal'}
                                        ContentCategory, force_update,
-                                       {'category_type': 'universal'})
+                                       {'category_type': 'universal'}, isLastModified=isLastModified)
                 o2 = nexus_get_objects(token,
                                        {},
-                                       ContentCategory, force_update)
+                                       ContentCategory, force_update, isLastModified=isLastModified)
             # end transaction
             print 'There is %d content categories ' % ContentCategory.objects.count()
 
             # Get all optimisation zones:
             optimisation_zones = nexus_get_objects(token,
                                                    {},
-                                                   OptimizationZone, False)
+                                                   OptimizationZone, False, isLastModified=isLastModified)
             print 'There is %d optimisation zones ' % len(optimisation_zones)
 
             # Get all mobile app instances:
             mobile_app_instances = nexus_get_objects(token,
                                                      {},
-                                                     MobileAppInstance, False)
+                                                     MobileAppInstance, False, isLastModified=isLastModified)
             print 'There is %d mobile app instances ' % len(mobile_app_instances)
 
             # with transaction.atomic():
             # Get all sites:
             sites = nexus_get_objects(token,
                                       {},
-                                      Site, False)
+                                      Site, False, isLastModified=isLastModified)
             print 'There is %d sites ' % len(sites)
             # Get all publishers:
             publishers = nexus_get_objects(token,
                                            {"id__gt":0},
-                                           Publisher, False,{})
+                                           Publisher, False, {}, isLastModified=isLastModified)
             print 'There is %d publishers ' % len(publishers)
             # Get all yield management profiles:
             # loop ?
             yield_management_profiles = nexus_get_objects(token,
                                                           {},
-                                                          YieldManagementProfile, False)
+                                                          YieldManagementProfile, False, isLastModified=isLastModified)
             print 'There is %d yield management profiles ' % len(yield_management_profiles)
             payment_rules_to_load=Publisher.objects.filter(base_payment_rule_id__gt=0)\
                 .values_list('base_payment_rule_id','id').distinct()
@@ -464,57 +477,56 @@ def load_depending_data(token, force_update=False, daily_load=True):
                                                   {'id': x[0]},
                                                   PaymentRule,
                                                   True,
-                                                  {'publisher_id': x[1], 'id': x[0]}
-                                                )
+                                                  {'publisher_id': x[1], 'id': x[0]}, isLastModified=isLastModified)
                 print payment_rule
-            #end transaction
+            # end transaction
             companies = nexus_get_objects(token,
                                           {},
-                                          Company, False)
+                                          Company, False, isLastModified=isLastModified)
             print 'There is %d companies ' % len(companies)
 
             categories = nexus_get_objects(token,
                                            {},
-                                           Category, False)
+                                           Category, False, isLastModified=isLastModified)
             print 'There is %d categories ' % len(categories)
 
             media_types = nexus_get_objects(token,
                                             {},
-                                            MediaType, False)
+                                            MediaType, False, isLastModified=isLastModified)
             print 'There is %d creative media types' % len(media_types)
 
             media_sub_types = nexus_get_objects(token,
                                                 {},
-                                                MediaSubType, False)
+                                                MediaSubType, False, isLastModified=isLastModified)
             print 'There is %d creative media sub types' % len(media_sub_types)
 
             # https://api.appnexus.com/creative-format
             creative_formats = nexus_get_objects(token,
                                                  {},
-                                                 CreativeFormat, False)
+                                                 CreativeFormat, False, isLastModified=isLastModified)
             print 'There is %d creative media sub types' % len(creative_formats)
 
             creative_templates = nexus_get_objects(token,
                                                    {},
-                                                   CreativeTemplate, False)
+                                                   CreativeTemplate, False, isLastModified=isLastModified)
             print 'There is %d creative templates' % len(creative_templates)
 
             for adv in advertisers:
                 advertiser_id = adv.id
                 # Get all creative folders
                 creative_folders = nexus_get_objects(
-                    token, {'advertiser_id': advertiser_id}, CreativeFolder, False)
+                    token, {'advertiser_id': advertiser_id}, CreativeFolder, False, isLastModified=isLastModified)
                 print 'There is %d  creative folders' % len(creative_folders)
 
             languages = nexus_get_objects(token,
                                           {},
-                                          Language, False)
+                                          Language, False, isLastModified=isLastModified)
             print 'There is %d languages ' % len(languages)
 
             # with transaction.atomic():
             nexus_get_objects(token,
                               {},
-                              Creative, force_update)
+                              Creative, force_update, isLastModified=isLastModified)
             brand_ids = set(Creative.objects.filter(brand_id__isnull=False) \
                                .values_list('brand', flat=True).distinct())
             exiting_brands = set(Brand.objects.values_list('id', flat=True))
@@ -525,7 +537,7 @@ def load_depending_data(token, force_update=False, daily_load=True):
             brands = nexus_get_objects(token,
                                        {},
                                        Brand, force_update,
-                                       {'id':','.join(ids_list), 'simple':'true'})
+                                       {'id':','.join(ids_list), 'simple':'true'}, isLastModified=isLastModified)
             print 'There is %d brands ' % len(brands)
             profiles_ids = set(Creative.objects.filter(profile_id__isnull=False) \
                                .values_list('profile', flat=True).distinct())
@@ -533,7 +545,7 @@ def load_depending_data(token, force_update=False, daily_load=True):
             profiles = nexus_get_objects(token,
                                          {},
                                          Profile, force_update,
-                                         {'id':','.join(map(str,profiles_ids-exiting_profiles))})
+                                         {'id':','.join(map(str,profiles_ids-exiting_profiles))}, isLastModified=isLastModified)
             print 'There is %d new profiles'%len(profiles)
             # end transaction
             # Get all payment rules:
@@ -541,73 +553,73 @@ def load_depending_data(token, force_update=False, daily_load=True):
                 payment_rules = nexus_get_objects(token,
                                                   {'publisher': pub},
                                                   PaymentRule, force_update,
-                                                  {'publisher_id': pub.pk})
+                                                  {'publisher_id': pub.pk}, isLastModified=isLastModified)
                 print 'There is %d payment rules for publisher %s' % (len(payment_rules), pub.name)
                 print 'Ids:', ','.join(str(x.pk) for x in payment_rules)
                 quality_rules = nexus_get_objects(token,
                                                   {'publisher': pub},
                                                   AdQualityRule, force_update,
-                                                  {'publisher_id': pub.pk})
+                                                  {'publisher_id': pub.pk}, isLastModified=isLastModified)
                 print 'There is %d quality rules for publisher %s' % (len(payment_rules), pub.name)
                 # Placement
                 # https://api.appnexus.com/placement?publisher_id=PUBLISHER_ID
                 placements = nexus_get_objects(token,
                                                {'publisher': pub},
                                                Placement, force_update,
-                                               {'publisher_id': pub.pk})
+                                               {'publisher_id': pub.pk}, isLastModified=isLastModified)
                 print 'There is %d placements for publisher %s' % (len(placements), pub.name)
 
             # Get all users:
             users = nexus_get_objects(token,
                                       {},
-                                      User, False)
+                                      User, False, isLastModified=isLastModified)
             print 'There is %d users ' % len(users)
             # Get all platform members:
             platform_members = nexus_get_objects(token,
                                                  {},
-                                                 PlatformMember, False)
+                                                 PlatformMember, False, isLastModified=isLastModified)
             print 'There is %d platform members ' % len(platform_members)
             # Get all deals:
             deals = nexus_get_objects(token,
                                       {},
-                                      Deal, False)
+                                      Deal, False, isLastModified=isLastModified)
             print 'There is %d deals ' % len(deals)
             # Get all demographic areas:
             demographic_areas = nexus_get_objects(token,
                                                   {},
-                                                  DemographicArea, False)
+                                                  DemographicArea, False, isLastModified=isLastModified)
             print 'There is %d  demographic areas' % len(demographic_areas)
             # Get all countries:
             countries = nexus_get_objects(token,
                                           {},
-                                          Country, False)
+                                          Country, False, isLastModified=isLastModified)
             print 'There is %d  countries' % len(countries)
             # Get all regions:
             regions = nexus_get_objects(token,
                                         {},
-                                        Region, False)
+                                        Region, False, isLastModified=isLastModified)
             print 'There is %d  regions' % len(regions)
 
             for adv in advertisers:
                 advertiser_id = adv.id
                 # Get all conversion pixels:
                 conversion_pixels = nexus_get_objects(
-                    token, {'advertiser_id': advertiser_id}, ConversionPixel, False)
+                    token, {'advertiser_id': advertiser_id}, ConversionPixel, False, isLastModified=isLastModified)
                 print 'There is %d  conversion pixels' % len(conversion_pixels)
                 # Get all of the insertion orders for one of your advertisers:
                 insert_order = nexus_get_objects(token,
                                                  {'advertiser_id': advertiser_id},
-                                                 InsertionOrder, False)
+                                                 InsertionOrder, False, isLastModified=isLastModified)
                 print 'There is %d  insertion orders' % len(insert_order)
 
                 # Get all of an advertiser's line items:
                 line_items = nexus_get_objects(token,
                                                {'advertiser_id': advertiser_id},
-                                               LineItem, daily_load)
+                                               LineItem, daily_load, isLastModified=isLastModified)
                 print 'There is %d  line items' % len(line_items)
                 campaigns = nexus_get_objects(token,
                                               {'advertiser_id': advertiser_id},
-                                              Campaign, daily_load)
+                                              Campaign, daily_load, isLastModified=isLastModified)
                 print 'There is %d campaigns ' % len(campaigns)
 
     except Exception as e:
@@ -622,8 +634,95 @@ def load_depending_data(token, force_update=False, daily_load=True):
 #     def __exit__(self, exc_type, exc_val, exc_tb):
 #         pass
 
+
+def hourlyTask(dayWithHour=None, load_objects_from_services=True, output=None):
+    change_state = LastModified.objects.filter(type='hourlyTask')
+    if len(change_state) >= 1:
+        if timezone.make_aware(datetime.datetime.now(), timezone.get_default_timezone()) - change_state[0].date >= timedelta(
+                minutes=15):
+            LastModified.objects.filter(type='hourlyTask').delete()
+        else:
+            print "hourlyTask is busy, wait..."
+            return None
+
+    LastModified(type='hourlyTask',
+                 date=timezone.make_aware(datetime.datetime.now(), timezone.get_default_timezone())).save()
+
+    old_stdout, old_error = sys.stdout, sys.stderr
+    file_output = None
+    try:
+        if not output:
+            if hasattr(settings, 'LOG_DIR') and settings.LOG_DIR:
+                catalog_name = settings.LOG_DIR
+            else:
+                catalog_name = os.path.join(os.path.dirname(__file__), 'logs')
+            clean_old_files(catalog_name)
+            log_file_name = 'Hourly_Task_%s.log' % get_current_time().strftime('%Y-%m-%dT%H-%M-%S')
+            log_file_name = os.path.join(catalog_name, log_file_name)
+            file_output = open(log_file_name, 'w', 1)  # line buffered file
+            file_output.write('Begin write log file {}\n'.format(get_current_time()))
+            output = file_output
+    except:
+        pass
+    if output:
+        sys.stdout, sys.stderr = output, output
+
+    one_hour = datetime.timedelta(hours=1)
+
+    if dayWithHour:
+        dayWithHour = datetime.datetime(hour=dayWithHour.hour, day=dayWithHour.day, month=dayWithHour.month, year=dayWithHour.year, tzinfo=utc)
+    else:
+        dayWithHour = SiteDomainPerformanceReport.objects.aggregate(m=Max('hour'))['m']
+        print 'Last loaded hour', dayWithHour
+
+        if dayWithHour:
+            dayWithHour = datetime.datetime(hour=dayWithHour.hour, day=dayWithHour.day, month=dayWithHour.month,
+                                            year=dayWithHour.year, tzinfo=utc)
+        else:
+            dayWithHour -= one_hour
+
+    dateNow = datetime.datetime.utcnow().replace(minute=0, second=0, microsecond=0, tzinfo=utc)
+    try:
+        token = getToken()
+        if load_objects_from_services:
+            load_depending_data(token, False, isLastModified=True)
+        while dayWithHour <= dateNow:
+            print 'NetworkAnalyticsReport_ByPlacement  start', get_current_time().strftime('%Y-%m-%dT%H-%M-%S')
+            load_report(token, dayWithHour, NetworkAnalyticsReport_ByPlacement, isHour=True)
+            print 'SiteDomainPerformanceReport  start', get_current_time().strftime('%Y-%m-%dT%H-%M-%S')
+            load_reports_for_all_advertisers(token, dayWithHour, SiteDomainPerformanceReport, isHour=True)
+
+            LastModified.objects.filter(type='hourlyTask')\
+                .update(date=timezone.make_aware(datetime.datetime.now(), timezone.get_default_timezone()))
+            token = getToken()
+            dayWithHour += one_hour
+        fillVideoAdDataCron()
+    except Exception as e:
+        print 'Error by fetching data: %s' % e
+        print traceback.print_exc(file=output)
+    finally:
+        file_output.write('Finish write log file {}\n'.format(get_current_time()))
+        sys.stdout, sys.stderr = old_stdout, old_error
+        if file_output:
+            file_output.close()
+    LastModified.objects.filter(type='hourlyTask').delete()
+    print "OK"
+
+
 # Task, executed once in day. Get new data from NexusApp
 def dayly_task(day=None, load_objects_from_services=True, output=None):
+    change_state = LastModified.objects.filter(type='dayly_task')
+    if len(change_state) >= 1:
+        if timezone.make_aware(datetime.datetime.now(), timezone.get_default_timezone()) - change_state[0].date >= timedelta(
+                minutes=15):
+            LastModified.objects.filter(type='dayly_task').delete()
+        else:
+            print "dayly_task is busy, wait..."
+            return None
+
+    LastModified(type='dayly_task',
+                 date=timezone.make_aware(datetime.datetime.now(), timezone.get_default_timezone())).save()
+
     old_stdout, old_error = sys.stdout, sys.stderr
     file_output = None
     try:
@@ -666,14 +765,16 @@ def dayly_task(day=None, load_objects_from_services=True, output=None):
         if load_objects_from_services:
             load_depending_data(token, True)
         while day<=last_day:
-            load_report(token, day, NetworkCarrierReport_Simple)
-            load_report(token, day, NetworkDeviceReport_Simple)
-            #load_report(token, day, NetworkAnalyticsReport)
-            load_report(token, day, NetworkAnalyticsReport_ByPlacement)
-            load_report(token, day, GeoAnaliticsReport)
-            load_reports_for_all_advertisers(token, day, SiteDomainPerformanceReport)
-            fillVideoAdDataCron()
-            day+=one_day
+            load_report(token, day, NetworkCarrierReport_Simple, isHour=False)        # only day
+            load_report(token, day, NetworkDeviceReport_Simple, isHour=False)         # only day
+            # load_report(token, day, NetworkAnalyticsReport, isHour=False            # not used
+            load_report(token, day, GeoAnaliticsReport, isHour=False)                 # only day
+            # load_report(token, day, NetworkAnalyticsReport_ByPlacement, isHour=False)
+            # load_reports_for_all_advertisers(token, day, SiteDomainPerformanceReport, isHour=False)
+            # fillVideoAdDataCron()
+            LastModified.objects.filter(type='dayly_task')\
+                .update(date=timezone.make_aware(datetime.datetime.now(), timezone.get_default_timezone()))
+            day += one_day
     except Exception as e:
         print 'Error by fetching data: %s' % e
         print traceback.print_exc(file=output)
@@ -681,37 +782,53 @@ def dayly_task(day=None, load_objects_from_services=True, output=None):
         sys.stdout, sys.stderr = old_stdout, old_error
         if file_output:
             file_output.close()
+    LastModified.objects.filter(type='dayly_task').delete()
     print "OK"
 
 
 # load report data, which is not linked with advertiser
-def load_report(token, day, ReportClass):
-    if not day:
-        day = datetime.datetime.utcnow()-datetime.timedelta(days=1)
-        day = day.replace(hour=0,minute=0,second=0,microsecond=0,tzinfo=utc)
-    if not token:
-        token = get_auth_token()
-    try:
-        ReportClass._meta.get_field('day')
-        filter_params = {"day": day}
-    except:  # Hour
-        filter_params = {"hour__date": day}
+def load_report(token, day, ReportClass, isHour=False):
+    if isHour == False:
+        if not day:
+            day = datetime.datetime.utcnow()-datetime.timedelta(days=1)
+            day = day.replace(hour=0, minute=0, second=0, microsecond=0, tzinfo=utc)
+        if not token:
+            token = get_auth_token()
+        try:
+            ReportClass._meta.get_field('day')
+            filter_params = {"day": day}
+        except:  # Hour
+            filter_params = {"hour__date": day}
+    else:
+        if not day:
+            day = datetime.datetime.utcnow()-datetime.timedelta(hours=1)
+            day = day.replace(minute=0, second=0, microsecond=0, tzinfo=utc)
+        if not token:
+            token = get_auth_token()
+        try:
+            ReportClass._meta.get_field('hour')
+            filter_params = {"hour": day}
+        except:  # Hour
+            filter_params = {"day": day}
     q = ReportClass.objects.filter(**filter_params).count()
-    if q % 4000 == 0 and q>0:
+    if q % 4000 == 0 and q > 0:
         print 'Delete partially loaded data (load_report)'
         ReportClass.objects.filter(**filter_params).delete()
         q = 0
     if q > 0:
         print "There is %d records in %s, nothing to do." % (q, ReportClass._meta.db_table)
         return
-    f_name = get_specified_report(ReportClass, {}, token, day)
+    if isHour == False:
+        f_name = get_specified_report(ReportClass, {}, token, day, columns=None, isHour=False)
+    else:
+        f_name = get_specified_report(ReportClass, {}, token, day, columns=None, isHour=True)
     analize_csv(f_name, ReportClass, {})
     os.remove(f_name)
     if hasattr(ReportClass,'post_load'):
         ReportClass.post_load(day)
 
 
-def load_reports_for_all_advertisers(token, day, ReportClass):
+def load_reports_for_all_advertisers(token, day, ReportClass, isHour=False):
     if not day:
         day = datetime.datetime.utcnow()-datetime.timedelta(days=1)
         day = day.replace(hour=0,minute=0,second=0,microsecond=0,tzinfo=utc)
@@ -719,11 +836,18 @@ def load_reports_for_all_advertisers(token, day, ReportClass):
         token = get_auth_token()
     # 5 report service processes per user admitted
     worker_pool = ThreadPool(5)
-    try:
-        ReportClass._meta.get_field('day')
-        filter_params = {"day": day}
-    except:  # Hour
-        filter_params = {"hour__date": day}
+    if isHour == False:
+        try:
+            ReportClass._meta.get_field('day')
+            filter_params = {"day": day}
+        except:  # Hour
+            filter_params = {"hour__date": day}
+    else:
+        try:
+            ReportClass._meta.get_field('hour')
+            filter_params = {"hour": day}
+        except:  # Hour
+            filter_params = {"day": day}
 
     # this prevent zero id value
     # filter_params['pk__gt'] = 0
@@ -745,16 +869,18 @@ def load_reports_for_all_advertisers(token, day, ReportClass):
     all_advertisers.pop(0, None)
     advertisers_need_load = set(all_advertisers) - advertisers_having_data
     campaign_dict = dict(Campaign.objects.all().values_list('id', 'name'))
-    all_line_items = set(LineItem.objects.values_list("id", flat=True))
 
-    filenames = worker_pool.map(lambda id: get_specified_report(
-        ReportClass, {'advertiser_id': id}, token, day), advertisers_need_load)
+    if isHour == False:
+        filenames = worker_pool.map(lambda id: get_specified_report(
+        ReportClass, {'advertiser_id': id}, token, day, columns=None, isHour=False), advertisers_need_load)
+    else:
+        filenames = worker_pool.map(lambda id: get_specified_report(
+        ReportClass, {'advertiser_id': id}, token, day, columns=None, isHour=True), advertisers_need_load)
     try:
         for f, advertiser_id in izip(filenames, advertisers_need_load):
             analize_csv(f, ReportClass,
                         metadata={"campaign_dict": campaign_dict,
-                                  #"all_line_items": all_line_items,
-                                  "advertiser_id": advertiser_id})
+                                  "advertiser_id": advertiser_id}, isHour=isHour)
             print "%s for advertiser %s saved to DB" % (ReportClass, all_advertisers[advertiser_id])
         if hasattr(ReportClass, 'post_load'):
             ReportClass.post_load(day)
@@ -766,3 +892,64 @@ def load_reports_for_all_advertisers(token, day, ReportClass):
 
 if __name__ == '__main__':
     dayly_task()
+
+
+def load_only_one_advertiser_data(token, force_update=False, daily_load=True, isLastModified=None, advId=None):
+    newCampaign = []
+    try:
+        cd = get_current_time()
+        with transaction.atomic():
+            advertisers = nexus_get_objects(
+                                            token,
+                                            {"id": advId},
+                                            Advertiser,
+                                            force_update,
+                                            {}
+                                            )
+            print 'There is %d advertisers' % len(advertisers)
+
+            for adv in advertisers:
+                # Get all of the profiles for the advertiser
+                profiles = nexus_get_objects(token,
+                                             {'advertiser_id': adv.id},
+                                             Profile, force_update, isLastModified=isLastModified)
+                print 'There is %d profiles' % len(profiles)
+            # adv = Advertiser.objects.values_list('id', 'name','profile_id')
+            foreign_ids = {i.profile_id: i.id for i in advertisers}
+            adv_names = {i.id: i.name for i in advertisers}
+            profiles_ids = set(Profile.objects.values_list('id', flat=True))
+            missing_profiles = set(foreign_ids) - profiles_ids
+            for i in missing_profiles:
+                p = Profile(pk=i)
+                fill_null_values(p)
+                p.created_on = cd
+                p.fetch_date = cd
+                p.advertiser_id = foreign_ids[i]
+                name = adv_names[foreign_ids[i]]
+                p.name = 'Missed profile for %s' % name
+                p.save()
+                print 'Created profile "%s"' % p.name
+
+        if daily_load:
+
+            for adv in advertisers:
+                advertiser_id = adv.id
+
+                # Get all of an advertiser's line items:
+                line_items = nexus_get_objects(token,
+                                               {'advertiser_id': advertiser_id},
+                                               LineItem, False, isLastModified=isLastModified)
+                print 'There is %d  line items' % len(line_items)
+                campaigns = nexus_get_objects(token,
+                                              {'advertiser_id': advertiser_id},
+                                              Campaign, False, isLastModified=isLastModified)
+                print 'There is %d campaigns ' % len(campaigns)
+
+            return 200
+        return 500
+
+    except Exception as e:
+        print "There is error in load_depending_data:", e
+        print e.message
+        print traceback.print_exc()
+

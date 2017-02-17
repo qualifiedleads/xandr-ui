@@ -1,0 +1,36 @@
+<div class="container-fluid container-camp col-lg-12  col-md-12 col-sm-12">
+  <div class="row stats-header">
+    <span translate="CAMP.NAME" class="camp-header"></span><span class="camp-header">
+    <a href="" ui-sref="home.videocampaign({id: acpmc.campId})">{{acpmc.campName}} ({{acpmc.campId}}) </a>
+      </span>
+    <br><span translate="CAMP.LINE_ITEM" class="camp-header"></span><span class="camp-line-item"> {{acpmc.line_item}} ({{acpmc.line_item_id}})</span>
+
+  </div>
+  <div class="row container-camp">
+    <h2><b>Current method -</b>
+      {{ acpmc.currentAlgo }}
+    </h2>
+    <div dx-load-panel="acpmc.UI.loadPanel"></div>
+    <div class="col-lg-4 col-md-5 col-sm-6">
+      <div translate="ACPMC.CHOICE-LIST"></div>
+      <div dx-select-box="acpmc.UI.choiceList"></div>
+    </div>
+    <div class="col-lg-2 col-md-2 col-sm-2">
+      <div dx-button="acpmc.UI.send"  class="margin-top"></div>
+    </div>
+
+    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 top-chart">
+      <div dx-chart="acpmc.UI.chartCPM" id="chart_CPM" ></div>
+    </div>
+
+    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 chart">
+      <div dx-chart="acpmc.UI.chartFillRate"></div>
+    </div>
+
+    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 chart">
+      <div dx-chart="acpmc.UI.chartProfit"></div>
+    </div>
+
+  </div>
+</div>
+

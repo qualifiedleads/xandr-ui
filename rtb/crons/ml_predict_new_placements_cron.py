@@ -78,11 +78,11 @@ def mlPredictNewPlacementsCron():
             for row in newPlacementsList:
                 LastModified.objects.filter(type='mlPredictNewPlacementsCron') \
                     .update(date=timezone.make_aware(datetime.datetime.now(), timezone.get_default_timezone()))
-                mlPredictLogisticRegression(row.placement_id, "ctr_cvr_cpc_cpm_cpa")
+                mlPredictLogisticRegression(row.id, "ctr_cvr_cpc_cpm_cpa")
                 n += 1
             print "Logistic regression placements recognized: " + str(n)
         print "New placements prediction completed"
         LastModified.objects.filter(type='mlPredictNewPlacementsCron').delete()
     except Exception, e:
         LastModified.objects.filter(type='mlPredictNewPlacementsCron').delete()
-        print 'Cron job - suspend_state_middleware_cron Error: ' + str(e)
+        print 'Cron job - mlPredictNewPlacementsCron Error: ' + str(e)

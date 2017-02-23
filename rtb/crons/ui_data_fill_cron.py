@@ -93,15 +93,15 @@ def getSiteDomainsReportInfo(start_date, finish_date, newCampaigns=None, camp_id
     return queryRes
 
 def fillUIGridDataCron():
-    LastModified(type='hourlyTask',
-                 date=timezone.make_aware(datetime.datetime.now(), timezone.get_default_timezone())).save()
+    LastModified.objects.filter(type='hourlyTask') \
+        .update(date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
 
     # all usual
     # updating existing campaigns
     allCampaignsInfo = UIUsualCampaignsGridDataAll.objects.all()
     for row in allCampaignsInfo.iterator():
-        LastModified(type='hourlyTask',
-                     date=timezone.make_aware(datetime.datetime.now(), timezone.get_default_timezone())).save()
+        LastModified.objects.filter(type='hourlyTask') \
+            .update(date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
         # check if less than an hour had pass
         if (datetime.now() - row.evaluation_date) < timedelta(hours=1):
             continue
@@ -171,8 +171,8 @@ def fillUIGridDataCron():
     )
 
     for row in queryRes:
-        LastModified(type='hourlyTask',
-                     date=timezone.make_aware(datetime.datetime.now(), timezone.get_default_timezone())).save()
+        LastModified.objects.filter(type='hourlyTask') \
+            .update(date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
         allNewCampaigns.append(UIUsualCampaignsGridDataAll(
             campaign_id=row.campaign_id,
             evaluation_date=timezone.make_aware(
@@ -217,8 +217,8 @@ def fillUIGridDataCron():
     for type, info in modelsDict.iteritems():
         allCampaignsInfo = info[0].objects.all()
         for row in allCampaignsInfo.iterator():
-            LastModified(type='hourlyTask',
-                         date=timezone.make_aware(datetime.datetime.now(), timezone.get_default_timezone())).save()
+            LastModified.objects.filter(type='hourlyTask') \
+                .update(date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
             # check if less than an hour had pass
             if (datetime.now() - row.evaluation_date) < timedelta(hours=1):
                 continue
@@ -279,8 +279,8 @@ def fillUIGridDataCron():
                     finish_date=(datetime.now() - timedelta(days=info[1])).replace(hour=0, minute=0, second=0, microsecond=0),
                     camp_id=row.campaign_id
                 )
-                LastModified(type='hourlyTask',
-                             date=timezone.make_aware(datetime.datetime.now(), timezone.get_default_timezone())).save()
+                LastModified.objects.filter(type='hourlyTask') \
+                    .update(date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
                 try:
                     queryRes[0]
                 except:
@@ -312,8 +312,8 @@ def fillUIGridDataCron():
                 row.clicks -= queryRes[0].clicks
                 row.imps_viewed -= queryRes[0].imps_viewed
                 row.view_measured_imps -= queryRes[0].view_measured_imps
-                LastModified(type='hourlyTask',
-                             date=timezone.make_aware(datetime.datetime.now(), timezone.get_default_timezone())).save()
+                LastModified.objects.filter(type='hourlyTask') \
+                    .update(date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
 
             # calculated rates
             if row.imps == 0:
@@ -354,8 +354,8 @@ select array_to_string(
             newCampaigns=newCampaigns
         )
         for row in queryRes:
-            LastModified(type='hourlyTask',
-                         date=timezone.make_aware(datetime.datetime.now(), timezone.get_default_timezone())).save()
+            LastModified.objects.filter(type='hourlyTask') \
+                .update(date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
             allNewCampaigns.append(info[0](
                 campaign_id=row.campaign_id,
                 evaluation_date=timezone.make_aware(
@@ -394,8 +394,8 @@ select array_to_string(
     allCampaignsInfo = UIUsualCampaignsGridDataLastMonth.objects.all()
 
     for row in allCampaignsInfo.iterator():
-        LastModified(type='hourlyTask',
-                     date=timezone.make_aware(datetime.datetime.now(), timezone.get_default_timezone())).save()
+        LastModified.objects.filter(type='hourlyTask') \
+            .update(date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
         # check if less than a month had pass
         if (datetime.now().month - row.window_start_date.month) < 2:
             continue
@@ -450,8 +450,8 @@ select array_to_string(
     )
 
     for row in queryRes:
-        LastModified(type='hourlyTask',
-                     date=timezone.make_aware(datetime.datetime.now(), timezone.get_default_timezone())).save()
+        LastModified.objects.filter(type='hourlyTask') \
+            .update(date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
         allNewCampaigns.append(UIUsualCampaignsGridDataLastMonth(
             campaign_id=row.campaign_id,
             evaluation_date=timezone.make_aware(
@@ -490,8 +490,8 @@ select array_to_string(
     # updating existing campaigns
     allCampaignsInfo = UIUsualCampaignsGridDataCurMonth.objects.all()
     for row in allCampaignsInfo.iterator():
-        LastModified(type='hourlyTask',
-                     date=timezone.make_aware(datetime.datetime.now(), timezone.get_default_timezone())).save()
+        LastModified.objects.filter(type='hourlyTask') \
+            .update(date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
         # check if less than an hour had pass
         if (datetime.now() - row.evaluation_date) < timedelta(hours=1):
             continue
@@ -560,6 +560,8 @@ select array_to_string(
             except Exception, e:
                 print "Can not update " + str(row.campaign_id) + "campaign current month data. Error: " + str(e)
         else:
+            LastModified.objects.filter(type='hourlyTask') \
+                .update(date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
             queryRes = getSiteDomainsReportInfo(
                 start_date=datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0),
                 finish_date=datetime.now().replace(minute=0, second=0, microsecond=0),
@@ -590,6 +592,7 @@ select array_to_string(
             row.cpc = 0 if row.clicks == 0 else (float(row.spent) / row.clicks)
             row.view_rate = 0 if row.view_measured_imps == 0 else (float(row.imps_viewed) / row.view_measured_imps)
             row.evaluation_date = datetime.now().replace(minute=0, second=0, microsecond=0)
+            row.window_start_date = datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
             row.day_chart = queryRes[0].id
             try:
                 row.save()
@@ -609,8 +612,8 @@ select array_to_string(
         newCampaigns=newCampaigns
     )
     for row in queryRes:
-        LastModified(type='hourlyTask',
-                     date=timezone.make_aware(datetime.datetime.now(), timezone.get_default_timezone())).save()
+        LastModified.objects.filter(type='hourlyTask') \
+            .update(date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
         allNewCampaigns.append(UIUsualCampaignsGridDataCurMonth(
             campaign_id=row.campaign_id,
             evaluation_date=timezone.make_aware(

@@ -9,4 +9,5 @@ from .rtb_impression_tracker import *
 from .technical_works import *
 from .video_ad_models import *
 from .ml_video_ad_model import *
+from .ui_data_models import *
 

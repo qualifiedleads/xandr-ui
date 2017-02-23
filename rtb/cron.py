@@ -31,6 +31,7 @@ from rtb.crons.video_ad_cron import fillVideoAdDataCron
 from django.utils import timezone
 from datetime import timedelta
 from rtb.controllers.campaign_create import getToken
+from rtb.crons.ui_data_fill_cron import fillUIGridDataCron
 table_names = {c._meta.db_table: c for c in get_all_classes_in_models(models)}
 
 _default_values_for_types = {
@@ -697,6 +698,8 @@ def hourlyTask(dayWithHour=None, load_objects_from_services=True, output=None):
             token = getToken()
             dayWithHour += one_hour
         fillVideoAdDataCron()
+        fillUIGridDataCron()
+
     except Exception as e:
         print 'Error by fetching data: %s' % e
         print traceback.print_exc(file=output)

@@ -16,6 +16,7 @@ import ast
 from utils import parse_get_params, make_sum, check_user_advertiser_permissions
 from django.contrib.auth.decorators import login_required, user_passes_test
 import countries
+from rest_framework import status
 
 
 def to_unix_timestamp(d):
@@ -155,37 +156,153 @@ Get campaigns data for given period
         + Example: TODO
 
     """
+    allCampaignsInfo = {}
     params = parse_get_params(request.GET)
-    result = get_campaigns_data(params['advertiser_id'], params['from_date'], params['to_date'])
-    # apply filter
-    if params['filter']:
-        filter_function = filter_func.get_filter_function(params['filter'])
-        result = filter(filter_function, result)
+    filt, order = getUsualFilterQueryString(params["filter"], request.GET.get("sort"), request.GET.get("order"))
+    try:
+        queryRes = Campaign.objects.raw("""
+    select
+      campaign.id as main_id,
+      campaign.name,
+      camp_info.*
+    from
+      campaign
+      left join ui_usual_campaigns_grid_data_""" + str(request.GET.get("type")) +""" camp_info
+      on campaign.id=camp_info.campaign_id
+    where
+      campaign.state <> 'inactive'
+    and
+      advertiser_id=""" + str(request.GET.get("advertiser_id")) +
+                                       ' ' + filt +
+                                        ' ' + order +" LIMIT " + str(params["take"]) + " OFFSET " + str(params["skip"]) + ';')
+        allCampaignsInfo["campaigns"] = []
+        allCampaignsInfo["totalCount"] = len(Campaign.objects.filter(advertiser_id=request.GET.get("advertiser_id")))
+        for row in queryRes:
+            allCampaignsInfo["campaigns"].append({
+                "id": row.main_id,
+                "campaign": row.name,
+                "clicks": 0 if row.clicks is None else row.clicks,
+                "conv": 0 if row.conversions is None else row.conversions,
+                "cpc": 0 if row.cpc is None else row.cpc,
+                "cpm": 0 if row.cpm is None else row.cpm,
+                "ctr": 0 if row.ctr is None else row.ctr*100,
+                "cvr": 0 if row.cvr is None else row.cvr,
+                "view_measurement_rate": 0 if row.view_measurement_rate is None else row.view_measurement_rate*100,
+                "imp": 0 if row.imps is None else row.imps,
+                "imps_viewed": 0 if row.imps_viewed is None else row.imps_viewed,
+                "spend": 0 if row.spent is None else row.spent,
+                "view_measured_imps": 0 if row.view_measured_imps is None else row.view_measured_imps,
+                "view_rate": 0 if row.view_rate is None else row.view_rate*100,
+                "chart": row.day_chart
+            })
 
-    totalCount = len(result)
+        return Response(allCampaignsInfo)
+    except Exception, e:
+        print "Can not get data for " + str(request.GET.get("advertiser_id")) + " advertiser. Error: " + str(e)
+        return Response(status=status.HTTP_404_NOT_FOUND)
 
-    reverse_order = params['order'] == 'desc'
-    if params['sort'] != 'campaign':
-        result.sort(key=lambda camp: camp[params['sort']], reverse=reverse_order)
-    result = result[params['skip']:params['skip'] + params['take']]
-    if result:
-        if params['stat_by']:
-            enabled_fields = set(params['stat_by'])
-            # if 'day' not in enabled_fields:
-            # enabled_fields.add('day')
-            all_fields = set(('conv', 'ctr', 'cpc', 'cvr', 'clicks', 'imp', 'spend', 'cpm', 'imps_viewed',
-                              'view_measured_imps', 'view_rate', 'view_measurement_rate',))  # ,'day')
-            remove_fields = all_fields - enabled_fields
-            for camp in result:
-                for point in camp['chart']:
-                    for f in remove_fields:
-                        point.pop(f, None)
+
+def getUsualFilterQueryString(incFilters, incSort, incOrder):
+    vocabulary = {}
+    vocabulary["campaign"] = "campaign.name"
+    vocabulary["spend"] = "camp_info.spent"
+    vocabulary["conv"] = "camp_info.conversions"
+    vocabulary["imp"] = "camp_info.imps"
+    vocabulary["clicks"] = "camp_info.clicks"
+    vocabulary["cpc"] = "camp_info.cpc"
+    vocabulary["cpm"] = "camp_info.cpm"
+    vocabulary["cvr"] = "camp_info.cvr"
+    vocabulary["ctr"] = "camp_info.ctr*100"
+
+    vocabulary["imps_viewed"] = "camp_info.imps_viewed"
+    vocabulary["view_measured_imps"] = "camp_info.view_measured_imps"
+    vocabulary["view_measurement_rate"] = "camp_info.view_measurement_rate*100"
+    vocabulary["view_rate"] = "camp_info.view_rate*100"
+
+    ansWhere = "AND ("
+    ansOrder = "ORDER BY "
+
+    if str(incSort) == "campaign":
+        ansOrder = ansOrder + vocabulary[str(incSort)] + ' ' + str(incOrder)
+    else:
+        if str(incOrder) == "asc":
+            order = "desc"
         else:
-            for camp in result:
-                camp.pop('chart', None)
+            order = "asc"
+        ansOrder = ansOrder + '-' + vocabulary[str(incSort)] + ' ' + order
+    equlitiesMarks = ["=", "<=", ">="]
 
-    # return JsonResponse({"campaigns": result, "totalCount": totalCount})
-    return Response({"campaigns": result, "totalCount": totalCount})
+    clause = re.compile(r'\s*\[\s*"([^"]*)",\s*"([^"]*)",\s*(\w+|\d+(?:\.\d*)?|(?:"(?:[^"]|\\\S)*"))\s*\]')
+    separatedFilters = re.findall(clause, incFilters)
+    # one condition
+    if not separatedFilters:
+        clause = re.compile(r"^(.*?)(>|<|=|<>|>=|<=|\bcontains\b|\bnotcontains\b|\bstartswith\b|\bendswith\b)(.*)$")
+        separatedFilters = re.match(clause, incFilters)
+        if separatedFilters is None:# without filtration
+            return '', ansOrder
+        else:
+            filt = separatedFilters.string.split(' ')
+            for i in xrange(3, len(filt)):# if campaign name have spaces
+                filt[2] += (' ' + filt[i])
+            if filt[0] == "campaign":
+                if filt[1] == "<>":
+                    return ansWhere + vocabulary[filt[0]] + " NOT LIKE '%%" + filt[2] + "%%')", ansOrder
+                else:
+                    return ansWhere + vocabulary[filt[0]] + " LIKE '%%" + filt[2] + "%%')", ansOrder
+            else:
+                if filt[1] in equlitiesMarks and filt[2] == '0':
+                    filt[2] += (" OR " + vocabulary[filt[0]] + " IS NULL")
+                if filt[1] == "<>":
+                    if filt[2] == '0':
+                        filt[2] += (" OR " + vocabulary[filt[0]] + " IS NOT NULL")
+                    else:
+                        filt[2] += (" OR " + vocabulary[filt[0]] + " IS NULL")
+
+                return ansWhere + vocabulary[filt[0]] + filt[1] + filt[2] + ')', ansOrder
+    # multiple conditions
+    if separatedFilters[0][0] == "campaign":
+        if separatedFilters[0][1] == "<>":
+            ansWhere = ansWhere + vocabulary[separatedFilters[0][0]] + " NOT LIKE '%%" + separatedFilters[0][2][1:-1] + "%%'"
+        else:
+            ansWhere = ansWhere + vocabulary[separatedFilters[0][0]] + " LIKE '%%" + separatedFilters[0][2][
+                                                                                     1:-1] + "%%'"
+    else:
+        temp = str(separatedFilters[0][2])
+        if separatedFilters[0][1] in equlitiesMarks and separatedFilters[0][2] == '0':
+            temp = temp + " OR " + str(vocabulary[separatedFilters[0][0]]) + " IS NULL"
+        if separatedFilters[0][1] == "<>":
+            if separatedFilters[0][2] == '0':
+                temp += (" OR " + vocabulary[separatedFilters[0][0]] + " IS NOT NULL")
+            else:
+                temp += (" OR " + vocabulary[separatedFilters[0][0]] + " IS NULL")
+        ansWhere = ansWhere + vocabulary[separatedFilters[0][0]] + separatedFilters[0][1] + temp
+    lastColumn = separatedFilters[0][0]
+
+    for i in xrange(1, len(separatedFilters)):
+        if lastColumn == separatedFilters[i][0] and separatedFilters[i][1] == '=':# for between
+            ansWhere += " OR "
+        else:
+            ansWhere += ") AND ("
+        if separatedFilters[i][0] == "campaign":
+            if separatedFilters[i][1] == "<>":
+                ansWhere = ansWhere + vocabulary[separatedFilters[i][0]] + " NOT LIKE '%%" + separatedFilters[i][2][1:-1] + "%%'"
+            else:
+                ansWhere = ansWhere + vocabulary[separatedFilters[i][0]] + " LIKE '%%" + separatedFilters[i][2][
+                                                                                         1:-1] + "%%'"
+        else:
+            temp = str(separatedFilters[i][2])
+            if separatedFilters[i][1] in equlitiesMarks and separatedFilters[i][2] == '0':
+                temp = temp + " OR " + vocabulary[separatedFilters[i][0]] + " IS NULL"
+            if separatedFilters[i][1] == "<>":
+                if separatedFilters[i][2] == '0':
+                    temp += (" AND " + vocabulary[separatedFilters[i][0]] + " IS NOT NULL")
+                else:
+                    temp += (" OR " + vocabulary[separatedFilters[i][0]] + " IS NULL")
+            ansWhere = ansWhere + vocabulary[separatedFilters[i][0]] + separatedFilters[i][1] + temp
+        lastColumn = separatedFilters[i][0]
+    ansWhere += ')'
+
+    return ansWhere, ansOrder
 
 
 def get_days_data(advertiser_id, from_date, to_date):

@@ -282,24 +282,6 @@
         onInitialized: function (data) {
           vm.dataGridOptionsMultipleFunc = data.component;
         },
-
-        // onContentReady: function () {
-        //   var update = $window.$('<div />').dxButton({
-        //     icon: 'upload',
-        //     class: 'dx-icon dx-icon-export-excel-button ng-scope',
-        //     disabled: false,
-        //     onClick: function () {
-        //       VideoMain.updateCampaign(vm.advertiser.id).then(function (res) {
-        //         if (res == 200) {
-        //           $window.DevExpress.ui.notify(LC('MAIN.ADVERTISER_UPDATED'), 'success', 4000);
-        //           $state.reload();
-        //         }
-        //       });
-        //     }
-        //   });
-        //   update.addClass('dx-datagrid-export-button dx-button dx-button-normal dx-widget dx-button-has-icon').appendTo('.dx-datagrid-header-panel');
-        // },
-
         loadPanel: {
           shadingColor: 'rgba(0,0,0,0.4)',
           visible: false,

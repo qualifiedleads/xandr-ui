@@ -75,31 +75,31 @@
         ID: 0,
         Name: LC('MAIN.DATE_PICKER.YESTERDAY'),
         dataStart: $window.moment({ hour: '00' }).subtract(1, 'day').unix(),
-        dataEnd: $window.moment({ hour: '00' }).subtract(1, 'day').endOf('day').unix(),
+        dataEnd: $window.moment().unix(),
         type: 'yesterday'
       }, {
         ID: 1,
         Name: LC('MAIN.DATE_PICKER.LAST_3_DAYS'),
         dataStart: $window.moment({ hour: '00' }).subtract(3, 'day').unix(),
-        dataEnd: $window.moment({ hour: '00' }).unix(),
+        dataEnd: $window.moment().unix(),
         type: 'last_3_days'
       }, {
         ID: 2,
         Name: LC('MAIN.DATE_PICKER.LAST_7_DAYS'),
         dataStart: $window.moment({ hour: '00' }).subtract(7, 'day').unix(),
-        dataEnd: $window.moment({ hour: '00' }).unix(),
+        dataEnd: $window.moment().unix(),
         type: 'last_7_days'
       }, {
         ID: 3,
         Name: LC('MAIN.DATE_PICKER.LAST_14_DAYS'),
         dataStart: $window.moment({ hour: '00' }).subtract(14, 'day').unix(),
-        dataEnd: $window.moment({ hour: '00' }).unix(),
+        dataEnd: $window.moment().unix(),
         type: 'last_14_days'
       }, {
         ID: 4,
         Name: LC('MAIN.DATE_PICKER.LAST_21_DAYS'),
         dataStart: $window.moment({ hour: '00' }).subtract(21, 'day').unix(),
-        dataEnd: $window.moment({ hour: '00' }).unix(),
+        dataEnd: $window.moment().unix(),
         type: 'last_21_days'
       }, {
         ID: 5,
@@ -111,7 +111,7 @@
         ID: 6,
         Name: LC('MAIN.DATE_PICKER.LAST_MONTH'),
         dataStart: $window.moment().subtract(1, 'month').startOf('month').unix(),
-        dataEnd: $window.moment().subtract(1, 'month').endOf('month').unix(),
+        dataEnd: $window.moment().unix(),
         type: 'last_month'
       }, {
         ID: 7,

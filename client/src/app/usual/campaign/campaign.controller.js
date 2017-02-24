@@ -26,7 +26,7 @@
       $state.go('home.main');
     }
     $localStorage.campaign = {
-      "id":  Campaign.id,
+      "id": Campaign.id,
       "name": Campaign.campaign,
       "line_item": Campaign.line_item
     };
@@ -50,22 +50,28 @@
     }
 
     //region DATE PIKER
+    /** DATE PIKER - START **/
     if ($localStorage.SelectedTime == null) {
       $localStorage.SelectedTime = 0;
       $localStorage.dataStart = $window.moment({hour: '00'}).subtract(1, 'day').unix();
       $localStorage.dataEnd = $window.moment({hour: '00'}).subtract(1, 'day').endOf('day').unix();
+      $localStorage.type = 'yesterday';
       vm.dataStart = $window.moment({hour: '00'}).subtract(1, 'day').unix();
       vm.dataEnd = $window.moment({hour: '00'}).subtract(1, 'day').endOf('day').unix();
+      vm.type = 'yesterday';
     } else {
-      if ($localStorage.dataStart == null || $localStorage.dataEnd == null) {
+      if ($localStorage.dataStart == undefined || !$localStorage.dataEnd || !$localStorage.type) {
         $localStorage.SelectedTime = 0;
         $localStorage.dataStart = $window.moment({hour: '00'}).subtract(1, 'day').unix();
         $localStorage.dataEnd = $window.moment({hour: '00'}).subtract(1, 'day').endOf('day').unix();
+        $localStorage.type = 'yesterday';
         vm.dataStart = $window.moment({hour: '00'}).subtract(1, 'day').unix();
         vm.dataEnd = $window.moment({hour: '00'}).subtract(1, 'day').endOf('day').unix();
+        vm.type = 'yesterday';
       } else {
         vm.dataStart = $localStorage.dataStart;
         vm.dataEnd = $localStorage.dataEnd;
+        vm.type = $localStorage.type;
       }
     }
 
@@ -74,47 +80,56 @@
         ID: 0,
         Name: LC('MAIN.DATE_PICKER.YESTERDAY'),
         dataStart: $window.moment({hour: '00'}).subtract(1, 'day').unix(),
-        dataEnd: $window.moment({hour: '00'}).subtract(1, 'day').endOf('day').unix()
+        dataEnd: $window.moment().unix(),
+        type: 'yesterday'
       }, {
         ID: 1,
         Name: LC('MAIN.DATE_PICKER.LAST_3_DAYS'),
         dataStart: $window.moment({hour: '00'}).subtract(3, 'day').unix(),
-        dataEnd: $window.moment({hour: '00'}).unix()
+        dataEnd: $window.moment().unix(),
+        type: 'last_3_days'
       }, {
         ID: 2,
         Name: LC('MAIN.DATE_PICKER.LAST_7_DAYS'),
         dataStart: $window.moment({hour: '00'}).subtract(7, 'day').unix(),
-        dataEnd: $window.moment({hour: '00'}).unix()
+        dataEnd: $window.moment().unix(),
+        type: 'last_7_days'
       }, {
         ID: 3,
         Name: LC('MAIN.DATE_PICKER.LAST_14_DAYS'),
         dataStart: $window.moment({hour: '00'}).subtract(14, 'day').unix(),
-        dataEnd: $window.moment({hour: '00'}).unix()
+        dataEnd: $window.moment().unix(),
+        type: 'last_14_days'
       }, {
         ID: 4,
         Name: LC('MAIN.DATE_PICKER.LAST_21_DAYS'),
         dataStart: $window.moment({hour: '00'}).subtract(21, 'day').unix(),
-        dataEnd: $window.moment({hour: '00'}).unix()
+        dataEnd: $window.moment().unix(),
+        type: 'last_21_days'
       }, {
         ID: 5,
         Name: LC('MAIN.DATE_PICKER.CURRENT_MONTH'),
         dataStart: $window.moment().startOf('month').unix(),
-        dataEnd: $window.moment().unix()
+        dataEnd: $window.moment().unix(),
+        type: 'cur_month'
       }, {
         ID: 6,
         Name: LC('MAIN.DATE_PICKER.LAST_MONTH'),
         dataStart: $window.moment().subtract(1, 'month').startOf('month').unix(),
-        dataEnd: $window.moment().subtract(1, 'month').endOf('month').unix()
+        dataEnd: $window.moment().unix(),
+        type: 'last_month'
       }, {
         ID: 7,
         Name: LC('MAIN.DATE_PICKER.LAST_90_DAYS'),
         dataStart: $window.moment({hour: '00'}).subtract(90, 'day').unix(),
-        dataEnd: $window.moment().unix()
+        dataEnd: $window.moment().unix(),
+        type: 'last_90_days'
       }, {
         ID: 8,
         Name: LC('MAIN.DATE_PICKER.ALL_TIME'),
         dataStart: 0,
-        dataEnd: $window.moment().unix()
+        dataEnd: $window.moment().unix(),
+        type: 'all'
       }];
 
     vm.datePiker = {
@@ -126,6 +141,10 @@
         $localStorage.SelectedTime = e.value;
         $localStorage.dataStart = products[e.value].dataStart;
         $localStorage.dataEnd = products[e.value].dataEnd;
+        $localStorage.type = products[e.value].type;
+
+        //$('#gridContainer1').dxDataGrid('instance').refresh();
+        //$('#gridContainer2').dxDataGrid('instance').refresh();
         $state.reload();
       }
     };
@@ -172,37 +191,38 @@
                   if (this.value == maxMajor) {
                     switch (item.name) {
                       case 'impression':
-                        return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('MAIN.CHECKBOX.IMPRESSIONS') +'</span><br>' + this.value.toString().split(/(?=(?:\d{3})+(?!\d))/).join();
+                        return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('MAIN.CHECKBOX.IMPRESSIONS') + '</span><br>' + this.value.toString().split(/(?=(?:\d{3})+(?!\d))/).join();
                       case 'cpa':
-                        return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' +'$'+ LC('CAMP.CHECKBOX.CPA') + '</span><br>' + '$'+this.value;
+                        return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + '$' + LC('CAMP.CHECKBOX.CPA') + '</span><br>' + '$' + this.value;
                       case 'cpc':
-                        return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + '$'+LC('CAMP.CHECKBOX.CPC') + '</span><br>' + '$'+this.value;
+                        return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + '$' + LC('CAMP.CHECKBOX.CPC') + '</span><br>' + '$' + this.value;
                       case 'clicks':
                         return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('CAMP.CHECKBOX.CLICKS') + '</span><br>' + this.value;
                       case 'cost':
-                        return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('CAMP.CHECKBOX.COST') + '</span><br>' + '$'+this.value;
+                        return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('CAMP.CHECKBOX.COST') + '</span><br>' + '$' + this.value;
                       case 'conversions':
                         return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('CAMP.CHECKBOX.CONVERSIONS') + '</span><br>' + this.value;
                       case 'ctr':
-                        return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('CAMP.CHECKBOX.CTR') +'%'+ '</span><br>' + this.value+'%';
+                        return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + LC('CAMP.CHECKBOX.CTR') + '%' + '</span><br>' + this.value + '%';
                       default:
                         return '<span style="color:black; font-weight: bolder; text-decoration:underline;">' + item.name + '</span><br>' + this.value;
                     }
-                  }else {
+                  } else {
                     switch (item.name) {
                       case 'impression':
                         return this.value.toString().split(/(?=(?:\d{3})+(?!\d))/).join();
                       case 'cpa':
-                        return '$'+this.value;
+                        return '$' + this.value;
                       case 'cpc':
-                        return '$'+this.value;
+                        return '$' + this.value;
                       case 'cost':
-                        return '$'+this.value;
+                        return '$' + this.value;
                       case 'spend':
                         return '$' + this.value;
                       case 'ctr':
-                        return  this.value+'%';
-                    }}
+                        return this.value + '%';
+                    }
+                  }
 
                   return this.value;
                 }
@@ -246,11 +266,11 @@
             visible: true,
             customizeText: function (arg) {
               //console.log(arg);
-              if (arg.point.series.name == 'Cost' || arg.point.series.name == 'CPC'|| arg.point.series.name == 'CPA') {
+              if (arg.point.series.name == 'Cost' || arg.point.series.name == 'CPC' || arg.point.series.name == 'CPA') {
                 return '$' + this.value;
               }
               if (arg.point.series.name == 'Impressions') {
-                return  this.value.toString().split(/(?=(?:\d{3})+(?!\d))/).join();
+                return this.value.toString().split(/(?=(?:\d{3})+(?!\d))/).join();
               }
               if ((arg.point.series.name == 'CTR') || (arg.point.series.name == 'CVR')) {
                 return this.value + '%';
@@ -258,9 +278,10 @@
             },
           }
         },
-        verticalLine:{
+        verticalLine: {
           label: {
-            visible: true}
+            visible: true
+          }
         }
 
       },
@@ -719,7 +740,7 @@
     };
 
     function headerFilterColumn(source, dataField) {
-      return source.dataSource.postProcess = function(data) {
+      return source.dataSource.postProcess = function (data) {
         var list = $window._.uniqBy(data, dataField);
         return list.map(function (item) {
           return {
@@ -791,7 +812,7 @@
         text: 'OK',
         disabled: false,
         onClick: function () {
-          oneSuspend=true;
+          oneSuspend = true;
           var suspendPlacement;
           var radioGroupMain = $('#radioGroupMain').dxRadioGroup('instance');
           var radioGroupSend = $('#radioGroupSend').dxRadioGroup('instance');
@@ -823,13 +844,13 @@
             suspendPlacement = $window.moment().add(1, 'day').unix();
           }
 
-          for (var i =0; i<tempSespendRow.placement.length; i++) {
-            var w = $window.$('div.state-white'+ tempSespendRow.placement[i]);
-            var b = $window.$('div.state-black'+ tempSespendRow.placement[i]);
-            var s = $window.$('div.state-suspended'+ tempSespendRow.placement[i]);
-            w.dxButton('instance').option('disabled',true);
-            b.dxButton('instance').option('disabled',true);
-            s.dxButton('instance').option('disabled',true);
+          for (var i = 0; i < tempSespendRow.placement.length; i++) {
+            var w = $window.$('div.state-white' + tempSespendRow.placement[i]);
+            var b = $window.$('div.state-black' + tempSespendRow.placement[i]);
+            var s = $window.$('div.state-suspended' + tempSespendRow.placement[i]);
+            w.dxButton('instance').option('disabled', true);
+            b.dxButton('instance').option('disabled', true);
+            s.dxButton('instance').option('disabled', true);
             w.removeClass('active');
             b.removeClass('active');
             s.removeClass('active');
@@ -837,13 +858,13 @@
 
           CampMain.editCampaignDomains(vm.campId, tempSespendRow.placement, 1, suspendPlacement)
             .then(function (res) {
-              for (var i =0; i<tempSespendRow.placement.length; i++) {
-                var b = $window.$('div.state-black'+ tempSespendRow.placement[i]);
-                var w =$window.$('div.state-white'+ tempSespendRow.placement[i]);
-                var s = $window.$('div.state-suspended'+ tempSespendRow.placement[i]);
-                w.dxButton('instance').option('disabled',false);
-                b.dxButton('instance').option('disabled',false);
-                s.dxButton('instance').option('disabled',false);
+              for (var i = 0; i < tempSespendRow.placement.length; i++) {
+                var b = $window.$('div.state-black' + tempSespendRow.placement[i]);
+                var w = $window.$('div.state-white' + tempSespendRow.placement[i]);
+                var s = $window.$('div.state-suspended' + tempSespendRow.placement[i]);
+                w.dxButton('instance').option('disabled', false);
+                b.dxButton('instance').option('disabled', false);
+                s.dxButton('instance').option('disabled', false);
                 if (res == 404) {
                   $window.DevExpress.ui.notify("Not found", "warning", 4000);
                   $window.$('#gridContainer2').dxDataGrid('instance').refresh();
@@ -858,7 +879,7 @@
                   s.addClass('active');
                 }
               }
-              oneSuspend=false;
+              oneSuspend = false;
             });
 
           vm.confirmPopupVisible = false;
@@ -944,7 +965,7 @@
           alignment: 'center',
           dataType: 'number',
           headerFilter: {
-            dataSource: function(source) {
+            dataSource: function (source) {
               return headerFilterColumn(source, 'placement');
             }
           }
@@ -967,7 +988,7 @@
           alignment: 'center',
           dataType: 'string',
           headerFilter: {
-            dataSource: function(source) {
+            dataSource: function (source) {
               return headerFilterColumn(source, 'NetworkPublisher');
             }
           }
@@ -988,7 +1009,7 @@
           dataField: 'imp',
           dataType: 'number',
           sortOrder: 'desc',
-          format:'fixedPoint',
+          format: 'fixedPoint',
           alignment: 'center',
           headerFilter: {
             dataSource: function (source) {
@@ -1000,8 +1021,8 @@
           caption: LC('CAMP.CAMPAIGN.COLUMNS.CPA') + ' ,$',
           dataField: 'cpa',
           dataType: 'number',
-          format:'currency',
-          precision:4,
+          format: 'currency',
+          precision: 4,
           alignment: 'center',
           headerFilter: {
             dataSource: function (source) {
@@ -1013,8 +1034,8 @@
           caption: LC('CAMP.CAMPAIGN.COLUMNS.COST') + ' ,$',
           dataField: 'cost',
           alignment: 'center',
-          format:'currency',
-          precision:2,
+          format: 'currency',
+          precision: 2,
           dataType: 'number',
           headerFilter: {
             dataSource: function (source) {
@@ -1038,8 +1059,8 @@
           caption: LC('CAMP.CAMPAIGN.COLUMNS.CPC') + ' ,$',
           dataField: 'cpc',
           alignment: 'center',
-          format:'currency',
-          precision:4,
+          format: 'currency',
+          precision: 4,
           dataType: 'number',
           headerFilter: {
             dataSource: function (source) {
@@ -1052,8 +1073,8 @@
           caption: LC('CAMP.CAMPAIGN.COLUMNS.CPM') + ' ,$',
           dataField: 'cpm',
           alignment: 'center',
-          format:'currency',
-          precision:4,
+          format: 'currency',
+          precision: 4,
           dataType: 'number',
           headerFilter: {
             dataSource: function (source) {
@@ -1065,8 +1086,8 @@
           caption: LC('CAMP.CAMPAIGN.COLUMNS.CVR') + ' ,%',
           dataField: 'cvr',
           alignment: 'center',
-          format:'percent',
-          precision:2,
+          format: 'percent',
+          precision: 2,
           dataType: 'number',
           headerFilter: {
             dataSource: function (source) {
@@ -1078,8 +1099,8 @@
           caption: LC('CAMP.CAMPAIGN.COLUMNS.CTR') + ' ,%',
           dataField: 'ctr',
           alignment: 'center',
-          format:'percent',
-          precision:2,
+          format: 'percent',
+          precision: 2,
           dataType: 'number',
           headerFilter: {
             dataSource: function (source) {
@@ -1094,7 +1115,7 @@
           visible: false,
           width: 80,
           dataType: 'number',
-          format:'fixedPoint',
+          format: 'fixedPoint',
           headerFilter: {
             dataSource: function (source) {
               return headerFilterColumn(source, 'imps_viewed');
@@ -1108,7 +1129,7 @@
           visible: false,
           width: 100,
           dataType: 'number',
-          format:'fixedPoint',
+          format: 'fixedPoint',
           headerFilter: {
             dataSource: function (source) {
               return headerFilterColumn(source, 'view_measured_imps');
@@ -1121,8 +1142,8 @@
           alignment: 'center',
           visible: false,
           width: 120,
-          format:'percent',
-          precision:1,
+          format: 'percent',
+          precision: 1,
           dataType: 'number',
           headerFilter: {
             dataSource: function (source) {
@@ -1136,8 +1157,8 @@
           alignment: 'center',
           visible: false,
           width: 80,
-          format:'percent',
-          precision:1,
+          format: 'percent',
+          precision: 1,
           dataType: 'number',
           headerFilter: {
             dataSource: function (source) {
@@ -1170,20 +1191,20 @@
               width: 89,
               disabled: false,
               onClick: function (e) {
-                var w = $window.$('div.state-white'+ options.data.placement);
-                var b = $window.$('div.state-black'+ options.data.placement);
-                var s = $window.$('div.state-suspended'+ options.data.placement);
-                w.dxButton('instance').option('disabled',true);
-                b.dxButton('instance').option('disabled',true);
-                s.dxButton('instance').option('disabled',true);
+                var w = $window.$('div.state-white' + options.data.placement);
+                var b = $window.$('div.state-black' + options.data.placement);
+                var s = $window.$('div.state-suspended' + options.data.placement);
+                w.dxButton('instance').option('disabled', true);
+                b.dxButton('instance').option('disabled', true);
+                s.dxButton('instance').option('disabled', true);
                 w.removeClass('active');
                 b.removeClass('active');
                 s.removeClass('active');
                 CampMain.editCampaignDomains(vm.campId, [options.data.placement], 4)
                   .then(function (res) {
-                    w.dxButton('instance').option('disabled',false);
-                    b.dxButton('instance').option('disabled',false);
-                    s.dxButton('instance').option('disabled',false);
+                    w.dxButton('instance').option('disabled', false);
+                    b.dxButton('instance').option('disabled', false);
+                    s.dxButton('instance').option('disabled', false);
                     if (res == 404) {
                       $window.DevExpress.ui.notify("Not found", "warning", 4000);
                       $('#gridContainerWhite').dxDataGrid('instance').refresh();
@@ -1206,9 +1227,9 @@
             });
 
             if (options.data.state.whiteList == 4) {
-              white.addClass('state-white'+ options.data.placement).addClass('active').appendTo(container);
+              white.addClass('state-white' + options.data.placement).addClass('active').appendTo(container);
             } else {
-              white.addClass('state-white'+ options.data.placement).appendTo(container);
+              white.addClass('state-white' + options.data.placement).appendTo(container);
             }
 
             var black = $window.$("<div />").dxButton({
@@ -1217,20 +1238,20 @@
               width: 89,
               disabled: false,
               onClick: function (e) {
-                var w = $window.$('div.state-white'+ options.data.placement);
-                var b = $window.$('div.state-black'+ options.data.placement);
-                var s = $window.$('div.state-suspended'+ options.data.placement);
-                w.dxButton('instance').option('disabled',true);
-                b.dxButton('instance').option('disabled',true);
-                s.dxButton('instance').option('disabled',true);
+                var w = $window.$('div.state-white' + options.data.placement);
+                var b = $window.$('div.state-black' + options.data.placement);
+                var s = $window.$('div.state-suspended' + options.data.placement);
+                w.dxButton('instance').option('disabled', true);
+                b.dxButton('instance').option('disabled', true);
+                s.dxButton('instance').option('disabled', true);
                 w.removeClass('active');
                 b.removeClass('active');
                 s.removeClass('active');
                 CampMain.editCampaignDomains(vm.campId, [options.data.placement], 2)
                   .then(function (res) {
-                    w.dxButton('instance').option('disabled',false);
-                    b.dxButton('instance').option('disabled',false);
-                    s.dxButton('instance').option('disabled',false);
+                    w.dxButton('instance').option('disabled', false);
+                    b.dxButton('instance').option('disabled', false);
+                    s.dxButton('instance').option('disabled', false);
                     if (res == 404) {
                       $window.DevExpress.ui.notify("Not found", "warning", 4000);
                       $window.$('#gridContainer2').dxDataGrid('instance').refresh();
@@ -1253,9 +1274,9 @@
             });
 
             if (options.data.state.blackList == 2) {
-              black.addClass('state-black'+ options.data.placement).addClass('active').appendTo(container);
+              black.addClass('state-black' + options.data.placement).addClass('active').appendTo(container);
             } else {
-              black.addClass('state-black'+ options.data.placement).appendTo(container);
+              black.addClass('state-black' + options.data.placement).appendTo(container);
             }
 
 
@@ -1265,7 +1286,7 @@
               width: 95,
               disabled: false,
               onClick: function () {
-                if (oneSuspend==true) {
+                if (oneSuspend == true) {
                   $window.DevExpress.ui.notify("Wait please", "warning", 4000);
                   return 0;
                 }
@@ -1276,9 +1297,9 @@
             });
 
             if (options.data.state.suspended == 1) {
-              suspended.addClass('state-suspended'+ options.data.placement).addClass('active').appendTo(container);
+              suspended.addClass('state-suspended' + options.data.placement).addClass('active').appendTo(container);
             } else {
-              suspended.addClass('state-suspended'+ options.data.placement).appendTo(container);
+              suspended.addClass('state-suspended' + options.data.placement).appendTo(container);
             }
 
           }
@@ -1424,26 +1445,26 @@
                   }
                 } else {
                   if (selectedArr != '[]') {
-                    for (var i =0; i<selectedArr.length; i++) {
-                      var w = $window.$('div.state-white'+ selectedArr[i]);
-                      var b = $window.$('div.state-black'+ selectedArr[i]);
-                      var s = $window.$('div.state-suspended'+ selectedArr[i]);
-                      w.dxButton('instance').option('disabled',true);
-                      b.dxButton('instance').option('disabled',true);
-                      s.dxButton('instance').option('disabled',true);
+                    for (var i = 0; i < selectedArr.length; i++) {
+                      var w = $window.$('div.state-white' + selectedArr[i]);
+                      var b = $window.$('div.state-black' + selectedArr[i]);
+                      var s = $window.$('div.state-suspended' + selectedArr[i]);
+                      w.dxButton('instance').option('disabled', true);
+                      b.dxButton('instance').option('disabled', true);
+                      s.dxButton('instance').option('disabled', true);
                       w.removeClass('active');
                       b.removeClass('active');
                       s.removeClass('active');
                     }
 
                     CampaignOptimiser.editCampaignDomains(vm.campId, selectedArr, e.selectedItem.state).then(function (res) {
-                      for (var i =0; i<selectedArr.length; i++) {
-                        var b = $window.$('div.state-black'+ selectedArr[i]);
-                        var w =$window.$('div.state-white'+ selectedArr[i]);
-                        var s = $window.$('div.state-suspended'+ selectedArr[i]);
-                        w.dxButton('instance').option('disabled',false);
-                        b.dxButton('instance').option('disabled',false);
-                        s.dxButton('instance').option('disabled',false);
+                      for (var i = 0; i < selectedArr.length; i++) {
+                        var b = $window.$('div.state-black' + selectedArr[i]);
+                        var w = $window.$('div.state-white' + selectedArr[i]);
+                        var s = $window.$('div.state-suspended' + selectedArr[i]);
+                        w.dxButton('instance').option('disabled', false);
+                        b.dxButton('instance').option('disabled', false);
+                        s.dxButton('instance').option('disabled', false);
                         if (res == 404) {
                           $window.DevExpress.ui.notify("Not found", "warning", 4000);
                           $window.$('#gridContainer2').dxDataGrid('instance').refresh();

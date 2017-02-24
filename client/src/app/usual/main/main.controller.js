@@ -70,6 +70,7 @@
 
     var wrapper = angular.element($window.document.querySelector('#wrapper'))[0];
     wrapper.classList.add('hidden-menu');
+
     var products = [
       {
         ID: 0,

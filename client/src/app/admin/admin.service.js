@@ -174,6 +174,24 @@
         });
     }
 
+    function editAdvertiserDataSource(id, dataSource) {
+      return $http({
+        method: 'PUT',
+        url: '/api/v1/advertisersDataSource',
+        headers: { Authorization: 'Token ' + $cookies.get('token') },
+        data: {
+          id: id,
+          data_source: dataSource
+        }
+      })
+        .then(function (res) {
+          return res.data;
+        })
+        .catch(function (err) {
+          $window.DevExpress.ui.notify(err.data.detail, 'error', 4000);
+        });
+    }
+
     function bannerTextReturn() {
       //return  'Этот текст будет показан при проведении технических работ';
       return $http({
@@ -248,6 +266,7 @@
     }
 
     _this.selectNexusUsersStore = selectNexusUsersStore;
+    _this.editAdvertiserDataSource = editAdvertiserDataSource;
     _this.editAdvertiserList = editAdvertiserList;
     _this.advertiserListStore = advertiserListStore;
     _this.usersStore = usersStore;

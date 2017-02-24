@@ -69,7 +69,8 @@
         "ADVERTISER-LIST": {
           'NAME' : 'Имя',
           'ID' : 'Id',
-          'AD-TYPE': 'Тип рекламодателя'
+          'AD-TYPE': 'Тип рекламодателя',
+          'DATA_SOURCE': 'Источник данных'
         }
       },
       'INDEX':{

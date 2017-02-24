@@ -53,7 +53,7 @@
       vm.dataEnd = $window.moment({ hour: '00' }).subtract(1, 'day').endOf('day').unix();
       vm.type = 'yesterday';
     } else {
-      if (!$localStorage.dataStart || !$localStorage.dataEnd || !$localStorage.type) {
+      if ($localStorage.dataStart == undefined || !$localStorage.dataEnd || !$localStorage.type) {
         $localStorage.SelectedTime = 0;
         $localStorage.dataStart = $window.moment({ hour: '00' }).subtract(1, 'day').unix();
         $localStorage.dataEnd = $window.moment({ hour: '00' }).subtract(1, 'day').endOf('day').unix();

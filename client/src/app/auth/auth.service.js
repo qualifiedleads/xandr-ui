@@ -13,14 +13,14 @@
     function _advertisersList() {
       return $http({
         method: 'GET',
-        headers: { 'Authorization': 'Token ' + $cookies.get('token') },
+        headers: { Authorization: 'Token ' + $cookies.get('token') },
         url: '/api/v1/advertisers'
       })
       .then(function (res) {
         return res.data;
       })
       .catch(function (err) {
-        $window.DevExpress.ui.notify(err.statusText, "error", 4000);
+        $window.DevExpress.ui.notify(err.statusText, 'error', 4000);
       });
     }
 
@@ -28,27 +28,27 @@
       return new $window.DevExpress.data.CustomStore({
         totalCount: function () {
 
-          return _totalCount
+          return _totalCount;
 
         },
+
         load: function () {
-          return _advertisersList()
+          return _advertisersList();
         }
       });
     }
-
 
     function authorization(user) {
       return $http({
         method: 'POST',
         url: '/api/v1/login/',
-        data: {email: user.email, password: user.password}
+        data: { email: user.email, password: user.password }
       })
       .then(function (res) {
         return res;
       })
       .catch(function (err) {
-        $window.DevExpress.ui.notify(err.statusText, "error", 4000);
+        $window.DevExpress.ui.notify(err.statusText, 'error', 4000);
       });
     }
 

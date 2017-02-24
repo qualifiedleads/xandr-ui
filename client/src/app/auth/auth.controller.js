@@ -16,11 +16,11 @@
       (($cookies.get('permission') == 'userfull') || $cookies.get('permission') == 'userread')) {
       AdminService.getValueOfTech()
         .then(function (res) {
-          if (res == "on") {
+          if (res == 'on') {
             vm.bannerShow = true;
             return AdminService.bannerTextReturn().then(function (res) {
               vm.bannerText = res.text;
-            })
+            });
           }
         });
     }
@@ -44,7 +44,7 @@
     vm.selectAdvertisersStore = Auth.selectAdvertisersStore();
 
     vm.submitForm = function (user) {
-      if (user!= undefined && user.email != undefined && user.password != undefined) {
+      if (user != undefined && user.email != undefined && user.password != undefined) {
         $cookies.remove('permission');
         $cookies.remove('token');
         return Auth.authorization(user).then(function (res) {
@@ -58,6 +58,7 @@
               vm.userLogOut = true;
               vm.adminPanel = true;
             }
+
             if ((res.data.token) && ((res.data.permission == 'userfull') || (res.data.permission == 'userread'))) {
               $window.$('.reg-form-wrapper')[0].classList.add('hide');
               $window.$('.advertiser-wrapper')[0].classList.add('show');
@@ -65,11 +66,11 @@
               vm.adminPanel = false;
               AdminService.getValueOfTech()
                 .then(function (res) {
-                  if (res == "on") {
+                  if (res == 'on') {
                     vm.bannerShow = true;
                     return AdminService.bannerTextReturn().then(function (res) {
                       vm.bannerText = res.text;
-                    })
+                    });
                   }
                 });
             }
@@ -79,7 +80,7 @@
           }
         });
       } else {
-        $window.DevExpress.ui.notify(LC('AUTH.EMAIL-OR-PASSWORD-EMPTY'), "error", 4000);
+        $window.DevExpress.ui.notify(LC('AUTH.EMAIL-OR-PASSWORD-EMPTY'), 'error', 4000);
       }
     };
 
@@ -98,10 +99,11 @@
         text: LC('AUTH.GO_BUTTON'),
         onClick: function () {
           $localStorage.advertiser = vm.selectedService;
-          if (vm.selectedService.ad_type === "usualAds" || vm.selectedService.ad_type === null) {
+          if (vm.selectedService.ad_type === 'usualAds' || vm.selectedService.ad_type === null) {
             $state.go('home.main');
           }
-          if (vm.selectedService.ad_type == "videoAds") {
+
+          if (vm.selectedService.ad_type == 'videoAds') {
             $state.go('home.videomain');
           }
 

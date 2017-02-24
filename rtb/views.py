@@ -170,16 +170,12 @@ Get campaigns data for given period
       left join ui_usual_campaigns_grid_data_""" + str(request.GET.get("type")) +""" camp_info
       on campaign.id=camp_info.campaign_id
     where
-      campaign.state <> 'inactive'
-    and
       advertiser_id=""" + str(request.GET.get("advertiser_id")) +
                                        ' ' + filt +
                                         ' ' + order +" LIMIT " + str(params["take"]) + " OFFSET " + str(params["skip"]) + ';')
         allCampaignsInfo["campaigns"] = []
         allCampaignsInfo["totalCount"] = len(Campaign.objects.filter(
             advertiser_id=request.GET.get("advertiser_id")
-        ).exclude(
-            state="inactive"
         ))
         for row in queryRes:
             allCampaignsInfo["campaigns"].append({
@@ -357,9 +353,37 @@ def totals(request):
         + Example: 1466667274
 
     """
-    params = parse_get_params(request.GET)
-    data = get_days_data(params['advertiser_id'], params['from_date'], params['to_date'])
-    return JsonResponse({"totals": data['totals']})
+    try:
+        queryRes = Campaign.objects.raw("""
+select
+  SUM(camp_info.imps) id,
+  SUM(camp_info.conversions) conv,
+  SUM(camp_info.spent) spend,
+  case SUM(camp_info.imps) when 0 then 0 else SUM(camp_info.spent) / SUM(camp_info.imps) * 1000.0 end cpm,
+  case SUM(camp_info.imps) when 0 then 0 else SUM(camp_info.conversions)::float / SUM(camp_info.imps) end cvr,
+  case SUM(camp_info.imps) when 0 then 0 else SUM(camp_info.clicks)::float / SUM(camp_info.imps) end ctr,
+  case SUM(camp_info.clicks) when 0 then 0 else SUM(camp_info.spent) / SUM(camp_info.clicks) end cpc
+from
+  campaign
+  left join ui_usual_campaigns_grid_data_""" + str(request.GET.get("type")) +""" camp_info
+  on campaign.id=camp_info.campaign_id
+where
+  campaign.advertiser_id=""" + str(request.GET.get("advertiser_id")) + """
+group by campaign.advertiser_id;""")
+
+        return JsonResponse({"totals":{
+            "spend": 0 if queryRes[0].spend is None else queryRes[0].spend,
+            "conv": 0 if queryRes[0].conv is None else queryRes[0].conv,
+            "imp": 0 if queryRes[0].id is None else queryRes[0].id,
+            "cpc": 0 if queryRes[0].cpc is None else queryRes[0].cpc,
+            "cpm": 0 if queryRes[0].cpm is None else queryRes[0].cpm,
+            "cvr": 0 if queryRes[0].cvr is None else queryRes[0].cvr,
+            "ctr": 0 if queryRes[0].ctr is None else queryRes[0].ctr
+        }
+        })
+    except Exception, e:
+        print "Can not get data for " + str(request.GET.get("advertiser_id")) + " advertiser. Error: " + str(e)
+        return Response(status=status.HTTP_404_NOT_FOUND)
 
 
 @api_view()

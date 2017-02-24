@@ -24,12 +24,17 @@
       });
     }
 
-    function _graphInfo(id, from, to, by) {
+    function _graphInfo(id, from, to, by, type) {
       return $http({
         method: 'GET',
         url: '/api/v1/campaigns/' + encodeURI(id) + '/graphinfo',
         headers: { Authorization: 'Token ' + $cookies.get('token') },
-        params: { from_date: from, to_date: to, by: by }
+        params: {
+          from_date: from,
+          to_date: to,
+          by: by,
+          type: type
+        }
       })
       .then(function (res) {
         for (var index in res.data) {
@@ -50,12 +55,16 @@
       });
     }
 
-    function _cpaReport(id, from, to) {
+    function _cpaReport(id, from, to, type) {
       return $http({
         method: 'GET',
         url: '/api/v1/campaigns/' + encodeURI(id) + '/cpareport',
         headers: { Authorization: 'Token ' + $cookies.get('token') },
-        params: { from_date: from, to_date: to }
+        params: {
+          from_date: from,
+          to_date: to,
+          type: type
+        }
       })
       .then(function (res) {
         for (var index in res.data) {
@@ -75,7 +84,7 @@
       });
     }
 
-    function _campaignDomains(id, from, to, skip, take, sort, order, filter, totalSummary) {
+    function _campaignDomains(id, from, to, skip, take, sort, order, filter, totalSummary, type) {
       if (sort) {
         if (sort[0].desc === true) {
           order = 'desc';
@@ -109,7 +118,8 @@
           sort: sort,
           order: order,
           filter: filter,
-          totalSummary: totalSummary
+          totalSummary: totalSummary,
+          type: type
         }
       })
       .then(function (res) {
@@ -169,31 +179,31 @@
         });
     }
 
-    function getChartStore(campId, dataStart, dataEnd, by) {
+    function getChartStore(campId, dataStart, dataEnd, by, type) {
       return new $window.DevExpress.data.CustomStore({
         totalCount: function () {
           return 0;
         },
 
         load: function () {
-          return _graphInfo(campId, dataStart, dataEnd, by);
+          return _graphInfo(campId, dataStart, dataEnd, by, type);
         }
       });
     }
 
-    function getBoxPlotStore(campId, dataStart, dataEnd) {
+    function getBoxPlotStore(campId, dataStart, dataEnd, type) {
       return new $window.DevExpress.data.CustomStore({
         totalCount: function () {
           return 0;
         },
 
         load: function () {
-          return _cpaReport(campId, dataStart, dataEnd);
+          return _cpaReport(campId, dataStart, dataEnd, type);
         }
       });
     }
 
-    function getGridCampaignStore(campId, dataStart, dataEnd) {
+    function getGridCampaignStore(campId, dataStart, dataEnd, type) {
       return new $window.DevExpress.data.CustomStore({
         totalCount: function () {
           return _totalCountCampaign;
@@ -204,7 +214,7 @@
             loadOptions.take = 999999;
           }
 
-          return _campaignDomains(campId, dataStart, dataEnd, loadOptions.skip, loadOptions.take, loadOptions.sort, loadOptions.order, loadOptions.filter, loadOptions.totalSummary);
+          return _campaignDomains(campId, dataStart, dataEnd, loadOptions.skip, loadOptions.take, loadOptions.sort, loadOptions.order, loadOptions.filter, loadOptions.totalSummary, type);
         }
       });
     }

@@ -158,9 +158,9 @@
     };
 
     //region STORES
-    vm.chartStore = CampMain.getChartStore(vm.campId, vm.dataStart, vm.dataEnd, vm.by);
-    vm.boxPlotStore = CampMain.getBoxPlotStore(vm.campId, vm.dataStart, vm.dataEnd);
-    vm.gridStore = CampMain.getGridCampaignStore(vm.campId, vm.dataStart, vm.dataEnd);
+    vm.chartStore = CampMain.getChartStore(vm.campId, vm.dataStart, vm.dataEnd, vm.by, vm.type);
+    vm.boxPlotStore = CampMain.getBoxPlotStore(vm.campId, vm.dataStart, vm.dataEnd, vm.type);
+    vm.gridStore = CampMain.getGridCampaignStore(vm.campId, vm.dataStart, vm.dataEnd, vm.type);
     //endregion
 
     var wrapper = angular.element($window.document.querySelector("#wrapper"))[0];

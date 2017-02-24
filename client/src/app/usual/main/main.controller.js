@@ -382,12 +382,16 @@
             alignment: 'center',
             dataType: 'number',
             format: 'currency',
+            allowFiltering: true,
+            allowHeaderFiltering: false,
             precision: 4,
           },
           {
             caption: LC('MAIN.CAMPAIGN.COLUMNS.CONV'),
             dataField: 'conv',
             alignment: 'center',
+            allowFiltering: true,
+            allowHeaderFiltering: false,
             dataType: 'number'
           },
           {
@@ -396,12 +400,16 @@
             sortOrder: 'desc',
             alignment: 'center',
             format: 'fixedPoint',
+            allowFiltering: true,
+            allowHeaderFiltering: false,
             dataType: 'number'
           },
           {
             caption: LC('MAIN.CAMPAIGN.COLUMNS.CLICKS'),
             dataField: 'clicks',
             alignment: 'center',
+            allowFiltering: true,
+            allowHeaderFiltering: false,
             dataType: 'number'
           },
           {
@@ -409,6 +417,8 @@
             dataField: 'cpc',
             alignment: 'center',
             dataType: 'number',
+            allowFiltering: true,
+            allowHeaderFiltering: false,
             precision: 4,
             format: 'currency'
           },
@@ -417,6 +427,8 @@
             dataField: 'cpm',
             alignment: 'center',
             dataType: 'number',
+            allowFiltering: true,
+            allowHeaderFiltering: false,
             precision: 4,
             format: 'currency'
           },
@@ -425,6 +437,8 @@
             dataField: 'cvr',
             alignment: 'center',
             dataType: 'number',
+            allowFiltering: true,
+            allowHeaderFiltering: false,
             precision: 2,
             format: 'percent'
           },
@@ -433,6 +447,8 @@
             dataField: 'ctr',
             alignment: 'center',
             dataType: 'number',
+            allowFiltering: true,
+            allowHeaderFiltering: false,
             precision: 2,
             format: 'percent'
           },
@@ -440,6 +456,8 @@
             caption: LC('MAIN.CAMPAIGN.COLUMNS.IMPS_VIEWED'),
             dataField: 'imps_viewed',
             alignment: 'center',
+            allowFiltering: true,
+            allowHeaderFiltering: false,
             width: 90,
             dataType: 'number',
             format: 'fixedPoint',
@@ -449,6 +467,8 @@
             caption: LC('MAIN.CAMPAIGN.COLUMNS.VIEW_MEASURED_IMPS'),
             dataField: 'view_measured_imps',
             alignment: 'center',
+            allowFiltering: true,
+            allowHeaderFiltering: false,
             width: 100,
             dataType: 'number',
             format: 'fixedPoint',
@@ -458,6 +478,8 @@
             caption: LC('MAIN.CAMPAIGN.COLUMNS.VIEW_MEASUREMENT_RATE') + ' ,%',
             dataField: 'view_measurement_rate',
             alignment: 'center',
+            allowFiltering: true,
+            allowHeaderFiltering: false,
             width: 120,
             dataType: 'number',
             precision: 2,
@@ -467,6 +489,8 @@
             caption: LC('MAIN.CAMPAIGN.COLUMNS.VIEW_RATE') + ' ,%',
             dataField: 'view_rate',
             alignment: 'center',
+            allowFiltering: true,
+            allowHeaderFiltering: false,
             width: 80,
             dataType: 'number',
             precision: 2,
@@ -476,6 +500,7 @@
           {
             width: 200,
             dataField: LC('MAIN.CAMPAIGN.COLUMNS.STATS'),
+            allowFiltering: false,
             cellTemplate: function (container, options) {
               if (options.data.chart) {
                 var chartOptions = {

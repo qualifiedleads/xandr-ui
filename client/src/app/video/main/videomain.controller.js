@@ -405,6 +405,8 @@
             caption: LC('MAIN.CAMPAIGN.COLUMNS.CAMPAIGN'),
             dataField: 'campaign',
             fixed: true,
+            allowFiltering: true,
+            allowHeaderFiltering: true,
             cellTemplate: function (container, options) {
               container.addClass('a-campaign');
               $window.angular.element('<a href="#/video/campaign/' + options.data.campaign_id + '">' + options.data.campaign_name + ' (' + options.data.campaign_id + ')</a>')
@@ -424,7 +426,8 @@
             alignment: 'center',
             dataType: 'number',
             format: 'currency',
-            allowFiltering: false,
+            allowFiltering: true,
+            allowHeaderFiltering: false,
             precision: 2,
             headerFilter: {
               dataSource: function (source) {
@@ -439,7 +442,8 @@
             alignment: 'center',
             format: 'fixedPoint',
             dataType: 'number',
-            allowFiltering: false,
+            allowFiltering: true,
+            allowHeaderFiltering: false,
             headerFilter: {
               dataSource: function (source) {
                 return headerFilterColumn(source, 'sum_imps');
@@ -453,7 +457,8 @@
             dataType: 'number',
             precision: 2,
             format: 'currency',
-            allowFiltering: false,
+            allowFiltering: true,
+            allowHeaderFiltering: false,
             headerFilter: {
               dataSource: function (source) {
                 return headerFilterColumn(source, 'cpm');
@@ -466,7 +471,8 @@
             alignment: 'center',
             format: 'fixedPoint',
             dataType: 'number',
-            allowFiltering: false,
+            allowFiltering: true,
+            allowHeaderFiltering: false,
             headerFilter: {
               dataSource: function (source) {
                 return headerFilterColumn(source, 'ad_starts');
@@ -480,7 +486,8 @@
             dataType: 'number',
             format: 'percent',
             precision: 2,
-            allowFiltering: false,
+            allowFiltering: true,
+            allowHeaderFiltering: false,
             headerFilter: {
               dataSource: function (source) {
                 return headerFilterColumn(source, 'fill_rate');
@@ -494,7 +501,8 @@
             dataType: 'number',
             precision: 2,
             format: 'fixedPoint',
-            allowFiltering: false,
+            allowFiltering: true,
+            allowHeaderFiltering: false,
             headerFilter: {
               dataSource: function (source) {
                 return headerFilterColumn(source, 'profit_loss');
@@ -508,7 +516,8 @@
             dataType: 'number',
             format: 'percent',
             precision: 1,
-            allowFiltering: false,
+            allowFiltering: true,
+            allowHeaderFiltering: false,
             headerFilter: {
               dataSource: function (source) {
                 return headerFilterColumn(source, 'fill_rate_hour');
@@ -522,7 +531,8 @@
             dataType: 'number',
             precision: 2,
             format: 'currency',
-            allowFiltering: false,
+            allowFiltering: true,
+            allowHeaderFiltering: false,
             headerFilter: {
               dataSource: function (source) {
                 return headerFilterColumn(source, 'profit_loss_hour');

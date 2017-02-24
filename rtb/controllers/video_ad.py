@@ -11,18 +11,6 @@ import re
 import collections
 import datetime
 
-
-@api_view(["PUT"])
-# @check_user_advertiser_permissions(campaign_id_num=0)
-def apiSetAdType(request):
-    try:
-        Advertiser.objects.filter(id=request.data.get("id")).update(ad_type=request.data.get("ad_type"))
-    except Exception, e:
-        print "Can not update advertiser type: ", str(e)
-        return Response(status=status.HTTP_400_BAD_REQUEST)
-    return Response(status=status.HTTP_200_OK)
-
-
 @api_view(["GET"])
 # @check_user_advertiser_permissions(campaign_id_num=0)
 def apiSendVideoCampaignData(request):

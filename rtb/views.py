@@ -176,7 +176,11 @@ Get campaigns data for given period
                                        ' ' + filt +
                                         ' ' + order +" LIMIT " + str(params["take"]) + " OFFSET " + str(params["skip"]) + ';')
         allCampaignsInfo["campaigns"] = []
-        allCampaignsInfo["totalCount"] = len(Campaign.objects.filter(advertiser_id=request.GET.get("advertiser_id")))
+        allCampaignsInfo["totalCount"] = len(Campaign.objects.filter(
+            advertiser_id=request.GET.get("advertiser_id")
+        ).exclude(
+            state="inactive"
+        ))
         for row in queryRes:
             allCampaignsInfo["campaigns"].append({
                 "id": row.main_id,

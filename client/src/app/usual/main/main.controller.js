@@ -129,7 +129,7 @@
 
     /** TOTALS - START **/
     vm.totals = [];
-    vm.Main.statsTotals(vm.advertiser.id, vm.dataStart, vm.dataEnd)
+    vm.Main.statsTotals(vm.advertiser.id, vm.dataStart, vm.dataEnd, vm.type)
       .then(function (result) {
         vm.totals.imp = result.imp.toString().split(/(?=(?:\d{3})+(?!\d))/).join();
         vm.totals.spent = result.spend.toFixed(2);
@@ -263,7 +263,7 @@
         $window.$('#visualMap').dxVectorMap(vm.UI.vectorMapOptions);
       });
 
-    vm.chartStore = Main.chartStore(vm.advertiser.id, vm.dataStart, vm.dataEnd, vm.by);
+    vm.chartStore = Main.chartStore(vm.advertiser.id, vm.dataStart, vm.dataEnd, vm.by, vm.type);
     vm.multipleStore = Main.multipleStore(vm.advertiser.id, vm.dataStart, vm.dataEnd, vm.by, vm.type);
     vm.UI = {
       datePiker: {

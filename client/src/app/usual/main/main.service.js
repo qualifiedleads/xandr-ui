@@ -10,14 +10,14 @@
     var _this = this;
     var _multipleTotalCount = 0;
 
-    function chartStore(id, dataStart, dataEnd, by) {
+    function chartStore(id, dataStart, dataEnd, by, type) {
       return new $window.DevExpress.data.CustomStore({
         totalCount: function () {
           return 0;
         },
 
         load: function () {
-          return _statsChart(id, dataStart, dataEnd, by)
+          return _statsChart(id, dataStart, dataEnd, by, type)
           .then(function (result) {
             return result.statistics;
           });
@@ -25,12 +25,18 @@
       });
     }
 
-    function _statsChart(advertiserId, fromDate, to, by) {
+    function _statsChart(advertiserId, fromDate, to, by, type) {
       return $http({
         method: 'GET',
         url: '/api/v1/statistics',
         headers: { Authorization: 'Token ' + $cookies.get('token') },
-        params: { advertiser_id: advertiserId, from_date: fromDate, to_date: to, by: by }
+        params: {
+          advertiser_id: advertiserId,
+          from_date: fromDate,
+          to_date: to,
+          by: by,
+          type: type
+        }
       })
       .then(function (res) {
         for (var index in res.data.statistics) {
@@ -49,12 +55,17 @@
       });
     }
 
-    function statsTotals(advertiserId, fromDate, to) {
+    function statsTotals(advertiserId, fromDate, to, type) {
       return $http({
         method: 'GET',
         url: '/api/v1/totals',
         headers: { Authorization: 'Token ' + $cookies.get('token') },
-        params: { advertiser_id: advertiserId, from_date: fromDate, to_date: to }
+        params: {
+          advertiser_id: advertiserId,
+          from_date: fromDate,
+          to_date: to,
+          type: type
+        }
       })
       .then(function (res) {
         res.data.totals.cvr = +parseFloat(res.data.totals.cvr).toFixed(4);

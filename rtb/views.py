@@ -17,6 +17,7 @@ from utils import parse_get_params, make_sum, check_user_advertiser_permissions
 from django.contrib.auth.decorators import login_required, user_passes_test
 import countries
 from rest_framework import status
+from rtb.models.ui_data_models import UIUsualCampaignsGraph
 
 
 def to_unix_timestamp(d):
@@ -406,19 +407,14 @@ def statistics(request):
         + Format: comma separated
         + Example: impressions,cpa,cpc
     """
-    print 'Begin statistics'
-    params = parse_get_params(request.GET)
-    data = get_days_data(params['advertiser_id'], params['from_date'], params['to_date'])['days']
-    print len(data)
-    print params['stat_by']
-    if params['stat_by'] and data:
-        entries_to_remove = set(data[0]) - set(params['stat_by'])
-        entries_to_remove.remove('day')
-        print 'Fields to remove', entries_to_remove
-        for camp in data:
-            for f in entries_to_remove:
-                camp.pop(f, None)
-    return JsonResponse({'statistics': data})
+    try:
+        return JsonResponse({'statistics': UIUsualCampaignsGraph.objects.filter(
+            advertiser_id=request.GET.get("advertiser_id"),
+            type=request.GET.get("type")
+        )[0].day_chart})
+    except Exception, e:
+        print "Can not get graph data for " + str(request.GET.get("advertiser_id")) + " advertiser. Error " + str(e)
+        return Response(status=status.HTTP_404_NOT_FOUND)
 
 
 @api_view()

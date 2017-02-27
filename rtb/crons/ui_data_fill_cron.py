@@ -276,8 +276,8 @@ def fillUIGridDataCron():
                     if queryRes is not None:
                         # chart
                         # if new data is greater, then time period
-                        if len(queryRes.id) >= (info[1] + 1):
-                            prevData[0].day_chart = queryRes.id[-(info[1] + 1):]
+                        if len(queryRes.id) >= (info + 1):
+                            prevData[0].day_chart = queryRes.id[-(info + 1):]
                         else:
                             # if old data don't fill time period
                             if queryRes.id[0]["day"] == prevData[0].day_chart[len(prevData[0].day_chart) - 1]["day"]:
@@ -302,12 +302,12 @@ def fillUIGridDataCron():
                                     prevData[0].day_chart[len(prevData[0].day_chart) - 1]["spend"] / prevData[0].day_chart[len(prevData[0].day_chart) - 1][
                                         "clicks"])
                                 # cut and extend
-                                if (len(prevData[0].day_chart) + len(queryRes.id) - info[1] - 2) > 0:
-                                    prevData[0].day_chart = prevData[0].day_chart[(len(prevData[0].day_chart) + len(queryRes.id) - info[1] - 2):]
+                                if (len(prevData[0].day_chart) + len(queryRes.id) - info - 2) > 0:
+                                    prevData[0].day_chart = prevData[0].day_chart[(len(prevData[0].day_chart) + len(queryRes.id) - info - 2):]
                                 prevData[0].day_chart.extend(queryRes.id[1:])
                             else:
-                                if (len(prevData[0].day_chart) + len(queryRes.id) - info[1] - 1) > 0:
-                                    prevData[0].day_chart = prevData[0].day_chart[(len(prevData[0].day_chart) + len(queryRes.id) - info[1] - 1):]
+                                if (len(prevData[0].day_chart) + len(queryRes.id) - info - 1) > 0:
+                                    prevData[0].day_chart = prevData[0].day_chart[(len(prevData[0].day_chart) + len(queryRes.id) - info - 1):]
                                 prevData[0].day_chart.extend(queryRes.id)
                 try:
                     prevData[0].save()

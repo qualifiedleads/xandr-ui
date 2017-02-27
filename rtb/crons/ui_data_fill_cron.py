@@ -119,6 +119,7 @@ select
     order by "day"
   ) id;""")
     try:
+        queryRes[0].id[0]
         return queryRes[0]
     except:
         return None
@@ -156,19 +157,34 @@ def fillUIGridDataCron():
                 start_date=datetime.strptime("1970 01 01 00:00:00", "%Y %m %d %H:%M:%S"),
                 finish_date=datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
             )
-            allNewAdvertiserts.append(UIUsualCampaignsGraph(
-                advertiser_id=adv.id,
-                type="all",
-                evaluation_date=timezone.make_aware(
-                    datetime.now().replace(hour=0, minute=0, second=0, microsecond=0),
-                    timezone.get_default_timezone()
-                ),
-                window_start_date=timezone.make_aware(
-                    datetime.strptime("1970 01 01 00:00:00", "%Y %m %d %H:%M:%S"),
-                    timezone.get_default_timezone()
-                ),
-                day_chart=queryRes.id
-            ))
+            if queryRes is None:
+                allNewAdvertiserts.append(UIUsualCampaignsGraph(
+                    advertiser_id=adv.id,
+                    type="all",
+                    evaluation_date=timezone.make_aware(
+                        datetime.now().replace(hour=0, minute=0, second=0, microsecond=0),
+                        timezone.get_default_timezone()
+                    ),
+                    window_start_date=timezone.make_aware(
+                        datetime.strptime("1970 01 01 00:00:00", "%Y %m %d %H:%M:%S"),
+                        timezone.get_default_timezone()
+                    ),
+                    day_chart=[]
+                ))
+            else:
+                allNewAdvertiserts.append(UIUsualCampaignsGraph(
+                    advertiser_id=adv.id,
+                    type="all",
+                    evaluation_date=timezone.make_aware(
+                        datetime.now().replace(hour=0, minute=0, second=0, microsecond=0),
+                        timezone.get_default_timezone()
+                    ),
+                    window_start_date=timezone.make_aware(
+                        datetime.strptime("1970 01 01 00:00:00", "%Y %m %d %H:%M:%S"),
+                        timezone.get_default_timezone()
+                    ),
+                    day_chart=queryRes.id
+                ))
         # updating
         else:
             if (datetime.now() - prevData[0].evaluation_date) >= timedelta(hours=1):
@@ -177,27 +193,28 @@ def fillUIGridDataCron():
                     start_date=prevData[0].evaluation_date,
                     finish_date=datetime.now().replace(minute=0, second=0, microsecond=0)
                 )
-                if prevData[0].day_chart[len(prevData[0].day_chart) - 1]["day"] == queryRes.id[0]["day"]:
-                    prevData[0].day_chart[len(prevData[0].day_chart) - 1]["imp"] += queryRes.id[0]["imp"]
-                    prevData[0].day_chart[len(prevData[0].day_chart) - 1]["spend"] += queryRes.id[0]["spend"]
-                    prevData[0].day_chart[len(prevData[0].day_chart) - 1]["clicks"] += queryRes.id[0]["clicks"]
-                    prevData[0].day_chart[len(prevData[0].day_chart) - 1]["conversions"] += queryRes.id[0]["conversions"]
+                if queryRes is not None:
+                    if prevData[0].day_chart[len(prevData[0].day_chart) - 1]["day"] == queryRes.id[0]["day"]:
+                        prevData[0].day_chart[len(prevData[0].day_chart) - 1]["imp"] += queryRes.id[0]["imp"]
+                        prevData[0].day_chart[len(prevData[0].day_chart) - 1]["spend"] += queryRes.id[0]["spend"]
+                        prevData[0].day_chart[len(prevData[0].day_chart) - 1]["clicks"] += queryRes.id[0]["clicks"]
+                        prevData[0].day_chart[len(prevData[0].day_chart) - 1]["conversions"] += queryRes.id[0]["conversions"]
 
-                    if prevData[0].day_chart[len(prevData[0].day_chart) - 1]["imp"] == 0:
-                        prevData[0].day_chart[len(prevData[0].day_chart) - 1]["cvr"] = 0
-                        prevData[0].day_chart[len(prevData[0].day_chart) - 1]["ctr"] = 0
+                        if prevData[0].day_chart[len(prevData[0].day_chart) - 1]["imp"] == 0:
+                            prevData[0].day_chart[len(prevData[0].day_chart) - 1]["cvr"] = 0
+                            prevData[0].day_chart[len(prevData[0].day_chart) - 1]["ctr"] = 0
+                        else:
+                            prevData[0].day_chart[len(prevData[0].day_chart) - 1]["cvr"] = float(
+                                prevData[0].day_chart[len(prevData[0].day_chart) - 1]["conversions"]) / prevData[0].day_chart[len(prevData[0].day_chart) - 1][
+                                                                               "imp"]
+                            prevData[0].day_chart[len(prevData[0].day_chart) - 1]["ctr"] = float(
+                                prevData[0].day_chart[len(prevData[0].day_chart) - 1]["clicks"]) / prevData[0].day_chart[len(prevData[0].day_chart) - 1]["imp"]
+                        prevData[0].day_chart[len(prevData[0].day_chart) - 1]["cpc"] = 0 if (
+                        prevData[0].day_chart[len(prevData[0].day_chart) - 1]["clicks"] == 0) else (
+                        prevData[0].day_chart[len(prevData[0].day_chart) - 1]["spend"] / prevData[0].day_chart[len(prevData[0].day_chart) - 1]["clicks"])
+                        prevData[0].day_chart.extend(queryRes.id[1:])
                     else:
-                        prevData[0].day_chart[len(prevData[0].day_chart) - 1]["cvr"] = float(
-                            prevData[0].day_chart[len(prevData[0].day_chart) - 1]["conversions"]) / prevData[0].day_chart[len(prevData[0].day_chart) - 1][
-                                                                           "imp"]
-                        prevData[0].day_chart[len(prevData[0].day_chart) - 1]["ctr"] = float(
-                            prevData[0].day_chart[len(prevData[0].day_chart) - 1]["clicks"]) / prevData[0].day_chart[len(prevData[0].day_chart) - 1]["imp"]
-                    prevData[0].day_chart[len(prevData[0].day_chart) - 1]["cpc"] = 0 if (
-                    prevData[0].day_chart[len(prevData[0].day_chart) - 1]["clicks"] == 0) else (
-                    prevData[0].day_chart[len(prevData[0].day_chart) - 1]["spend"] / prevData[0].day_chart[len(prevData[0].day_chart) - 1]["clicks"])
-                    prevData[0].day_chart.extend(queryRes.id[1:])
-                else:
-                    prevData[0].day_chart.extend(queryRes.id)
+                        prevData[0].day_chart.extend(queryRes.id)
             try:
                 prevData[0].save()
             except Exception, e:
@@ -220,19 +237,34 @@ def fillUIGridDataCron():
                                                                                   microsecond=0),
                     finish_date=datetime.now().replace(hour=0, minute=0, second=0, microsecond=0),
                 )
-                allNewAdvertiserts.append(UIUsualCampaignsGraph(
-                    advertiser_id=adv.id,
-                    type=type,
-                    evaluation_date=timezone.make_aware(
-                        datetime.now().replace(hour=0, minute=0, second=0, microsecond=0),
-                        timezone.get_default_timezone()
-                    ),
-                    window_start_date=timezone.make_aware(
-                        (datetime.now() - timedelta(days=info)).replace(hour=0, minute=0, second=0, microsecond=0),
-                        timezone.get_default_timezone()
-                    ),
-                    day_chart=queryRes.id
-                ))
+                if queryRes is None:
+                    allNewAdvertiserts.append(UIUsualCampaignsGraph(
+                        advertiser_id=adv.id,
+                        type=type,
+                        evaluation_date=timezone.make_aware(
+                            datetime.now().replace(hour=0, minute=0, second=0, microsecond=0),
+                            timezone.get_default_timezone()
+                        ),
+                        window_start_date=timezone.make_aware(
+                            (datetime.now() - timedelta(days=info)).replace(hour=0, minute=0, second=0, microsecond=0),
+                            timezone.get_default_timezone()
+                        ),
+                        day_chart=[]
+                    ))
+                else:
+                    allNewAdvertiserts.append(UIUsualCampaignsGraph(
+                        advertiser_id=adv.id,
+                        type=type,
+                        evaluation_date=timezone.make_aware(
+                            datetime.now().replace(hour=0, minute=0, second=0, microsecond=0),
+                            timezone.get_default_timezone()
+                        ),
+                        window_start_date=timezone.make_aware(
+                            (datetime.now() - timedelta(days=info)).replace(hour=0, minute=0, second=0, microsecond=0),
+                            timezone.get_default_timezone()
+                        ),
+                        day_chart=queryRes.id
+                    ))
             # updating
             else:
                 if (datetime.now() - prevData[0].evaluation_date) >= timedelta(hours=1):
@@ -241,41 +273,42 @@ def fillUIGridDataCron():
                         start_date=prevData[0].evaluation_date,
                         finish_date=datetime.now().replace(minute=0, second=0, microsecond=0)
                     )
-                    # chart
-                    # if new data is greater, then time period
-                    if len(queryRes.id) >= (info[1] + 1):
-                        prevData[0].day_chart = queryRes.id[-(info[1] + 1):]
-                    else:
-                        # if old data don't fill time period
-                        if queryRes.id[0]["day"] == prevData[0].day_chart[len(prevData[0].day_chart) - 1]["day"]:
-                            prevData[0].day_chart[len(prevData[0].day_chart) - 1]["imp"] += queryRes.id[0]["imp"]
-                            prevData[0].day_chart[len(prevData[0].day_chart) - 1]["spend"] += queryRes.id[0]["spend"]
-                            prevData[0].day_chart[len(prevData[0].day_chart) - 1]["clicks"] += queryRes.id[0]["clicks"]
-                            prevData[0].day_chart[len(prevData[0].day_chart) - 1]["conversions"] += queryRes.id[0]["conversions"]
-
-                            if prevData[0].day_chart[len(prevData[0].day_chart) - 1]["imp"] == 0:
-                                prevData[0].day_chart[len(prevData[0].day_chart) - 1]["cvr"] = 0
-                                prevData[0].day_chart[len(prevData[0].day_chart) - 1]["ctr"] = 0
-                            else:
-                                prevData[0].day_chart[len(prevData[0].day_chart) - 1]["cvr"] = float(
-                                    prevData[0].day_chart[len(prevData[0].day_chart) - 1]["conversions"]) / \
-                                                                               prevData[0].day_chart[len(prevData[0].day_chart) - 1]["imp"]
-                                prevData[0].day_chart[len(prevData[0].day_chart) - 1]["ctr"] = float(
-                                    prevData[0].day_chart[len(prevData[0].day_chart) - 1]["clicks"]) / \
-                                                                               prevData[0].day_chart[len(prevData[0].day_chart) - 1]["imp"]
-
-                            prevData[0].day_chart[len(prevData[0].day_chart) - 1]["cpc"] = 0 if (
-                            prevData[0].day_chart[len(prevData[0].day_chart) - 1]["clicks"] == 0) else (
-                                prevData[0].day_chart[len(prevData[0].day_chart) - 1]["spend"] / prevData[0].day_chart[len(prevData[0].day_chart) - 1][
-                                    "clicks"])
-                            # cut and extend
-                            if (len(prevData[0].day_chart) + len(queryRes.id) - info[1] - 2) > 0:
-                                prevData[0].day_chart = prevData[0].day_chart[(len(prevData[0].day_chart) + len(queryRes.id) - info[1] - 2):]
-                            prevData[0].day_chart.extend(queryRes.id[1:])
+                    if queryRes is not None:
+                        # chart
+                        # if new data is greater, then time period
+                        if len(queryRes.id) >= (info[1] + 1):
+                            prevData[0].day_chart = queryRes.id[-(info[1] + 1):]
                         else:
-                            if (len(prevData[0].day_chart) + len(queryRes.id) - info[1] - 1) > 0:
-                                prevData[0].day_chart = prevData[0].day_chart[(len(prevData[0].day_chart) + len(queryRes.id) - info[1] - 1):]
-                            prevData[0].day_chart.extend(queryRes.id)
+                            # if old data don't fill time period
+                            if queryRes.id[0]["day"] == prevData[0].day_chart[len(prevData[0].day_chart) - 1]["day"]:
+                                prevData[0].day_chart[len(prevData[0].day_chart) - 1]["imp"] += queryRes.id[0]["imp"]
+                                prevData[0].day_chart[len(prevData[0].day_chart) - 1]["spend"] += queryRes.id[0]["spend"]
+                                prevData[0].day_chart[len(prevData[0].day_chart) - 1]["clicks"] += queryRes.id[0]["clicks"]
+                                prevData[0].day_chart[len(prevData[0].day_chart) - 1]["conversions"] += queryRes.id[0]["conversions"]
+
+                                if prevData[0].day_chart[len(prevData[0].day_chart) - 1]["imp"] == 0:
+                                    prevData[0].day_chart[len(prevData[0].day_chart) - 1]["cvr"] = 0
+                                    prevData[0].day_chart[len(prevData[0].day_chart) - 1]["ctr"] = 0
+                                else:
+                                    prevData[0].day_chart[len(prevData[0].day_chart) - 1]["cvr"] = float(
+                                        prevData[0].day_chart[len(prevData[0].day_chart) - 1]["conversions"]) / \
+                                                                                   prevData[0].day_chart[len(prevData[0].day_chart) - 1]["imp"]
+                                    prevData[0].day_chart[len(prevData[0].day_chart) - 1]["ctr"] = float(
+                                        prevData[0].day_chart[len(prevData[0].day_chart) - 1]["clicks"]) / \
+                                                                                   prevData[0].day_chart[len(prevData[0].day_chart) - 1]["imp"]
+
+                                prevData[0].day_chart[len(prevData[0].day_chart) - 1]["cpc"] = 0 if (
+                                prevData[0].day_chart[len(prevData[0].day_chart) - 1]["clicks"] == 0) else (
+                                    prevData[0].day_chart[len(prevData[0].day_chart) - 1]["spend"] / prevData[0].day_chart[len(prevData[0].day_chart) - 1][
+                                        "clicks"])
+                                # cut and extend
+                                if (len(prevData[0].day_chart) + len(queryRes.id) - info[1] - 2) > 0:
+                                    prevData[0].day_chart = prevData[0].day_chart[(len(prevData[0].day_chart) + len(queryRes.id) - info[1] - 2):]
+                                prevData[0].day_chart.extend(queryRes.id[1:])
+                            else:
+                                if (len(prevData[0].day_chart) + len(queryRes.id) - info[1] - 1) > 0:
+                                    prevData[0].day_chart = prevData[0].day_chart[(len(prevData[0].day_chart) + len(queryRes.id) - info[1] - 1):]
+                                prevData[0].day_chart.extend(queryRes.id)
                 try:
                     prevData[0].save()
                 except Exception, e:
@@ -298,19 +331,34 @@ def fillUIGridDataCron():
                                                                                        second=0, microsecond=0),
                 finish_date=datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
             )
-            allNewAdvertiserts.append(UIUsualCampaignsGraph(
-                advertiser_id=adv.id,
-                type="last_month",
-                evaluation_date=timezone.make_aware(
-                    datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-                ),
-                window_start_date=timezone.make_aware(
-                    (datetime.now().replace(day=1) - timedelta(days=1)).replace(day=1, hour=0, minute=0,
-                                                                                second=0, microsecond=0),
-                    timezone.get_default_timezone()
-                ),
-                day_chart=queryRes.id
-            ))
+            if queryRes is None:
+                allNewAdvertiserts.append(UIUsualCampaignsGraph(
+                    advertiser_id=adv.id,
+                    type="last_month",
+                    evaluation_date=timezone.make_aware(
+                        datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+                    ),
+                    window_start_date=timezone.make_aware(
+                        (datetime.now().replace(day=1) - timedelta(days=1)).replace(day=1, hour=0, minute=0,
+                                                                                    second=0, microsecond=0),
+                        timezone.get_default_timezone()
+                    ),
+                    day_chart=[]
+                ))
+            else:
+                allNewAdvertiserts.append(UIUsualCampaignsGraph(
+                    advertiser_id=adv.id,
+                    type="last_month",
+                    evaluation_date=timezone.make_aware(
+                        datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+                    ),
+                    window_start_date=timezone.make_aware(
+                        (datetime.now().replace(day=1) - timedelta(days=1)).replace(day=1, hour=0, minute=0,
+                                                                                    second=0, microsecond=0),
+                        timezone.get_default_timezone()
+                    ),
+                    day_chart=queryRes.id
+                ))
         # updating
         else:
             if (datetime.now().month - prevData[0].window_start_date.month) >= 2:
@@ -320,12 +368,12 @@ def fillUIGridDataCron():
                     finish_date=datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0),
                     camp_id=prevData[0].campaign_id
                 )
-
-                prevData[0].day_chart = queryRes.id
-                try:
-                    prevData[0].save()
-                except Exception, e:
-                    print "Can not update " + str(prevData[0].advertiser_id) + " advertiser last month data. Error: " + str(e)
+                if queryRes is not None:
+                    prevData[0].day_chart = queryRes.id
+                    try:
+                        prevData[0].save()
+                    except Exception, e:
+                        print "Can not update " + str(prevData[0].advertiser_id) + " advertiser last month data. Error: " + str(e)
         LastModified.objects.filter(type='hourlyTask') \
             .update(date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
         #
@@ -342,19 +390,34 @@ def fillUIGridDataCron():
                 start_date=datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0),
                 finish_date=datetime.now().replace(hour=0, minute=0, second=0, microsecond=0),
             )
-            allNewAdvertiserts.append(UIUsualCampaignsGraph(
-                advertiser_id=adv.id,
-                type="cur_month",
-                evaluation_date=timezone.make_aware(
-                    datetime.now().replace(hour=0, minute=0, second=0, microsecond=0),
-                    timezone.get_default_timezone()
-                ),
-                window_start_date=timezone.make_aware(
-                    datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0),
-                    timezone.get_default_timezone()
-                ),
-                day_chart=queryRes.id
-            ))
+            if queryRes is None:
+                allNewAdvertiserts.append(UIUsualCampaignsGraph(
+                    advertiser_id=adv.id,
+                    type="cur_month",
+                    evaluation_date=timezone.make_aware(
+                        datetime.now().replace(hour=0, minute=0, second=0, microsecond=0),
+                        timezone.get_default_timezone()
+                    ),
+                    window_start_date=timezone.make_aware(
+                        datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0),
+                        timezone.get_default_timezone()
+                    ),
+                    day_chart=[]
+                ))
+            else:
+                allNewAdvertiserts.append(UIUsualCampaignsGraph(
+                    advertiser_id=adv.id,
+                    type="cur_month",
+                    evaluation_date=timezone.make_aware(
+                        datetime.now().replace(hour=0, minute=0, second=0, microsecond=0),
+                        timezone.get_default_timezone()
+                    ),
+                    window_start_date=timezone.make_aware(
+                        datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0),
+                        timezone.get_default_timezone()
+                    ),
+                    day_chart=queryRes.id
+                ))
         # updating
         else:
             # if next month - change, if cur - cummulate
@@ -365,34 +428,35 @@ def fillUIGridDataCron():
                         start_date=prevData[0].evaluation_date,
                         finish_date=datetime.now().replace(minute=0, second=0, microsecond=0)
                     )
-                    prevData[0].evaluation_date = datetime.now().replace(minute=0, second=0, microsecond=0)
+                    if queryRes is not None:
+                        prevData[0].evaluation_date = datetime.now().replace(minute=0, second=0, microsecond=0)
 
-                    # chart
-                    # if old data don't fill time period
-                    if queryRes.id[0]["day"] == prevData[0].day_chart[len(prevData[0].day_chart) - 1]:
-                        prevData[0].day_chart[len(prevData[0].day_chart) - 1]["imp"] += queryRes.id[0]["imp"]
-                        prevData[0].day_chart[len(prevData[0].day_chart) - 1]["spend"] += queryRes.id[0]["spend"]
-                        prevData[0].day_chart[len(prevData[0].day_chart) - 1]["clicks"] += queryRes.id[0]["clicks"]
-                        prevData[0].day_chart[len(prevData[0].day_chart) - 1]["conversions"] += queryRes.id[0]["conversions"]
+                        # chart
+                        # if old data don't fill time period
+                        if queryRes.id[0]["day"] == prevData[0].day_chart[len(prevData[0].day_chart) - 1]:
+                            prevData[0].day_chart[len(prevData[0].day_chart) - 1]["imp"] += queryRes.id[0]["imp"]
+                            prevData[0].day_chart[len(prevData[0].day_chart) - 1]["spend"] += queryRes.id[0]["spend"]
+                            prevData[0].day_chart[len(prevData[0].day_chart) - 1]["clicks"] += queryRes.id[0]["clicks"]
+                            prevData[0].day_chart[len(prevData[0].day_chart) - 1]["conversions"] += queryRes.id[0]["conversions"]
 
-                        if prevData[0].day_chart[len(prevData[0].day_chart) - 1]["imp"] == 0:
-                            prevData[0].day_chart[len(prevData[0].day_chart) - 1]["cvr"] = 0
-                            prevData[0].day_chart[len(prevData[0].day_chart) - 1]["ctr"] = 0
+                            if prevData[0].day_chart[len(prevData[0].day_chart) - 1]["imp"] == 0:
+                                prevData[0].day_chart[len(prevData[0].day_chart) - 1]["cvr"] = 0
+                                prevData[0].day_chart[len(prevData[0].day_chart) - 1]["ctr"] = 0
+                            else:
+                                prevData[0].day_chart[len(prevData[0].day_chart) - 1]["cvr"] = float(
+                                    prevData[0].day_chart[len(prevData[0].day_chart) - 1]["conversions"]) / \
+                                                                               prevData[0].day_chart[len(prevData[0].day_chart) - 1]["imp"]
+                                prevData[0].day_chart[len(prevData[0].day_chart) - 1]["ctr"] = float(
+                                    prevData[0].day_chart[len(prevData[0].day_chart) - 1]["clicks"]) / \
+                                                                               prevData[0].day_chart[len(prevData[0].day_chart) - 1]["imp"]
+
+                            prevData[0].day_chart[len(prevData[0].day_chart) - 1]["cpc"] = 0 if (
+                                prevData[0].chart[len(prevData[0].day_chart) - 1]["clicks"] == 0) else (
+                                prevData[0].day_chart[len(prevData[0].day_chart) - 1]["spend"] / prevData[0].chart[len(prevData[0].day_chart) - 1]["clicks"])
+                            # cut and extend
+                            prevData[0].day_chart.extend(queryRes.id[1:])
                         else:
-                            prevData[0].day_chart[len(prevData[0].day_chart) - 1]["cvr"] = float(
-                                prevData[0].day_chart[len(prevData[0].day_chart) - 1]["conversions"]) / \
-                                                                           prevData[0].day_chart[len(prevData[0].day_chart) - 1]["imp"]
-                            prevData[0].day_chart[len(prevData[0].day_chart) - 1]["ctr"] = float(
-                                prevData[0].day_chart[len(prevData[0].day_chart) - 1]["clicks"]) / \
-                                                                           prevData[0].day_chart[len(prevData[0].day_chart) - 1]["imp"]
-
-                        prevData[0].day_chart[len(prevData[0].day_chart) - 1]["cpc"] = 0 if (
-                            prevData[0].chart[len(prevData[0].day_chart) - 1]["clicks"] == 0) else (
-                            prevData[0].day_chart[len(prevData[0].day_chart) - 1]["spend"] / prevData[0].chart[len(prevData[0].day_chart) - 1]["clicks"])
-                        # cut and extend
-                        prevData[0].day_chart.extend(queryRes.id[1:])
-                    else:
-                        prevData[0].day_chart.extend(queryRes.id)
+                            prevData[0].day_chart.extend(queryRes.id)
                 else:
                     LastModified.objects.filter(type='hourlyTask') \
                         .update(date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
@@ -401,9 +465,10 @@ def fillUIGridDataCron():
                         finish_date=datetime.now().replace(minute=0, second=0, microsecond=0),
                         camp_id=prevData[0].campaign_id
                     )
-                    prevData[0].evaluation_date = datetime.now().replace(minute=0, second=0, microsecond=0)
-                    prevData[0].window_start_date = datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-                    prevData[0].day_chart = queryRes.id
+                    if queryRes is not None:
+                        prevData[0].evaluation_date = datetime.now().replace(minute=0, second=0, microsecond=0)
+                        prevData[0].window_start_date = datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+                        prevData[0].day_chart = queryRes.id
                 try:
                     prevData[0].save()
                 except Exception, e:
@@ -420,7 +485,7 @@ def fillUIGridDataCron():
             print "Can not save campaigns all time data. Error: " + str(e)
     LastModified.objects.filter(type='hourlyTask') \
         .update(date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
-    return
+
     #
     # all usual
     #

@@ -99,7 +99,7 @@ def getUsualAdvertiserGraphData(start_date, finish_date, advertiser_id):
 select
   array(
     select json_build_object(
-      'day', "day"::timestamp::date,
+      'day', "day",
       'imp', sum(imps),
       'spend', sum(media_cost),
       'clicks', sum(clicks),

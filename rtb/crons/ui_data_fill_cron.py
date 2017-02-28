@@ -94,30 +94,55 @@ def getSiteDomainsReportInfo(start_date, finish_date, newCampaigns=None, camp_id
     return queryRes
 
 
-def getUsualAdvertiserGraphData(start_date, finish_date, advertiser_id):
-    queryRes = SiteDomainPerformanceReport.objects.raw("""
-select
-  array(
-    select json_build_object(
-      'day', "day",
-      'imp', sum(imps),
-      'spend', sum(media_cost),
-      'clicks', sum(clicks),
-      'conversions', sum(post_click_convs) + sum(post_view_convs),
-      'cvr', case sum(imps) when 0 then 0 else (sum(post_click_convs) + sum(post_view_convs)) / sum(imps)::float end,
-      'cpc', case sum(clicks) when 0 then 0 else sum(media_cost) / sum(clicks) end,
-      'ctr', case sum(imps) when 0 then 0 else sum(clicks)::float / sum(imps) end
-    )
-    from site_domain_performance_report
-    where
-      advertiser_id=""" + str(advertiser_id) + """
-    and
-      day >= '""" + str(start_date) + """'
-    and
-      day < '""" + str(finish_date) + """'
-    group by "day"
-    order by "day"
-  ) id;""")
+def getUsualAdvertiserGraphData(start_date, finish_date, advertiser_id, new_one=False):
+    if new_one:
+        queryRes = SiteDomainPerformanceReport.objects.raw("""
+    select
+      array(
+        select json_build_object(
+          'day', "day",
+          'imp', sum(imps),
+          'spend', sum(media_cost),
+          'clicks', sum(clicks),
+          'conversions', sum(post_click_convs) + sum(post_view_convs),
+          'cvr', case sum(imps) when 0 then 0 else (sum(post_click_convs) + sum(post_view_convs)) / sum(imps)::float end,
+          'cpc', case sum(clicks) when 0 then 0 else sum(media_cost) / sum(clicks) end,
+          'ctr', case sum(imps) when 0 then 0 else sum(clicks)::float / sum(imps) end
+        )
+        from site_domain_performance_report
+        where
+          advertiser_id=""" + str(advertiser_id) + """
+        and
+          day >= '""" + str(start_date) + """'
+        and
+          day < '""" + str(finish_date) + """'
+        group by "day"
+        order by "day"
+      ) id;""")
+    else:
+        queryRes = SiteDomainPerformanceReport.objects.raw("""
+        select
+          array(
+            select json_build_object(
+              'day', "day",
+              'imp', sum(imps),
+              'spend', sum(media_cost),
+              'clicks', sum(clicks),
+              'conversions', sum(post_click_convs) + sum(post_view_convs),
+              'cvr', case sum(imps) when 0 then 0 else (sum(post_click_convs) + sum(post_view_convs)) / sum(imps)::float end,
+              'cpc', case sum(clicks) when 0 then 0 else sum(media_cost) / sum(clicks) end,
+              'ctr', case sum(imps) when 0 then 0 else sum(clicks)::float / sum(imps) end
+            )
+            from site_domain_performance_report
+            where
+              advertiser_id=""" + str(advertiser_id) + """
+            and
+              hour >= '""" + str(start_date) + """'
+            and
+              hour < '""" + str(finish_date) + """'
+            group by "day"
+            order by "day"
+          ) id;""")
     try:
         queryRes[0].id[0]
         return queryRes[0]
@@ -155,36 +180,22 @@ def fillUIGridDataCron():
             queryRes = getUsualAdvertiserGraphData(
                 advertiser_id=adv.id,
                 start_date=datetime.strptime("1970 01 01 00:00:00", "%Y %m %d %H:%M:%S"),
-                finish_date=datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+                finish_date=datetime.now().replace(hour=0, minute=0, second=0, microsecond=0),
+                new_one=True
             )
-            if queryRes is None:
-                allNewAdvertiserts.append(UIUsualCampaignsGraph(
-                    advertiser_id=adv.id,
-                    type="all",
-                    evaluation_date=timezone.make_aware(
-                        datetime.now().replace(hour=0, minute=0, second=0, microsecond=0),
-                        timezone.get_default_timezone()
-                    ),
-                    window_start_date=timezone.make_aware(
-                        datetime.strptime("1970 01 01 00:00:00", "%Y %m %d %H:%M:%S"),
-                        timezone.get_default_timezone()
-                    ),
-                    day_chart=[]
-                ))
-            else:
-                allNewAdvertiserts.append(UIUsualCampaignsGraph(
-                    advertiser_id=adv.id,
-                    type="all",
-                    evaluation_date=timezone.make_aware(
-                        datetime.now().replace(hour=0, minute=0, second=0, microsecond=0),
-                        timezone.get_default_timezone()
-                    ),
-                    window_start_date=timezone.make_aware(
-                        datetime.strptime("1970 01 01 00:00:00", "%Y %m %d %H:%M:%S"),
-                        timezone.get_default_timezone()
-                    ),
-                    day_chart=queryRes.id
-                ))
+            allNewAdvertiserts.append(UIUsualCampaignsGraph(
+                advertiser_id=adv.id,
+                type="all",
+                evaluation_date=timezone.make_aware(
+                    datetime.now().replace(hour=0, minute=0, second=0, microsecond=0),
+                    timezone.get_default_timezone()
+                ),
+                window_start_date=timezone.make_aware(
+                    datetime.strptime("1970 01 01 00:00:00", "%Y %m %d %H:%M:%S"),
+                    timezone.get_default_timezone()
+                ),
+                day_chart=[] if queryRes is None else queryRes.id
+            ))
         # updating
         else:
             if (datetime.now() - prevData[0].evaluation_date) >= timedelta(hours=1):
@@ -236,35 +247,21 @@ def fillUIGridDataCron():
                     start_date=(datetime.now() - timedelta(days=info)).replace(hour=0, minute=0, second=0,
                                                                                   microsecond=0),
                     finish_date=datetime.now().replace(hour=0, minute=0, second=0, microsecond=0),
+                    new_one=True
                 )
-                if queryRes is None:
-                    allNewAdvertiserts.append(UIUsualCampaignsGraph(
-                        advertiser_id=adv.id,
-                        type=type,
-                        evaluation_date=timezone.make_aware(
-                            datetime.now().replace(hour=0, minute=0, second=0, microsecond=0),
-                            timezone.get_default_timezone()
-                        ),
-                        window_start_date=timezone.make_aware(
-                            (datetime.now() - timedelta(days=info)).replace(hour=0, minute=0, second=0, microsecond=0),
-                            timezone.get_default_timezone()
-                        ),
-                        day_chart=[]
-                    ))
-                else:
-                    allNewAdvertiserts.append(UIUsualCampaignsGraph(
-                        advertiser_id=adv.id,
-                        type=type,
-                        evaluation_date=timezone.make_aware(
-                            datetime.now().replace(hour=0, minute=0, second=0, microsecond=0),
-                            timezone.get_default_timezone()
-                        ),
-                        window_start_date=timezone.make_aware(
-                            (datetime.now() - timedelta(days=info)).replace(hour=0, minute=0, second=0, microsecond=0),
-                            timezone.get_default_timezone()
-                        ),
-                        day_chart=queryRes.id
-                    ))
+                allNewAdvertiserts.append(UIUsualCampaignsGraph(
+                    advertiser_id=adv.id,
+                    type=type,
+                    evaluation_date=timezone.make_aware(
+                        datetime.now().replace(hour=0, minute=0, second=0, microsecond=0),
+                        timezone.get_default_timezone()
+                    ),
+                    window_start_date=timezone.make_aware(
+                        (datetime.now() - timedelta(days=info)).replace(hour=0, minute=0, second=0, microsecond=0),
+                        timezone.get_default_timezone()
+                    ),
+                    day_chart=[] if queryRes is None else queryRes.id
+                ))
             # updating
             else:
                 if (datetime.now() - prevData[0].evaluation_date) >= timedelta(hours=1):
@@ -329,44 +326,30 @@ def fillUIGridDataCron():
                 advertiser_id=adv.id,
                 start_date=(datetime.now().replace(day=1) - timedelta(days=1)).replace(day=1, hour=0, minute=0,
                                                                                        second=0, microsecond=0),
-                finish_date=datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+                finish_date=datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0),
+                new_one=True
             )
-            if queryRes is None:
-                allNewAdvertiserts.append(UIUsualCampaignsGraph(
-                    advertiser_id=adv.id,
-                    type="last_month",
-                    evaluation_date=timezone.make_aware(
-                        datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-                    ),
-                    window_start_date=timezone.make_aware(
-                        (datetime.now().replace(day=1) - timedelta(days=1)).replace(day=1, hour=0, minute=0,
-                                                                                    second=0, microsecond=0),
-                        timezone.get_default_timezone()
-                    ),
-                    day_chart=[]
-                ))
-            else:
-                allNewAdvertiserts.append(UIUsualCampaignsGraph(
-                    advertiser_id=adv.id,
-                    type="last_month",
-                    evaluation_date=timezone.make_aware(
-                        datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-                    ),
-                    window_start_date=timezone.make_aware(
-                        (datetime.now().replace(day=1) - timedelta(days=1)).replace(day=1, hour=0, minute=0,
-                                                                                    second=0, microsecond=0),
-                        timezone.get_default_timezone()
-                    ),
-                    day_chart=queryRes.id
-                ))
+            allNewAdvertiserts.append(UIUsualCampaignsGraph(
+                advertiser_id=adv.id,
+                type="last_month",
+                evaluation_date=timezone.make_aware(
+                    datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+                ),
+                window_start_date=timezone.make_aware(
+                    (datetime.now().replace(day=1) - timedelta(days=1)).replace(day=1, hour=0, minute=0,
+                                                                                second=0, microsecond=0),
+                    timezone.get_default_timezone()
+                ),
+                day_chart=[] if queryRes is None else queryRes.id
+            ))
         # updating
         else:
             if (datetime.now().month - prevData[0].window_start_date.month) >= 2:
-                queryRes = getSiteDomainsReportInfo(
+                queryRes = getUsualAdvertiserGraphData(
+                    advertiser_id=adv.id,
                     start_date=(datetime.now().replace(day=1) - timedelta(days=1)).replace(day=1, hour=0, minute=0,
                                                                                            second=0, microsecond=0),
-                    finish_date=datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0),
-                    camp_id=prevData[0].campaign_id
+                    finish_date=datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
                 )
                 if queryRes is not None:
                     prevData[0].day_chart = queryRes.id
@@ -389,35 +372,21 @@ def fillUIGridDataCron():
                 advertiser_id=adv.id,
                 start_date=datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0),
                 finish_date=datetime.now().replace(hour=0, minute=0, second=0, microsecond=0),
+                new_one=True
             )
-            if queryRes is None:
-                allNewAdvertiserts.append(UIUsualCampaignsGraph(
-                    advertiser_id=adv.id,
-                    type="cur_month",
-                    evaluation_date=timezone.make_aware(
-                        datetime.now().replace(hour=0, minute=0, second=0, microsecond=0),
-                        timezone.get_default_timezone()
-                    ),
-                    window_start_date=timezone.make_aware(
-                        datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0),
-                        timezone.get_default_timezone()
-                    ),
-                    day_chart=[]
-                ))
-            else:
-                allNewAdvertiserts.append(UIUsualCampaignsGraph(
-                    advertiser_id=adv.id,
-                    type="cur_month",
-                    evaluation_date=timezone.make_aware(
-                        datetime.now().replace(hour=0, minute=0, second=0, microsecond=0),
-                        timezone.get_default_timezone()
-                    ),
-                    window_start_date=timezone.make_aware(
-                        datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0),
-                        timezone.get_default_timezone()
-                    ),
-                    day_chart=queryRes.id
-                ))
+            allNewAdvertiserts.append(UIUsualCampaignsGraph(
+                advertiser_id=adv.id,
+                type="cur_month",
+                evaluation_date=timezone.make_aware(
+                    datetime.now().replace(hour=0, minute=0, second=0, microsecond=0),
+                    timezone.get_default_timezone()
+                ),
+                window_start_date=timezone.make_aware(
+                    datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0),
+                    timezone.get_default_timezone()
+                ),
+                day_chart=[] if queryRes is None else queryRes.id
+            ))
         # updating
         else:
             # if next month - change, if cur - cummulate
@@ -460,10 +429,10 @@ def fillUIGridDataCron():
                 else:
                     LastModified.objects.filter(type='hourlyTask') \
                         .update(date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
-                    queryRes = getSiteDomainsReportInfo(
+                    queryRes = getUsualAdvertiserGraphData(
+                        advertiser_id=adv.id,
                         start_date=datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0),
                         finish_date=datetime.now().replace(minute=0, second=0, microsecond=0),
-                        camp_id=prevData[0].campaign_id
                     )
                     if queryRes is not None:
                         prevData[0].evaluation_date = datetime.now().replace(minute=0, second=0, microsecond=0)

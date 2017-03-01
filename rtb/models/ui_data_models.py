@@ -244,8 +244,7 @@ class UIUsualCampaignsGridDataAll(models.Model):
 ###
 class UIUsualPlacementsGraph(models.Model):
     id = models.AutoField(primary_key=True)
-    campaign = models.ForeignKey("Campaign", null=True, blank=True, db_constraint=False,
-                                   on_delete=models.DO_NOTHING)
+    campaign = models.ForeignKey("Campaign", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING)
     type = models.TextField(db_index=True)
     evaluation_date = models.DateTimeField(db_index=True)
     window_start_date = models.DateTimeField(db_index=True)
@@ -258,7 +257,8 @@ class UIUsualPlacementsGraph(models.Model):
 
 class UIUsualPlacementsGridDataYesterday(models.Model):
     id = models.AutoField(primary_key=True)
-    placement = models.ForeignKey("Placement", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING, unique=True)
+    campaign = models.ForeignKey("Campaign", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING)
+    placement = models.ForeignKey("Placement", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING)
     evaluation_date = models.DateTimeField(db_index=True)
     window_start_date = models.DateTimeField(db_index=True)
     # simple grid data
@@ -278,10 +278,12 @@ class UIUsualPlacementsGridDataYesterday(models.Model):
 
     class Meta:
         db_table = "ui_usual_placements_grid_data_yesterday"
+        unique_together = (('campaign', 'placement'),)
 
 class UIUsualPlacementsGridDataLast3Days(models.Model):
     id = models.AutoField(primary_key=True)
-    placement = models.ForeignKey("Placement", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING, unique=True)
+    campaign = models.ForeignKey("Campaign", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING)
+    placement = models.ForeignKey("Placement", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING)
     evaluation_date = models.DateTimeField(db_index=True)
     window_start_date = models.DateTimeField(db_index=True)
     # simple grid data
@@ -301,10 +303,12 @@ class UIUsualPlacementsGridDataLast3Days(models.Model):
 
     class Meta:
         db_table = "ui_usual_placements_grid_data_last_3_days"
+        unique_together = (('campaign', 'placement'),)
 
 class UIUsualPlacementsGridDataLast7Days(models.Model):
     id = models.AutoField(primary_key=True)
-    placement = models.ForeignKey("Placement", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING, unique=True)
+    campaign = models.ForeignKey("Campaign", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING)
+    placement = models.ForeignKey("Placement", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING)
     evaluation_date = models.DateTimeField(db_index=True)
     window_start_date = models.DateTimeField(db_index=True)
     # simple grid data
@@ -324,10 +328,12 @@ class UIUsualPlacementsGridDataLast7Days(models.Model):
 
     class Meta:
         db_table = "ui_usual_placements_grid_data_last_7_days"
+        unique_together = (('campaign', 'placement'),)
 
 class UIUsualPlacementsGridDataLast14Days(models.Model):
     id = models.AutoField(primary_key=True)
-    placement = models.ForeignKey("Placement", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING, unique=True)
+    campaign = models.ForeignKey("Campaign", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING)
+    placement = models.ForeignKey("Placement", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING,)
     evaluation_date = models.DateTimeField(db_index=True)
     window_start_date = models.DateTimeField(db_index=True)
     # simple grid data
@@ -347,12 +353,13 @@ class UIUsualPlacementsGridDataLast14Days(models.Model):
 
     class Meta:
         db_table = "ui_usual_placements_grid_data_last_14_days"
+        unique_together = (('campaign', 'placement'),)
 
 
 class UIUsualPlacementsGridDataLast21Days(models.Model):
     id = models.AutoField(primary_key=True)
-    placement = models.ForeignKey("Placement", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING,
-                                 unique=True)
+    campaign = models.ForeignKey("Campaign", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING)
+    placement = models.ForeignKey("Placement", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING)
     evaluation_date = models.DateTimeField(db_index=True)
     window_start_date = models.DateTimeField(db_index=True)
     # simple grid data
@@ -372,12 +379,13 @@ class UIUsualPlacementsGridDataLast21Days(models.Model):
 
     class Meta:
         db_table = "ui_usual_placements_grid_data_last_21_days"
+        unique_together = (('campaign', 'placement'),)
 
 
 class UIUsualPlacementsGridDataCurMonth(models.Model):
     id = models.AutoField(primary_key=True)
-    placement = models.ForeignKey("Placement", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING,
-                                 unique=True)
+    campaign = models.ForeignKey("Campaign", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING)
+    placement = models.ForeignKey("Placement", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING)
     evaluation_date = models.DateTimeField(db_index=True)
     window_start_date = models.DateTimeField(db_index=True)
     # simple grid data
@@ -397,12 +405,13 @@ class UIUsualPlacementsGridDataCurMonth(models.Model):
 
     class Meta:
         db_table = "ui_usual_placements_grid_data_cur_month"
+        unique_together = (('campaign', 'placement'),)
 
 
 class UIUsualPlacementsGridDataLastMonth(models.Model):
     id = models.AutoField(primary_key=True)
-    placement = models.ForeignKey("Placement", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING,
-                                 unique=True)
+    campaign = models.ForeignKey("Campaign", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING)
+    placement = models.ForeignKey("Placement", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING)
     evaluation_date = models.DateTimeField(db_index=True)
     window_start_date = models.DateTimeField(db_index=True)
     # simple grid data
@@ -422,12 +431,13 @@ class UIUsualPlacementsGridDataLastMonth(models.Model):
 
     class Meta:
         db_table = "ui_usual_placements_grid_data_last_month"
+        unique_together = (('campaign', 'placement'),)
 
 
 class UIUsualPlacementsGridDataLast90Days(models.Model):
     id = models.AutoField(primary_key=True)
-    placement = models.ForeignKey("Placement", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING,
-                                 unique=True)
+    campaign = models.ForeignKey("Campaign", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING)
+    placement = models.ForeignKey("Placement", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING)
     evaluation_date = models.DateTimeField(db_index=True)
     window_start_date = models.DateTimeField(db_index=True)
     # simple grid data
@@ -447,11 +457,12 @@ class UIUsualPlacementsGridDataLast90Days(models.Model):
 
     class Meta:
         db_table = "ui_usual_placements_grid_data_last_90_days"
+        unique_together = (('campaign', 'placement'),)
 
 class UIUsualPlacementsGridDataAll(models.Model):
     id = models.AutoField(primary_key=True)
-    placement = models.ForeignKey("Placement", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING,
-                                 unique=True)
+    campaign = models.ForeignKey("Campaign", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING)
+    placement = models.ForeignKey("Placement", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING)
     evaluation_date = models.DateTimeField(db_index=True)
     # simple grid data
     spent = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
@@ -470,6 +481,8 @@ class UIUsualPlacementsGridDataAll(models.Model):
 
     class Meta:
         db_table = "ui_usual_placements_grid_data_all"
+        unique_together = (('campaign', 'placement'),)
+
 ###
 # video campaigns
 ###

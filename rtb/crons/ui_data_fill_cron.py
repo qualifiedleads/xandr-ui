@@ -226,10 +226,14 @@ def fillUIGridDataCron():
                         prevData[0].day_chart.extend(queryRes.id[1:])
                     else:
                         prevData[0].day_chart.extend(queryRes.id)
-            try:
-                prevData[0].save()
-            except Exception, e:
-                print "Can not update " + str(prevData[0].advertiser_id) + " advertiser all time data. Error: " + str(e)
+                    prevData[0].evaluation_date = timezone.make_aware(
+                        datetime.now().replace(minute=0, second=0, microsecond=0),
+                        timezone.get_default_timezone()
+                    )
+                    try:
+                        prevData[0].save()
+                    except Exception, e:
+                        print "Can not update " + str(prevData[0].advertiser_id) + " advertiser all time graph data. Error: " + str(e)
         LastModified.objects.filter(type='hourlyTask') \
             .update(date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
         #
@@ -306,10 +310,16 @@ def fillUIGridDataCron():
                                 if (len(prevData[0].day_chart) + len(queryRes.id) - info - 1) > 0:
                                     prevData[0].day_chart = prevData[0].day_chart[(len(prevData[0].day_chart) + len(queryRes.id) - info - 1):]
                                 prevData[0].day_chart.extend(queryRes.id)
-                try:
-                    prevData[0].save()
-                except Exception, e:
-                    print "Can not update " + str(prevData[0].advertiser_id) + " advertiser " + type + " data. Error: " + str(e)
+
+                        prevData[0].evaluation_date = timezone.make_aware(
+                            datetime.now().replace(minute=0, second=0, microsecond=0),
+                            timezone.get_default_timezone()
+                        )
+
+                        try:
+                            prevData[0].save()
+                        except Exception, e:
+                            print "Can not update " + str(prevData[0].advertiser_id) + " advertiser " + type + " graph data. Error: " + str(e)
         LastModified.objects.filter(type='hourlyTask') \
             .update(date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
         #
@@ -353,10 +363,14 @@ def fillUIGridDataCron():
                 )
                 if queryRes is not None:
                     prevData[0].day_chart = queryRes.id
+                    prevData[0].evaluation_date = timezone.make_aware(
+                        datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0),
+                        timezone.get_default_timezone()
+                    )
                     try:
                         prevData[0].save()
                     except Exception, e:
-                        print "Can not update " + str(prevData[0].advertiser_id) + " advertiser last month data. Error: " + str(e)
+                        print "Can not update " + str(prevData[0].advertiser_id) + " advertiser last month graph data. Error: " + str(e)
         LastModified.objects.filter(type='hourlyTask') \
             .update(date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
         #
@@ -441,7 +455,7 @@ def fillUIGridDataCron():
                 try:
                     prevData[0].save()
                 except Exception, e:
-                    print "Can not update " + str(prevData[0].advertiser) + " advertiser current month data. Error: " + str(e)
+                    print "Can not update " + str(prevData[0].advertiser_id) + " advertiser current month graph data. Error: " + str(e)
 
     LastModified.objects.filter(type='hourlyTask') \
         .update(date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))

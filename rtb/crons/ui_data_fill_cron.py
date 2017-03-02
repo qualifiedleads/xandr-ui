@@ -372,7 +372,7 @@ def fillUIGridDataCron():
                         timezone.get_default_timezone()
                     ),
                     window_start_date=timezone.make_aware(
-                        (datetime.now() - timedelta(days=info)).replace(hour=0, minute=0, second=0, microsecond=0),
+                        (datetime.now() - timedelta(days=info[1])).replace(hour=0, minute=0, second=0, microsecond=0),
                         timezone.get_default_timezone()
                     ),
                     day_chart=[] if queryRes is None else queryRes.id
@@ -388,8 +388,8 @@ def fillUIGridDataCron():
                     if queryRes is not None:
                         # chart
                         # if new data is greater, then time period
-                        if len(queryRes.id) >= (info + 1):
-                            prevData[0].day_chart = queryRes.id[-(info + 1):]
+                        if len(queryRes.id) >= (info[1] + 1):
+                            prevData[0].day_chart = queryRes.id[-(info[1] + 1):]
                         else:
                             # if old data don't fill time period
                             if queryRes.id[0]["day"] == prevData[0].day_chart[len(prevData[0].day_chart) - 1]["day"]:
@@ -414,12 +414,12 @@ def fillUIGridDataCron():
                                     prevData[0].day_chart[len(prevData[0].day_chart) - 1]["spend"] / prevData[0].day_chart[len(prevData[0].day_chart) - 1][
                                         "clicks"])
                                 # cut and extend
-                                if (len(prevData[0].day_chart) + len(queryRes.id) - info - 2) > 0:
-                                    prevData[0].day_chart = prevData[0].day_chart[(len(prevData[0].day_chart) + len(queryRes.id) - info - 2):]
+                                if (len(prevData[0].day_chart) + len(queryRes.id) - info[1] - 2) > 0:
+                                    prevData[0].day_chart = prevData[0].day_chart[(len(prevData[0].day_chart) + len(queryRes.id) - info[1] - 2):]
                                 prevData[0].day_chart.extend(queryRes.id[1:])
                             else:
-                                if (len(prevData[0].day_chart) + len(queryRes.id) - info - 1) > 0:
-                                    prevData[0].day_chart = prevData[0].day_chart[(len(prevData[0].day_chart) + len(queryRes.id) - info - 1):]
+                                if (len(prevData[0].day_chart) + len(queryRes.id) - info[1] - 1) > 0:
+                                    prevData[0].day_chart = prevData[0].day_chart[(len(prevData[0].day_chart) + len(queryRes.id) - info[1] - 1):]
                                 prevData[0].day_chart.extend(queryRes.id)
 
                         prevData[0].evaluation_date = timezone.make_aware(
@@ -1121,8 +1121,8 @@ def fillUIGridDataCron():
                         if queryRes is not None:
                             # chart
                             # if new data is greater, then time period
-                            if len(queryRes.id) >= (info + 1):
-                                prevData[0].day_chart = queryRes.id[-(info + 1):]
+                            if len(queryRes.id) >= (info[1] + 1):
+                                prevData[0].day_chart = queryRes.id[-(info[1] + 1):]
                             else:
                                 # if old data don't fill time period
                                 if queryRes.id[0]["day"] == prevData[0].day_chart[len(prevData[0].day_chart) - 1]["day"]:
@@ -1139,13 +1139,13 @@ def fillUIGridDataCron():
                                     prevData[0].day_chart[len(prevData[0].day_chart) - 1]["ctr"] = 0 if prevData[0].day_chart[len(prevData[0].day_chart) - 1]["impression"] == 0 else(prevData[0].day_chart[len(prevData[0].day_chart) - 1]["clicks"] / prevData[0].day_chart[len(prevData[0].day_chart) - 1]["impression"])
 
                                     # cut and extend
-                                    if (len(prevData[0].day_chart) + len(queryRes.id) - info - 2) > 0:
+                                    if (len(prevData[0].day_chart) + len(queryRes.id) - info[1] - 2) > 0:
                                         prevData[0].day_chart = prevData[0].day_chart[(len(prevData[0].day_chart) + len(queryRes.id) - info - 2):]
                                     prevData[0].day_chart.extend(queryRes.id[1:])
                                 else:
-                                    if (len(prevData[0].day_chart) + len(queryRes.id) - info - 1) > 0:
+                                    if (len(prevData[0].day_chart) + len(queryRes.id) - info[1] - 1) > 0:
                                         prevData[0].day_chart = prevData[0].day_chart[(
-                                        len(prevData[0].day_chart) + len(queryRes.id) - info - 1):]
+                                        len(prevData[0].day_chart) + len(queryRes.id) - info[1] - 1):]
                                     prevData[0].day_chart.extend(queryRes.id)
 
                             prevData[0].evaluation_date = timezone.make_aware(

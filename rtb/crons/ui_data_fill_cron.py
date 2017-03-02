@@ -245,7 +245,7 @@ select
         return None
 
 def fillUIGridDataCron():
-    print "fillUIGridDataCron started"
+    print "fillUIGridDataCron started: " + str(datetime.now())
     LastModified.objects.filter(type='hourlyTask') \
         .update(date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
     modelsDict = {}
@@ -616,28 +616,28 @@ def fillUIGridDataCron():
                         campaign_id=camp.id,
                         new_one=True
                     )
-
-                    newPlacements["all_time"][0].append(UIUsualPlacementsGridDataAll(
-                        campaign_id=camp.id,
-                        placement_id=queryRes.id,
-                        evaluation_date=timezone.make_aware(
-                            datetime.now().replace(hour=0, minute=0, second=0, microsecond=0),
-                            timezone.get_default_timezone()
-                        ),
-                        spent=queryRes.spend,
-                        conversions=queryRes.conversions,
-                        imps=queryRes.imp,
-                        clicks=queryRes.clicks,
-                        cpc=queryRes.cpc,
-                        cpm=queryRes.cpm,
-                        cvr=queryRes.cvr,
-                        ctr=queryRes.ctr,
-                        cpa=queryRes.cpa,
-                        imps_viewed=queryRes.imps_viewed,
-                        view_measured_imps=queryRes.view_measured_imps,
-                        view_measurement_rate=queryRes.view_measurement_rate,
-                        view_rate=queryRes.view_rate
-                    ))
+                    if queryRes is not None:
+                        newPlacements["all_time"][0].append(UIUsualPlacementsGridDataAll(
+                            campaign_id=camp.id,
+                            placement_id=queryRes.id,
+                            evaluation_date=timezone.make_aware(
+                                datetime.now().replace(hour=0, minute=0, second=0, microsecond=0),
+                                timezone.get_default_timezone()
+                            ),
+                            spent=queryRes.spend,
+                            conversions=queryRes.conversions,
+                            imps=queryRes.imp,
+                            clicks=queryRes.clicks,
+                            cpc=queryRes.cpc,
+                            cpm=queryRes.cpm,
+                            cvr=queryRes.cvr,
+                            ctr=queryRes.ctr,
+                            cpa=queryRes.cpa,
+                            imps_viewed=queryRes.imps_viewed,
+                            view_measured_imps=queryRes.view_measured_imps,
+                            view_measurement_rate=queryRes.view_measurement_rate,
+                            view_rate=queryRes.view_rate
+                        ))
                 # updating all days data
                 else:
                     # check if less than an hour had pass
@@ -1888,4 +1888,4 @@ select array_to_string(
             UIUsualCampaignsGridDataCurMonth.objects.bulk_create(allNewCampaigns)
         except Exception, e:
             print "Can not save campaigns current month data. Error: " + str(e)
-    print "fillUIGridDataCron finished"
+    print "fillUIGridDataCron finished: " + str(datetime.now())

@@ -316,25 +316,28 @@ def fillUIGridDataCron():
                     finish_date=datetime.now().replace(minute=0, second=0, microsecond=0)
                 )
                 if queryRes is not None:
-                    if prevData[0].day_chart[len(prevData[0].day_chart) - 1]["day"] == queryRes.id[0]["day"]:
-                        prevData[0].day_chart[len(prevData[0].day_chart) - 1]["imp"] += queryRes.id[0]["imp"]
-                        prevData[0].day_chart[len(prevData[0].day_chart) - 1]["spend"] += queryRes.id[0]["spend"]
-                        prevData[0].day_chart[len(prevData[0].day_chart) - 1]["clicks"] += queryRes.id[0]["clicks"]
-                        prevData[0].day_chart[len(prevData[0].day_chart) - 1]["conversions"] += queryRes.id[0]["conversions"]
+                    if prevData[0].day_chart:
+                        if prevData[0].day_chart[len(prevData[0].day_chart) - 1]["day"] == queryRes.id[0]["day"]:
+                            prevData[0].day_chart[len(prevData[0].day_chart) - 1]["imp"] += queryRes.id[0]["imp"]
+                            prevData[0].day_chart[len(prevData[0].day_chart) - 1]["spend"] += queryRes.id[0]["spend"]
+                            prevData[0].day_chart[len(prevData[0].day_chart) - 1]["clicks"] += queryRes.id[0]["clicks"]
+                            prevData[0].day_chart[len(prevData[0].day_chart) - 1]["conversions"] += queryRes.id[0]["conversions"]
 
-                        if prevData[0].day_chart[len(prevData[0].day_chart) - 1]["imp"] == 0:
-                            prevData[0].day_chart[len(prevData[0].day_chart) - 1]["cvr"] = 0
-                            prevData[0].day_chart[len(prevData[0].day_chart) - 1]["ctr"] = 0
+                            if prevData[0].day_chart[len(prevData[0].day_chart) - 1]["imp"] == 0:
+                                prevData[0].day_chart[len(prevData[0].day_chart) - 1]["cvr"] = 0
+                                prevData[0].day_chart[len(prevData[0].day_chart) - 1]["ctr"] = 0
+                            else:
+                                prevData[0].day_chart[len(prevData[0].day_chart) - 1]["cvr"] = float(
+                                    prevData[0].day_chart[len(prevData[0].day_chart) - 1]["conversions"]) / prevData[0].day_chart[len(prevData[0].day_chart) - 1][
+                                                                                   "imp"]
+                                prevData[0].day_chart[len(prevData[0].day_chart) - 1]["ctr"] = float(
+                                    prevData[0].day_chart[len(prevData[0].day_chart) - 1]["clicks"]) / prevData[0].day_chart[len(prevData[0].day_chart) - 1]["imp"]
+                            prevData[0].day_chart[len(prevData[0].day_chart) - 1]["cpc"] = 0 if (
+                            prevData[0].day_chart[len(prevData[0].day_chart) - 1]["clicks"] == 0) else (
+                            prevData[0].day_chart[len(prevData[0].day_chart) - 1]["spend"] / prevData[0].day_chart[len(prevData[0].day_chart) - 1]["clicks"])
+                            prevData[0].day_chart.extend(queryRes.id[1:])
                         else:
-                            prevData[0].day_chart[len(prevData[0].day_chart) - 1]["cvr"] = float(
-                                prevData[0].day_chart[len(prevData[0].day_chart) - 1]["conversions"]) / prevData[0].day_chart[len(prevData[0].day_chart) - 1][
-                                                                               "imp"]
-                            prevData[0].day_chart[len(prevData[0].day_chart) - 1]["ctr"] = float(
-                                prevData[0].day_chart[len(prevData[0].day_chart) - 1]["clicks"]) / prevData[0].day_chart[len(prevData[0].day_chart) - 1]["imp"]
-                        prevData[0].day_chart[len(prevData[0].day_chart) - 1]["cpc"] = 0 if (
-                        prevData[0].day_chart[len(prevData[0].day_chart) - 1]["clicks"] == 0) else (
-                        prevData[0].day_chart[len(prevData[0].day_chart) - 1]["spend"] / prevData[0].day_chart[len(prevData[0].day_chart) - 1]["clicks"])
-                        prevData[0].day_chart.extend(queryRes.id[1:])
+                            prevData[0].day_chart.extend(queryRes.id)
                     else:
                         prevData[0].day_chart.extend(queryRes.id)
                     prevData[0].evaluation_date = timezone.make_aware(
@@ -391,35 +394,38 @@ def fillUIGridDataCron():
                         if len(queryRes.id) >= (info[1] + 1):
                             prevData[0].day_chart = queryRes.id[-(info[1] + 1):]
                         else:
-                            # if old data don't fill time period
-                            if queryRes.id[0]["day"] == prevData[0].day_chart[len(prevData[0].day_chart) - 1]["day"]:
-                                prevData[0].day_chart[len(prevData[0].day_chart) - 1]["imp"] += queryRes.id[0]["imp"]
-                                prevData[0].day_chart[len(prevData[0].day_chart) - 1]["spend"] += queryRes.id[0]["spend"]
-                                prevData[0].day_chart[len(prevData[0].day_chart) - 1]["clicks"] += queryRes.id[0]["clicks"]
-                                prevData[0].day_chart[len(prevData[0].day_chart) - 1]["conversions"] += queryRes.id[0]["conversions"]
+                            if prevData[0].day_chart:
+                                # if old data don't fill time period
+                                if queryRes.id[0]["day"] == prevData[0].day_chart[len(prevData[0].day_chart) - 1]["day"]:
+                                    prevData[0].day_chart[len(prevData[0].day_chart) - 1]["imp"] += queryRes.id[0]["imp"]
+                                    prevData[0].day_chart[len(prevData[0].day_chart) - 1]["spend"] += queryRes.id[0]["spend"]
+                                    prevData[0].day_chart[len(prevData[0].day_chart) - 1]["clicks"] += queryRes.id[0]["clicks"]
+                                    prevData[0].day_chart[len(prevData[0].day_chart) - 1]["conversions"] += queryRes.id[0]["conversions"]
 
-                                if prevData[0].day_chart[len(prevData[0].day_chart) - 1]["imp"] == 0:
-                                    prevData[0].day_chart[len(prevData[0].day_chart) - 1]["cvr"] = 0
-                                    prevData[0].day_chart[len(prevData[0].day_chart) - 1]["ctr"] = 0
+                                    if prevData[0].day_chart[len(prevData[0].day_chart) - 1]["imp"] == 0:
+                                        prevData[0].day_chart[len(prevData[0].day_chart) - 1]["cvr"] = 0
+                                        prevData[0].day_chart[len(prevData[0].day_chart) - 1]["ctr"] = 0
+                                    else:
+                                        prevData[0].day_chart[len(prevData[0].day_chart) - 1]["cvr"] = float(
+                                            prevData[0].day_chart[len(prevData[0].day_chart) - 1]["conversions"]) / \
+                                                                                       prevData[0].day_chart[len(prevData[0].day_chart) - 1]["imp"]
+                                        prevData[0].day_chart[len(prevData[0].day_chart) - 1]["ctr"] = float(
+                                            prevData[0].day_chart[len(prevData[0].day_chart) - 1]["clicks"]) / \
+                                                                                       prevData[0].day_chart[len(prevData[0].day_chart) - 1]["imp"]
+
+                                    prevData[0].day_chart[len(prevData[0].day_chart) - 1]["cpc"] = 0 if (
+                                    prevData[0].day_chart[len(prevData[0].day_chart) - 1]["clicks"] == 0) else (
+                                        prevData[0].day_chart[len(prevData[0].day_chart) - 1]["spend"] / prevData[0].day_chart[len(prevData[0].day_chart) - 1][
+                                            "clicks"])
+                                    # cut and extend
+                                    if (len(prevData[0].day_chart) + len(queryRes.id) - info[1] - 2) > 0:
+                                        prevData[0].day_chart = prevData[0].day_chart[(len(prevData[0].day_chart) + len(queryRes.id) - info[1] - 2):]
+                                    prevData[0].day_chart.extend(queryRes.id[1:])
                                 else:
-                                    prevData[0].day_chart[len(prevData[0].day_chart) - 1]["cvr"] = float(
-                                        prevData[0].day_chart[len(prevData[0].day_chart) - 1]["conversions"]) / \
-                                                                                   prevData[0].day_chart[len(prevData[0].day_chart) - 1]["imp"]
-                                    prevData[0].day_chart[len(prevData[0].day_chart) - 1]["ctr"] = float(
-                                        prevData[0].day_chart[len(prevData[0].day_chart) - 1]["clicks"]) / \
-                                                                                   prevData[0].day_chart[len(prevData[0].day_chart) - 1]["imp"]
-
-                                prevData[0].day_chart[len(prevData[0].day_chart) - 1]["cpc"] = 0 if (
-                                prevData[0].day_chart[len(prevData[0].day_chart) - 1]["clicks"] == 0) else (
-                                    prevData[0].day_chart[len(prevData[0].day_chart) - 1]["spend"] / prevData[0].day_chart[len(prevData[0].day_chart) - 1][
-                                        "clicks"])
-                                # cut and extend
-                                if (len(prevData[0].day_chart) + len(queryRes.id) - info[1] - 2) > 0:
-                                    prevData[0].day_chart = prevData[0].day_chart[(len(prevData[0].day_chart) + len(queryRes.id) - info[1] - 2):]
-                                prevData[0].day_chart.extend(queryRes.id[1:])
+                                    if (len(prevData[0].day_chart) + len(queryRes.id) - info[1] - 1) > 0:
+                                        prevData[0].day_chart = prevData[0].day_chart[(len(prevData[0].day_chart) + len(queryRes.id) - info[1] - 1):]
+                                    prevData[0].day_chart.extend(queryRes.id)
                             else:
-                                if (len(prevData[0].day_chart) + len(queryRes.id) - info[1] - 1) > 0:
-                                    prevData[0].day_chart = prevData[0].day_chart[(len(prevData[0].day_chart) + len(queryRes.id) - info[1] - 1):]
                                 prevData[0].day_chart.extend(queryRes.id)
 
                         prevData[0].evaluation_date = timezone.make_aware(
@@ -530,28 +536,31 @@ def fillUIGridDataCron():
 
                         # chart
                         # if old data don't fill time period
-                        if queryRes.id[0]["day"] == prevData[0].day_chart[len(prevData[0].day_chart) - 1]:
-                            prevData[0].day_chart[len(prevData[0].day_chart) - 1]["imp"] += queryRes.id[0]["imp"]
-                            prevData[0].day_chart[len(prevData[0].day_chart) - 1]["spend"] += queryRes.id[0]["spend"]
-                            prevData[0].day_chart[len(prevData[0].day_chart) - 1]["clicks"] += queryRes.id[0]["clicks"]
-                            prevData[0].day_chart[len(prevData[0].day_chart) - 1]["conversions"] += queryRes.id[0]["conversions"]
+                        if prevData[0].day_chart:
+                            if queryRes.id[0]["day"] == prevData[0].day_chart[len(prevData[0].day_chart) - 1]:
+                                prevData[0].day_chart[len(prevData[0].day_chart) - 1]["imp"] += queryRes.id[0]["imp"]
+                                prevData[0].day_chart[len(prevData[0].day_chart) - 1]["spend"] += queryRes.id[0]["spend"]
+                                prevData[0].day_chart[len(prevData[0].day_chart) - 1]["clicks"] += queryRes.id[0]["clicks"]
+                                prevData[0].day_chart[len(prevData[0].day_chart) - 1]["conversions"] += queryRes.id[0]["conversions"]
 
-                            if prevData[0].day_chart[len(prevData[0].day_chart) - 1]["imp"] == 0:
-                                prevData[0].day_chart[len(prevData[0].day_chart) - 1]["cvr"] = 0
-                                prevData[0].day_chart[len(prevData[0].day_chart) - 1]["ctr"] = 0
+                                if prevData[0].day_chart[len(prevData[0].day_chart) - 1]["imp"] == 0:
+                                    prevData[0].day_chart[len(prevData[0].day_chart) - 1]["cvr"] = 0
+                                    prevData[0].day_chart[len(prevData[0].day_chart) - 1]["ctr"] = 0
+                                else:
+                                    prevData[0].day_chart[len(prevData[0].day_chart) - 1]["cvr"] = float(
+                                        prevData[0].day_chart[len(prevData[0].day_chart) - 1]["conversions"]) / \
+                                                                                   prevData[0].day_chart[len(prevData[0].day_chart) - 1]["imp"]
+                                    prevData[0].day_chart[len(prevData[0].day_chart) - 1]["ctr"] = float(
+                                        prevData[0].day_chart[len(prevData[0].day_chart) - 1]["clicks"]) / \
+                                                                                   prevData[0].day_chart[len(prevData[0].day_chart) - 1]["imp"]
+
+                                prevData[0].day_chart[len(prevData[0].day_chart) - 1]["cpc"] = 0 if (
+                                    prevData[0].chart[len(prevData[0].day_chart) - 1]["clicks"] == 0) else (
+                                    prevData[0].day_chart[len(prevData[0].day_chart) - 1]["spend"] / prevData[0].chart[len(prevData[0].day_chart) - 1]["clicks"])
+                                # cut and extend
+                                prevData[0].day_chart.extend(queryRes.id[1:])
                             else:
-                                prevData[0].day_chart[len(prevData[0].day_chart) - 1]["cvr"] = float(
-                                    prevData[0].day_chart[len(prevData[0].day_chart) - 1]["conversions"]) / \
-                                                                               prevData[0].day_chart[len(prevData[0].day_chart) - 1]["imp"]
-                                prevData[0].day_chart[len(prevData[0].day_chart) - 1]["ctr"] = float(
-                                    prevData[0].day_chart[len(prevData[0].day_chart) - 1]["clicks"]) / \
-                                                                               prevData[0].day_chart[len(prevData[0].day_chart) - 1]["imp"]
-
-                            prevData[0].day_chart[len(prevData[0].day_chart) - 1]["cpc"] = 0 if (
-                                prevData[0].chart[len(prevData[0].day_chart) - 1]["clicks"] == 0) else (
-                                prevData[0].day_chart[len(prevData[0].day_chart) - 1]["spend"] / prevData[0].chart[len(prevData[0].day_chart) - 1]["clicks"])
-                            # cut and extend
-                            prevData[0].day_chart.extend(queryRes.id[1:])
+                                prevData[0].day_chart.extend(queryRes.id)
                         else:
                             prevData[0].day_chart.extend(queryRes.id)
                 else:
@@ -1056,17 +1065,20 @@ def fillUIGridDataCron():
                         finish_date=datetime.now().replace(minute=0, second=0, microsecond=0)
                     )
                     if queryRes is not None:
-                        if prevData[0].day_chart[len(prevData[0].day_chart) - 1]["day"] == queryRes.id[0]["day"]:
-                            prevData[0].day_chart[len(prevData[0].day_chart) - 1]["impression"] += queryRes.id[0]["impression"]
-                            prevData[0].day_chart[len(prevData[0].day_chart) - 1]["mediaspent"] += queryRes.id[0]["mediaspent"]
-                            prevData[0].day_chart[len(prevData[0].day_chart) - 1]["clicks"] += queryRes.id[0]["clicks"]
-                            prevData[0].day_chart[len(prevData[0].day_chart) - 1]["conversions"] += queryRes.id[0]["conversions"]
+                        if prevData[0].day_chart:
+                            if prevData[0].day_chart[len(prevData[0].day_chart) - 1]["day"] == queryRes.id[0]["day"]:
+                                prevData[0].day_chart[len(prevData[0].day_chart) - 1]["impression"] += queryRes.id[0]["impression"]
+                                prevData[0].day_chart[len(prevData[0].day_chart) - 1]["mediaspent"] += queryRes.id[0]["mediaspent"]
+                                prevData[0].day_chart[len(prevData[0].day_chart) - 1]["clicks"] += queryRes.id[0]["clicks"]
+                                prevData[0].day_chart[len(prevData[0].day_chart) - 1]["conversions"] += queryRes.id[0]["conversions"]
 
-                            prevData[0].day_chart[len(prevData[0].day_chart) - 1]["cpa"] = 0 if prevData[0].day_chart[len(prevData[0].day_chart) - 1]["conversions"] == 0 else(prevData[0].day_chart[len(prevData[0].day_chart) - 1]["mediaspent"] / prevData[0].day_chart[len(prevData[0].day_chart) - 1]["conversions"])
-                            prevData[0].day_chart[len(prevData[0].day_chart) - 1]["cpc"] = 0 if prevData[0].day_chart[len(prevData[0].day_chart) - 1]["clicks"] == 0 else(prevData[0].day_chart[len(prevData[0].day_chart) - 1]["mediaspent"] / prevData[0].day_chart[len(prevData[0].day_chart) - 1]["clicks"])
-                            prevData[0].day_chart[len(prevData[0].day_chart) - 1]["ctr"] = 0 if prevData[0].day_chart[len(prevData[0].day_chart) - 1]["imp"] == 0 else(prevData[0].day_chart[len(prevData[0].day_chart) - 1]["clicks"] / prevData[0].day_chart[len(prevData[0].day_chart) - 1]["impression"])
+                                prevData[0].day_chart[len(prevData[0].day_chart) - 1]["cpa"] = 0 if prevData[0].day_chart[len(prevData[0].day_chart) - 1]["conversions"] == 0 else(prevData[0].day_chart[len(prevData[0].day_chart) - 1]["mediaspent"] / prevData[0].day_chart[len(prevData[0].day_chart) - 1]["conversions"])
+                                prevData[0].day_chart[len(prevData[0].day_chart) - 1]["cpc"] = 0 if prevData[0].day_chart[len(prevData[0].day_chart) - 1]["clicks"] == 0 else(prevData[0].day_chart[len(prevData[0].day_chart) - 1]["mediaspent"] / prevData[0].day_chart[len(prevData[0].day_chart) - 1]["clicks"])
+                                prevData[0].day_chart[len(prevData[0].day_chart) - 1]["ctr"] = 0 if prevData[0].day_chart[len(prevData[0].day_chart) - 1]["imp"] == 0 else(prevData[0].day_chart[len(prevData[0].day_chart) - 1]["clicks"] / prevData[0].day_chart[len(prevData[0].day_chart) - 1]["impression"])
 
-                            prevData[0].day_chart.extend(queryRes.id[1:])
+                                prevData[0].day_chart.extend(queryRes.id[1:])
+                            else:
+                                prevData[0].day_chart.extend(queryRes.id)
                         else:
                             prevData[0].day_chart.extend(queryRes.id)
 
@@ -1124,28 +1136,31 @@ def fillUIGridDataCron():
                             if len(queryRes.id) >= (info[1] + 1):
                                 prevData[0].day_chart = queryRes.id[-(info[1] + 1):]
                             else:
-                                # if old data don't fill time period
-                                if queryRes.id[0]["day"] == prevData[0].day_chart[len(prevData[0].day_chart) - 1]["day"]:
-                                    prevData[0].day_chart[len(prevData[0].day_chart) - 1]["impression"] += queryRes.id[0][
-                                        "impression"]
-                                    prevData[0].day_chart[len(prevData[0].day_chart) - 1]["mediaspent"] += queryRes.id[0][
-                                        "mediaspent"]
-                                    prevData[0].day_chart[len(prevData[0].day_chart) - 1]["clicks"] += queryRes.id[0][
-                                        "clicks"]
-                                    prevData[0].day_chart[len(prevData[0].day_chart) - 1]["conversions"] += queryRes.id[0]["conversions"]
+                                if prevData[0].day_chart:
+                                    # if old data don't fill time period
+                                    if queryRes.id[0]["day"] == prevData[0].day_chart[len(prevData[0].day_chart) - 1]["day"]:
+                                        prevData[0].day_chart[len(prevData[0].day_chart) - 1]["impression"] += queryRes.id[0][
+                                            "impression"]
+                                        prevData[0].day_chart[len(prevData[0].day_chart) - 1]["mediaspent"] += queryRes.id[0][
+                                            "mediaspent"]
+                                        prevData[0].day_chart[len(prevData[0].day_chart) - 1]["clicks"] += queryRes.id[0][
+                                            "clicks"]
+                                        prevData[0].day_chart[len(prevData[0].day_chart) - 1]["conversions"] += queryRes.id[0]["conversions"]
 
-                                    prevData[0].day_chart[len(prevData[0].day_chart) - 1]["cpa"] = 0 if prevData[0].day_chart[len(prevData[0].day_chart) - 1]["conversions"] == 0 else(prevData[0].day_chart[len(prevData[0].day_chart) - 1]["mediaspent"] / prevData[0].day_chart[len(prevData[0].day_chart) - 1]["conversions"])
-                                    prevData[0].day_chart[len(prevData[0].day_chart) - 1]["cpc"] = 0 if prevData[0].day_chart[len(prevData[0].day_chart) - 1]["clicks"] == 0 else(prevData[0].day_chart[len(prevData[0].day_chart) - 1]["mediaspent"] / prevData[0].day_chart[len(prevData[0].day_chart) - 1]["clicks"])
-                                    prevData[0].day_chart[len(prevData[0].day_chart) - 1]["ctr"] = 0 if prevData[0].day_chart[len(prevData[0].day_chart) - 1]["impression"] == 0 else(prevData[0].day_chart[len(prevData[0].day_chart) - 1]["clicks"] / prevData[0].day_chart[len(prevData[0].day_chart) - 1]["impression"])
+                                        prevData[0].day_chart[len(prevData[0].day_chart) - 1]["cpa"] = 0 if prevData[0].day_chart[len(prevData[0].day_chart) - 1]["conversions"] == 0 else(prevData[0].day_chart[len(prevData[0].day_chart) - 1]["mediaspent"] / prevData[0].day_chart[len(prevData[0].day_chart) - 1]["conversions"])
+                                        prevData[0].day_chart[len(prevData[0].day_chart) - 1]["cpc"] = 0 if prevData[0].day_chart[len(prevData[0].day_chart) - 1]["clicks"] == 0 else(prevData[0].day_chart[len(prevData[0].day_chart) - 1]["mediaspent"] / prevData[0].day_chart[len(prevData[0].day_chart) - 1]["clicks"])
+                                        prevData[0].day_chart[len(prevData[0].day_chart) - 1]["ctr"] = 0 if prevData[0].day_chart[len(prevData[0].day_chart) - 1]["impression"] == 0 else(prevData[0].day_chart[len(prevData[0].day_chart) - 1]["clicks"] / prevData[0].day_chart[len(prevData[0].day_chart) - 1]["impression"])
 
-                                    # cut and extend
-                                    if (len(prevData[0].day_chart) + len(queryRes.id) - info[1] - 2) > 0:
-                                        prevData[0].day_chart = prevData[0].day_chart[(len(prevData[0].day_chart) + len(queryRes.id) - info - 2):]
-                                    prevData[0].day_chart.extend(queryRes.id[1:])
+                                        # cut and extend
+                                        if (len(prevData[0].day_chart) + len(queryRes.id) - info[1] - 2) > 0:
+                                            prevData[0].day_chart = prevData[0].day_chart[(len(prevData[0].day_chart) + len(queryRes.id) - info - 2):]
+                                        prevData[0].day_chart.extend(queryRes.id[1:])
+                                    else:
+                                        if (len(prevData[0].day_chart) + len(queryRes.id) - info[1] - 1) > 0:
+                                            prevData[0].day_chart = prevData[0].day_chart[(
+                                            len(prevData[0].day_chart) + len(queryRes.id) - info[1] - 1):]
+                                        prevData[0].day_chart.extend(queryRes.id)
                                 else:
-                                    if (len(prevData[0].day_chart) + len(queryRes.id) - info[1] - 1) > 0:
-                                        prevData[0].day_chart = prevData[0].day_chart[(
-                                        len(prevData[0].day_chart) + len(queryRes.id) - info[1] - 1):]
                                     prevData[0].day_chart.extend(queryRes.id)
 
                             prevData[0].evaluation_date = timezone.make_aware(
@@ -1253,22 +1268,25 @@ def fillUIGridDataCron():
                             prevData[0].evaluation_date = datetime.now().replace(minute=0, second=0, microsecond=0)
 
                             # chart
-                            # if old data don't fill time period
-                            if queryRes.id[0]["day"] == prevData[0].day_chart[len(prevData[0].day_chart) - 1]:
-                                prevData[0].day_chart[len(prevData[0].day_chart) - 1]["impression"] += queryRes.id[0]["impression"]
-                                prevData[0].day_chart[len(prevData[0].day_chart) - 1]["mediaspent"] += queryRes.id[0][
-                                    "mediaspent"]
-                                prevData[0].day_chart[len(prevData[0].day_chart) - 1]["clicks"] += queryRes.id[0][
-                                    "clicks"]
-                                prevData[0].day_chart[len(prevData[0].day_chart) - 1]["conversions"] += queryRes.id[0][
-                                    "conversions"]
+                            if prevData[0].day_chart:
+                                # if old data don't fill time period
+                                if queryRes.id[0]["day"] == prevData[0].day_chart[len(prevData[0].day_chart) - 1]:
+                                    prevData[0].day_chart[len(prevData[0].day_chart) - 1]["impression"] += queryRes.id[0]["impression"]
+                                    prevData[0].day_chart[len(prevData[0].day_chart) - 1]["mediaspent"] += queryRes.id[0][
+                                        "mediaspent"]
+                                    prevData[0].day_chart[len(prevData[0].day_chart) - 1]["clicks"] += queryRes.id[0][
+                                        "clicks"]
+                                    prevData[0].day_chart[len(prevData[0].day_chart) - 1]["conversions"] += queryRes.id[0][
+                                        "conversions"]
 
-                                prevData[0].day_chart[len(prevData[0].day_chart) - 1]["cpa"] = 0 if prevData[0].day_chart[len(prevData[0].day_chart) - 1]["conversions"] == 0 else (prevData[0].day_chart[len(prevData[0].day_chart) - 1]["mediaspent"] / prevData[0].day_chart[len(prevData[0].day_chart) - 1]["conversions"])
-                                prevData[0].day_chart[len(prevData[0].day_chart) - 1]["cpc"] = 0 if prevData[0].day_chart[len(prevData[0].day_chart) - 1]["clicks"] == 0 else (prevData[0].day_chart[len(prevData[0].day_chart) - 1]["mediaspent"] / prevData[0].day_chart[len(prevData[0].day_chart) - 1]["clicks"])
-                                prevData[0].day_chart[len(prevData[0].day_chart) - 1]["ctr"] = 0 if prevData[0].day_chart[len(prevData[0].day_chart) - 1]["impression"] == 0 else (prevData[0].day_chart[len(prevData[0].day_chart) - 1]["clicks"] / prevData[0].day_chart[len(prevData[0].day_chart) - 1]["impression"])
+                                    prevData[0].day_chart[len(prevData[0].day_chart) - 1]["cpa"] = 0 if prevData[0].day_chart[len(prevData[0].day_chart) - 1]["conversions"] == 0 else (prevData[0].day_chart[len(prevData[0].day_chart) - 1]["mediaspent"] / prevData[0].day_chart[len(prevData[0].day_chart) - 1]["conversions"])
+                                    prevData[0].day_chart[len(prevData[0].day_chart) - 1]["cpc"] = 0 if prevData[0].day_chart[len(prevData[0].day_chart) - 1]["clicks"] == 0 else (prevData[0].day_chart[len(prevData[0].day_chart) - 1]["mediaspent"] / prevData[0].day_chart[len(prevData[0].day_chart) - 1]["clicks"])
+                                    prevData[0].day_chart[len(prevData[0].day_chart) - 1]["ctr"] = 0 if prevData[0].day_chart[len(prevData[0].day_chart) - 1]["impression"] == 0 else (prevData[0].day_chart[len(prevData[0].day_chart) - 1]["clicks"] / prevData[0].day_chart[len(prevData[0].day_chart) - 1]["impression"])
 
-                                # cut and extend
-                                prevData[0].day_chart.extend(queryRes.id[1:])
+                                    # cut and extend
+                                    prevData[0].day_chart.extend(queryRes.id[1:])
+                                else:
+                                    prevData[0].day_chart.extend(queryRes.id)
                             else:
                                 prevData[0].day_chart.extend(queryRes.id)
                     else:

@@ -245,6 +245,7 @@ select
         return None
 
 def fillUIGridDataCron():
+    print "fillUIGridDataCron started"
     LastModified.objects.filter(type='hourlyTask') \
         .update(date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
     modelsDict = {}
@@ -562,8 +563,16 @@ def fillUIGridDataCron():
                         finish_date=datetime.now().replace(minute=0, second=0, microsecond=0),
                     )
                     if queryRes is not None:
-                        prevData[0].evaluation_date = datetime.now().replace(minute=0, second=0, microsecond=0)
-                        prevData[0].window_start_date = datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+                        prevData[0].evaluation_date = timezone.make_aware(
+                            datetime.now().replace(minute=0, second=0, microsecond=0),
+                            timezone.get_default_timezone()
+                        )
+
+                        prevData[0].window_start_date = timezone.make_aware(
+                            datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0),
+                            timezone.get_default_timezone()
+                        )
+
                         prevData[0].day_chart = queryRes.id
                 try:
                     prevData[0].save()
@@ -757,11 +766,17 @@ def fillUIGridDataCron():
                                 prevData[0].cpc = 0 if prevData[0].clicks == 0 else (float(prevData[0].spent) / prevData[0].clicks)
                                 prevData[0].view_rate = 0 if prevData[0].view_measured_imps == 0 else (
                                 float(prevData[0].imps_viewed) / prevData[0].view_measured_imps)
-                                prevData[0].evaluation_date = datetime.now().replace(minute=0, second=0, microsecond=0)
-                                prevData[0].window_start_date = (datetime.now() - timedelta(days=info[1])).replace(hour=0,
-                                                                                                           minute=0,
-                                                                                                           second=0,
-                                                                                                           microsecond=0)
+
+                                prevData[0].evaluation_date = timezone.make_aware(
+                                    datetime.now().replace(minute=0, second=0, microsecond=0),
+                                    timezone.get_default_timezone()
+                                )
+
+                                prevData[0].window_start_date = timezone.make_aware(
+                                    (datetime.now() - timedelta(days=info[1])).replace(hour=0, minute=0, second=0, microsecond=0),
+                                    timezone.get_default_timezone()
+                                )
+
                                 try:
                                     prevData[0].save()
                                 except Exception, e:
@@ -782,7 +797,8 @@ def fillUIGridDataCron():
                                                                                                second=0, microsecond=0),
                         finish_date=datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0),
                         campaign_id=camp.id,
-                        place_id=placement["placement_id"]
+                        place_id=placement["placement_id"],
+                        new_one=True
                     )
                     if queryRes is not None:
                         newPlacements["last_month"][0].append(UIUsualPlacementsGridDataLastMonth(
@@ -846,11 +862,17 @@ def fillUIGridDataCron():
                             prevData[0].cpc = 0 if prevData[0].clicks == 0 else (float(prevData[0].spent) / prevData[0].clicks)
                             prevData[0].view_rate = 0 if prevData[0].view_measured_imps == 0 else (
                             float(prevData[0].imps_viewed) / prevData[0].view_measured_imps)
-                            prevData[0].evaluation_date = datetime.now().replace(minute=0, second=0, microsecond=0)
-                            prevData[0].window_start_date = (datetime.now().replace(day=1) - timedelta(days=1)).replace(day=1, hour=0,
-                                                                                                                minute=0,
-                                                                                                                second=0,
-                                                                                                                microsecond=0)
+
+                            prevData[0].evaluation_date = timezone.make_aware(
+                                datetime.now().replace(minute=0, second=0, microsecond=0),
+                                timezone.get_default_timezone()
+                            )
+
+                            prevData[0].window_start_date = timezone.make_aware(
+                                (datetime.now().replace(day=1) - timedelta(days=1)).replace(day=1, hour=0, minute=0, second=0, microsecond=0),
+                                timezone.get_default_timezone()
+                            )
+
                             try:
                                 prevData[0].save()
                             except Exception, e:
@@ -934,7 +956,11 @@ def fillUIGridDataCron():
                                 prevData[0].cpc = 0 if prevData[0].clicks == 0 else (float(prevData[0].spent) / prevData[0].clicks)
                                 prevData[0].view_rate = 0 if prevData[0].view_measured_imps == 0 else (
                                 float(prevData[0].imps_viewed) / prevData[0].view_measured_imps)
-                                prevData[0].evaluation_date = datetime.now().replace(minute=0, second=0, microsecond=0)
+
+                                prevData[0].evaluation_date = timezone.make_aware(
+                                    datetime.now().replace(minute=0, second=0, microsecond=0),
+                                    timezone.get_default_timezone()
+                                )
 
                                 try:
                                     prevData[0].save()
@@ -971,9 +997,17 @@ def fillUIGridDataCron():
                                 prevData[0].cpc = 0 if prevData[0].clicks == 0 else (float(prevData[0].spent) / prevData[0].clicks)
                                 prevData[0].view_rate = 0 if prevData[0].view_measured_imps == 0 else (
                                 float(prevData[0].imps_viewed) / prevData[0].view_measured_imps)
-                                prevData[0].evaluation_date = datetime.now().replace(minute=0, second=0, microsecond=0)
-                                prevData[0].window_start_date = datetime.now().replace(day=1, hour=0, minute=0, second=0,
-                                                                               microsecond=0)
+
+                                prevData[0].evaluation_date = timezone.make_aware(
+                                    datetime.now().replace(minute=0, second=0, microsecond=0),
+                                    timezone.get_default_timezone()
+                                )
+
+                                prevData[0].window_start_date = timezone.make_aware(
+                                    datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0),
+                                    timezone.get_default_timezone()
+                                )
+
                                 try:
                                     prevData[0].save()
                                 except Exception, e:
@@ -1245,8 +1279,16 @@ def fillUIGridDataCron():
                             finish_date=datetime.now().replace(minute=0, second=0, microsecond=0)
                         )
                         if queryRes is not None:
-                            prevData[0].evaluation_date = datetime.now().replace(minute=0, second=0, microsecond=0)
-                            prevData[0].window_start_date = datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+                            prevData[0].evaluation_date = timezone.make_aware(
+                                datetime.now().replace(minute=0, second=0, microsecond=0),
+                                timezone.get_default_timezone()
+                            )
+
+                            prevData[0].window_start_date = timezone.make_aware(
+                                datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0),
+                                timezone.get_default_timezone()
+                            )
+
                             prevData[0].day_chart = queryRes.id
                     try:
                         prevData[0].save()
@@ -1260,7 +1302,7 @@ def fillUIGridDataCron():
         LastModified.objects.filter(type='hourlyTask').update(date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
         if info[0]:
             info[1].objects.bulk_create(info[0])
-
+    print "New placements created"
     LastModified.objects.filter(type='hourlyTask').update(date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
     if allNewAdvertiserts:
         try:
@@ -1268,13 +1310,14 @@ def fillUIGridDataCron():
         except Exception, e:
             print "Can not save new advertiser's graph. Error: " + str(e)
     LastModified.objects.filter(type='hourlyTask').update(date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
-
+    print "New advertisers graphs saved"
     if allNewCampaigns:
         try:
             UIUsualPlacementsGraph.objects.bulk_create(allNewCampaigns)
         except Exception, e:
             print "Can not save new campaign's graph. Error: " + str(e)
     LastModified.objects.filter(type='hourlyTask').update(date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
+    print "New campaigns graphs saved"
     #
     # all usual
     #
@@ -1827,3 +1870,4 @@ select array_to_string(
             UIUsualCampaignsGridDataCurMonth.objects.bulk_create(allNewCampaigns)
         except Exception, e:
             print "Can not save campaigns current month data. Error: " + str(e)
+    print "fillUIGridDataCron finished"

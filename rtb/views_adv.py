@@ -350,7 +350,7 @@ select
   calc_place_info.view_measurement_rate * 100.0 as view_measurement_rate,
   calc_place_info.view_rate * 100.0 as view_rate
 from
-  ui_usual_placements_grid_data_""" + str(type) + """ calc_place_info
+  ui_usual_placements_grid_data_""" + str(request.GET.get("type")) + """ calc_place_info
   left join placement
   on placement.id=calc_place_info.placement_id
   left join (select distinct placement_id, publisher_name, seller_member_name from network_analytics_report_by_placement where campaign_id = """ + str(id) +""") report
@@ -426,7 +426,7 @@ from
   calc_place_info.view_measurement_rate * 100.0 as view_measurement_rate,
   calc_place_info.view_rate * 100.0 as view_rate
 from
-  ui_usual_placements_grid_data_""" + str(type) + """ calc_place_info
+  ui_usual_placements_grid_data_""" + str(request.GET.get("type")) + """ calc_place_info
   left join placement
   on placement.id=calc_place_info.placement_id
   left join (select distinct placement_id, publisher_name, seller_member_name from network_analytics_report_by_placement where campaign_id = """ + str(id) + """) report

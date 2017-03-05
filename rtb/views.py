@@ -175,9 +175,7 @@ Get campaigns data for given period
                                        ' ' + filt +
                                         ' ' + order +" LIMIT " + str(params["take"]) + " OFFSET " + str(params["skip"]) + ';')
         allCampaignsInfo["campaigns"] = []
-        allCampaignsInfo["totalCount"] = len(Campaign.objects.filter(
-            advertiser_id=request.GET.get("advertiser_id")
-        ))
+
         for row in queryRes:
             allCampaignsInfo["campaigns"].append({
                 "id": row.main_id,
@@ -196,7 +194,17 @@ Get campaigns data for given period
                 "view_rate": 0 if row.view_rate is None else row.view_rate*100,
                 "chart": row.day_chart
             })
-
+        queryRes = Campaign.objects.raw("""
+            select
+              count(1) id
+            from
+              campaign
+              left join ui_usual_campaigns_grid_data_""" + str(request.GET.get("type")) + """ camp_info
+              on campaign.id=camp_info.campaign_id
+            where
+              advertiser_id=""" + str(request.GET.get("advertiser_id")) +
+                                        ' ' + filt + ';')
+        allCampaignsInfo["totalCount"] = queryRes[0].id
         return Response(allCampaignsInfo)
     except Exception, e:
         print "Can not get data for " + str(request.GET.get("advertiser_id")) + " advertiser. Error: " + str(e)
@@ -255,7 +263,7 @@ def getUsualFilterQueryString(incFilters, incSort, incOrder):
                     filt[2] += (" OR " + vocabulary[filt[0]] + " IS NULL")
                 if filt[1] == "<>":
                     if filt[2] == '0':
-                        filt[2] += (" OR " + vocabulary[filt[0]] + " IS NOT NULL")
+                        filt[2] += (" AND " + vocabulary[filt[0]] + " IS NOT NULL")
                     else:
                         filt[2] += (" OR " + vocabulary[filt[0]] + " IS NULL")
 
@@ -273,7 +281,7 @@ def getUsualFilterQueryString(incFilters, incSort, incOrder):
             temp = temp + " OR " + str(vocabulary[separatedFilters[0][0]]) + " IS NULL"
         if separatedFilters[0][1] == "<>":
             if separatedFilters[0][2] == '0':
-                temp += (" OR " + vocabulary[separatedFilters[0][0]] + " IS NOT NULL")
+                temp += (" AND " + vocabulary[separatedFilters[0][0]] + " IS NOT NULL")
             else:
                 temp += (" OR " + vocabulary[separatedFilters[0][0]] + " IS NULL")
         ansWhere = ansWhere + vocabulary[separatedFilters[0][0]] + separatedFilters[0][1] + temp

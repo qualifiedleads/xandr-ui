@@ -259,8 +259,6 @@ class UIUsualPlacementsGridDataYesterday(models.Model):
     id = models.AutoField(primary_key=True)
     campaign = models.ForeignKey("Campaign", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING)
     placement = models.ForeignKey("Placement", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING)
-    evaluation_date = models.DateTimeField(db_index=True)
-    window_start_date = models.DateTimeField(db_index=True)
     # simple grid data
     spent = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
     conversions = models.IntegerField(null=True)
@@ -284,8 +282,6 @@ class UIUsualPlacementsGridDataLast3Days(models.Model):
     id = models.AutoField(primary_key=True)
     campaign = models.ForeignKey("Campaign", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING)
     placement = models.ForeignKey("Placement", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING)
-    evaluation_date = models.DateTimeField(db_index=True)
-    window_start_date = models.DateTimeField(db_index=True)
     # simple grid data
     spent = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
     conversions = models.IntegerField(null=True)
@@ -309,8 +305,6 @@ class UIUsualPlacementsGridDataLast7Days(models.Model):
     id = models.AutoField(primary_key=True)
     campaign = models.ForeignKey("Campaign", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING)
     placement = models.ForeignKey("Placement", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING)
-    evaluation_date = models.DateTimeField(db_index=True)
-    window_start_date = models.DateTimeField(db_index=True)
     # simple grid data
     spent = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
     conversions = models.IntegerField(null=True)
@@ -334,8 +328,6 @@ class UIUsualPlacementsGridDataLast14Days(models.Model):
     id = models.AutoField(primary_key=True)
     campaign = models.ForeignKey("Campaign", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING)
     placement = models.ForeignKey("Placement", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING,)
-    evaluation_date = models.DateTimeField(db_index=True)
-    window_start_date = models.DateTimeField(db_index=True)
     # simple grid data
     spent = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
     conversions = models.IntegerField(null=True)
@@ -360,8 +352,6 @@ class UIUsualPlacementsGridDataLast21Days(models.Model):
     id = models.AutoField(primary_key=True)
     campaign = models.ForeignKey("Campaign", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING)
     placement = models.ForeignKey("Placement", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING)
-    evaluation_date = models.DateTimeField(db_index=True)
-    window_start_date = models.DateTimeField(db_index=True)
     # simple grid data
     spent = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
     conversions = models.IntegerField(null=True)
@@ -386,8 +376,6 @@ class UIUsualPlacementsGridDataCurMonth(models.Model):
     id = models.AutoField(primary_key=True)
     campaign = models.ForeignKey("Campaign", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING)
     placement = models.ForeignKey("Placement", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING)
-    evaluation_date = models.DateTimeField(db_index=True)
-    window_start_date = models.DateTimeField(db_index=True)
     # simple grid data
     spent = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
     conversions = models.IntegerField(null=True)
@@ -412,8 +400,6 @@ class UIUsualPlacementsGridDataLastMonth(models.Model):
     id = models.AutoField(primary_key=True)
     campaign = models.ForeignKey("Campaign", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING)
     placement = models.ForeignKey("Placement", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING)
-    evaluation_date = models.DateTimeField(db_index=True)
-    window_start_date = models.DateTimeField(db_index=True)
     # simple grid data
     spent = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
     conversions = models.IntegerField(null=True)
@@ -438,8 +424,6 @@ class UIUsualPlacementsGridDataLast90Days(models.Model):
     id = models.AutoField(primary_key=True)
     campaign = models.ForeignKey("Campaign", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING)
     placement = models.ForeignKey("Placement", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING)
-    evaluation_date = models.DateTimeField(db_index=True)
-    window_start_date = models.DateTimeField(db_index=True)
     # simple grid data
     spent = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
     conversions = models.IntegerField(null=True)
@@ -463,7 +447,6 @@ class UIUsualPlacementsGridDataAll(models.Model):
     id = models.AutoField(primary_key=True)
     campaign = models.ForeignKey("Campaign", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING)
     placement = models.ForeignKey("Placement", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING)
-    evaluation_date = models.DateTimeField(db_index=True)
     # simple grid data
     spent = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
     conversions = models.IntegerField(null=True)

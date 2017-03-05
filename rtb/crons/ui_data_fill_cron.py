@@ -12,7 +12,6 @@ from rtb.models.ui_data_models import \
 
 from rtb.models import SiteDomainPerformanceReport, NetworkAnalyticsReport_ByPlacement, Advertiser, Campaign
 from datetime import timedelta, datetime
-from django.db.models import Sum, When, Case, F, Q, FloatField
 from django.db import connection
 from django.utils import timezone
 from rtb.models.placement_state import LastModified
@@ -156,63 +155,6 @@ def getUsualAdvertiserGraphData(start_date, finish_date, advertiser_id, new_one=
     except:
         return None
 
-def getNetworkAnalyticsPlacementInfo(start_date, finish_date, campaign_id, place_id, new_one=False):
-    if new_one:
-        queryRes = NetworkAnalyticsReport_ByPlacement.objects.raw("""
-        select
-          placement_id as id,
-          sum(imps) imp,
-          sum(clicks) clicks,
-          sum("cost") spend,
-          sum(total_convs) conversions,
-          sum(imps_viewed) imps_viewed,
-          sum(view_measured_imps) view_measured_imps,
-          case sum(imps) when 0 then 0 else sum("cost") / sum(imps) * 1000.0 end cpm,
-          case sum(imps) when 0 then 0 else sum(total_convs)::float / sum(imps) end cvr,
-          case sum(imps) when 0 then 0 else sum(clicks)::float / sum(imps) end ctr,
-          case sum(clicks) when 0 then 0 else sum("cost") / sum(clicks) end cpc,
-          case sum(total_convs) when 0 then 0 else sum("cost") / sum(total_convs) end cpa,
-          case sum(imps) when 0 then 0 else sum(view_measured_imps)::float / sum(imps) end view_measurement_rate,
-          case sum(view_measured_imps) when 0 then 0 else sum(imps_viewed)::float / sum(view_measured_imps) end view_rate
-        from
-          network_analytics_report_by_placement
-        where
-          placement_id = """ + str(place_id) + """
-        and
-          campaign_id = """ + str(campaign_id) + """
-        and
-          "hour" >= '""" + str(start_date) + """'
-        and
-          "hour" < '""" + str(finish_date) + """'
-        group by placement_id;
-                """)
-    else:
-        queryRes = NetworkAnalyticsReport_ByPlacement.objects.raw("""
-    select
-      placement_id as id,
-      sum(imps) imp,
-      sum(clicks) clicks,
-      sum("cost") spend,
-      sum(total_convs) conversions,
-      sum(imps_viewed) imps_viewed,
-      sum(view_measured_imps) view_measured_imps
-    from
-      network_analytics_report_by_placement
-    where
-      placement_id = """ + str(place_id) + """
-    and
-      campaign_id = """ + str(campaign_id) + """
-    and
-      "hour" >= '""" + str(start_date) + """'
-    and
-      "hour" < '""" + str(finish_date) + """'
-    group by placement_id;
-            """)
-    try:
-        return queryRes[0]
-    except:
-        return None
-
 def getUsualCampaignGraphData(start_date, finish_date, campaign_id):
     queryRes = NetworkAnalyticsReport_ByPlacement.objects.raw("""
 select
@@ -255,18 +197,6 @@ def fillUIGridDataCron():
     modelsDict["last_14_days"] = [UIUsualPlacementsGridDataLast14Days, 14]
     modelsDict["last_21_days"] = [UIUsualPlacementsGridDataLast21Days, 21]
     modelsDict["last_90_days"] = [UIUsualPlacementsGridDataLast90Days, 90]
-
-    newPlacements = {
-        "all_time": [[], UIUsualPlacementsGridDataAll],
-        "yesterday": [[], UIUsualPlacementsGridDataYesterday],
-        "last_3_days": [[], UIUsualPlacementsGridDataLast3Days],
-        "last_7_days": [[], UIUsualPlacementsGridDataLast7Days],
-        "last_14_days": [[], UIUsualPlacementsGridDataLast14Days],
-        "last_21_days": [[], UIUsualPlacementsGridDataLast21Days],
-        "last_90_days": [[], UIUsualPlacementsGridDataLast90Days],
-        "last_month": [[], UIUsualPlacementsGridDataLastMonth],
-        "cur_month": [[], UIUsualPlacementsGridDataCurMonth]
-    }
 
     allAdvertisers = Advertiser.objects.filter(
         ad_type="usualAds",
@@ -587,442 +517,9 @@ def fillUIGridDataCron():
                     prevData[0].save()
                 except Exception, e:
                     print "Can not update " + str(prevData[0].advertiser_id) + " advertiser current month data. Error: " + str(e)
-        #
-        # all usual placements
-        #
 
         advertiserCampaigns = Campaign.objects.filter(advertiser_id=adv.id)
         for camp in advertiserCampaigns.iterator():
-            allCampaignPlacements = NetworkAnalyticsReport_ByPlacement.objects.filter(
-                campaign_id=camp.id
-            ).values(
-                'placement_id'
-            ).distinct()
-            for placement in allCampaignPlacements:
-                LastModified.objects.filter(type='hourlyTask').update(date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
-                #
-                # ALL TIME
-                #
-                prevData = UIUsualPlacementsGridDataAll.objects.filter(
-                    campaign_id=camp.id,
-                    placement_id=placement["placement_id"]
-                )
-                # creating
-                if len(prevData) == 0:
-                    queryRes = getNetworkAnalyticsPlacementInfo(
-                        start_date="1970-01-01 00:00:00",
-                        finish_date=datetime.now().replace(hour=0, minute=0, second=0, microsecond=0),
-                        place_id=placement["placement_id"],
-                        campaign_id=camp.id,
-                        new_one=True
-                    )
-                    if queryRes is not None:
-                        newPlacements["all_time"][0].append(UIUsualPlacementsGridDataAll(
-                            campaign_id=camp.id,
-                            placement_id=queryRes.id,
-                            evaluation_date=timezone.make_aware(
-                                datetime.now().replace(hour=0, minute=0, second=0, microsecond=0),
-                                timezone.get_default_timezone()
-                            ),
-                            spent=queryRes.spend,
-                            conversions=queryRes.conversions,
-                            imps=queryRes.imp,
-                            clicks=queryRes.clicks,
-                            cpc=queryRes.cpc,
-                            cpm=queryRes.cpm,
-                            cvr=queryRes.cvr,
-                            ctr=queryRes.ctr,
-                            cpa=queryRes.cpa,
-                            imps_viewed=queryRes.imps_viewed,
-                            view_measured_imps=queryRes.view_measured_imps,
-                            view_measurement_rate=queryRes.view_measurement_rate,
-                            view_rate=queryRes.view_rate
-                        ))
-                # updating all days data
-                else:
-                    # check if less than an hour had pass
-                    if (datetime.now() - prevData[0].evaluation_date) >= timedelta(hours=1):
-                        queryRes = getNetworkAnalyticsPlacementInfo(
-                            start_date=prevData[0].evaluation_date,
-                            finish_date=datetime.now().replace(minute=0, second=0, microsecond=0),
-                            place_id=prevData[0].placement_id,
-                            campaign_id=camp.id
-                        )
-                        if queryRes is not None:
-                            # cummulative data
-                            prevData[0].imps += 0 if queryRes[0].imp is None else queryRes[0].imp
-                            prevData[0].conversions += 0 if queryRes[0].conversions is None else queryRes[0].conversions
-                            prevData[0].spent += 0 if queryRes[0].spend is None else queryRes[0].spend
-                            prevData[0].clicks += 0 if queryRes[0].clicks is None else queryRes[0].clicks
-                            prevData[0].imps_viewed += 0 if queryRes[0].imps_viewed is None else queryRes[0].imps_viewed
-                            prevData[0].view_measured_imps += 0 if queryRes[0].view_measured_imps is None else queryRes[
-                                0].view_measured_imps
-                            # calculated rates
-                            if prevData[0].imps == 0:
-                                prevData[0].cpm = 0
-                                prevData[0].cvr = 0
-                                prevData[0].ctr = 0
-                                prevData[0].view_measurement_rate = 0
-                            else:
-                                prevData[0].cpm = float(prevData[0].spent) / prevData[0].imps * 1000.0
-                                prevData[0].cvr = float(prevData[0].conversions) / prevData[0].imps
-                                prevData[0].ctr = float(prevData[0].clicks) / prevData[0].imps
-                                prevData[0].view_measurement_rate = float(prevData[0].view_measured_imps) / prevData[0].imps
-                            prevData[0].cpc = 0 if prevData[0].clicks == 0 else (float(prevData[0].spent) / prevData[0].clicks)
-                            prevData[0].cpa = 0 if prevData[0].conversions == 0 else (float(prevData[0].spent) / prevData[0].conversions)
-                            prevData[0].view_rate = 0 if prevData[0].view_measured_imps == 0 else (
-                            float(prevData[0].imps_viewed) / prevData[0].view_measured_imps)
-
-                            prevData[0].evaluation_date = datetime.now().replace(minute=0, second=0, microsecond=0)
-                            try:
-                                prevData[0].save()
-                            except Exception, e:
-                                print "Can not update " + str(prevData[0].placement_id) + " placement all time data. Error: " + str(e)
-                #
-                # LAST N DAYS
-                #
-                for type, info in modelsDict.iteritems():
-                    LastModified.objects.filter(type='hourlyTask').update(date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
-                    prevData = info[0].objects.filter(
-                        campaign_id=camp.id,
-                        placement_id=placement["placement_id"]
-                    )
-                    # creating
-                    if len(prevData) == 0:
-                        queryRes = getNetworkAnalyticsPlacementInfo(
-                            start_date=(datetime.now() - timedelta(days=info[1])).replace(hour=0, minute=0, second=0,
-                                                                                          microsecond=0),
-                            finish_date=datetime.now().replace(hour=0, minute=0, second=0, microsecond=0),
-                            place_id=placement["placement_id"],
-                            campaign_id=camp.id,
-                            new_one=True
-                        )
-
-                        if queryRes is not None:
-                            newPlacements[type][0].append(info[0](
-                                campaign_id=camp.id,
-                                placement_id=queryRes.id,
-                                window_start_date=timezone.make_aware(
-                                    (datetime.now() - timedelta(days=info[1])).replace(hour=0, minute=0, second=0, microsecond=0),
-                                    timezone.get_default_timezone()
-                                ),
-                                evaluation_date=timezone.make_aware(
-                                    datetime.now().replace(hour=0, minute=0, second=0, microsecond=0),
-                                    timezone.get_default_timezone()
-                                ),
-                                spent=queryRes.spend,
-                                conversions=queryRes.conversions,
-                                imps=queryRes.imp,
-                                clicks=queryRes.clicks,
-                                cpc=queryRes.cpc,
-                                cpm=queryRes.cpm,
-                                cvr=queryRes.cvr,
-                                ctr=queryRes.ctr,
-                                cpa=queryRes.cpa,
-                                imps_viewed=queryRes.imps_viewed,
-                                view_measured_imps=queryRes.view_measured_imps,
-                                view_measurement_rate=queryRes.view_measurement_rate,
-                                view_rate=queryRes.view_rate
-                            ))
-                    # updating
-                    else:
-                        if (datetime.now() - prevData[0].evaluation_date) >= timedelta(hours=1):
-                            queryRes = getNetworkAnalyticsPlacementInfo(
-                                start_date=prevData[0].evaluation_date,
-                                finish_date=datetime.now().replace(minute=0, second=0, microsecond=0),
-                                place_id=prevData[0].placement_id,
-                                campaign_id=camp.id
-                            )
-                            if queryRes is not None:
-                                # cummulative data
-                                prevData[0].imps += queryRes[0].imp
-                                prevData[0].conversions += queryRes[0].conversions
-                                prevData[0].spent += queryRes[0].spend
-                                prevData[0].clicks += queryRes[0].clicks
-                                prevData[0].imps_viewed += queryRes[0].imps_viewed
-                                prevData[0].view_measured_imps += queryRes[0].view_measured_imps
-                                # check if need to sub days
-                                if (datetime.now() - prevData[0].window_start_date) >= timedelta(days=info[1] + 1):
-                                    # data for sub
-                                    queryRes = getNetworkAnalyticsPlacementInfo(
-                                        start_date=prevData[0].window_start_date,
-                                        finish_date=(datetime.now() - timedelta(days=info[1])).replace(hour=0, minute=0,
-                                                                                                       second=0,
-                                                                                                       microsecond=0),
-                                        place_id=prevData[0].placement_id
-                                    )
-                                    LastModified.objects.filter(type='hourlyTask').update(date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
-                                    if queryRes is not None:
-                                        # cummulative data
-                                        prevData[0].imps -= queryRes.imp
-                                        prevData[0].conversions -= queryRes.conversions
-                                        prevData[0].spent -= queryRes.spend
-                                        prevData[0].clicks -= queryRes.clicks
-                                        prevData[0].imps_viewed -= queryRes.imps_viewed
-                                        prevData[0].view_measured_imps -= queryRes.view_measured_imps
-                                # calculated rates
-                                if prevData[0].imps == 0:
-                                    prevData[0].cpm = 0
-                                    prevData[0].cvr = 0
-                                    prevData[0].ctr = 0
-                                    prevData[0].view_measurement_rate = 0
-                                else:
-                                    prevData[0].cpm = float(prevData[0].spent) / prevData[0].imps * 1000.0
-                                    prevData[0].cvr = float(prevData[0].conversions) / prevData[0].imps
-                                    prevData[0].ctr = float(prevData[0].clicks) / prevData[0].imps
-                                    prevData[0].view_measurement_rate = float(prevData[0].view_measured_imps) / prevData[0].imps
-                                prevData[0].cpa = 0 if prevData[0].conversions == 0 else (float(prevData[0].spent) / prevData[0].conversions)
-                                prevData[0].cpc = 0 if prevData[0].clicks == 0 else (float(prevData[0].spent) / prevData[0].clicks)
-                                prevData[0].view_rate = 0 if prevData[0].view_measured_imps == 0 else (
-                                float(prevData[0].imps_viewed) / prevData[0].view_measured_imps)
-
-                                prevData[0].evaluation_date = timezone.make_aware(
-                                    datetime.now().replace(minute=0, second=0, microsecond=0),
-                                    timezone.get_default_timezone()
-                                )
-
-                                prevData[0].window_start_date = timezone.make_aware(
-                                    (datetime.now() - timedelta(days=info[1])).replace(hour=0, minute=0, second=0, microsecond=0),
-                                    timezone.get_default_timezone()
-                                )
-
-                                try:
-                                    prevData[0].save()
-                                except Exception, e:
-                                    print "Can not update " + str(prevData[0].placement_id) + " placement " + str(
-                                        type) + " data. Error: " + str(e)
-                #
-                # LAST MONTH
-                #
-                LastModified.objects.filter(type='hourlyTask').update(date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
-                prevData = UIUsualPlacementsGridDataLastMonth.objects.filter(
-                    campaign_id=camp.id,
-                    placement_id=placement["placement_id"]
-                )
-                # creating
-                if len(prevData) == 0:
-                    queryRes = getNetworkAnalyticsPlacementInfo(
-                        start_date=(datetime.now().replace(day=1) - timedelta(days=1)).replace(day=1, hour=0, minute=0,
-                                                                                               second=0, microsecond=0),
-                        finish_date=datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0),
-                        campaign_id=camp.id,
-                        place_id=placement["placement_id"],
-                        new_one=True
-                    )
-                    if queryRes is not None:
-                        newPlacements["last_month"][0].append(UIUsualPlacementsGridDataLastMonth(
-                            campaign_id=camp.id,
-                            placement_id=placement["placement_id"],
-                            evaluation_date=timezone.make_aware(
-                                datetime.now().replace(minute=0, second=0, microsecond=0),
-                                timezone.get_default_timezone()
-                            ),
-                            window_start_date=timezone.make_aware(
-                                (datetime.now().replace(day=1) - timedelta(days=1)).replace(day=1, hour=0, minute=0,
-                                                                                            second=0,
-                                                                                            microsecond=0),
-                                timezone.get_default_timezone()
-                            ),
-                            spent=queryRes.spend,
-                            conversions=queryRes.conversions,
-                            imps=queryRes.imp,
-                            clicks=queryRes.clicks,
-                            cpc=queryRes.cpc,
-                            cpm=queryRes.cpm,
-                            cvr=queryRes.cvr,
-                            ctr=queryRes.ctr,
-                            cpa=queryRes.cpa,
-                            imps_viewed=queryRes.imps_viewed,
-                            view_measured_imps=queryRes.view_measured_imps,
-                            view_measurement_rate=queryRes.view_measurement_rate,
-                            view_rate=queryRes.view_rate
-                        ))
-                # updating
-                else:
-                    # check if less than a month had pass
-                    if (datetime.now().month - prevData[0].window_start_date.month) >= 2:
-                        queryRes = getNetworkAnalyticsPlacementInfo(
-                            start_date=(datetime.now().replace(day=1) - timedelta(days=1)).replace(day=1, hour=0, minute=0,
-                                                                                                   second=0, microsecond=0),
-                            finish_date=datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0),
-                            campaign_id=camp.id,
-                            place_id=prevData[0].placement_id
-                        )
-                        if queryRes is not None:
-                            # cummulative data
-                            prevData[0].imps = queryRes[0].imp
-                            prevData[0].conversions = queryRes[0].conversions
-                            prevData[0].spent = queryRes[0].spend
-                            prevData[0].clicks = queryRes[0].clicks
-                            prevData[0].imps_viewed = queryRes[0].imps_viewed
-                            prevData[0].view_measured_imps = queryRes[0].view_measured_imps
-                            # calculated rates
-                            if prevData[0].imps == 0:
-                                prevData[0].cpm = 0
-                                prevData[0].cvr = 0
-                                prevData[0].ctr = 0
-                                prevData[0].view_measurement_rate = 0
-                            else:
-                                prevData[0].cpm = float(prevData[0].spent) / prevData[0].imps * 1000.0
-                                prevData[0].cvr = float(prevData[0].conversions) / prevData[0].imps
-                                prevData[0].ctr = float(prevData[0].clicks) / prevData[0].imps
-                                prevData[0].view_measurement_rate = float(prevData[0].view_measured_imps) / prevData[0].imps
-                            prevData[0].cpa = 0 if prevData[0].conversions == 0 else (float(prevData[0].spent) / prevData[0].conversions)
-                            prevData[0].cpc = 0 if prevData[0].clicks == 0 else (float(prevData[0].spent) / prevData[0].clicks)
-                            prevData[0].view_rate = 0 if prevData[0].view_measured_imps == 0 else (
-                            float(prevData[0].imps_viewed) / prevData[0].view_measured_imps)
-
-                            prevData[0].evaluation_date = timezone.make_aware(
-                                datetime.now().replace(minute=0, second=0, microsecond=0),
-                                timezone.get_default_timezone()
-                            )
-
-                            prevData[0].window_start_date = timezone.make_aware(
-                                (datetime.now().replace(day=1) - timedelta(days=1)).replace(day=1, hour=0, minute=0, second=0, microsecond=0),
-                                timezone.get_default_timezone()
-                            )
-
-                            try:
-                                prevData[0].save()
-                            except Exception, e:
-                                print "Can not update " + str(prevData[0].placement_id) + " placement last month data. Error: " + str(e)
-
-                #
-                # CUR MONTH
-                #
-                LastModified.objects.filter(type='hourlyTask').update(date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
-                prevData = UIUsualPlacementsGridDataCurMonth.objects.filter(
-                    campaign_id=camp.id,
-                    placement_id=placement["placement_id"]
-                )
-                # creating
-                if len(prevData) == 0:
-                    queryRes = getNetworkAnalyticsPlacementInfo(
-                        start_date=datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0),
-                        finish_date=datetime.now().replace(hour=0, minute=0, second=0, microsecond=0),
-                        campaign_id=camp.id,
-                        place_id=placement["placement_id"],
-                        new_one=True
-                    )
-                    if queryRes is not None:
-                        newPlacements["cur_month"][0].append(UIUsualPlacementsGridDataCurMonth(
-                            campaign_id=camp.id,
-                            placement_id=queryRes.id,
-                            evaluation_date=timezone.make_aware(
-                                datetime.now().replace(hour=0, minute=0, second=0, microsecond=0),
-                                timezone.get_default_timezone()
-                            ),
-                            window_start_date=timezone.make_aware(
-                                datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0),
-                                timezone.get_default_timezone()
-                            ),
-                            spent=queryRes.spend,
-                            conversions=queryRes.conversions,
-                            imps=queryRes.imp,
-                            clicks=queryRes.clicks,
-                            cpc=queryRes.cpc,
-                            cpm=queryRes.cpm,
-                            cvr=queryRes.cvr,
-                            ctr=queryRes.ctr,
-                            cpa=queryRes.cpa,
-                            imps_viewed=queryRes.imps_viewed,
-                            view_measured_imps=queryRes.view_measured_imps,
-                            view_measurement_rate=queryRes.view_measurement_rate,
-                            view_rate=queryRes.view_rate
-                        ))
-                # updating
-                else:
-                    # check if less than an hour had pass
-                    if (datetime.now() - prevData[0].evaluation_date) >= timedelta(hours=1):
-                        # if next month - change, if cur - cummulate
-                        if prevData[0].window_start_date.month == datetime.now().month:
-                            queryRes = getNetworkAnalyticsPlacementInfo(
-                                start_date=prevData[0].evaluation_date,
-                                finish_date=datetime.now().replace(minute=0, second=0, microsecond=0),
-                                campaign_id=camp.id,
-                                place_id=prevData[0].placement_id
-                            )
-                            if queryRes is not None:
-                                # cummulative data
-                                prevData[0].imps += queryRes[0].imp
-                                prevData[0].conversions += queryRes[0].conversions
-                                prevData[0].spent += queryRes[0].spend
-                                prevData[0].clicks += queryRes[0].clicks
-                                prevData[0].imps_viewed += queryRes[0].imps_viewed
-                                prevData[0].view_measured_imps += queryRes[0].view_measured_imps
-                                # calculated rates
-                                if prevData[0].imps == 0:
-                                    prevData[0].cpm = 0
-                                    prevData[0].cvr = 0
-                                    prevData[0].ctr = 0
-                                    prevData[0].view_measurement_rate = 0
-                                else:
-                                    prevData[0].cpm = float(prevData[0].spent) / prevData[0].imps * 1000.0
-                                    prevData[0].cvr = float(prevData[0].conversions) / prevData[0].imps
-                                    prevData[0].ctr = float(prevData[0].clicks) / prevData[0].imps
-                                    prevData[0].view_measurement_rate = float(prevData[0].view_measured_imps) / prevData[0].imps
-                                prevData[0].cpa = 0 if prevData[0].conversions == 0 else (float(prevData[0].spent) / prevData[0].conversions)
-                                prevData[0].cpc = 0 if prevData[0].clicks == 0 else (float(prevData[0].spent) / prevData[0].clicks)
-                                prevData[0].view_rate = 0 if prevData[0].view_measured_imps == 0 else (
-                                float(prevData[0].imps_viewed) / prevData[0].view_measured_imps)
-
-                                prevData[0].evaluation_date = timezone.make_aware(
-                                    datetime.now().replace(minute=0, second=0, microsecond=0),
-                                    timezone.get_default_timezone()
-                                )
-
-                                try:
-                                    prevData[0].save()
-                                except Exception, e:
-                                    print "Can not update " + str(
-                                        prevData[0].placement_id) + " placement current month data. Error: " + str(e)
-                        else:
-                            queryRes = getNetworkAnalyticsPlacementInfo(
-                                start_date=datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0),
-                                finish_date=datetime.now().replace(minute=0, second=0, microsecond=0),
-                                campaign_id=camp.id,
-                                place_id=prevData[0].placement_id
-                            )
-                            if queryRes is not None:
-                                # cummulative data
-                                prevData[0].imps = queryRes[0].imp
-                                prevData[0].conversions = queryRes[0].conversions
-                                prevData[0].spent = queryRes[0].spend
-                                prevData[0].clicks = queryRes[0].clicks
-                                prevData[0].imps_viewed = queryRes[0].imps_viewed
-                                prevData[0].view_measured_imps = queryRes[0].view_measured_imps
-                                # calculated rates
-                                if prevData[0].imps == 0:
-                                    prevData[0].cpm = 0
-                                    prevData[0].cvr = 0
-                                    prevData[0].ctr = 0
-                                    prevData[0].view_measurement_rate = 0
-                                else:
-                                    prevData[0].cpm = float(prevData[0].spent) / prevData[0].imps * 1000.0
-                                    prevData[0].cvr = float(prevData[0].conversions) / prevData[0].imps
-                                    prevData[0].ctr = float(prevData[0].clicks) / prevData[0].imps
-                                    prevData[0].view_measurement_rate = float(prevData[0].view_measured_imps) / prevData[0].imps
-                                prevData[0].cpa = 0 if prevData[0].conversions == 0 else (float(prevData[0].spent) / prevData[0].conversions)
-                                prevData[0].cpc = 0 if prevData[0].clicks == 0 else (float(prevData[0].spent) / prevData[0].clicks)
-                                prevData[0].view_rate = 0 if prevData[0].view_measured_imps == 0 else (
-                                float(prevData[0].imps_viewed) / prevData[0].view_measured_imps)
-
-                                prevData[0].evaluation_date = timezone.make_aware(
-                                    datetime.now().replace(minute=0, second=0, microsecond=0),
-                                    timezone.get_default_timezone()
-                                )
-
-                                prevData[0].window_start_date = timezone.make_aware(
-                                    datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0),
-                                    timezone.get_default_timezone()
-                                )
-
-                                try:
-                                    prevData[0].save()
-                                except Exception, e:
-                                    print "Can not update " + str(
-                                        prevData[0].placement_id) + " placement current month data. Error: " + str(e)
-
             #
             # CAMPAIGN GRAPH
             #
@@ -1059,7 +556,7 @@ def fillUIGridDataCron():
             # updating
             else:
                 if (datetime.now() - prevData[0].evaluation_date) >= timedelta(hours=1):
-                    queryRes = UIUsualPlacementsGraph(
+                    queryRes = getUsualCampaignGraphData(
                         campaign_id=camp.id,
                         start_date=prevData[0].evaluation_date,
                         finish_date=datetime.now().replace(minute=0, second=0, microsecond=0)
@@ -1265,8 +762,10 @@ def fillUIGridDataCron():
                             finish_date=datetime.now().replace(minute=0, second=0, microsecond=0)
                         )
                         if queryRes is not None:
-                            prevData[0].evaluation_date = datetime.now().replace(minute=0, second=0, microsecond=0)
-
+                            prevData[0].evaluation_date = timezone.make_aware(
+                                datetime.now().replace(minute=0, second=0, microsecond=0),
+                                timezone.get_default_timezone()
+                            )
                             # chart
                             if prevData[0].day_chart:
                                 # if old data don't fill time period
@@ -1315,13 +814,6 @@ def fillUIGridDataCron():
                             prevData[0].advertiser) + " advertiser current month data. Error: " + str(e)
 
 
-    # creating all new placements
-    for type, info in newPlacements.iteritems():
-        LastModified.objects.filter(type='hourlyTask').update(date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
-        if info[0]:
-            info[1].objects.bulk_create(info[0])
-    print "New placements created"
-    LastModified.objects.filter(type='hourlyTask').update(date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
     if allNewAdvertiserts:
         try:
             UIUsualCampaignsGraph.objects.bulk_create(allNewAdvertiserts)
@@ -1889,3 +1381,222 @@ select array_to_string(
         except Exception, e:
             print "Can not save campaigns current month data. Error: " + str(e)
     print "fillUIGridDataCron finished: " + str(datetime.now())
+
+
+def cummulatePlacementsGridData(type, start_date, finish_date):
+    with connection.cursor() as cursor:
+        cursor.execute("""
+insert into ui_usual_placements_grid_data_""" + str(type) + """ as ut (
+    campaign_id,
+    placement_id,
+    imps,
+    clicks,
+    spent,
+    conversions,
+    imps_viewed,
+    view_measured_imps,
+    cpm,
+    cvr,
+    ctr,
+    cpc,
+    cpa,
+    view_measurement_rate,
+    view_rate)
+  select
+    t.campaign_id,
+    t.placement_id as id,
+    sum(t.imps) imps,
+    sum(t.clicks) clicks,
+    sum(t."cost") spend,
+    sum(t.total_convs) conversions,
+    sum(t.imps_viewed) imps_viewed,
+    sum(t.view_measured_imps) view_measured_imps,
+    case sum(t.imps) when 0 then 0 else sum(t."cost") / sum(t.imps) * 1000.0 end cpm,
+    case sum(t.imps) when 0 then 0 else sum(t.total_convs)::float / sum(t.imps) end cvr,
+    case sum(t.imps) when 0 then 0 else sum(t.clicks)::float / sum(t.imps) end ctr,
+    case sum(t.clicks) when 0 then 0 else sum(t."cost") / sum(t.clicks) end cpc,
+    case sum(t.total_convs) when 0 then 0 else sum(t."cost") / sum(t.total_convs) end cpa,
+    case sum(t.imps) when 0 then 0 else sum(t.view_measured_imps)::float / sum(t.imps) end view_measurement_rate,
+    case sum(t.view_measured_imps) when 0 then 0 else sum(t.imps_viewed)::float / sum(t.view_measured_imps) end view_rate
+  from
+    network_analytics_report_by_placement t
+  where
+    t."hour" > '""" + str(start_date) +"""' and t."hour" <= '"""+ str(finish_date) + """'
+  group by
+    t.campaign_id, t.placement_id
+ON CONFLICT (campaign_id, placement_id)
+  DO UPDATE SET
+     imps = coalesce(ut.imps, 0) + coalesce(Excluded.imps, 0),
+     clicks = coalesce(ut.clicks, 0) + coalesce(Excluded.clicks, 0),
+     spent = coalesce(ut.spent, 0) + coalesce(Excluded.spent, 0),
+     conversions = coalesce(ut.conversions, 0) + coalesce(Excluded.conversions, 0),
+     imps_viewed = coalesce(ut.imps_viewed, 0) + coalesce(Excluded.imps_viewed, 0),
+     view_measured_imps = coalesce(ut.view_measured_imps, 0) + coalesce(Excluded.view_measured_imps, 0),
+     cpm = case (coalesce(ut.imps, 0) + coalesce(Excluded.imps, 0)) when 0 then 0 else (coalesce(ut.spent, 0) + coalesce(Excluded.spent, 0)) / (coalesce(ut.imps, 0) + coalesce(Excluded.imps, 0)) * 1000.0 end,
+     cvr = case (coalesce(ut.imps, 0) + coalesce(Excluded.imps, 0)) when 0 then 0 else (coalesce(ut.conversions, 0) + coalesce(Excluded.conversions, 0))::float / (coalesce(ut.imps, 0) + coalesce(Excluded.imps, 0)) end,
+     ctr = case (coalesce(ut.imps, 0) + coalesce(Excluded.imps, 0)) when 0 then 0 else (coalesce(ut.clicks, 0) + coalesce(Excluded.clicks, 0))::float / (coalesce(ut.imps, 0) + coalesce(Excluded.imps, 0)) end,
+     cpc = case (coalesce(ut.clicks, 0) + coalesce(Excluded.clicks, 0)) when 0 then 0 else (coalesce(ut.spent, 0) + coalesce(Excluded.spent, 0)) / (coalesce(ut.clicks, 0) + coalesce(Excluded.clicks, 0)) end,
+     cpa = case (coalesce(ut.conversions, 0) + coalesce(Excluded.conversions, 0)) when 0 then 0 else (coalesce(ut.spent, 0) + coalesce(Excluded.spent, 0)) / (coalesce(ut.conversions, 0) + coalesce(Excluded.conversions, 0)) end,
+     view_measurement_rate = case (coalesce(ut.imps, 0) + coalesce(Excluded.imps, 0)) when 0 then 0 else (coalesce(ut.view_measured_imps, 0) + coalesce(Excluded.view_measured_imps, 0))::float / (coalesce(ut.imps, 0) + coalesce(Excluded.imps, 0)) end,
+     view_rate = case (coalesce(ut.view_measured_imps, 0) + coalesce(Excluded.view_measured_imps, 0)) when 0 then 0 else (coalesce(ut.imps_viewed, 0) + coalesce(Excluded.imps_viewed, 0))::float / (coalesce(ut.view_measured_imps, 0) + coalesce(Excluded.view_measured_imps, 0)) end;
+""")
+
+def subPlacementsGridData(type, start_date, finish_date):
+    with connection.cursor() as cursor:
+        cursor.execute("""
+update ui_usual_placements_grid_data_""" + str(type) + """ as ut
+set
+  imps = ut.imps - info.imp,
+  clicks = ut.clicks - info.clicks,
+  spent = ut.spent - info.spent,
+  conversions = ut.conversions - info.conversions,
+  imps_viewed = ut.imps_viewed - info.imps_viewed,
+  view_measured_imps = ut.view_measured_imps - info.view_measured_imps,
+  cpm = case (ut.imps - info.imp) when 0 then 0 else (ut.spent - info.spent) / (ut.imps - info.imp) * 1000.0 end,
+  cvr = case (ut.imps - info.imp) when 0 then 0 else (ut.conversions - info.conversions) / (ut.imps - info.imp) end,
+  ctr = case (ut.imps - info.imp) when 0 then 0 else (ut.clicks - info.clicks) / (ut.imps - info.imp) end,
+  cpc = case (ut.clicks - info.clicks) when 0 then 0 else (ut.spent - info.spent) / (ut.clicks - info.clicks) end,
+  cpa = case (ut.conversions - info.conversions) when 0 then 0 else (ut.spent - info.spent) / (ut.conversions - info.conversions) end,
+  view_measurement_rate = case (imps - info.imp) when 0 then 0 else (ut.view_measured_imps - info.view_measured_imps) / (ut.imps - info.imp) end,
+  view_rate = case (ut.view_measured_imps - info.view_measured_imps) when 0 then 0 else (ut.imps_viewed - info.imps_viewed) / (ut.view_measured_imps - info.view_measured_imps) end
+FROM (
+  select
+    campaign_id,
+    placement_id,
+    sum(imps) imp,
+    sum(clicks) clicks,
+    sum("cost") spent,
+    sum(total_convs) conversions,
+    sum(imps_viewed) imps_viewed,
+    sum(view_measured_imps) view_measured_imps
+  from
+    network_analytics_report_by_placement
+  where
+    "hour" > '""" + str(start_date) +"""' and "hour" <= '""" + str(finish_date) + """'
+  group by
+    campaign_id, placement_id
+) info
+where ut.campaign_id = info.campaign_id and ut.placement_id = info.placement_id;
+""")
+
+def refreshPlacementsLastMonthGridData(start_date, finish_date):
+    with connection.cursor() as cursor:
+        cursor.execute("""
+    insert into ui_usual_placements_grid_data_last_month as ut (
+        campaign_id,
+        placement_id,
+        imps,
+        clicks,
+        spent,
+        conversions,
+        imps_viewed,
+        view_measured_imps,
+        cpm,
+        cvr,
+        ctr,
+        cpc,
+        cpa,
+        view_measurement_rate,
+        view_rate)
+      select
+        t.campaign_id,
+        t.placement_id as id,
+        sum(t.imps) imps,
+        sum(t.clicks) clicks,
+        sum(t."cost") spend,
+        sum(t.total_convs) conversions,
+        sum(t.imps_viewed) imps_viewed,
+        sum(t.view_measured_imps) view_measured_imps,
+        case sum(t.imps) when 0 then 0 else sum(t."cost") / sum(t.imps) * 1000.0 end cpm,
+        case sum(t.imps) when 0 then 0 else sum(t.total_convs)::float / sum(t.imps) end cvr,
+        case sum(t.imps) when 0 then 0 else sum(t.clicks)::float / sum(t.imps) end ctr,
+        case sum(t.clicks) when 0 then 0 else sum(t."cost") / sum(t.clicks) end cpc,
+        case sum(t.total_convs) when 0 then 0 else sum(t."cost") / sum(t.total_convs) end cpa,
+        case sum(t.imps) when 0 then 0 else sum(t.view_measured_imps)::float / sum(t.imps) end view_measurement_rate,
+        case sum(t.view_measured_imps) when 0 then 0 else sum(t.imps_viewed)::float / sum(t.view_measured_imps) end view_rate
+      from
+        network_analytics_report_by_placement t
+      where
+        t."hour" >= '""" + str(start_date) + """' and t."hour" < '""" + str(finish_date) + """'
+      group by
+        t.campaign_id, t.placement_id
+    ON CONFLICT (campaign_id, placement_id)
+      DO UPDATE SET
+         imps = coalesce(Excluded.imps, 0),
+         clicks = coalesce(Excluded.clicks, 0),
+         spent = coalesce(Excluded.spent, 0),
+         conversions = coalesce(Excluded.conversions, 0),
+         imps_viewed = coalesce(Excluded.imps_viewed, 0),
+         view_measured_imps = coalesce(Excluded.view_measured_imps, 0),
+         cpm = case coalesce(Excluded.imps, 0) when 0 then 0 else coalesce(Excluded.spent, 0) / coalesce(Excluded.imps, 0) * 1000.0 end,
+         cvr = case coalesce(Excluded.imps, 0) when 0 then 0 else coalesce(Excluded.conversions, 0)::float / coalesce(Excluded.imps, 0) end,
+         ctr = case coalesce(Excluded.imps, 0) when 0 then 0 else coalesce(Excluded.clicks, 0)::float / coalesce(Excluded.imps, 0) end,
+         cpc = case coalesce(Excluded.clicks, 0) when 0 then 0 else coalesce(Excluded.spent, 0) / coalesce(Excluded.clicks, 0) end,
+         cpa = case coalesce(Excluded.conversions, 0) when 0 then 0 else coalesce(Excluded.spent, 0) / (coalesce(ut.conversions, 0) + coalesce(Excluded.conversions, 0)) end,
+         view_measurement_rate = case coalesce(Excluded.imps, 0) when 0 then 0 else coalesce(Excluded.view_measured_imps, 0)::float / coalesce(Excluded.imps, 0) end,
+         view_rate = case coalesce(Excluded.view_measured_imps, 0) when 0 then 0 else coalesce(Excluded.imps_viewed, 0)::float / coalesce(Excluded.view_measured_imps, 0) end;
+    """)
+#### NEW
+def refreshGridPlacementsData(start_date, finish_date):
+    print "Refreshing placements grid data from " + str(start_date) + " to " + str(finish_date) + " started: " + str(datetime.now())
+    finish_date = datetime(hour=finish_date.hour, day=finish_date.day, month=finish_date.month, year=finish_date.year)
+    start_date = datetime(hour=start_date.hour, day=start_date.day, month=start_date.month, year=start_date.year)
+    tableTypes = [
+        "yesterday",
+        "last_3_days",
+        "last_7_days",
+        "last_14_days",
+        "last_21_days",
+        "last_90_days"
+    ]
+    cummulatePlacementsGridData(type="all", start_date=start_date, finish_date=finish_date)
+    LastModified.objects.filter(type='hourlyTask').update(
+        date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
+    print "Refreshing all time finished: " + str(datetime.now())
+    cummulatePlacementsGridData(type="cur_month", start_date=start_date, finish_date=finish_date)
+    LastModified.objects.filter(type='hourlyTask').update(
+        date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
+    print "Refreshing current month finished: " + str(datetime.now())
+    for type in tableTypes:
+        LastModified.objects.filter(type='hourlyTask').update(
+            date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
+        # adding data
+        cummulatePlacementsGridData(type=type, start_date=start_date, finish_date=finish_date)
+        LastModified.objects.filter(type='hourlyTask').update(
+            date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
+        # sub data
+        if finish_date == datetime.now().replace(hour=0, minute=0, second=0, microsecond=0):
+            subPlacementsGridData(type=type, start_date=start_date, finish_date=finish_date)
+            LastModified.objects.filter(type='hourlyTask').update(
+                date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
+        print "Refreshing " + str(type) + " finished: " + str(datetime.now())
+    # refresh last month
+    if finish_date == datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0):
+        LastModified.objects.filter(type='hourlyTask').update(
+            date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
+        with connection.cursor() as cursor:
+            cursor.execute("""
+            update ui_usual_placements_grid_data_cur_month set
+            imps = 0,
+            clicks = 0,
+            spent = 0,
+            conversions = 0,
+            imps_viewed = 0,
+            view_measured_imps = 0,
+            cpm = 0,
+            cvr = 0,
+            ctr = 0,
+            cpc = 0,
+            cpa = 0,
+            view_measurement_rate = 0,
+            view_rate = 0;""")
+            refreshPlacementsLastMonthGridData(
+                start_date=(finish_date.replace(day=1, hour=0, minute=0, second=0, microsecond=0) - timedelta(hours=1)
+                            ).replace(day=1, hour=0, minute=0, second=0, microsecond=0),
+                finish_date=finish_date.replace(day=1, hour=0, minute=0, second=0, microsecond=0))
+        print "Refreshing last_month finished: " + str(datetime.now())
+    LastModified.objects.filter(type='hourlyTask').update(
+        date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
+    print "Refreshing placements grid data from " + str(start_date) + " to " + str(finish_date) + " finished: " + str(
+        datetime.now())
+

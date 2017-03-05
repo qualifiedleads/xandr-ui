@@ -31,7 +31,7 @@ from rtb.crons.video_ad_cron import fillVideoAdDataCron
 from django.utils import timezone
 from datetime import timedelta
 from rtb.controllers.campaign_create import getToken
-from rtb.crons.ui_data_fill_cron import fillUIGridDataCron
+from rtb.crons.ui_data_fill_cron import fillUIGridDataCron, refreshGridPlacementsData
 table_names = {c._meta.db_table: c for c in get_all_classes_in_models(models)}
 
 _default_values_for_types = {
@@ -688,16 +688,21 @@ def hourlyTask(dayWithHour=None, load_objects_from_services=True, output=None):
         if load_objects_from_services:
             load_depending_data(token, False, isLastModified=True)
         while dayWithHour <= dateNow:
-            print 'NetworkAnalyticsReport_ByPlacement  start', get_current_time().strftime('%Y-%m-%dT%H-%M-%S')
-            load_report(token, dayWithHour, NetworkAnalyticsReport_ByPlacement, isHour=True)
-            print 'SiteDomainPerformanceReport  start', get_current_time().strftime('%Y-%m-%dT%H-%M-%S')
-            load_reports_for_all_advertisers(token, dayWithHour, SiteDomainPerformanceReport, isHour=True)
+            with transaction.atomic():
+                print 'NetworkAnalyticsReport_ByPlacement  start', get_current_time().strftime('%Y-%m-%dT%H-%M-%S')
+                load_report(token, dayWithHour, NetworkAnalyticsReport_ByPlacement, isHour=True)
+                print 'SiteDomainPerformanceReport  start', get_current_time().strftime('%Y-%m-%dT%H-%M-%S')
+                load_reports_for_all_advertisers(token, dayWithHour, SiteDomainPerformanceReport, isHour=True)
 
-            LastModified.objects.filter(type='hourlyTask')\
-                .update(date=timezone.make_aware(datetime.datetime.now(), timezone.get_default_timezone()))
-            token = getToken()
+                LastModified.objects.filter(type='hourlyTask')\
+                    .update(date=timezone.make_aware(datetime.datetime.now(), timezone.get_default_timezone()))
+                token = getToken()
+                refreshGridPlacementsData(
+                    start_date=dayWithHour - one_hour,
+                    finish_date=dayWithHour
+                )
             dayWithHour += one_hour
-        fillVideoAdDataCron()
+        # fillVideoAdDataCron()
         fillUIGridDataCron()
 
     except Exception as e:

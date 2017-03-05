@@ -350,47 +350,17 @@ select
   calc_place_info.view_measurement_rate * 100.0 as view_measurement_rate,
   calc_place_info.view_rate * 100.0 as view_rate
 from
-  ui_usual_placements_grid_data_all calc_place_info
-  right join placement
+  ui_usual_placements_grid_data_""" + str(type) + """ calc_place_info
+  left join placement
   on placement.id=calc_place_info.placement_id
   left join (select distinct placement_id, publisher_name, seller_member_name from network_analytics_report_by_placement where campaign_id = """ + str(id) +""") report
   on calc_place_info.placement_id= report.placement_id
-  left join placement_state
+  left join (select * from placement_state where campaign_id = """ + str(id) + """) as placement_state
   on calc_place_info.placement_id=placement_state.placement_id
   left join rtb_impression_tracker_placement_domain
   on calc_place_info.placement_id=rtb_impression_tracker_placement_domain.placement_id
 where calc_place_info.campaign_id = """ + str(id) + ' ' + filt + ' ' + order + " LIMIT " + str(params["take"]) + " OFFSET " + str(params["skip"]) + ';')
-#         queryRes = Campaign.objects.raw("""
-# select
-#   distinct placement.id as id,
-#   placement.name,
-#   concat(report.publisher_name, '/', report.seller_member_name) publisher,
-#   placement_state.state,
-#   rtb_impression_tracker_placement_domain.domain,
-#   calc_place_info.spent,
-#   calc_place_info.conversions,
-#   calc_place_info.imps,
-#   calc_place_info.clicks,
-#   calc_place_info.cpa,
-#   calc_place_info.cpc,
-#   calc_place_info.cpm,
-#   calc_place_info.cvr * 100.0 as cvr,
-#   calc_place_info.ctr * 100.0 as ctr,
-#   calc_place_info.imps_viewed,
-#   calc_place_info.view_measured_imps,
-#   calc_place_info.view_measurement_rate * 100.0 as view_measurement_rate,
-#   calc_place_info.view_rate * 100.0 as view_rate
-# from
-#   network_analytics_report_by_placement report
-#   left join ui_usual_placements_grid_data_""" + str(request.GET.get("type")) + """ calc_place_info
-#   on report.placement_id=calc_place_info.placement_id
-#   left join placement
-#   on report.placement_id=placement.id
-#   left join placement_state
-#   on report.placement_id=placement_state.placement_id
-#   left join rtb_impression_tracker_placement_domain
-#   on report.placement_id=rtb_impression_tracker_placement_domain.placement_id
-# where report.campaign_id = """ + str(id) + ' ' + filt + ' ' + order + " LIMIT " + str(params["take"]) + " OFFSET " + str(params["skip"]) + ';')
+
         allCampaignsInfo["data"] = []
 
         for row in queryRes:
@@ -456,12 +426,12 @@ from
   calc_place_info.view_measurement_rate * 100.0 as view_measurement_rate,
   calc_place_info.view_rate * 100.0 as view_rate
 from
-  ui_usual_placements_grid_data_all calc_place_info
-  right join placement
+  ui_usual_placements_grid_data_""" + str(type) + """ calc_place_info
+  left join placement
   on placement.id=calc_place_info.placement_id
   left join (select distinct placement_id, publisher_name, seller_member_name from network_analytics_report_by_placement where campaign_id = """ + str(id) + """) report
   on calc_place_info.placement_id= report.placement_id
-  left join placement_state
+  left join (select * from placement_state where campaign_id = """ + str(id) + """) as placement_state
   on calc_place_info.placement_id=placement_state.placement_id
   left join rtb_impression_tracker_placement_domain
   on calc_place_info.placement_id=rtb_impression_tracker_placement_domain.placement_id

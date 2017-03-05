@@ -1472,7 +1472,7 @@ FROM (
   from
     network_analytics_report_by_placement
   where
-    "hour" > '""" + str(start_date) +"""' and "hour" <= '""" + str(finish_date) + """'
+    "hour" >= '""" + str(start_date) +"""' and "hour" < '""" + str(finish_date) + """'
   group by
     campaign_id, placement_id
 ) info
@@ -1542,12 +1542,12 @@ def refreshGridPlacementsData(start_date, finish_date):
     finish_date = datetime(hour=finish_date.hour, day=finish_date.day, month=finish_date.month, year=finish_date.year)
     start_date = datetime(hour=start_date.hour, day=start_date.day, month=start_date.month, year=start_date.year)
     tableTypes = [
-        "yesterday",
-        "last_3_days",
-        "last_7_days",
-        "last_14_days",
-        "last_21_days",
-        "last_90_days"
+        ["yesterday", 1],
+        ["last_3_days", 3],
+        ["last_7_days", 7],
+        ["last_14_days", 14],
+        ["last_21_days", 21],
+        ["last_90_days", 90]
     ]
     cummulatePlacementsGridData(type="all", start_date=start_date, finish_date=finish_date)
     LastModified.objects.filter(type='hourlyTask').update(
@@ -1561,15 +1561,18 @@ def refreshGridPlacementsData(start_date, finish_date):
         LastModified.objects.filter(type='hourlyTask').update(
             date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
         # adding data
-        cummulatePlacementsGridData(type=type, start_date=start_date, finish_date=finish_date)
+        cummulatePlacementsGridData(type=type[0], start_date=start_date, finish_date=finish_date)
         LastModified.objects.filter(type='hourlyTask').update(
             date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
         # sub data
-        if finish_date == datetime.now().replace(hour=0, minute=0, second=0, microsecond=0):
-            subPlacementsGridData(type=type, start_date=start_date, finish_date=finish_date)
+        if finish_date == finish_date.replace(hour=0, minute=0, second=0, microsecond=0):
+            subPlacementsGridData(type=type[0],
+                                  start_date=finish_date - timedelta(days=type[1]+1),
+                                  finish_date=finish_date - timedelta(days=type[1])
+                                  )
             LastModified.objects.filter(type='hourlyTask').update(
                 date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
-        print "Refreshing " + str(type) + " finished: " + str(datetime.now())
+        print "Refreshing " + str(type[0]) + " finished: " + str(datetime.now())
     # refresh last month
     if finish_date == datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0):
         LastModified.objects.filter(type='hourlyTask').update(

@@ -1574,7 +1574,7 @@ def refreshGridPlacementsData(start_date, finish_date):
                 date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
         print "Refreshing " + str(type[0]) + " finished: " + str(datetime.now())
     # refresh last month
-    if finish_date == datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0):
+    if finish_date == finish_date.replace(day=1, hour=0, minute=0, second=0, microsecond=0):
         LastModified.objects.filter(type='hourlyTask').update(
             date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
         with connection.cursor() as cursor:

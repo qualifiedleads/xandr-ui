@@ -571,7 +571,7 @@ def fillUIGridDataCron():
 
                                 prevData[0].day_chart[len(prevData[0].day_chart) - 1]["cpa"] = 0 if prevData[0].day_chart[len(prevData[0].day_chart) - 1]["conversions"] == 0 else(prevData[0].day_chart[len(prevData[0].day_chart) - 1]["mediaspent"] / prevData[0].day_chart[len(prevData[0].day_chart) - 1]["conversions"])
                                 prevData[0].day_chart[len(prevData[0].day_chart) - 1]["cpc"] = 0 if prevData[0].day_chart[len(prevData[0].day_chart) - 1]["clicks"] == 0 else(prevData[0].day_chart[len(prevData[0].day_chart) - 1]["mediaspent"] / prevData[0].day_chart[len(prevData[0].day_chart) - 1]["clicks"])
-                                prevData[0].day_chart[len(prevData[0].day_chart) - 1]["ctr"] = 0 if prevData[0].day_chart[len(prevData[0].day_chart) - 1]["imp"] == 0 else(prevData[0].day_chart[len(prevData[0].day_chart) - 1]["clicks"] / prevData[0].day_chart[len(prevData[0].day_chart) - 1]["impression"])
+                                prevData[0].day_chart[len(prevData[0].day_chart) - 1]["ctr"] = 0 if prevData[0].day_chart[len(prevData[0].day_chart) - 1]["impression"] == 0 else(prevData[0].day_chart[len(prevData[0].day_chart) - 1]["clicks"] / prevData[0].day_chart[len(prevData[0].day_chart) - 1]["impression"])
 
                                 prevData[0].day_chart.extend(queryRes.id[1:])
                             else:

@@ -10,7 +10,7 @@
     var _this = this;
     var _totalCountCampaign = 0;
 
-    function getGridCampaignStore(campId, dataStart, dataEnd) {
+    function getGridCampaignStore(campId, dataStart, dataEnd, type) {
       return new $window.DevExpress.data.CustomStore({
         totalCount: function () {
           return _totalCountCampaign;
@@ -19,12 +19,12 @@
           if (loadOptions.searchOperation && loadOptions.dataField) {
             loadOptions.take = 999999;
           }
-          return _campaignDomains(campId, dataStart, dataEnd, loadOptions.skip, loadOptions.take, loadOptions.sort, loadOptions.order, loadOptions.filter, loadOptions.totalSummary);
+          return _campaignDomains(campId, dataStart, dataEnd, loadOptions.skip, loadOptions.take, loadOptions.sort, loadOptions.order, loadOptions.filter, loadOptions.totalSummary, type);
         }
       });
     }
 
-    function _campaignDomains(id, from, to, skip, take, sort, order, filter, totalSummary) {
+    function _campaignDomains(id, from, to, skip, take, sort, order, filter, totalSummary, type) {
       if (sort) {
         if (sort[0].desc === true) {
           order = 'desc'
@@ -55,7 +55,8 @@
           sort: sort,
           order: order,
           filter: filter,
-          totalSummary: totalSummary
+          totalSummary: totalSummary,
+          type: type
         }
       })
         .then(function (res) {

@@ -27,23 +27,28 @@
     }
 
     //region DATE PIKER
-    /** DATE PIKER **/
+    /** DATE PIKER - START **/
     if ($localStorage.SelectedTime == null) {
       $localStorage.SelectedTime = 0;
-      $localStorage.dataStart = $window.moment({hour: '00'}).subtract(1, 'day').unix();
-      $localStorage.dataEnd = $window.moment({hour: '00'}).subtract(1, 'day').endOf('day').unix();
-      vm.dataStart = $window.moment({hour: '00'}).subtract(1, 'day').unix();
-      vm.dataEnd = $window.moment({hour: '00'}).subtract(1, 'day').endOf('day').unix();
+      $localStorage.dataStart = $window.moment({ hour: '00' }).subtract(1, 'day').unix();
+      $localStorage.dataEnd = $window.moment({ hour: '00' }).subtract(1, 'day').endOf('day').unix();
+      $localStorage.type = 'yesterday';
+      vm.dataStart = $window.moment({ hour: '00' }).subtract(1, 'day').unix();
+      vm.dataEnd = $window.moment({ hour: '00' }).subtract(1, 'day').endOf('day').unix();
+      vm.type = 'yesterday';
     } else {
-      if ($localStorage.dataStart == null || $localStorage.dataEnd == null) {
+      if ($localStorage.dataStart == undefined || !$localStorage.dataEnd || !$localStorage.type) {
         $localStorage.SelectedTime = 0;
-        $localStorage.dataStart = $window.moment({hour: '00'}).subtract(1, 'day').unix();
-        $localStorage.dataEnd = $window.moment({hour: '00'}).subtract(1, 'day').endOf('day').unix();
-        vm.dataStart = $window.moment({hour: '00'}).subtract(1, 'day').unix();
-        vm.dataEnd = $window.moment({hour: '00'}).subtract(1, 'day').endOf('day').unix();
+        $localStorage.dataStart = $window.moment({ hour: '00' }).subtract(1, 'day').unix();
+        $localStorage.dataEnd = $window.moment({ hour: '00' }).subtract(1, 'day').endOf('day').unix();
+        $localStorage.type = 'yesterday';
+        vm.dataStart = $window.moment({ hour: '00' }).subtract(1, 'day').unix();
+        vm.dataEnd = $window.moment({ hour: '00' }).subtract(1, 'day').endOf('day').unix();
+        vm.type = 'yesterday';
       } else {
         vm.dataStart = $localStorage.dataStart;
         vm.dataEnd = $localStorage.dataEnd;
+        vm.type = $localStorage.type;
       }
     }
 
@@ -51,50 +56,58 @@
       {
         ID: 0,
         Name: LC('MAIN.DATE_PICKER.YESTERDAY'),
-        dataStart: $window.moment({hour: '00'}).subtract(1, 'day').unix(),
-        dataEnd: $window.moment({hour: '00'}).subtract(1, 'day').endOf('day').unix()
+        dataStart: $window.moment({ hour: '00' }).subtract(1, 'day').unix(),
+        dataEnd: $window.moment().unix(),
+        type: 'yesterday'
       }, {
         ID: 1,
         Name: LC('MAIN.DATE_PICKER.LAST_3_DAYS'),
-        dataStart: $window.moment({hour: '00'}).subtract(3, 'day').unix(),
-        dataEnd: $window.moment({hour: '00'}).unix()
+        dataStart: $window.moment({ hour: '00' }).subtract(3, 'day').unix(),
+        dataEnd: $window.moment().unix(),
+        type: 'last_3_days'
       }, {
         ID: 2,
         Name: LC('MAIN.DATE_PICKER.LAST_7_DAYS'),
-        dataStart: $window.moment({hour: '00'}).subtract(7, 'day').unix(),
-        dataEnd: $window.moment({hour: '00'}).unix()
+        dataStart: $window.moment({ hour: '00' }).subtract(7, 'day').unix(),
+        dataEnd: $window.moment().unix(),
+        type: 'last_7_days'
       }, {
         ID: 3,
         Name: LC('MAIN.DATE_PICKER.LAST_14_DAYS'),
-        dataStart: $window.moment({hour: '00'}).subtract(14, 'day').unix(),
-        dataEnd: $window.moment({hour: '00'}).unix()
+        dataStart: $window.moment({ hour: '00' }).subtract(14, 'day').unix(),
+        dataEnd: $window.moment().unix(),
+        type: 'last_14_days'
       }, {
         ID: 4,
         Name: LC('MAIN.DATE_PICKER.LAST_21_DAYS'),
-        dataStart: $window.moment({hour: '00'}).subtract(21, 'day').unix(),
-        dataEnd: $window.moment({hour: '00'}).unix()
+        dataStart: $window.moment({ hour: '00' }).subtract(21, 'day').unix(),
+        dataEnd: $window.moment().unix(),
+        type: 'last_21_days'
       }, {
         ID: 5,
         Name: LC('MAIN.DATE_PICKER.CURRENT_MONTH'),
         dataStart: $window.moment().startOf('month').unix(),
-        dataEnd: $window.moment().unix()
+        dataEnd: $window.moment().unix(),
+        type: 'cur_month'
       }, {
         ID: 6,
         Name: LC('MAIN.DATE_PICKER.LAST_MONTH'),
         dataStart: $window.moment().subtract(1, 'month').startOf('month').unix(),
-        dataEnd: $window.moment().subtract(1, 'month').endOf('month').unix()
+        dataEnd: $window.moment().unix(),
+        type: 'last_month'
       }, {
         ID: 7,
         Name: LC('MAIN.DATE_PICKER.LAST_90_DAYS'),
-        dataStart: $window.moment({hour: '00'}).subtract(90, 'day').unix(),
-        dataEnd: $window.moment().unix()
+        dataStart: $window.moment({ hour: '00' }).subtract(90, 'day').unix(),
+        dataEnd: $window.moment().unix(),
+        type: 'last_90_days'
       }, {
         ID: 8,
         Name: LC('MAIN.DATE_PICKER.ALL_TIME'),
         dataStart: 0,
-        dataEnd: $window.moment().unix()
-      }
-    ];
+        dataEnd: $window.moment().unix(),
+        type: 'all'
+      }];
     //endregion
 
     //region MULTIPLE
@@ -117,7 +130,7 @@
     //endregion
 
     //region STORE
-    vm.gridStore = CampaignOptimiser.getGridCampaignStore(vm.campId, vm.dataStart, vm.dataEnd);
+    vm.gridStore = CampaignOptimiser.getGridCampaignStore(vm.campId, vm.dataStart, vm.dataEnd, vm.type);
     //endregion
 
     var startDate = new Date(1981, 3, 27),
@@ -304,6 +317,7 @@
           $localStorage.SelectedTime = e.value;
           $localStorage.dataStart = products[e.value].dataStart;
           $localStorage.dataEnd = products[e.value].dataEnd;
+          $localStorage.type = products[e.value].type;
           $state.reload();
         }
       },

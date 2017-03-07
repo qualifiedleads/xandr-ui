@@ -153,7 +153,7 @@ Get single campaign statistics data for given period by selected categories: imp
         )[0].day_chart)
     except Exception, e:
         print "Can not get graph data for " + str(id) + " campaign. Error " + str(e)
-        return Response(status=status.HTTP_404_NOT_FOUND)
+        return Response(status=status.HTTP_200_OK)
 
 
 def get_campaign_cpa(advertiser_id, campaign_id, from_date, to_date):
@@ -353,7 +353,7 @@ from
   ui_usual_placements_grid_data_""" + str(request.GET.get("type")) + """ calc_place_info
   left join placement
   on placement.id=calc_place_info.placement_id
-  left join (select distinct placement_id, publisher_name, seller_member_name from network_analytics_report_by_placement where campaign_id = """ + str(id) +""") report
+  left join placements_additional_names report
   on calc_place_info.placement_id= report.placement_id
   left join (select * from placement_state where campaign_id = """ + str(id) + """) as placement_state
   on calc_place_info.placement_id=placement_state.placement_id
@@ -429,7 +429,7 @@ from
   ui_usual_placements_grid_data_""" + str(request.GET.get("type")) + """ calc_place_info
   left join placement
   on placement.id=calc_place_info.placement_id
-  left join (select distinct placement_id, publisher_name, seller_member_name from network_analytics_report_by_placement where campaign_id = """ + str(id) + """) report
+  left join placements_additional_names report
   on calc_place_info.placement_id= report.placement_id
   left join (select * from placement_state where campaign_id = """ + str(id) + """) as placement_state
   on calc_place_info.placement_id=placement_state.placement_id

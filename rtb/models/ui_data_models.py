@@ -449,6 +449,14 @@ class UIUsualPlacementsGridDataAll(models.Model):
         db_table = "ui_usual_placements_grid_data_all"
         unique_together = (('campaign', 'placement'),)
 
+class PlacementsAdditionalNames(models.Model):
+    id = models.AutoField(primary_key=True)
+    placement = models.ForeignKey("Placement", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING, unique=True)
+    publisher_name = models.TextField(null=True, blank=True)
+    seller_member_name = models.TextField(null=True, blank=True)
+
+    class Meta:
+        db_table = "placements_additional_names"
 ###
 # video campaigns
 ###

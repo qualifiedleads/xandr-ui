@@ -422,7 +422,7 @@ def statistics(request):
         )[0].day_chart})
     except Exception, e:
         print "Can not get graph data for " + str(request.GET.get("advertiser_id")) + " advertiser. Error " + str(e)
-        return Response(status=status.HTTP_404_NOT_FOUND)
+        return Response(status=status.HTTP_200_OK)
 
 
 @api_view()

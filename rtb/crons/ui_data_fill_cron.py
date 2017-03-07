@@ -1120,7 +1120,28 @@ ON CONFLICT (campaign_id)
      day_chart = Excluded.day_chart;
     """)
 #### NEW
-def refreshGridPlacementsData(start_date, finish_date):
+def refreshGridData(start_date, finish_date):
+    print "Refreshing placements names"
+    with connection.cursor() as cursor:
+        cursor.execute("""
+insert into placements_additional_names as ut (
+    placement_id,
+    publisher_name,
+    seller_member_name)
+  select
+    distinct on (t.placement_id)
+    t.placement_id,
+    t.publisher_name,
+    t.seller_member_name
+  from
+    network_analytics_report_by_placement t
+  where
+    t."hour" > '""" + str(start_date) + """' and t."hour" <= '""" + str(finish_date) + """'
+ON CONFLICT (placement_id)
+  DO UPDATE SET
+    publisher_name=Excluded.publisher_name,
+    seller_member_name=Excluded.seller_member_name;
+        """)
     print "Refreshing grid data from " + str(start_date) + " to " + str(finish_date) + " started: " + str(datetime.now())
     finish_date = datetime(hour=finish_date.hour, day=finish_date.day, month=finish_date.month, year=finish_date.year)
     start_date = datetime(hour=start_date.hour, day=start_date.day, month=start_date.month, year=start_date.year)

@@ -18,8 +18,6 @@ class UIUsualCampaignsGraph(models.Model):
 class UIUsualCampaignsGridDataYesterday(models.Model):
     id = models.AutoField(primary_key=True)
     campaign = models.ForeignKey("Campaign", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING, unique=True)
-    evaluation_date = models.DateTimeField(db_index=True)
-    window_start_date = models.DateTimeField(db_index=True)
     # simple grid data
     spent = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
     conversions = models.IntegerField()
@@ -42,8 +40,6 @@ class UIUsualCampaignsGridDataYesterday(models.Model):
 class UIUsualCampaignsGridDataLast3Days(models.Model):
     id = models.AutoField(primary_key=True)
     campaign = models.ForeignKey("Campaign", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING, unique=True)
-    evaluation_date = models.DateTimeField(db_index=True)
-    window_start_date = models.DateTimeField(db_index=True)
     # simple grid data
     spent = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
     conversions = models.IntegerField()
@@ -66,8 +62,6 @@ class UIUsualCampaignsGridDataLast3Days(models.Model):
 class UIUsualCampaignsGridDataLast7Days(models.Model):
     id = models.AutoField(primary_key=True)
     campaign = models.ForeignKey("Campaign", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING, unique=True)
-    evaluation_date = models.DateTimeField(db_index=True)
-    window_start_date = models.DateTimeField(db_index=True)
     # simple grid data
     spent = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
     conversions = models.IntegerField()
@@ -90,8 +84,6 @@ class UIUsualCampaignsGridDataLast7Days(models.Model):
 class UIUsualCampaignsGridDataLast14Days(models.Model):
     id = models.AutoField(primary_key=True)
     campaign = models.ForeignKey("Campaign", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING, unique=True)
-    evaluation_date = models.DateTimeField(db_index=True)
-    window_start_date = models.DateTimeField(db_index=True)
     # simple grid data
     spent = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
     conversions = models.IntegerField()
@@ -116,8 +108,6 @@ class UIUsualCampaignsGridDataLast21Days(models.Model):
     id = models.AutoField(primary_key=True)
     campaign = models.ForeignKey("Campaign", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING,
                                  unique=True)
-    evaluation_date = models.DateTimeField(db_index=True)
-    window_start_date = models.DateTimeField(db_index=True)
     # simple grid data
     spent = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
     conversions = models.IntegerField()
@@ -142,8 +132,6 @@ class UIUsualCampaignsGridDataCurMonth(models.Model):
     id = models.AutoField(primary_key=True)
     campaign = models.ForeignKey("Campaign", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING,
                                  unique=True)
-    evaluation_date = models.DateTimeField(db_index=True)
-    window_start_date = models.DateTimeField(db_index=True)
     # simple grid data
     spent = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
     conversions = models.IntegerField()
@@ -168,8 +156,6 @@ class UIUsualCampaignsGridDataLastMonth(models.Model):
     id = models.AutoField(primary_key=True)
     campaign = models.ForeignKey("Campaign", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING,
                                  unique=True)
-    evaluation_date = models.DateTimeField(db_index=True)
-    window_start_date = models.DateTimeField(db_index=True)
     # simple grid data
     spent = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
     conversions = models.IntegerField()
@@ -194,8 +180,6 @@ class UIUsualCampaignsGridDataLast90Days(models.Model):
     id = models.AutoField(primary_key=True)
     campaign = models.ForeignKey("Campaign", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING,
                                  unique=True)
-    evaluation_date = models.DateTimeField(db_index=True)
-    window_start_date = models.DateTimeField(db_index=True)
     # simple grid data
     spent = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
     conversions = models.IntegerField()
@@ -219,7 +203,6 @@ class UIUsualCampaignsGridDataAll(models.Model):
     id = models.AutoField(primary_key=True)
     campaign = models.ForeignKey("Campaign", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING,
                                  unique=True)
-    evaluation_date = models.DateTimeField(db_index=True)
     # simple grid data
     spent = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
     conversions = models.IntegerField()

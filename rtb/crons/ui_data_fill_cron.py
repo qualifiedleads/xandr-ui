@@ -16,90 +16,6 @@ from django.db import connection
 from django.utils import timezone
 from rtb.models.placement_state import LastModified
 
-def getSiteDomainsReportInfo(start_date, finish_date, newCampaigns=None, camp_id=None):
-    if newCampaigns is None:
-        queryRes = SiteDomainPerformanceReport.objects.raw("""
-            select page.*,
-      array((select
-               json_build_object(
-               'day', site_r.day,
-               'imp', SUM(site_r.imps),
-               'spend', SUM(site_r.media_cost),
-               'clicks', SUM(site_r.clicks),
-               'conversions', SUM(site_r.post_click_convs) + SUM(site_r.post_view_convs),
-               'cvr', case SUM(site_r.imps) when 0 then 0 else (SUM(site_r.post_click_convs) + SUM(site_r.post_view_convs))::float/SUM(site_r.imps) end,
-               'cpc', case SUM(site_r.clicks) when 0 then 0 else SUM(site_r.media_cost)::float/SUM(site_r.clicks) end,
-               'ctr', case SUM(site_r.imps) when 0 then 0 else SUM(site_r.clicks)::float/SUM(site_r.imps) end)
-             from site_domain_performance_report site_r
-             where site_r.campaign_id=page.campaign_id
-               AND site_r.hour >= '""" + str(start_date) + """'
-               AND site_r.hour < '""" + str(finish_date) + """'
-             group by site_r.campaign_id, site_r.day
-             order by site_r.day)) id
-    from (
-          select distinct on (site_r1.campaign_id)
-            site_r1.campaign_id,
-            SUM(site_r1.imps) over (partition by site_r1.campaign_id) imp,
-            SUM(site_r1.media_cost) over (partition by site_r1.campaign_id) spend,
-            SUM(site_r1.clicks) over (partition by site_r1.campaign_id) clicks,
-            (SUM(site_r1.post_view_convs) over (partition by site_r1.campaign_id) + SUM(site_r1.post_click_convs) over (partition by site_r1.campaign_id)) conversions,
-            SUM(site_r1.imps_viewed) over (partition by site_r1.campaign_id) imps_viewed,
-            SUM(site_r1.view_measured_imps) over (partition by site_r1.campaign_id) view_measured_imps
-          FROM
-            site_domain_performance_report site_r1
-          WHERE
-            site_r1.campaign_id=""" + str(camp_id) + """
-            AND site_r1.hour >= '""" + str(start_date) + """'
-            AND site_r1.hour < '""" + str(finish_date) + """'
-          WINDOW w as (partition by site_r1.campaign_id order by site_r1.day desc)
-         ) page;
-            """)
-    else:
-        queryRes = SiteDomainPerformanceReport.objects.raw("""
-                select page.*,
-                case page.imp when 0 then 0 else page.spend / page.imp * 1000.0 end cpm,
-                case page.imp when 0 then 0 else page.conversions::float / page.imp end cvr,
-                case page.imp when 0 then 0 else page.clicks::float / page.imp end ctr,
-                case page.clicks when 0 then 0 else page.spend / page.clicks end cpc,
-                case page.imp when 0 then 0 else page.view_measured_imps::float / page.imp end view_measurement_rate,
-                case page.view_measured_imps when 0 then 0 else page.imps_viewed::float / page.view_measured_imps end view_rate,
-                array((select
-                   json_build_object(
-                   'day', site_r.day,
-                   'imp', SUM(site_r.imps),
-                   'spend', SUM(site_r.media_cost),
-                   'clicks', SUM(site_r.clicks),
-                   'conversions', SUM(site_r.post_click_convs) + SUM(site_r.post_view_convs),
-                   'cvr', case SUM(site_r.imps) when 0 then 0 else (SUM(site_r.post_click_convs) + SUM(site_r.post_view_convs))::float/SUM(site_r.imps) end,
-                   'cpc', case SUM(site_r.clicks) when 0 then 0 else SUM(site_r.media_cost)::float/SUM(site_r.clicks) end,
-                   'ctr', case SUM(site_r.imps) when 0 then 0 else SUM(site_r.clicks)::float/SUM(site_r.imps) end)
-                 from site_domain_performance_report site_r
-                 where site_r.campaign_id=page.campaign_id
-                   AND site_r.day >= '""" + str(start_date) + """'
-                   AND site_r.day < '""" + str(finish_date) + """'
-                 group by site_r.campaign_id, site_r.day
-                 order by site_r.day)) id
-        from (
-              select distinct on (site_r1.campaign_id)
-                site_r1.campaign_id,
-                SUM(site_r1.imps) over (partition by site_r1.campaign_id) imp,
-                SUM(site_r1.media_cost) over (partition by site_r1.campaign_id) spend,
-                SUM(site_r1.clicks) over (partition by site_r1.campaign_id) clicks,
-                (SUM(site_r1.post_view_convs) over (partition by site_r1.campaign_id) + SUM(site_r1.post_click_convs) over (partition by site_r1.campaign_id))  conversions,
-                SUM(site_r1.imps_viewed) over (partition by site_r1.campaign_id) imps_viewed,
-                SUM(site_r1.view_measured_imps) over (partition by site_r1.campaign_id) view_measured_imps
-              FROM
-                site_domain_performance_report site_r1
-              WHERE
-                site_r1.campaign_id in """ + newCampaigns + """
-                AND site_r1.day >= '""" + str(start_date) + """'
-                AND site_r1.day < '""" + str(finish_date) + """'
-              WINDOW w as (partition by site_r1.campaign_id order by site_r1.day desc)
-             ) page;
-                """)
-    return queryRes
-
-
 def getUsualAdvertiserGraphData(start_date, finish_date, advertiser_id, new_one=False):
     if new_one:
         queryRes = SiteDomainPerformanceReport.objects.raw("""
@@ -390,7 +306,8 @@ def fillUIGridDataCron():
                 advertiser_id=adv.id,
                 type="last_month",
                 evaluation_date=timezone.make_aware(
-                    datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+                    datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0),
+                    timezone.get_default_timezone()
                 ),
                 window_start_date=timezone.make_aware(
                     (datetime.now().replace(day=1) - timedelta(days=1)).replace(day=1, hour=0, minute=0,
@@ -462,8 +379,10 @@ def fillUIGridDataCron():
                         finish_date=datetime.now().replace(minute=0, second=0, microsecond=0)
                     )
                     if queryRes is not None:
-                        prevData[0].evaluation_date = datetime.now().replace(minute=0, second=0, microsecond=0)
-
+                        prevData[0].evaluation_date = timezone.make_aware(
+                            datetime.now().replace(minute=0, second=0, microsecond=0),
+                            timezone.get_default_timezone()
+                        )
                         # chart
                         # if old data don't fill time period
                         if prevData[0].day_chart:
@@ -688,7 +607,8 @@ def fillUIGridDataCron():
                     campaign_id=camp.id,
                     type="last_month",
                     evaluation_date=timezone.make_aware(
-                        datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+                        datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0),
+                        timezone.get_default_timezone()
                     ),
                     window_start_date=timezone.make_aware(
                         (datetime.now().replace(day=1) - timedelta(days=1)).replace(day=1, hour=0, minute=0,
@@ -719,8 +639,7 @@ def fillUIGridDataCron():
                         try:
                             prevData[0].save()
                         except Exception, e:
-                            print "Can not update " + str(
-                                prevData[0].campaign_id) + " advertiser last month data. Error: " + str(e)
+                            print "Can not update " + str(prevData[0].campaign_id) + " advertiser last month data. Error: " + str(e)
             LastModified.objects.filter(type='hourlyTask') \
                 .update(date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
             #
@@ -810,9 +729,7 @@ def fillUIGridDataCron():
                     try:
                         prevData[0].save()
                     except Exception, e:
-                        print "Can not update " + str(
-                            prevData[0].advertiser) + " advertiser current month data. Error: " + str(e)
-
+                        print "Can not update " + str(prevData[0].advertiser) + " advertiser current month data. Error: " + str(e)
 
     if allNewAdvertiserts:
         try:
@@ -828,558 +745,6 @@ def fillUIGridDataCron():
             print "Can not save new campaign's graph. Error: " + str(e)
     LastModified.objects.filter(type='hourlyTask').update(date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
     print "New campaigns graphs saved"
-    #
-    # all usual
-    #
-    # updating existing campaigns
-    allCampaignsInfo = UIUsualCampaignsGridDataAll.objects.all()
-    for row in allCampaignsInfo.iterator():
-        LastModified.objects.filter(type='hourlyTask') \
-            .update(date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
-        # check if less than an hour had pass
-        if (datetime.now() - row.evaluation_date) < timedelta(hours=1):
-            continue
-        queryRes = getSiteDomainsReportInfo(
-            start_date=row.evaluation_date,
-            finish_date=datetime.now().replace(minute=0, second=0, microsecond=0),
-            camp_id=row.campaign_id
-        )
-        try:
-            queryRes[0]
-        except:
-            continue
-        # cummulative data
-        row.imps += 0 if queryRes[0].imp is None else queryRes[0].imp
-        row.conversions += 0 if queryRes[0].conversions is None else queryRes[0].conversions
-        row.spent += 0 if queryRes[0].spend is None else queryRes[0].spend
-        row.clicks += 0 if queryRes[0].clicks is None else queryRes[0].clicks
-        row.imps_viewed += 0 if queryRes[0].imps_viewed is None else queryRes[0].imps_viewed
-        row.view_measured_imps += 0 if queryRes[0].view_measured_imps is None else queryRes[0].view_measured_imps
-        # calculated rates
-        if row.imps == 0:
-            row.cpm = 0
-            row.cvr = 0
-            row.ctr = 0
-            row.view_measurement_rate = 0
-        else:
-            row.cpm = float(row.spent) / row.imps * 1000.0
-            row.cvr = float(row.conversions) / row.imps
-            row.ctr = float(row.clicks) / row.imps
-            row.view_measurement_rate = float(row.view_measured_imps) / row.imps
-        row.cpc = 0 if row.clicks == 0 else (float(row.spent) / row.clicks)
-        row.view_rate = 0 if row.view_measured_imps == 0 else (float(row.imps_viewed) / row.view_measured_imps)
-
-        if row.day_chart[len(row.day_chart)-1]["day"] == queryRes[0].id[0]["day"]:
-            row.day_chart[len(row.day_chart) - 1]["imp"] += queryRes[0].id[0]["imp"]
-            row.day_chart[len(row.day_chart) - 1]["spend"] += queryRes[0].id[0]["spend"]
-            row.day_chart[len(row.day_chart) - 1]["clicks"] += queryRes[0].id[0]["clicks"]
-            row.day_chart[len(row.day_chart) - 1]["conversions"] += queryRes[0].id[0]["conversions"]
-
-            if row.day_chart[len(row.day_chart) - 1]["imp"] == 0:
-                row.day_chart[len(row.day_chart) - 1]["cvr"] = 0
-                row.day_chart[len(row.day_chart) - 1]["ctr"] = 0
-            else:
-                row.day_chart[len(row.day_chart) - 1]["cvr"] = float(row.day_chart[len(row.day_chart) - 1]["conversions"]) /  row.day_chart[len(row.day_chart) - 1]["imp"]
-                row.day_chart[len(row.day_chart) - 1]["ctr"] = float(row.day_chart[len(row.day_chart) - 1]["clicks"]) / row.day_chart[len(row.day_chart) - 1]["imp"]
-            row.day_chart[len(row.day_chart) - 1]["cpc"] = 0 if (row.day_chart[len(row.day_chart) - 1]["clicks"] == 0) else (row.day_chart[len(row.day_chart) - 1]["spend"] / row.day_chart[len(row.day_chart) - 1]["clicks"])
-            row.day_chart.extend(queryRes[0].id[1:])
-        else:
-            row.day_chart.extend(queryRes[0].id)
-
-        row.evaluation_date = datetime.now().replace(minute=0, second=0, microsecond=0)
-        try:
-            row.save()
-        except Exception, e:
-            print "Can not update " + str(row.campaign_id) + "campaign all time data. Error: " + str(e)
-    # finding and filling every new campaign
-    allNewCampaigns = []
-    with connection.cursor() as cursor:
-        cursor.execute(
-            "select array_to_string(array(select id from campaign where id not in (select distinct campaign_id from ui_usual_campaigns_grid_data_all)),',');")
-        newCampaigns = cursor.fetchone()[0]
-    newCampaigns = '(' + newCampaigns + ')'
-    queryRes = getSiteDomainsReportInfo(
-        start_date="1970-01-01 00:00:00",
-        finish_date=datetime.now().replace(hour=0, minute=0, second=0, microsecond=0),
-        newCampaigns=newCampaigns
-    )
-
-    for row in queryRes:
-        LastModified.objects.filter(type='hourlyTask') \
-            .update(date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
-        allNewCampaigns.append(UIUsualCampaignsGridDataAll(
-            campaign_id=row.campaign_id,
-            evaluation_date=timezone.make_aware(
-                datetime.now().replace(hour=0, minute=0, second=0, microsecond=0),
-                timezone.get_default_timezone()
-            ),
-            spent=row.spend,
-            conversions=row.conversions,
-            imps=row.imp,
-            clicks=row.clicks,
-            cpc=row.cpc,
-            cpm=row.cpm,
-            cvr=row.cvr,
-            ctr=row.ctr,
-            imps_viewed=row.imps_viewed,
-            view_measured_imps=row.view_measured_imps,
-            view_measurement_rate=row.view_measurement_rate,
-            view_rate=row.view_rate,
-            day_chart=row.id
-            )
-        )
-    if not allNewCampaigns:
-        pass
-    else:
-        try:
-            UIUsualCampaignsGridDataAll.objects.bulk_create(allNewCampaigns)
-        except Exception, e:
-            print "Can not save campaigns all time data. Error: " + str(e)
-
-    #
-    # last N days usual
-    #
-    # updating existing campaigns
-    modelsDict = {}
-    modelsDict["yesterday"] = [UIUsualCampaignsGridDataYesterday, 1]
-    modelsDict["last_3_days"] = [UIUsualCampaignsGridDataLast3Days, 3]
-    modelsDict["last_7_days"] = [UIUsualCampaignsGridDataLast7Days, 7]
-    modelsDict["last_14_days"] = [UIUsualCampaignsGridDataLast14Days, 14]
-    modelsDict["last_21_days"] = [UIUsualCampaignsGridDataLast21Days, 21]
-    modelsDict["last_90_days"] = [UIUsualCampaignsGridDataLast90Days, 90]
-
-    for type, info in modelsDict.iteritems():
-        allCampaignsInfo = info[0].objects.all()
-        for row in allCampaignsInfo.iterator():
-            LastModified.objects.filter(type='hourlyTask') \
-                .update(date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
-            # check if less than an hour had pass
-            if (datetime.now() - row.evaluation_date) < timedelta(hours=1):
-                continue
-            queryRes = getSiteDomainsReportInfo(
-                start_date=row.evaluation_date,
-                finish_date=datetime.now().replace(minute=0, second=0, microsecond=0),
-                camp_id=row.campaign_id
-            )
-            try:
-                queryRes[0]
-            except:
-                continue
-            # cummulative data
-            row.imps += queryRes[0].imp
-            row.conversions += queryRes[0].conversions
-            row.spent += queryRes[0].spend
-            row.clicks += queryRes[0].clicks
-            row.imps_viewed += queryRes[0].imps_viewed
-            row.view_measured_imps += queryRes[0].view_measured_imps
-
-            # chart
-            # if new data is greater, then time period
-            if len(queryRes[0].id) >= (info[1]+1):
-                row.day_chart = queryRes[0].id[-(info[1]+1):]
-            else:
-                # if old data don't fill time period
-                if queryRes[0].id[0]["day"] == row.day_chart[len(row.day_chart)-1]["day"]:
-                    row.day_chart[len(row.day_chart) - 1]["imp"] += queryRes[0].id[0]["imp"]
-                    row.day_chart[len(row.day_chart) - 1]["spend"] += queryRes[0].id[0]["spend"]
-                    row.day_chart[len(row.day_chart) - 1]["clicks"] += queryRes[0].id[0]["clicks"]
-                    row.day_chart[len(row.day_chart) - 1]["conversions"] += queryRes[0].id[0]["conversions"]
-
-                    if row.day_chart[len(row.day_chart) - 1]["imp"] == 0:
-                        row.day_chart[len(row.day_chart) - 1]["cvr"] = 0
-                        row.day_chart[len(row.day_chart) - 1]["ctr"] = 0
-                    else:
-                        row.day_chart[len(row.day_chart) - 1]["cvr"] = float(row.day_chart[len(row.day_chart) - 1]["conversions"]) / \
-                                                               row.day_chart[len(row.day_chart) - 1]["imp"]
-                        row.day_chart[len(row.day_chart) - 1]["ctr"] = float(row.day_chart[len(row.day_chart) - 1]["clicks"]) / \
-                                                               row.day_chart[len(row.day_chart) - 1]["imp"]
-
-                    row.day_chart[len(row.day_chart) - 1]["cpc"] = 0 if (row.day_chart[len(row.day_chart) - 1]["clicks"] == 0) else (
-                        row.day_chart[len(row.day_chart) - 1]["spend"] / row.day_chart[len(row.day_chart) - 1]["clicks"])
-                    # cut and extend
-                    if (len(row.day_chart) + len(queryRes[0].id) - info[1] - 2) > 0:
-                        row.day_chart = row.day_chart[(len(row.day_chart) + len(queryRes[0].id) - info[1] - 2):]
-                    row.day_chart.extend(queryRes[0].id[1:])
-                else:
-                    if (len(row.day_chart) + len(queryRes[0].id) - info[1] - 1) > 0:
-                        row.day_chart = row.day_chart[(len(row.day_chart)+len(queryRes[0].id)-info[1]-1):]
-                    row.day_chart.extend(queryRes[0].id)
-
-            # check if need to sub days
-            if (datetime.now() - row.window_start_date) >= timedelta(days=info[1]+1):
-                # data for sub
-                queryRes = getSiteDomainsReportInfo(
-                    start_date=row.window_start_date,
-                    finish_date=(datetime.now() - timedelta(days=info[1])).replace(hour=0, minute=0, second=0, microsecond=0),
-                    camp_id=row.campaign_id
-                )
-                LastModified.objects.filter(type='hourlyTask') \
-                    .update(date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
-                try:
-                    queryRes[0]
-                except:
-                    # calculated rates
-                    if row.imps == 0:
-                        row.cpm = 0
-                        row.cvr = 0
-                        row.ctr = 0
-                        row.view_measurement_rate = 0
-                    else:
-                        row.cpm = float(row.spent) / row.imps * 1000.0
-                        row.cvr = float(row.conversions) / row.imps
-                        row.ctr = float(row.clicks) / row.imps
-                        row.view_measurement_rate = float(row.view_measured_imps) / row.imps
-                    row.cpc = 0 if row.clicks == 0 else (float(row.spent) / row.clicks)
-                    row.view_rate = 0 if row.view_measured_imps == 0 else (
-                    float(row.imps_viewed) / row.view_measured_imps)
-                    row.evaluation_date = datetime.now().replace(minute=0, second=0, microsecond=0)
-                    row.window_start_date = (datetime.now() - timedelta(days=info[1])).replace(hour=0, minute=0, second=0, microsecond=0)
-                    try:
-                        row.save()
-                    except Exception, e:
-                        print "Can not update " + str(row.campaign_id) + " campaign " + str(type) + " data. Error: " + str(e)
-                    continue
-                # cummulative data
-                row.imps -= queryRes[0].imp
-                row.conversions -= queryRes[0].conversions
-                row.spent -= queryRes[0].spend
-                row.clicks -= queryRes[0].clicks
-                row.imps_viewed -= queryRes[0].imps_viewed
-                row.view_measured_imps -= queryRes[0].view_measured_imps
-                LastModified.objects.filter(type='hourlyTask') \
-                    .update(date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
-
-            # calculated rates
-            if row.imps == 0:
-                row.cpm = 0
-                row.cvr = 0
-                row.ctr = 0
-                row.view_measurement_rate = 0
-            else:
-                row.cpm = float(row.spent) / row.imps * 1000.0
-                row.cvr = float(row.conversions) / row.imps
-                row.ctr = float(row.clicks) / row.imps
-                row.view_measurement_rate = float(row.view_measured_imps) / row.imps
-            row.cpc = 0 if row.clicks == 0 else (float(row.spent) / row.clicks)
-            row.view_rate = 0 if row.view_measured_imps == 0 else (float(row.imps_viewed) / row.view_measured_imps)
-            row.evaluation_date = datetime.now().replace(minute=0, second=0, microsecond=0)
-            row.window_start_date = (datetime.now() - timedelta(days=info[1])).replace(hour=0, minute=0, second=0,
-                                                                                       microsecond=0)
-            try:
-                row.save()
-            except Exception, e:
-                print "Can not update " + str(row.campaign_id) + " campaign " + str(type) + " data. Error: " + str(e)
-            row.save()
-
-        # finding and filling every new campaign
-        allNewCampaigns = []
-        with connection.cursor() as cursor:
-            cursor.execute("""
-select array_to_string(
- array(
-   select id
-   from campaign
-   where id not in (select distinct campaign_id from ui_usual_campaigns_grid_data_"""+str(type)+""")),',');""")
-            newCampaigns = cursor.fetchone()[0]
-        newCampaigns = '(' + newCampaigns + ')'
-        queryRes = getSiteDomainsReportInfo(
-            start_date=(datetime.now() - timedelta(days=info[1])).replace(hour=0, minute=0, second=0, microsecond=0),
-            finish_date=datetime.now().replace(hour=0, minute=0, second=0, microsecond=0),
-            newCampaigns=newCampaigns
-        )
-        for row in queryRes:
-            LastModified.objects.filter(type='hourlyTask') \
-                .update(date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
-            allNewCampaigns.append(info[0](
-                campaign_id=row.campaign_id,
-                evaluation_date=timezone.make_aware(
-                    datetime.now().replace(hour=0, minute=0, second=0, microsecond=0),
-                    timezone.get_default_timezone()
-                ),
-                window_start_date=timezone.make_aware(
-                    (datetime.now() - timedelta(days=info[1])).replace(hour=0, minute=0, second=0, microsecond=0),
-                    timezone.get_default_timezone()
-                ),
-                spent=row.spend,
-                conversions=row.conversions,
-                imps=row.imp,
-                clicks=row.clicks,
-                cpc=row.cpc,
-                cpm=row.cpm,
-                cvr=row.cvr,
-                ctr=row.ctr,
-                imps_viewed=row.imps_viewed,
-                view_measured_imps=row.view_measured_imps,
-                view_measurement_rate=row.view_measurement_rate,
-                view_rate=row.view_rate,
-                day_chart=row.id
-            )
-            )
-        if not allNewCampaigns:
-            pass
-        else:
-            try:
-                info[0].objects.bulk_create(allNewCampaigns)
-            except Exception, e:
-                print "Can not save campaign " + str(type) + " data. Error: " + str(e)
-
-    #LAST MONTH
-    # updating existing campaigns
-    allCampaignsInfo = UIUsualCampaignsGridDataLastMonth.objects.all()
-
-    for row in allCampaignsInfo.iterator():
-        LastModified.objects.filter(type='hourlyTask') \
-            .update(date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
-        # check if less than a month had pass
-        if (datetime.now().month - row.window_start_date.month) < 2:
-            continue
-        queryRes = getSiteDomainsReportInfo(
-            start_date=(datetime.now().replace(day=1) - timedelta(days=1)).replace(day=1, hour=0, minute=0, second=0, microsecond=0),
-            finish_date=datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0),
-            camp_id=row.campaign_id
-        )
-        try:
-            queryRes[0]
-        except:
-            continue
-
-        # cummulative data
-        row.imps = queryRes[0].imp
-        row.conversions = queryRes[0].conversions
-        row.spent = queryRes[0].spend
-        row.clicks = queryRes[0].clicks
-        row.imps_viewed = queryRes[0].imps_viewed
-        row.view_measured_imps = queryRes[0].view_measured_imps
-        # calculated rates
-        if row.imps == 0:
-            row.cpm = 0
-            row.cvr = 0
-            row.ctr = 0
-            row.view_measurement_rate = 0
-        else:
-            row.cpm = float(row.spent) / row.imps * 1000.0
-            row.cvr = float(row.conversions) / row.imps
-            row.ctr = float(row.clicks) / row.imps
-            row.view_measurement_rate = float(row.view_measured_imps) / row.imps
-        row.cpc = 0 if row.clicks == 0 else (float(row.spent) / row.clicks)
-        row.view_rate = 0 if row.view_measured_imps == 0 else (float(row.imps_viewed) / row.view_measured_imps)
-        row.evaluation_date = datetime.now().replace(minute=0, second=0, microsecond=0)
-        row.window_start_date =(datetime.now().replace(day=1) - timedelta(days=1)).replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-        row.day_chart = queryRes[0].id
-        try:
-            row.save()
-        except Exception, e:
-            print "Can not update " + str(row.campaign_id) + " campaign last month data. Error: " + str(e)
-    # finding and filling every new campaign
-    allNewCampaigns = []
-    with connection.cursor() as cursor:
-        cursor.execute(
-            "select array_to_string(array(select id from campaign where id not in (select distinct campaign_id from ui_usual_campaigns_grid_data_last_month)),',');")
-        newCampaigns = cursor.fetchone()[0]
-    newCampaigns = '(' + newCampaigns + ')'
-    queryRes = getSiteDomainsReportInfo(
-        start_date=(datetime.now().replace(day=1) - timedelta(days=1)).replace(day=1, hour=0, minute=0, second=0, microsecond=0),
-        finish_date=datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0),
-        newCampaigns=newCampaigns
-    )
-
-    for row in queryRes:
-        LastModified.objects.filter(type='hourlyTask') \
-            .update(date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
-        allNewCampaigns.append(UIUsualCampaignsGridDataLastMonth(
-            campaign_id=row.campaign_id,
-            evaluation_date=timezone.make_aware(
-                datetime.now().replace(minute=0, second=0, microsecond=0),
-                timezone.get_default_timezone()
-            ),
-            window_start_date=timezone.make_aware(
-                (datetime.now().replace(day=1) - timedelta(days=1)).replace(day=1, hour=0, minute=0, second=0,
-                                                                            microsecond=0),
-                timezone.get_default_timezone()
-            ),
-            spent=row.spend,
-            conversions=row.conversions,
-            imps=row.imp,
-            clicks=row.clicks,
-            cpc=row.cpc,
-            cpm=row.cpm,
-            cvr=row.cvr,
-            ctr=row.ctr,
-            imps_viewed=row.imps_viewed,
-            view_measured_imps=row.view_measured_imps,
-            view_measurement_rate=row.view_measurement_rate,
-            view_rate=row.view_rate,
-            day_chart=row.id
-        )
-        )
-    if not allNewCampaigns:
-        pass
-    else:
-        try:
-            UIUsualCampaignsGridDataLastMonth.objects.bulk_create(allNewCampaigns)
-        except Exception, e:
-            print "Can not save campaigns last month data. Error: " + str(e)
-
-    # CUR MONTH
-    # updating existing campaigns
-    allCampaignsInfo = UIUsualCampaignsGridDataCurMonth.objects.all()
-    for row in allCampaignsInfo.iterator():
-        LastModified.objects.filter(type='hourlyTask') \
-            .update(date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
-        # check if less than an hour had pass
-        if (datetime.now() - row.evaluation_date) < timedelta(hours=1):
-            continue
-        # if next month - change, if cur - cummulate
-        if row.window_start_date.month == datetime.now().month:
-            queryRes = getSiteDomainsReportInfo(
-                start_date=row.evaluation_date,
-                finish_date=datetime.now().replace(minute=0, second=0, microsecond=0),
-                camp_id=row.campaign_id
-            )
-            try:
-                queryRes[0]
-            except:
-                continue
-            # cummulative data
-            row.imps += queryRes[0].imp
-            row.conversions += queryRes[0].conversions
-            row.spent += queryRes[0].spend
-            row.clicks += queryRes[0].clicks
-            row.imps_viewed += queryRes[0].imps_viewed
-            row.view_measured_imps += queryRes[0].view_measured_imps
-            # calculated rates
-            if row.imps == 0:
-                row.cpm = 0
-                row.cvr = 0
-                row.ctr = 0
-                row.view_measurement_rate = 0
-            else:
-                row.cpm = float(row.spent) / row.imps * 1000.0
-                row.cvr = float(row.conversions) / row.imps
-                row.ctr = float(row.clicks) / row.imps
-                row.view_measurement_rate = float(row.view_measured_imps) / row.imps
-            row.cpc = 0 if row.clicks == 0 else (float(row.spent) / row.clicks)
-            row.view_rate = 0 if row.view_measured_imps == 0 else (float(row.imps_viewed) / row.view_measured_imps)
-            row.evaluation_date = datetime.now().replace(minute=0, second=0, microsecond=0)
-
-            # chart
-            # if old data don't fill time period
-            if queryRes[0].id[0]["day"] == row.day_chart[len(row.day_chart) - 1]:
-                row.day_chart[len(row.day_chart) - 1]["imp"] += queryRes[0].id[0]["imp"]
-                row.day_chart[len(row.day_chart) - 1]["spend"] += queryRes[0].id[0]["spend"]
-                row.day_chart[len(row.day_chart) - 1]["clicks"] += queryRes[0].id[0]["clicks"]
-                row.day_chart[len(row.day_chart) - 1]["conversions"] += queryRes[0].id[0]["conversions"]
-
-                if row.day_chart[len(row.day_chart) - 1]["imp"] == 0:
-                    row.day_chart[len(row.day_chart) - 1]["cvr"] = 0
-                    row.day_chart[len(row.day_chart) - 1]["ctr"] = 0
-                else:
-                    row.day_chart[len(row.day_chart) - 1]["cvr"] = float(
-                        row.day_chart[len(row.day_chart) - 1]["conversions"]) / \
-                                                                   row.day_chart[len(row.day_chart) - 1]["imp"]
-                    row.day_chart[len(row.day_chart) - 1]["ctr"] = float(
-                        row.day_chart[len(row.day_chart) - 1]["clicks"]) / \
-                                                                   row.day_chart[len(row.day_chart) - 1]["imp"]
-
-                row.day_chart[len(row.day_chart) - 1]["cpc"] = 0 if (
-                row.chart[len(row.day_chart) - 1]["clicks"] == 0) else (
-                    row.day_chart[len(row.day_chart) - 1]["spend"] / row.chart[len(row.day_chart) - 1]["clicks"])
-                # cut and extend
-                row.day_chart.extend(queryRes[0].id[1:])
-            else:
-                row.day_chart.extend(queryRes[0].id)
-
-            try:
-                row.save()
-            except Exception, e:
-                print "Can not update " + str(row.campaign_id) + " campaign current month data. Error: " + str(e)
-        else:
-            LastModified.objects.filter(type='hourlyTask') \
-                .update(date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
-            queryRes = getSiteDomainsReportInfo(
-                start_date=datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0),
-                finish_date=datetime.now().replace(minute=0, second=0, microsecond=0),
-                camp_id=row.campaign_id
-            )
-            try:
-                queryRes[0]
-            except:
-                continue
-            # cummulative data
-            row.imps = queryRes[0].imp
-            row.conversions = queryRes[0].conversions
-            row.spent = queryRes[0].spend
-            row.clicks = queryRes[0].clicks
-            row.imps_viewed = queryRes[0].imps_viewed
-            row.view_measured_imps = queryRes[0].view_measured_imps
-            # calculated rates
-            if row.imps == 0:
-                row.cpm = 0
-                row.cvr = 0
-                row.ctr = 0
-                row.view_measurement_rate = 0
-            else:
-                row.cpm = float(row.spent) / row.imps * 1000.0
-                row.cvr = float(row.conversions) / row.imps
-                row.ctr = float(row.clicks) / row.imps
-                row.view_measurement_rate = float(row.view_measured_imps) / row.imps
-            row.cpc = 0 if row.clicks == 0 else (float(row.spent) / row.clicks)
-            row.view_rate = 0 if row.view_measured_imps == 0 else (float(row.imps_viewed) / row.view_measured_imps)
-            row.evaluation_date = datetime.now().replace(minute=0, second=0, microsecond=0)
-            row.window_start_date = datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-            row.day_chart = queryRes[0].id
-            try:
-                row.save()
-            except Exception, e:
-                print "Can not update " + str(row.campaign_id) + " campaign current month data. Error: " + str(e)
-
-    # finding and filling every new campaign
-    allNewCampaigns = []
-    with connection.cursor() as cursor:
-        cursor.execute(
-            "select array_to_string(array(select id from campaign where id not in (select distinct campaign_id from ui_video_campaigns_grid_data_cur_month)),',');")
-        newCampaigns = cursor.fetchone()[0]
-    newCampaigns = '(' + newCampaigns + ')'
-    queryRes = getSiteDomainsReportInfo(
-        start_date=datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0),
-        finish_date=datetime.now().replace(hour=0, minute=0, second=0, microsecond=0),
-        newCampaigns=newCampaigns
-    )
-    for row in queryRes:
-        LastModified.objects.filter(type='hourlyTask') \
-            .update(date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
-        allNewCampaigns.append(UIUsualCampaignsGridDataCurMonth(
-            campaign_id=row.campaign_id,
-            evaluation_date=timezone.make_aware(
-                datetime.now().replace(hour=0, minute=0, second=0, microsecond=0),
-                timezone.get_default_timezone()
-            ),
-            window_start_date=timezone.make_aware(
-                datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0),
-                timezone.get_default_timezone()
-            ),
-            spent=row.spend,
-            conversions=row.conversions,
-            imps=row.imp,
-            clicks=row.clicks,
-            cpc=row.cpc,
-            cpm=row.cpm,
-            cvr=row.cvr,
-            ctr=row.ctr,
-            imps_viewed=row.imps_viewed,
-            view_measured_imps=row.view_measured_imps,
-            view_measurement_rate=row.view_measurement_rate,
-            view_rate=row.view_rate,
-            day_chart=row.id
-        )
-        )
-    if not allNewCampaigns:
-        pass
-    else:
-        try:
-            UIUsualCampaignsGridDataCurMonth.objects.bulk_create(allNewCampaigns)
-        except Exception, e:
-            print "Can not save campaigns current month data. Error: " + str(e)
     print "fillUIGridDataCron finished: " + str(datetime.now())
 
 
@@ -1536,9 +901,227 @@ def refreshPlacementsLastMonthGridData(start_date, finish_date):
          view_measurement_rate = case coalesce(Excluded.imps, 0) when 0 then 0 else coalesce(Excluded.view_measured_imps, 0)::float / coalesce(Excluded.imps, 0) end,
          view_rate = case coalesce(Excluded.view_measured_imps, 0) when 0 then 0 else coalesce(Excluded.imps_viewed, 0)::float / coalesce(Excluded.view_measured_imps, 0) end;
     """)
+
+def cummulateCampaignsGridData(type, start_date, finish_date):
+    with connection.cursor() as cursor:
+        cursor.execute("""
+insert into ui_usual_campaigns_grid_data_""" + str(type) + """ as ut (
+    campaign_id,
+    imps,
+    clicks,
+    spent,
+    conversions,
+    imps_viewed,
+    view_measured_imps,
+    cpm,
+    cvr,
+    ctr,
+    cpc,
+    view_measurement_rate,
+    view_rate,
+    day_chart)
+  select
+    page.campaign_id,
+    page.imps,
+    page.clicks,
+    page.spent,
+    page.conversions,
+    page.imps_viewed,
+    page.view_measured_imps,
+    case coalesce(page.imps, 0) when 0 then 0 else coalesce(page.spent, 0) / coalesce(page.imps, 0) * 1000.0 end,
+    case coalesce(page.imps, 0) when 0 then 0 else coalesce(page.conversions, 0)::float / coalesce(page.imps, 0) end,
+    case coalesce(page.imps, 0) when 0 then 0 else coalesce(page.clicks, 0)::float / coalesce(page.imps, 0) end,
+    case coalesce(page.clicks, 0) when 0 then 0 else coalesce(page.spent, 0) / coalesce(page.clicks, 0) end,
+    case coalesce(page.imps, 0) when 0 then 0 else coalesce(page.view_measured_imps, 0)::float / coalesce(page.imps, 0) end,
+    case coalesce(page.view_measured_imps, 0) when 0 then 0 else coalesce(page.imps_viewed, 0)::float / coalesce(page.view_measured_imps, 0) end,
+    array_to_json(array((select
+           json_build_object(
+           'day', site_r.day,
+           'imp', SUM(site_r.imps),
+           'spend', SUM(site_r.media_cost),
+           'clicks', SUM(site_r.clicks),
+           'conversions', SUM(site_r.post_click_convs) + SUM(site_r.post_view_convs),
+           'cvr', case SUM(site_r.imps) when 0 then 0 else (SUM(site_r.post_click_convs) + SUM(site_r.post_view_convs))::float/SUM(site_r.imps) end,
+           'cpc', case SUM(site_r.clicks) when 0 then 0 else SUM(site_r.media_cost)::float/SUM(site_r.clicks) end,
+           'ctr', case SUM(site_r.imps) when 0 then 0 else SUM(site_r.clicks)::float/SUM(site_r.imps) end)
+         from site_domain_performance_report site_r
+         where site_r.campaign_id=page.campaign_id
+           and site_r.hour > '""" + str(start_date) + """' and site_r.hour <= '""" + str(finish_date) + """'
+         group by site_r.campaign_id, site_r.day
+         order by site_r.day))) id
+from (
+      select distinct on (site_r1.campaign_id)
+        site_r1.campaign_id,
+        SUM(site_r1.imps) over (partition by site_r1.campaign_id) imps,
+        SUM(site_r1.media_cost) over (partition by site_r1.campaign_id) spent,
+        SUM(site_r1.clicks) over (partition by site_r1.campaign_id) clicks,
+        (SUM(site_r1.post_view_convs) over (partition by site_r1.campaign_id) + SUM(site_r1.post_click_convs) over (partition by site_r1.campaign_id)) conversions,
+        SUM(site_r1.imps_viewed) over (partition by site_r1.campaign_id) imps_viewed,
+        SUM(site_r1.view_measured_imps) over (partition by site_r1.campaign_id) view_measured_imps
+      from
+        site_domain_performance_report site_r1
+      where
+        site_r1.hour > '""" + str(start_date) + """'
+        and site_r1.hour <= '""" + str(finish_date) + """'
+      WINDOW w as (partition by site_r1.campaign_id order by site_r1.day desc)
+     ) page
+ON CONFLICT (campaign_id)
+  DO UPDATE SET
+     imps = coalesce(ut.imps, 0) + coalesce(Excluded.imps, 0),
+     clicks = coalesce(ut.clicks, 0) + coalesce(Excluded.clicks, 0),
+     spent = coalesce(ut.spent, 0) + coalesce(Excluded.spent, 0),
+     conversions = coalesce(ut.conversions, 0) + coalesce(Excluded.conversions, 0),
+     imps_viewed = coalesce(ut.imps_viewed, 0) + coalesce(Excluded.imps_viewed, 0),
+     view_measured_imps = coalesce(ut.view_measured_imps, 0) + coalesce(Excluded.view_measured_imps, 0),
+     cpm = case (coalesce(ut.imps, 0) + coalesce(Excluded.imps, 0)) when 0 then 0 else (coalesce(ut.spent, 0) + coalesce(Excluded.spent, 0)) / (coalesce(ut.imps, 0) + coalesce(Excluded.imps, 0)) * 1000.0 end,
+     cvr = case (coalesce(ut.imps, 0) + coalesce(Excluded.imps, 0)) when 0 then 0 else (coalesce(ut.conversions, 0) + coalesce(Excluded.conversions, 0))::float / (coalesce(ut.imps, 0) + coalesce(Excluded.imps, 0)) end,
+     ctr = case (coalesce(ut.imps, 0) + coalesce(Excluded.imps, 0)) when 0 then 0 else (coalesce(ut.clicks, 0) + coalesce(Excluded.clicks, 0))::float / (coalesce(ut.imps, 0) + coalesce(Excluded.imps, 0)) end,
+     cpc = case (coalesce(ut.clicks, 0) + coalesce(Excluded.clicks, 0)) when 0 then 0 else (coalesce(ut.spent, 0) + coalesce(Excluded.spent, 0)) / (coalesce(ut.clicks, 0) + coalesce(Excluded.clicks, 0)) end,
+     view_measurement_rate = case (coalesce(ut.imps, 0) + coalesce(Excluded.imps, 0)) when 0 then 0 else (coalesce(ut.view_measured_imps, 0) + coalesce(Excluded.view_measured_imps, 0))::float / (coalesce(ut.imps, 0) + coalesce(Excluded.imps, 0)) end,
+     view_rate = case (coalesce(ut.view_measured_imps, 0) + coalesce(Excluded.view_measured_imps, 0)) when 0 then 0 else (coalesce(ut.imps_viewed, 0) + coalesce(Excluded.imps_viewed, 0))::float / (coalesce(ut.view_measured_imps, 0) + coalesce(Excluded.view_measured_imps, 0)) end,
+     day_chart = case (ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'day')::text when (Excluded.day_chart::json->0->'day')::text
+                  then jsonb_set(
+                    ut.day_chart::jsonb,
+                    concat('{', (jsonb_array_length(ut.day_chart)-1), '}')::text[],
+                    json_build_object(
+                        'day', ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'day',
+                        'imp', coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'imp')::text::integer,0) + coalesce((Excluded.day_chart::json->0->'imp')::text::integer,0),
+                        'spend', coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'spend')::text::float,0) + coalesce((Excluded.day_chart::json->0->'spend')::text::float,0),
+                        'clicks', coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'clicks')::text::integer,0) + coalesce((Excluded.day_chart::json->0->'clicks')::text::integer,0),
+                        'conversions', coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'conversions')::text::integer,0) + coalesce((Excluded.day_chart::json->0->'conversions')::text::integer,0),
+                        'cvr', case (coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'imp')::text::integer,0) + coalesce((Excluded.day_chart::json->0->'imp')::text::integer,0))
+                               when 0 then 0
+                               else (coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'conversions')::text::float,0) + coalesce((Excluded.day_chart::json->0->'conversions')::text::float,0))/(coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'imp')::text::float,0) + coalesce((Excluded.day_chart::json->0->'imp')::text::float,0)) end,
+                        'cpc', case (coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'clicks')::text::integer,0) + coalesce((Excluded.day_chart::json->0->'clicks')::text::integer,0))
+                               when 0 then 0
+                               else (coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'spend')::text::float,0) + coalesce((Excluded.day_chart::json->0->'spend')::text::float,0))/(coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'clicks')::text::float,0) + coalesce((Excluded.day_chart::json->0->'clicks')::text::float,0)) end,
+                        'ctr', case coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'imp')::text::integer,0) + coalesce((Excluded.day_chart::json->0->'imp')::text::integer,0)
+                               when 0 then 0
+                               else (coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'clicks')::text::float,0) + coalesce((Excluded.day_chart::json->0->'clicks')::text::float,0))/(coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'imp')::text::float,0) + coalesce((Excluded.day_chart::json->0->'imp')::text::float,0)) end
+                    )::jsonb,
+                    true)
+                  else ut.day_chart||Excluded.day_chart end;
+""")
+
+def subCampaignsGridData(type, start_date, finish_date):
+    with connection.cursor() as cursor:
+        cursor.execute("""
+update ui_usual_campaigns_grid_data_""" + str(type) + """ as ut
+set
+  imps = ut.imps - info.imp,
+  clicks = ut.clicks - info.clicks,
+  spent = ut.spent - info.spent,
+  conversions = ut.conversions - info.conversions,
+  imps_viewed = ut.imps_viewed - info.imps_viewed,
+  view_measured_imps = ut.view_measured_imps - info.view_measured_imps,
+  cpm = case (ut.imps - info.imp) when 0 then 0 else (ut.spent - info.spent) / (ut.imps - info.imp) * 1000.0 end,
+  cvr = case (ut.imps - info.imp) when 0 then 0 else (ut.conversions - info.conversions) / (ut.imps - info.imp) end,
+  ctr = case (ut.imps - info.imp) when 0 then 0 else (ut.clicks - info.clicks) / (ut.imps - info.imp) end,
+  cpc = case (ut.clicks - info.clicks) when 0 then 0 else (ut.spent - info.spent) / (ut.clicks - info.clicks) end,
+  view_measurement_rate = case (imps - info.imp) when 0 then 0 else (ut.view_measured_imps - info.view_measured_imps) / (ut.imps - info.imp) end,
+  view_rate = case (ut.view_measured_imps - info.view_measured_imps) when 0 then 0 else (ut.imps_viewed - info.imps_viewed) / (ut.view_measured_imps - info.view_measured_imps) end,
+  day_chart = day_chart - 0
+FROM (
+  select
+    campaign_id,
+    sum(imps) imp,
+    sum(clicks) clicks,
+    sum(media_cost) spent,
+    (sum(post_click_convs) + sum(post_view_convs)) conversions,
+    sum(imps_viewed) imps_viewed,
+    sum(view_measured_imps) view_measured_imps
+  from
+    site_domain_performance_report
+  where
+    "hour" >= '""" + str(start_date) + """' and "hour" < '""" + str(finish_date) + """'
+  group by
+    campaign_id
+) info
+where ut.campaign_id = info.campaign_id;
+""")
+
+def refreshCampaignsLastMonthGridData(start_date, finish_date):
+    with connection.cursor() as cursor:
+        cursor.execute("""
+insert into ui_usual_campaigns_grid_data_""" + str(type) + """ as ut (
+    campaign_id,
+    imps,
+    clicks,
+    spent,
+    conversions,
+    imps_viewed,
+    view_measured_imps,
+    cpm,
+    cvr,
+    ctr,
+    cpc,
+    view_measurement_rate,
+    view_rate,
+    day_chart)
+  select
+    page.campaign_id,
+    page.imps,
+    page.clicks,
+    page.spent,
+    page.conversions,
+    page.imps_viewed,
+    page.view_measured_imps,
+    case coalesce(page.imps, 0) when 0 then 0 else coalesce(page.spent, 0) / coalesce(page.imps, 0) * 1000.0 end,
+    case coalesce(page.imps, 0) when 0 then 0 else coalesce(page.conversions, 0)::float / coalesce(page.imps, 0) end,
+    case coalesce(page.imps, 0) when 0 then 0 else coalesce(page.clicks, 0)::float / coalesce(page.imps, 0) end,
+    case coalesce(page.clicks, 0) when 0 then 0 else coalesce(page.spent, 0) / coalesce(page.clicks, 0) end,
+    case coalesce(page.imps, 0) when 0 then 0 else coalesce(page.view_measured_imps, 0)::float / coalesce(page.imps, 0) end,
+    case coalesce(page.view_measured_imps, 0) when 0 then 0 else coalesce(page.imps_viewed, 0)::float / coalesce(page.view_measured_imps, 0) end,
+    array_to_json(array((select
+           json_build_object(
+           'day', site_r.day,
+           'imp', SUM(site_r.imps),
+           'spend', SUM(site_r.media_cost),
+           'clicks', SUM(site_r.clicks),
+           'conversions', SUM(site_r.post_click_convs) + SUM(site_r.post_view_convs),
+           'cvr', case SUM(site_r.imps) when 0 then 0 else (SUM(site_r.post_click_convs) + SUM(site_r.post_view_convs))::float/SUM(site_r.imps) end,
+           'cpc', case SUM(site_r.clicks) when 0 then 0 else SUM(site_r.media_cost)::float/SUM(site_r.clicks) end,
+           'ctr', case SUM(site_r.imps) when 0 then 0 else SUM(site_r.clicks)::float/SUM(site_r.imps) end)
+         from site_domain_performance_report site_r
+         where site_r.campaign_id=page.campaign_id
+           and site_r.hour > '""" + str(start_date) + """' and site_r.hour <= '""" + str(finish_date) + """'
+         group by site_r.campaign_id, site_r.day
+         order by site_r.day))) id
+from (
+      select distinct on (site_r1.campaign_id)
+        site_r1.campaign_id,
+        SUM(site_r1.imps) over (partition by site_r1.campaign_id) imps,
+        SUM(site_r1.media_cost) over (partition by site_r1.campaign_id) spent,
+        SUM(site_r1.clicks) over (partition by site_r1.campaign_id) clicks,
+        (SUM(site_r1.post_view_convs) over (partition by site_r1.campaign_id) + SUM(site_r1.post_click_convs) over (partition by site_r1.campaign_id)) conversions,
+        SUM(site_r1.imps_viewed) over (partition by site_r1.campaign_id) imps_viewed,
+        SUM(site_r1.view_measured_imps) over (partition by site_r1.campaign_id) view_measured_imps
+      from
+        site_domain_performance_report site_r1
+      where
+        site_r1.hour > '""" + str(start_date) + """'
+        and site_r1.hour <= '""" + str(finish_date) + """'
+      WINDOW w as (partition by site_r1.campaign_id order by site_r1.day desc)
+     ) page
+ON CONFLICT (campaign_id)
+  DO UPDATE SET
+     imps = coalesce(Excluded.imps, 0),
+     clicks = coalesce(Excluded.clicks, 0),
+     spent = coalesce(Excluded.spent, 0),
+     conversions = coalesce(Excluded.conversions, 0),
+     imps_viewed = coalesce(Excluded.imps_viewed, 0),
+     view_measured_imps = coalesce(Excluded.view_measured_imps, 0),
+     cpm = case coalesce(Excluded.imps, 0) when 0 then 0 else coalesce(Excluded.spent, 0) / coalesce(Excluded.imps, 0) * 1000.0 end,
+     cvr = case coalesce(Excluded.imps, 0) when 0 then 0 else coalesce(Excluded.conversions, 0)::float / coalesce(Excluded.imps, 0) end,
+     ctr = case coalesce(Excluded.imps, 0) when 0 then 0 else  coalesce(Excluded.clicks, 0)::float / coalesce(Excluded.imps, 0) end,
+     cpc = case coalesce(Excluded.clicks, 0) when 0 then 0 else coalesce(Excluded.spent, 0) / coalesce(Excluded.clicks, 0) end,
+     view_measurement_rate = case coalesce(Excluded.imps, 0) when 0 then 0 else coalesce(Excluded.view_measured_imps, 0)::float / coalesce(Excluded.imps, 0) end,
+     view_rate = case coalesce(Excluded.view_measured_imps, 0) when 0 then 0 else coalesce(Excluded.imps_viewed, 0)::float / coalesce(Excluded.view_measured_imps, 0) end,
+     day_chart = Excluded.day_chart;
+    """)
 #### NEW
 def refreshGridPlacementsData(start_date, finish_date):
-    print "Refreshing placements grid data from " + str(start_date) + " to " + str(finish_date) + " started: " + str(datetime.now())
+    print "Refreshing grid data from " + str(start_date) + " to " + str(finish_date) + " started: " + str(datetime.now())
     finish_date = datetime(hour=finish_date.hour, day=finish_date.day, month=finish_date.month, year=finish_date.year)
     start_date = datetime(hour=start_date.hour, day=start_date.day, month=start_date.month, year=start_date.year)
     tableTypes = [
@@ -1549,15 +1132,45 @@ def refreshGridPlacementsData(start_date, finish_date):
         ["last_21_days", 21],
         ["last_90_days", 90]
     ]
+    LastModified.objects.filter(type='hourlyTask').update(
+        date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
+    # refreshing campaigns
+    cummulateCampaignsGridData(type="all", start_date=start_date, finish_date=finish_date)
+    LastModified.objects.filter(type='hourlyTask').update(
+        date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
+    print "Refreshing all time campaigns grid data finished: " + str(datetime.now())
+    cummulateCampaignsGridData(type="cur_month", start_date=start_date, finish_date=finish_date)
+    LastModified.objects.filter(type='hourlyTask').update(
+        date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
+    print "Refreshing current month campaigns grid data finished: " + str(datetime.now())
+    # refreshing placements
     cummulatePlacementsGridData(type="all", start_date=start_date, finish_date=finish_date)
     LastModified.objects.filter(type='hourlyTask').update(
         date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
-    print "Refreshing all time finished: " + str(datetime.now())
+    print "Refreshing all time placements grid data finished: " + str(datetime.now())
     cummulatePlacementsGridData(type="cur_month", start_date=start_date, finish_date=finish_date)
     LastModified.objects.filter(type='hourlyTask').update(
         date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
-    print "Refreshing current month finished: " + str(datetime.now())
+    print "Refreshing current month placements grid data finished: " + str(datetime.now())
     for type in tableTypes:
+        # refreshing campaigns
+        LastModified.objects.filter(type='hourlyTask').update(
+            date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
+        # adding data
+        cummulateCampaignsGridData(type=type[0], start_date=start_date, finish_date=finish_date)
+        LastModified.objects.filter(type='hourlyTask').update(
+            date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
+        # sub data
+        if finish_date == finish_date.replace(hour=0, minute=0, second=0, microsecond=0):
+            subCampaignsGridData(type=type[0],
+                                  start_date=finish_date - timedelta(days=type[1] + 1),
+                                  finish_date=finish_date - timedelta(days=type[1])
+                                  )
+            LastModified.objects.filter(type='hourlyTask').update(
+                date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
+        print "Refreshing " + str(type[0]) + " campaigns grid data finished: " + str(datetime.now())
+
+        # refreshing placements
         LastModified.objects.filter(type='hourlyTask').update(
             date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
         # adding data
@@ -1572,9 +1185,49 @@ def refreshGridPlacementsData(start_date, finish_date):
                                   )
             LastModified.objects.filter(type='hourlyTask').update(
                 date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
-        print "Refreshing " + str(type[0]) + " finished: " + str(datetime.now())
+        print "Refreshing " + str(type[0]) + " placements grid data finished: " + str(datetime.now())
     # refresh last month
     if finish_date == finish_date.replace(day=1, hour=0, minute=0, second=0, microsecond=0):
+        # campaigns refreshing
+        LastModified.objects.filter(type='hourlyTask').update(
+            date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                    update ui_usual_campaigns_grid_data_cur_month set
+                    imps = 0,
+                    clicks = 0,
+                    spent = 0,
+                    conversions = 0,
+                    imps_viewed = 0,
+                    view_measured_imps = 0,
+                    cpm = 0,
+                    cvr = 0,
+                    ctr = 0,
+                    cpc = 0,
+                    view_measurement_rate = 0,
+                    view_rate = 0,
+                    day_chart=jsonb_build_array();""")
+            cursor.execute("""
+                    update ui_usual_campaigns_grid_data_last_month set
+                    imps = 0,
+                    clicks = 0,
+                    spent = 0,
+                    conversions = 0,
+                    imps_viewed = 0,
+                    view_measured_imps = 0,
+                    cpm = 0,
+                    cvr = 0,
+                    ctr = 0,
+                    cpc = 0,
+                    view_measurement_rate = 0,
+                    view_rate = 0,
+                    day_chart=jsonb_build_array();""")
+        refreshCampaignsLastMonthGridData(
+            start_date=(finish_date.replace(day=1, hour=0, minute=0, second=0, microsecond=0) - timedelta(hours=1)
+                        ).replace(day=1, hour=0, minute=0, second=0, microsecond=0),
+            finish_date=finish_date.replace(day=1, hour=0, minute=0, second=0, microsecond=0))
+        print "Refreshing last month campaigns grid data finished: " + str(datetime.now())
+        # placements refreshing
         LastModified.objects.filter(type='hourlyTask').update(
             date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
         with connection.cursor() as cursor:
@@ -1593,13 +1246,26 @@ def refreshGridPlacementsData(start_date, finish_date):
             cpa = 0,
             view_measurement_rate = 0,
             view_rate = 0;""")
-            refreshPlacementsLastMonthGridData(
-                start_date=(finish_date.replace(day=1, hour=0, minute=0, second=0, microsecond=0) - timedelta(hours=1)
-                            ).replace(day=1, hour=0, minute=0, second=0, microsecond=0),
-                finish_date=finish_date.replace(day=1, hour=0, minute=0, second=0, microsecond=0))
-        print "Refreshing last_month finished: " + str(datetime.now())
-    LastModified.objects.filter(type='hourlyTask').update(
-        date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
-    print "Refreshing placements grid data from " + str(start_date) + " to " + str(finish_date) + " finished: " + str(
-        datetime.now())
+            cursor.execute("""
+            update ui_usual_placements_grid_data_last_month set
+            imps = 0,
+            clicks = 0,
+            spent = 0,
+            conversions = 0,
+            imps_viewed = 0,
+            view_measured_imps = 0,
+            cpm = 0,
+            cvr = 0,
+            ctr = 0,
+            cpc = 0,
+            cpa = 0,
+            view_measurement_rate = 0,
+            view_rate = 0;""")
+        refreshPlacementsLastMonthGridData(
+            start_date=(finish_date.replace(day=1, hour=0, minute=0, second=0, microsecond=0) - timedelta(hours=1)
+                        ).replace(day=1, hour=0, minute=0, second=0, microsecond=0),
+            finish_date=finish_date.replace(day=1, hour=0, minute=0, second=0, microsecond=0))
+        print "Refreshing last month placements grid data finished: " + str(datetime.now())
+    LastModified.objects.filter(type='hourlyTask').update(date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
+    print "Refreshing grid data from " + str(start_date) + " to " + str(finish_date) + " finished: " + str(datetime.now())
 

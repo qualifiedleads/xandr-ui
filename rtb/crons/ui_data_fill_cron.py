@@ -386,7 +386,7 @@ def fillUIGridDataCron():
                         # chart
                         # if old data don't fill time period
                         if prevData[0].day_chart:
-                            if queryRes.id[0]["day"] == prevData[0].day_chart[len(prevData[0].day_chart) - 1]:
+                            if queryRes.id[0]["day"] == prevData[0].day_chart[len(prevData[0].day_chart) - 1]["day"]:
                                 prevData[0].day_chart[len(prevData[0].day_chart) - 1]["imp"] += queryRes.id[0]["imp"]
                                 prevData[0].day_chart[len(prevData[0].day_chart) - 1]["spend"] += queryRes.id[0]["spend"]
                                 prevData[0].day_chart[len(prevData[0].day_chart) - 1]["clicks"] += queryRes.id[0]["clicks"]
@@ -656,20 +656,19 @@ def fillUIGridDataCron():
                     start_date=datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0),
                     finish_date=datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
                 )
-                if queryRes is None:
-                    allNewCampaigns.append(UIUsualPlacementsGraph(
-                        campaign_id=camp.id,
-                        type="cur_month",
-                        evaluation_date=timezone.make_aware(
-                            datetime.now().replace(hour=0, minute=0, second=0, microsecond=0),
-                            timezone.get_default_timezone()
-                        ),
-                        window_start_date=timezone.make_aware(
-                            datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0),
-                            timezone.get_default_timezone()
-                        ),
-                        day_chart=[] if queryRes is None else queryRes.id
-                    ))
+                allNewCampaigns.append(UIUsualPlacementsGraph(
+                    campaign_id=camp.id,
+                    type="cur_month",
+                    evaluation_date=timezone.make_aware(
+                        datetime.now().replace(hour=0, minute=0, second=0, microsecond=0),
+                        timezone.get_default_timezone()
+                    ),
+                    window_start_date=timezone.make_aware(
+                        datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0),
+                        timezone.get_default_timezone()
+                    ),
+                    day_chart=[] if queryRes is None else queryRes.id
+                ))
             # updating
             else:
                 # if next month - change, if cur - cummulate
@@ -688,7 +687,7 @@ def fillUIGridDataCron():
                             # chart
                             if prevData[0].day_chart:
                                 # if old data don't fill time period
-                                if queryRes.id[0]["day"] == prevData[0].day_chart[len(prevData[0].day_chart) - 1]:
+                                if queryRes.id[0]["day"] == prevData[0].day_chart[len(prevData[0].day_chart) - 1]["day"]:
                                     prevData[0].day_chart[len(prevData[0].day_chart) - 1]["impression"] += queryRes.id[0]["impression"]
                                     prevData[0].day_chart[len(prevData[0].day_chart) - 1]["mediaspent"] += queryRes.id[0][
                                         "mediaspent"]

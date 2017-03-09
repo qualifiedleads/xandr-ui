@@ -1320,7 +1320,7 @@
             column: "conv",
             summaryType: "sum",
             customizeText: function (data) {
-              data.valueText = 'Conv: ' + vm.Camp.totalSummary.conv;
+              data.valueText = 'Conv: ' + ((vm.Camp.totalSummary != null) ? vm.Camp.totalSummary.conv : '0');
               return data.valueText;
             }
           },
@@ -1328,7 +1328,7 @@
             column: "imp",
             summaryType: "sum",
             customizeText: function (data) {
-              data.valueText = 'Imp: ' + vm.Camp.totalSummary.imp.toString().split(/(?=(?:\d{3})+(?!\d))/).join();
+              data.valueText = 'Imp: ' + ((vm.Camp.totalSummary != null) ? vm.Camp.totalSummary.imp.toString().split(/(?=(?:\d{3})+(?!\d))/).join() : '0');
               return data.valueText;
             }
           },
@@ -1337,7 +1337,7 @@
             summaryType: "sum",
             valueFormat: "currency",
             customizeText: function (data) {
-              data.valueText = 'CPA: $' + vm.Camp.totalSummary.cpa.toFixed(4);
+              data.valueText = 'CPA: $' + ((vm.Camp.totalSummary != null) ? vm.Camp.totalSummary.cpa.toFixed(4) : '0');
               return data.valueText;
             }
           },
@@ -1346,7 +1346,7 @@
             summaryType: "sum",
             valueFormat: "currency",
             customizeText: function (data) {
-              data.valueText = 'Cost: $' + vm.Camp.totalSummary.cost.toFixed(2);
+              data.valueText = 'Cost: $' + ((vm.Camp.totalSummary != null) ? vm.Camp.totalSummary.cost.toFixed(2) : '0');
               return data.valueText;
             }
           },
@@ -1354,7 +1354,7 @@
             column: "clicks",
             summaryType: "sum",
             customizeText: function (data) {
-              data.valueText = 'Clicks: ' + vm.Camp.totalSummary.clicks;
+              data.valueText = 'Clicks: ' + ((vm.Camp.totalSummary != null) ? vm.Camp.totalSummary.clicks : '0');
               return data.valueText;
             }
           },
@@ -1362,7 +1362,7 @@
             column: "cpc",
             summaryType: "sum",
             customizeText: function (data) {
-              data.valueText = 'CPC: $' + vm.Camp.totalSummary.cpc.toFixed(4);
+              data.valueText = 'CPC: $' + ((vm.Camp.totalSummary != null) ? vm.Camp.totalSummary.cpc.toFixed(4) : '0');
               return data.valueText;
             }
           },
@@ -1370,7 +1370,7 @@
             column: "cpm",
             summaryType: "sum",
             customizeText: function (data) {
-              data.valueText = 'CPM: $' + vm.Camp.totalSummary.cpm.toFixed(4);
+              data.valueText = 'CPM: $' + ((vm.Camp.totalSummary != null) ? vm.Camp.totalSummary.cpm.toFixed(4)  : '0');
               return data.valueText;
             }
           },
@@ -1379,7 +1379,7 @@
             summaryType: "sum",
 
             customizeText: function (data) {
-              data.valueText = 'CVR: %' + vm.Camp.totalSummary.cvr.toFixed(4);
+              data.valueText = 'CVR: %' + ((vm.Camp.totalSummary != null) ? vm.Camp.totalSummary.cvr.toFixed(4)  : '0');
               return data.valueText;
             }
           },
@@ -1388,7 +1388,7 @@
             valueFormat: "percent",
             summaryType: "sum",
             customizeText: function (data) {
-              data.valueText = 'CTR: %' + vm.Camp.totalSummary.ctr.toFixed(4);
+              data.valueText = 'CTR: %' + ((vm.Camp.totalSummary != null) ? vm.Camp.totalSummary.ctr.toFixed(4)  : '0');
               return data.valueText;
             }
           }

@@ -897,7 +897,7 @@
               column: "conv",
               summaryType: "sum",
               customizeText: function (data) {
-                data.valueText = 'Conv: ' + CampaignOptimiser.totalSummary.conv;
+                data.valueText = 'Conv: ' + ((CampaignOptimiser.totalSummary != null) ? CampaignOptimiser.totalSummary.conv : '0');
                 return data.valueText;
               }
             },
@@ -905,7 +905,7 @@
               column: "imp",
               summaryType: "sum",
               customizeText: function (data) {
-                data.valueText = 'Imp: ' + CampaignOptimiser.totalSummary.imp.toString().split(/(?=(?:\d{3})+(?!\d))/).join();
+                data.valueText = 'Imp: ' + ((CampaignOptimiser.totalSummary != null) ? CampaignOptimiser.totalSummary.imp.toString().split(/(?=(?:\d{3})+(?!\d))/).join() : '0');
                 return data.valueText;
               }
             },
@@ -914,7 +914,7 @@
               summaryType: "sum",
               valueFormat: "currency",
               customizeText: function (data) {
-                data.valueText = 'CPA: $' + CampaignOptimiser.totalSummary.cpa.toFixed(4);
+                data.valueText = 'CPA: $' + ((CampaignOptimiser.totalSummary != null) ? CampaignOptimiser.totalSummary.cpa.toFixed(4) : '0');
                 return data.valueText;
               }
             },
@@ -923,7 +923,7 @@
               summaryType: "sum",
               valueFormat: "currency",
               customizeText: function (data) {
-                data.valueText = 'Cost: $' + CampaignOptimiser.totalSummary.cost.toFixed(2);
+                data.valueText = 'Cost: $' + ((CampaignOptimiser.totalSummary != null) ? CampaignOptimiser.totalSummary.cost.toFixed(2) : '0');
                 return data.valueText;
               }
             },
@@ -931,7 +931,7 @@
               column: "clicks",
               summaryType: "sum",
               customizeText: function (data) {
-                data.valueText = 'Clicks: ' + CampaignOptimiser.totalSummary.clicks;
+                data.valueText = 'Clicks: ' + ((CampaignOptimiser.totalSummary != null) ? CampaignOptimiser.totalSummary.clicks : '0');
                 return data.valueText;
               }
             },
@@ -939,7 +939,7 @@
               column: "cpc",
               summaryType: "sum",
               customizeText: function (data) {
-                data.valueText = 'CPC: $' + CampaignOptimiser.totalSummary.cpc.toFixed(4);
+                data.valueText = 'CPC: $' + ((CampaignOptimiser.totalSummary != null) ? CampaignOptimiser.totalSummary.cpc.toFixed(4) : '0');
                 return data.valueText;
               }
             },
@@ -947,7 +947,7 @@
               column: "cpm",
               summaryType: "sum",
               customizeText: function (data) {
-                data.valueText = 'CPM: $' + CampaignOptimiser.totalSummary.cpm.toFixed(4);
+                data.valueText = 'CPM: $' + ((CampaignOptimiser.totalSummary != null) ? CampaignOptimiser.totalSummary.cpm.toFixed(4) : '0');
                 return data.valueText;
               }
             },
@@ -955,7 +955,7 @@
               column: "cvr",
               summaryType: "sum",
               customizeText: function (data) {
-                data.valueText = 'CVR: %' + CampaignOptimiser.totalSummary.cvr.toFixed(4);
+                data.valueText = 'CVR: %' + ((CampaignOptimiser.totalSummary != null) ? CampaignOptimiser.totalSummary.cvr.toFixed(4) : '0');
                 return data.valueText;
               }
             },
@@ -963,7 +963,7 @@
               column: "ctr",
               summaryType: "sum",
               customizeText: function (data) {
-                data.valueText = 'CTR: %' + CampaignOptimiser.totalSummary.ctr.toFixed(4);
+                data.valueText = 'CTR: %' + ((CampaignOptimiser.totalSummary != null) ? CampaignOptimiser.totalSummary.ctr.toFixed(4) : '0');
                 return data.valueText;
               }
             }

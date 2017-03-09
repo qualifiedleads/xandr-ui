@@ -181,8 +181,8 @@
             }
           }
 
-          _totalCountCampaign = res.data.totalCount;
-          _this.totalSummary = res.data.totalSummary;
+          _totalCountCampaign = res.data.totalCount?res.data.totalCount:null;
+          _this.totalSummary = res.data.totalSummary?res.data.totalSummary: null;
 
           return res.data.data;
         })

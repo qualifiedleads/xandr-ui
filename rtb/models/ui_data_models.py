@@ -6,8 +6,6 @@ class UIUsualCampaignsGraph(models.Model):
     advertiser = models.ForeignKey("Advertiser", null=True, blank=True, db_constraint=False,
                                    on_delete=models.DO_NOTHING)
     type = models.TextField(db_index=True)
-    evaluation_date = models.DateTimeField(db_index=True)
-    window_start_date = models.DateTimeField(db_index=True)
     # simple grid data
     day_chart = JSONField(default=list([]), null=True)
 
@@ -229,8 +227,6 @@ class UIUsualPlacementsGraph(models.Model):
     id = models.AutoField(primary_key=True)
     campaign = models.ForeignKey("Campaign", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING)
     type = models.TextField(db_index=True)
-    evaluation_date = models.DateTimeField(db_index=True)
-    window_start_date = models.DateTimeField(db_index=True)
     # simple grid data
     day_chart = JSONField(default=list([]), null=True)
 

@@ -1,6 +1,8 @@
 from django.db import models
 from django.contrib.postgres.fields import JSONField
 
+# FROM REPORT
+
 class UIUsualCampaignsGraph(models.Model):
     id = models.AutoField(primary_key=True)
     advertiser = models.ForeignKey("Advertiser", null=True, blank=True, db_constraint=False,
@@ -453,6 +455,462 @@ class PlacementsAdditionalNames(models.Model):
 
     class Meta:
         db_table = "placements_additional_names"
+
+###
+# FROM TRACKER
+###
+###
+# usual campaigns
+###
+class UIUsualAdvertisersGraphTracker(models.Model):
+    id = models.AutoField(primary_key=True)
+    advertiser = models.ForeignKey("Advertiser", null=True, blank=True, db_constraint=False,
+                                   on_delete=models.DO_NOTHING)
+    type = models.TextField(db_index=True)
+    # simple grid data
+    day_chart = JSONField(default=list([]), null=True)
+
+    class Meta:
+        db_table = "ui_usual_advertisers_graph_tracker"
+        unique_together = (('advertiser', 'type'),)
+
+class UIUsualCampaignsGridDataYesterdayTracker(models.Model):
+    id = models.AutoField(primary_key=True)
+    campaign = models.ForeignKey("Campaign", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING, unique=True)
+    # simple grid data
+    spent = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    conversions = models.IntegerField()
+    imps = models.IntegerField()
+    clicks = models.IntegerField()
+    cpc = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    cpm = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    cvr = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    ctr = models.FloatField(null=True, blank=True)
+    imps_viewed = models.IntegerField(null=True, blank=True)
+    view_measured_imps = models.IntegerField(null=True, blank=True)
+    view_measurement_rate = models.FloatField(null=True, blank=True)
+    view_rate = models.FloatField(null=True, blank=True)
+    # charts
+    day_chart = JSONField(default=list([]), null=True)
+
+    class Meta:
+        db_table = "ui_usual_campaigns_grid_data_yesterday_tracker"
+
+class UIUsualCampaignsGridDataLast3DaysTracker(models.Model):
+    id = models.AutoField(primary_key=True)
+    campaign = models.ForeignKey("Campaign", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING, unique=True)
+    # simple grid data
+    spent = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    conversions = models.IntegerField()
+    imps = models.IntegerField()
+    clicks = models.IntegerField()
+    cpc = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    cpm = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    cvr = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    ctr = models.FloatField(null=True, blank=True)
+    imps_viewed = models.IntegerField(null=True, blank=True)
+    view_measured_imps = models.IntegerField(null=True, blank=True)
+    view_measurement_rate = models.FloatField(null=True, blank=True)
+    view_rate = models.FloatField(null=True, blank=True)
+    # charts
+    day_chart = JSONField(default=list([]), null=True)
+
+    class Meta:
+        db_table = "ui_usual_campaigns_grid_data_last_3_days_tracker"
+
+class UIUsualCampaignsGridDataLast7DaysTracker(models.Model):
+    id = models.AutoField(primary_key=True)
+    campaign = models.ForeignKey("Campaign", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING, unique=True)
+    # simple grid data
+    spent = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    conversions = models.IntegerField()
+    imps = models.IntegerField()
+    clicks = models.IntegerField()
+    cpc = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    cpm = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    cvr = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    ctr = models.FloatField(null=True, blank=True)
+    imps_viewed = models.IntegerField(null=True, blank=True)
+    view_measured_imps = models.IntegerField(null=True, blank=True)
+    view_measurement_rate = models.FloatField(null=True, blank=True)
+    view_rate = models.FloatField(null=True, blank=True)
+    # charts
+    day_chart = JSONField(default=list([]), null=True)
+
+    class Meta:
+        db_table = "ui_usual_campaigns_grid_data_last_7_days_tracker"
+
+class UIUsualCampaignsGridDataLast14DaysTracker(models.Model):
+    id = models.AutoField(primary_key=True)
+    campaign = models.ForeignKey("Campaign", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING, unique=True)
+    # simple grid data
+    spent = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    conversions = models.IntegerField()
+    imps = models.IntegerField()
+    clicks = models.IntegerField()
+    cpc = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    cpm = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    cvr = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    ctr = models.FloatField(null=True, blank=True)
+    imps_viewed = models.IntegerField(null=True, blank=True)
+    view_measured_imps = models.IntegerField(null=True, blank=True)
+    view_measurement_rate = models.FloatField(null=True, blank=True)
+    view_rate = models.FloatField(null=True, blank=True)
+    # charts
+    day_chart = JSONField(default=list([]), null=True)
+
+    class Meta:
+        db_table = "ui_usual_campaigns_grid_data_last_14_days_tracker"
+
+
+class UIUsualCampaignsGridDataLast21DaysTracker(models.Model):
+    id = models.AutoField(primary_key=True)
+    campaign = models.ForeignKey("Campaign", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING,
+                                 unique=True)
+    # simple grid data
+    spent = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    conversions = models.IntegerField()
+    imps = models.IntegerField()
+    clicks = models.IntegerField()
+    cpc = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    cpm = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    cvr = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    ctr = models.FloatField(null=True, blank=True)
+    imps_viewed = models.IntegerField(null=True, blank=True)
+    view_measured_imps = models.IntegerField(null=True, blank=True)
+    view_measurement_rate = models.FloatField(null=True, blank=True)
+    view_rate = models.FloatField(null=True, blank=True)
+    # charts
+    day_chart = JSONField(default=list([]), null=True)
+
+    class Meta:
+        db_table = "ui_usual_campaigns_grid_data_last_21_days_tracker"
+
+
+class UIUsualCampaignsGridDataCurMonthTracker(models.Model):
+    id = models.AutoField(primary_key=True)
+    campaign = models.ForeignKey("Campaign", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING,
+                                 unique=True)
+    # simple grid data
+    spent = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    conversions = models.IntegerField()
+    imps = models.IntegerField()
+    clicks = models.IntegerField()
+    cpc = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    cpm = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    cvr = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    ctr = models.FloatField(null=True, blank=True)
+    imps_viewed = models.IntegerField(null=True, blank=True)
+    view_measured_imps = models.IntegerField(null=True, blank=True)
+    view_measurement_rate = models.FloatField(null=True, blank=True)
+    view_rate = models.FloatField(null=True, blank=True)
+    # charts
+    day_chart = JSONField(default=list([]), null=True)
+
+    class Meta:
+        db_table = "ui_usual_campaigns_grid_data_cur_month_tracker"
+
+
+class UIUsualCampaignsGridDataLastMonthTracker(models.Model):
+    id = models.AutoField(primary_key=True)
+    campaign = models.ForeignKey("Campaign", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING,
+                                 unique=True)
+    # simple grid data
+    spent = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    conversions = models.IntegerField()
+    imps = models.IntegerField()
+    clicks = models.IntegerField()
+    cpc = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    cpm = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    cvr = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    ctr = models.FloatField(null=True, blank=True)
+    imps_viewed = models.IntegerField(null=True, blank=True)
+    view_measured_imps = models.IntegerField(null=True, blank=True)
+    view_measurement_rate = models.FloatField(null=True, blank=True)
+    view_rate = models.FloatField(null=True, blank=True)
+    # charts
+    day_chart = JSONField(default=list([]), null=True)
+
+    class Meta:
+        db_table = "ui_usual_campaigns_grid_data_last_month_tracker"
+
+
+class UIUsualCampaignsGridDataLast90DaysTracker(models.Model):
+    id = models.AutoField(primary_key=True)
+    campaign = models.ForeignKey("Campaign", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING,
+                                 unique=True)
+    # simple grid data
+    spent = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    conversions = models.IntegerField()
+    imps = models.IntegerField()
+    clicks = models.IntegerField()
+    cpc = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    cpm = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    cvr = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    ctr = models.FloatField(null=True, blank=True)
+    imps_viewed = models.IntegerField(null=True, blank=True)
+    view_measured_imps = models.IntegerField(null=True, blank=True)
+    view_measurement_rate = models.FloatField(null=True, blank=True)
+    view_rate = models.FloatField(null=True, blank=True)
+    # charts
+    day_chart = JSONField(default=list([]), null=True)
+
+    class Meta:
+        db_table = "ui_usual_campaigns_grid_data_last_90_days_tracker"
+
+class UIUsualCampaignsGridDataAllTracker(models.Model):
+    id = models.AutoField(primary_key=True)
+    campaign = models.ForeignKey("Campaign", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING,
+                                 unique=True)
+    # simple grid data
+    spent = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    conversions = models.IntegerField()
+    imps = models.IntegerField()
+    clicks = models.IntegerField()
+    cpc = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    cpm = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    cvr = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    ctr = models.FloatField(null=True, blank=True)
+    imps_viewed = models.IntegerField(null=True, blank=True)
+    view_measured_imps = models.IntegerField(null=True, blank=True)
+    view_measurement_rate = models.FloatField(null=True, blank=True)
+    view_rate = models.FloatField(null=True, blank=True)
+    # charts
+    day_chart = JSONField(default=list([]), null=True)
+
+    class Meta:
+        db_table = "ui_usual_campaigns_grid_data_all_tracker"
+###
+# usual placements
+###
+class UIUsualCampaignsGraphTracker(models.Model):
+    id = models.AutoField(primary_key=True)
+    campaign = models.ForeignKey("Campaign", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING)
+    type = models.TextField(db_index=True)
+    # simple grid data
+    day_chart = JSONField(default=list([]), null=True)
+
+    class Meta:
+        db_table = "ui_usual_campaigns_graph_tracker"
+        unique_together = (('campaign', 'type'),)
+
+
+class UIUsualPlacementsGridDataYesterdayTracker(models.Model):
+    id = models.AutoField(primary_key=True)
+    campaign = models.ForeignKey("Campaign", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING)
+    placement = models.ForeignKey("Placement", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING)
+    # simple grid data
+    spent = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    conversions = models.IntegerField(null=True)
+    imps = models.IntegerField(null=True)
+    clicks = models.IntegerField(null=True)
+    cpa = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    cpc = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    cpm = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    cvr = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    ctr = models.FloatField(null=True, blank=True)
+    imps_viewed = models.IntegerField(null=True, blank=True)
+    view_measured_imps = models.IntegerField(null=True, blank=True)
+    view_measurement_rate = models.FloatField(null=True, blank=True)
+    view_rate = models.FloatField(null=True, blank=True)
+
+    class Meta:
+        db_table = "ui_usual_placements_grid_data_yesterday_tracker"
+        unique_together = (('campaign', 'placement'),)
+
+
+class UIUsualPlacementsGridDataLast3DaysTracker(models.Model):
+    id = models.AutoField(primary_key=True)
+    campaign = models.ForeignKey("Campaign", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING)
+    placement = models.ForeignKey("Placement", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING)
+    # simple grid data
+    spent = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    conversions = models.IntegerField(null=True)
+    imps = models.IntegerField(null=True)
+    clicks = models.IntegerField(null=True)
+    cpa = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    cpc = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    cpm = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    cvr = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    ctr = models.FloatField(null=True, blank=True)
+    imps_viewed = models.IntegerField(null=True, blank=True)
+    view_measured_imps = models.IntegerField(null=True, blank=True)
+    view_measurement_rate = models.FloatField(null=True, blank=True)
+    view_rate = models.FloatField(null=True, blank=True)
+
+    class Meta:
+        db_table = "ui_usual_placements_grid_data_last_3_days_tracker"
+        unique_together = (('campaign', 'placement'),)
+
+
+class UIUsualPlacementsGridDataLast7DaysTracker(models.Model):
+    id = models.AutoField(primary_key=True)
+    campaign = models.ForeignKey("Campaign", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING)
+    placement = models.ForeignKey("Placement", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING)
+    # simple grid data
+    spent = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    conversions = models.IntegerField(null=True)
+    imps = models.IntegerField(null=True)
+    clicks = models.IntegerField(null=True)
+    cpa = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    cpc = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    cpm = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    cvr = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    ctr = models.FloatField(null=True, blank=True)
+    imps_viewed = models.IntegerField(null=True, blank=True)
+    view_measured_imps = models.IntegerField(null=True, blank=True)
+    view_measurement_rate = models.FloatField(null=True, blank=True)
+    view_rate = models.FloatField(null=True, blank=True)
+
+    class Meta:
+        db_table = "ui_usual_placements_grid_data_last_7_days_tracker"
+        unique_together = (('campaign', 'placement'),)
+
+
+class UIUsualPlacementsGridDataLast14DaysTracker(models.Model):
+    id = models.AutoField(primary_key=True)
+    campaign = models.ForeignKey("Campaign", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING)
+    placement = models.ForeignKey("Placement", null=True, blank=True, db_constraint=False,
+                                  on_delete=models.DO_NOTHING, )
+    # simple grid data
+    spent = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    conversions = models.IntegerField(null=True)
+    imps = models.IntegerField(null=True)
+    clicks = models.IntegerField(null=True)
+    cpa = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    cpc = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    cpm = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    cvr = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    ctr = models.FloatField(null=True, blank=True)
+    imps_viewed = models.IntegerField(null=True, blank=True)
+    view_measured_imps = models.IntegerField(null=True, blank=True)
+    view_measurement_rate = models.FloatField(null=True, blank=True)
+    view_rate = models.FloatField(null=True, blank=True)
+
+    class Meta:
+        db_table = "ui_usual_placements_grid_data_last_14_days_tracker"
+        unique_together = (('campaign', 'placement'),)
+
+
+class UIUsualPlacementsGridDataLast21DaysTracker(models.Model):
+    id = models.AutoField(primary_key=True)
+    campaign = models.ForeignKey("Campaign", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING)
+    placement = models.ForeignKey("Placement", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING)
+    # simple grid data
+    spent = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    conversions = models.IntegerField(null=True)
+    imps = models.IntegerField(null=True)
+    clicks = models.IntegerField(null=True)
+    cpa = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    cpc = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    cpm = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    cvr = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    ctr = models.FloatField(null=True, blank=True)
+    imps_viewed = models.IntegerField(null=True, blank=True)
+    view_measured_imps = models.IntegerField(null=True, blank=True)
+    view_measurement_rate = models.FloatField(null=True, blank=True)
+    view_rate = models.FloatField(null=True, blank=True)
+
+    class Meta:
+        db_table = "ui_usual_placements_grid_data_last_21_days_tracker"
+        unique_together = (('campaign', 'placement'),)
+
+
+class UIUsualPlacementsGridDataCurMonthTracker(models.Model):
+    id = models.AutoField(primary_key=True)
+    campaign = models.ForeignKey("Campaign", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING)
+    placement = models.ForeignKey("Placement", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING)
+    # simple grid data
+    spent = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    conversions = models.IntegerField(null=True)
+    imps = models.IntegerField(null=True)
+    clicks = models.IntegerField(null=True)
+    cpa = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    cpc = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    cpm = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    cvr = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    ctr = models.FloatField(null=True, blank=True)
+    imps_viewed = models.IntegerField(null=True, blank=True)
+    view_measured_imps = models.IntegerField(null=True, blank=True)
+    view_measurement_rate = models.FloatField(null=True, blank=True)
+    view_rate = models.FloatField(null=True, blank=True)
+
+    class Meta:
+        db_table = "ui_usual_placements_grid_data_cur_month_tracker"
+        unique_together = (('campaign', 'placement'),)
+
+
+class UIUsualPlacementsGridDataLastMonthTracker(models.Model):
+    id = models.AutoField(primary_key=True)
+    campaign = models.ForeignKey("Campaign", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING)
+    placement = models.ForeignKey("Placement", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING)
+    # simple grid data
+    spent = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    conversions = models.IntegerField(null=True)
+    imps = models.IntegerField(null=True)
+    clicks = models.IntegerField(null=True)
+    cpa = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    cpc = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    cpm = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    cvr = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    ctr = models.FloatField(null=True, blank=True)
+    imps_viewed = models.IntegerField(null=True, blank=True)
+    view_measured_imps = models.IntegerField(null=True, blank=True)
+    view_measurement_rate = models.FloatField(null=True, blank=True)
+    view_rate = models.FloatField(null=True, blank=True)
+
+    class Meta:
+        db_table = "ui_usual_placements_grid_data_last_month_tracker"
+        unique_together = (('campaign', 'placement'),)
+
+
+class UIUsualPlacementsGridDataLast90DaysTracker(models.Model):
+    id = models.AutoField(primary_key=True)
+    campaign = models.ForeignKey("Campaign", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING)
+    placement = models.ForeignKey("Placement", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING)
+    # simple grid data
+    spent = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    conversions = models.IntegerField(null=True)
+    imps = models.IntegerField(null=True)
+    clicks = models.IntegerField(null=True)
+    cpa = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    cpc = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    cpm = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    cvr = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    ctr = models.FloatField(null=True, blank=True)
+    imps_viewed = models.IntegerField(null=True, blank=True)
+    view_measured_imps = models.IntegerField(null=True, blank=True)
+    view_measurement_rate = models.FloatField(null=True, blank=True)
+    view_rate = models.FloatField(null=True, blank=True)
+
+    class Meta:
+        db_table = "ui_usual_placements_grid_data_last_90_days_tracker"
+        unique_together = (('campaign', 'placement'),)
+
+
+class UIUsualPlacementsGridDataAllTracker(models.Model):
+    id = models.AutoField(primary_key=True)
+    campaign = models.ForeignKey("Campaign", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING)
+    placement = models.ForeignKey("Placement", null=True, blank=True, db_constraint=False, on_delete=models.DO_NOTHING)
+    # simple grid data
+    spent = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    conversions = models.IntegerField(null=True)
+    imps = models.IntegerField(null=True)
+    clicks = models.IntegerField(null=True)
+    cpa = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    cpc = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    cpm = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    cvr = models.DecimalField(null=True, blank=True, max_digits=35, decimal_places=10)
+    ctr = models.FloatField(null=True, blank=True)
+    imps_viewed = models.IntegerField(null=True, blank=True)
+    view_measured_imps = models.IntegerField(null=True, blank=True)
+    view_measurement_rate = models.FloatField(null=True, blank=True)
+    view_rate = models.FloatField(null=True, blank=True)
+
+    class Meta:
+        db_table = "ui_usual_placements_grid_data_all_tracker"
+        unique_together = (('campaign', 'placement'),)
+
 ###
 # video campaigns
 ###

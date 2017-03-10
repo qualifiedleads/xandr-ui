@@ -683,24 +683,33 @@ def hourlyTask(dayWithHour=None, load_objects_from_services=True, output=None):
             dayWithHour -= one_hour
 
     dateNow = datetime.datetime.utcnow().replace(minute=0, second=0, microsecond=0, tzinfo=utc)
+    prevMaxHour = SiteDomainPerformanceReport.objects.aggregate(m=Max('hour'))['m']
+    prevMaxHour = datetime.datetime(hour=prevMaxHour.hour, day=prevMaxHour.day, month=prevMaxHour.month,
+                                    year=prevMaxHour.year, tzinfo=utc)
     try:
         token = getToken()
         if load_objects_from_services:
             load_depending_data(token, False, isLastModified=True)
-        while dayWithHour <= dateNow:
+        while (dayWithHour + one_hour) <= dateNow:
             with transaction.atomic():
                 print 'NetworkAnalyticsReport_ByPlacement  start', get_current_time().strftime('%Y-%m-%dT%H-%M-%S')
                 load_report(token, dayWithHour, NetworkAnalyticsReport_ByPlacement, isHour=True)
                 print 'SiteDomainPerformanceReport  start', get_current_time().strftime('%Y-%m-%dT%H-%M-%S')
                 load_reports_for_all_advertisers(token, dayWithHour, SiteDomainPerformanceReport, isHour=True)
-
                 LastModified.objects.filter(type='hourlyTask')\
                     .update(date=timezone.make_aware(datetime.datetime.now(), timezone.get_default_timezone()))
+                
+                curMaxHour = SiteDomainPerformanceReport.objects.aggregate(m=Max('hour'))['m']
+                curMaxHour = datetime.datetime(hour=curMaxHour.hour, day=curMaxHour.day, month=curMaxHour.month,
+                                                year=curMaxHour.year, tzinfo=utc)
+                curMaxHour += one_hour
+                if prevMaxHour != curMaxHour:
+                    refreshPrecalculatedData(
+                        start_date=dayWithHour,
+                        finish_date=dayWithHour + one_hour
+                    )
+                    prevMaxHour = curMaxHour
                 token = getToken()
-                refreshPrecalculatedData(
-                    start_date=dayWithHour,
-                    finish_date=dayWithHour + one_hour
-                )
             dayWithHour += one_hour
         # fillVideoAdDataCron()
 

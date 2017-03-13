@@ -691,6 +691,7 @@ def hourlyTask(dayWithHour=None, load_objects_from_services=True, output=None):
         if load_objects_from_services:
             load_depending_data(token, False, isLastModified=True)
         while (dayWithHour + one_hour) <= dateNow:
+            # TODO: separate reports precalculation
             with transaction.atomic():
                 print 'NetworkAnalyticsReport_ByPlacement  start', get_current_time().strftime('%Y-%m-%dT%H-%M-%S')
                 load_report(token, dayWithHour, NetworkAnalyticsReport_ByPlacement, isHour=True)
@@ -702,7 +703,6 @@ def hourlyTask(dayWithHour=None, load_objects_from_services=True, output=None):
                 curMaxHour = SiteDomainPerformanceReport.objects.aggregate(m=Max('hour'))['m']
                 curMaxHour = datetime.datetime(hour=curMaxHour.hour, day=curMaxHour.day, month=curMaxHour.month,
                                                 year=curMaxHour.year, tzinfo=utc)
-                curMaxHour += one_hour
                 if prevMaxHour != curMaxHour:
                     refreshPrecalculatedData(
                         start_date=dayWithHour,

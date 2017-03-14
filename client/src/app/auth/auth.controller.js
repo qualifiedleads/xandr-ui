@@ -100,7 +100,7 @@
         onClick: function () {
           $localStorage.advertiser = vm.selectedService;
           if (vm.selectedService.ad_type === 'usualAds' || vm.selectedService.ad_type === null) {
-            $state.go('home.main');
+            $state.go('home.main', {"id": vm.selectedService.id});
           }
 
           if (vm.selectedService.ad_type == 'videoAds') {

@@ -20,11 +20,25 @@
         controllerAs: 'home'
       })
       .state('home.main', {
-        url: '/main',
+        url: '/main/:id',
         templateUrl: 'app/usual/main/main.html',
         controller: 'MainController',
         controllerAs: 'main',
         resolve: {
+          advertiserParams: function(Auth,$stateParams, $state, Home){
+            if (!$stateParams.id) {
+              $state.go('/');
+            }
+
+            return Auth.advertiser($stateParams.id)
+              .then(function (res) {
+                if (res == undefined) {
+                  $state.go('/');
+                }
+                Home.AdverInfo.advertiser_name = res.name;
+                return res;
+              });
+          },
           TWStatus: function (AdminService, $stateParams, $state, $cookies) {
             return AdminService.getValueOfTech().then(function (res) {
               if ((res == "on") &&
@@ -109,12 +123,13 @@
         controller: 'CampaignMainController',
         controllerAs: 'campmain',
         resolve: {
-          Campaign: function (CampMain, $stateParams, $state) {
+          Campaign: function (CampMain, $stateParams, $state, Home) {
             if (!$stateParams.id) {
               $state.go('home.main');
             }
             return CampMain.nameCampaigns($stateParams.id).then(function (res) {
-              return res
+              Home.AdverInfo = res;
+              return res;
             });
           },
           TWStatus: function (AdminService, $stateParams, $state, $cookies) {
@@ -134,12 +149,12 @@
         controller: 'CampaignOptimiserController',
         controllerAs: 'CO',
         resolve: {
-          Campaign:  function(CampMain,$stateParams, $state){
+          Campaign:  function(CampMain,$stateParams, $state, Home){
             if (!$stateParams.id) {
               $state.go('home.main');
             }
             return CampMain.nameCampaigns($stateParams.id).then(function (res) {
-              return res
+              return Home.AdverInfo = res;
             });
           },
           TWStatus: function (AdminService, $stateParams, $state, $cookies) {
@@ -182,12 +197,12 @@
         controller: 'rulesController',
         controllerAs: 'rulesC',
         resolve: {
-          Campaign:  function(CampMain,$stateParams, $state){
+          Campaign:  function(CampMain,$stateParams, $state, Home){
             if (!$stateParams.id) {
               $state.go('home.main');
             }
             return CampMain.nameCampaigns($stateParams.id).then(function (res) {
-              return res
+              return Home.AdverInfo = res;
             });
           },
           TWStatus: function (AdminService, $stateParams, $state, $cookies) {
@@ -232,12 +247,12 @@
         controller: 'CPAController',
         controllerAs: 'cpa',
         resolve: {
-          Campaign:  function(CampMain,$stateParams, $state){
+          Campaign:  function(CampMain,$stateParams, $state,Home){
             if (!$stateParams.id) {
               $state.go('home.main');
             }
             return CampMain.nameCampaigns($stateParams.id).then(function (res) {
-              return res
+              return Home.AdverInfo = res;
             });
           },
           ChartDetails:  function(CPA,$stateParams, $state,$localStorage){

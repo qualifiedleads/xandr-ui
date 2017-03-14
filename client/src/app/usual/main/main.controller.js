@@ -6,10 +6,9 @@
     .controller('MainController', MainController);
 
   /** @ngInject */
-  function MainController($window, $state, $timeout, $localStorage, $translate, Main, $rootScope, VideoMain) {
+  function MainController($window, $state, $timeout, $localStorage, $translate, Main, advertiserParams, VideoMain) {
     var vm = this;
     var buttonIndicator;
-    vm.advertiser = $localStorage.advertiser;
     vm.Main = Main;
     vm.multipleTotalCount = 0;
     vm.Init = [];
@@ -17,7 +16,6 @@
     vm.selectedItems = [];
     vm.chartOptionsFuncgrid = [];
     vm.charIsUpdating = false;
-    $rootScope.id = null;
     var LC = $translate.instant;
 
     /** LOCAL STORAGE CHECKBOX - START **/
@@ -130,7 +128,7 @@
 
     /** TOTALS - START **/
     vm.totals = [];
-    vm.Main.statsTotals(vm.advertiser.id, vm.dataStart, vm.dataEnd, vm.type)
+    vm.Main.statsTotals(advertiserParams.id, vm.dataStart, vm.dataEnd, vm.type)
       .then(function (result) {
         vm.totals.imp = result.imp.toString().split(/(?=(?:\d{3})+(?!\d))/).join();
         vm.totals.spent = result.spend.toFixed(2);
@@ -258,14 +256,14 @@
 
     var clicksByCountry = {};
 
-    vm.Main.statsMap(vm.advertiser.id, vm.dataStart, vm.dataEnd)
+    vm.Main.statsMap(advertiserParams.id, vm.dataStart, vm.dataEnd)
       .then(function (res) {
         clicksByCountry = res;
         $window.$('#visualMap').dxVectorMap(vm.UI.vectorMapOptions);
       });
 
-    vm.chartStore = Main.chartStore(vm.advertiser.id, vm.dataStart, vm.dataEnd, vm.by, vm.type);
-    vm.multipleStore = Main.multipleStore(vm.advertiser.id, vm.dataStart, vm.dataEnd, vm.by, vm.type);
+    vm.chartStore = Main.chartStore(advertiserParams.id, vm.dataStart, vm.dataEnd, vm.by, vm.type);
+    vm.multipleStore = Main.multipleStore(advertiserParams.id, vm.dataStart, vm.dataEnd, vm.by, vm.type);
     vm.UI = {
       datePiker: {
         items: products,
@@ -297,7 +295,7 @@
         onClick: function (data) {
           data.component.option('text', LC('MAIN.UPDATE_CAMPAIGN'));
           buttonIndicator.option('visible', true);
-          VideoMain.updateCampaign(vm.advertiser.id).then(function (res) {
+          VideoMain.updateCampaign(advertiserParams.id).then(function (res) {
             if (res == 200) {
               buttonIndicator.option('visible', false);
               data.component.option('text', LC('MAIN.UPDATE_CAMPAIGN'));
@@ -371,7 +369,8 @@
             fixed: true,
             cellTemplate: function (container, options) {
               container.addClass('a-campaign');
-              $window.angular.element('<a href="#/campaign/' + options.data.id + '">' + options.data.campaign + '</a>')
+              // $window.angular.element('<a href="#/campaign/' + options.data.id + '">' + options.data.campaign + '</a>')
+              $window.angular.element('<a ui-sref="home.campaign({id: options.data.id})" href="#/campaign/' + options.data.id + '">' + options.data.campaign + '</a>')
                 .appendTo(container);
             },
 

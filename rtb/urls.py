@@ -45,6 +45,7 @@ urlpatterns = [
     url(r'^campaigns/(\d+)$', views_adv.singleCampaign),
     url(r'^campaigns', views.campaigns),
     url(r'^advertiser/campaign/all[/]?$', views_adv.advertisercampaigns),
+    url(r'^advertiser/(\d+)[/]?$', views_adv.advertiserSingle),
     url(r'^advertiser/(\d+)/update[/]?$', load_advertiser_data.loadAdvertiserData),
     url(r'^videocampaigns[/]?$', video_ad.apiSendVideoCampaignData),
     url(r'^technicalwork/last[/]?$', technical_work.getLast),

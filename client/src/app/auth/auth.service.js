@@ -38,6 +38,20 @@
       });
     }
 
+    function advertiser(id) {
+      return $http({
+        method: 'GET',
+        headers: { Authorization: 'Token ' + $cookies.get('token') },
+        url: '/api/v1/advertiser/' + id + '/',
+      })
+      .then(function (res) {
+        return res.data;
+      })
+      .catch(function (err) {
+        $window.DevExpress.ui.notify(err.statusText, 'error', 4000);
+      });
+    }
+
     function authorization(user) {
       return $http({
         method: 'POST',
@@ -54,6 +68,7 @@
 
     _this.authorization = authorization;
     _this.selectAdvertisersStore = selectAdvertisersStore;
+    _this.advertiser = advertiser;
 
   }
 

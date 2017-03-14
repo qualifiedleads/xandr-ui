@@ -6,7 +6,7 @@
     .controller('CampaignMainController', CampaignMainController);
 
   /** @ngInject */
-  function CampaignMainController($window, $state, $localStorage, $translate, $timeout, CampMain, Campaign, $scope, CampaignOptimiser, $rootScope) {
+  function CampaignMainController($window, $state, $localStorage, $translate, $timeout, CampMain, $scope, CampaignOptimiser, Home) {
     var vm = this;
     var LC = $translate.instant;
     var dataSuspend = null;
@@ -14,29 +14,20 @@
     vm.Camp = CampMain;
     var now = new Date();
     var oneSuspend = false;
-    $rootScope.id = Campaign.id;
-    $rootScope.name = Campaign.campaign;
-    $rootScope.line_item = Campaign.line_item;
-    $rootScope.line_item_id = Campaign.line_item_id;
-
     vm.checkChart = [];
     vm.by = 'imp,cvr,cpc,clicks,spend,conv,ctr';
-
-    if ($localStorage.campaign == null) {
+    if (!Home.AdverInfo.campaign) {
       $state.go('home.main');
+    } else {
+      $scope.home.id = Home.AdverInfo.id;
+      $scope.home.advertiser.id = Home.AdverInfo.advertiser_id;
     }
-    $localStorage.campaign = {
-      "id": Campaign.id,
-      "name": Campaign.campaign,
-      "line_item": Campaign.line_item
-    };
 
-    vm.campName = Campaign.campaign;
-    vm.campId = Campaign.id;
-    vm.line_item = Campaign.line_item;
-    vm.line_item_id = Campaign.line_item_id;
+    vm.campName = Home.AdverInfo.campaign;
+    vm.campId = Home.AdverInfo.id;
+    vm.line_item = Home.AdverInfo.line_item;
+    vm.line_item_id = Home.AdverInfo.line_item_id;
     vm.Init = [];
-
     if ($localStorage.checkCharCamp == null) {
       $localStorage.checkCharCamp = {
         'impression': true,

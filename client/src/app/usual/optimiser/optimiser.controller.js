@@ -6,16 +6,16 @@
     .controller('CampaignOptimiserController', CampaignOptimiserController);
 
   /** @ngInject */
-  function CampaignOptimiserController($window, $state, $rootScope, $localStorage, $scope, $translate, $compile, CampaignOptimiser,Campaign) {
+  function CampaignOptimiserController($window, $state, $rootScope, $localStorage, $scope, $translate, $compile, CampaignOptimiser, Home) {
     var vm = this;
     var LC = $translate.instant;
     var dataSuspend = null;
     var tempSespendRow = {};
     var oneSuspend = false;
-    vm.campName = Campaign.campaign;
-    vm.campId = Campaign.id;
-    vm.line_item = Campaign.line_item;
-    vm.line_item_id = Campaign.line_item_id;
+    vm.campName = Home.AdverInfo.campaign;
+    vm.campId = Home.AdverInfo.id;
+    vm.line_item = Home.AdverInfo.line_item;
+    vm.line_item_id = Home.AdverInfo.line_item_id;
     vm.object = CampaignOptimiser.campaignTargeting(1, 1, 1);
     vm.popUpIf = false;
     vm.arrayDiagram = [];

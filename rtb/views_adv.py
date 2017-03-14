@@ -4,7 +4,7 @@ from django.http import JsonResponse
 from utils import parse_get_params, make_sum, check_user_advertiser_permissions
 from models.models import LineItem
 from models import SiteDomainPerformanceReport, Campaign, GeoAnaliticsReport, NetworkAnalyticsReport_ByPlacement, \
-    Placement, NetworkCarrierReport_Simple, NetworkDeviceReport_Simple
+    Placement, NetworkCarrierReport_Simple, NetworkDeviceReport_Simple, Advertiser
 from django.db.models import Sum, Min, Max, Avg, Value, When, Case, F, Q, Func, FloatField
 from django.db.models.functions import Coalesce, Concat, ExtractWeekDay
 from django.db import connection
@@ -42,6 +42,13 @@ def advertisercampaigns(request):
 
 @api_view()
 @check_user_advertiser_permissions(campaign_id_num=0)
+def advertiserSingle(request, id):
+    adv = Advertiser.objects.get(pk=id)
+    return Response({'id': adv.id, 'name': adv.name})
+
+
+@api_view()
+@check_user_advertiser_permissions(campaign_id_num=0)
 def singleCampaign(request, id):
     """
 Get campaign name by id
@@ -54,11 +61,12 @@ Get campaign name by id
 
     """
     obj = Campaign.objects.get(pk=id)
+    adv = Advertiser.objects.get(pk=obj.advertiser_id)
     if obj.line_item_id is not None:
         li = list(LineItem.objects.filter(id=int(obj.line_item_id)))
         if len(li)==1:
-            return Response({'id': obj.id, 'campaign': obj.name, 'line_item': li[0].name, 'line_item_id': li[0].id})
-    return Response({'id': obj.id, 'campaign': obj.name, 'line_item': None})
+            return Response({'id': obj.id, 'campaign': obj.name, 'line_item': li[0].name, 'line_item_id': li[0].id, "advertiser_name": adv.name, "advertiser_id": adv.id})
+    return Response({'id': obj.id, 'campaign': obj.name, 'line_item': None, "advertiser_name": adv.name, "advertiser_id": adv.id})
 
 
 zero_sum = {

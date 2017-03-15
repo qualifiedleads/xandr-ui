@@ -1466,8 +1466,8 @@ ON CONFLICT (placement_id)
         # sub data
         if finish_date == finish_date.replace(hour=0, minute=0, second=0, microsecond=0):
             subPlacementsGridData(type=type[0],
-                                  start_date=finish_date - timedelta(days=type[1]+1),
-                                  finish_date=finish_date - timedelta(days=type[1])
+                                  start_date=finish_date - timedelta(days=type[1] + 2),
+                                  finish_date=finish_date - timedelta(days=type[1] + 1)
                                   )
             LastModified.objects.filter(type='hourlyTask').update(
                 date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
@@ -1483,8 +1483,8 @@ ON CONFLICT (placement_id)
         # sub data
         if finish_date == finish_date.replace(hour=0, minute=0, second=0, microsecond=0):
             subCampaignsGraphData(type=type[0],
-                                 start_date=finish_date - timedelta(days=type[1] + 1),
-                                 finish_date=finish_date - timedelta(days=type[1])
+                                 start_date=finish_date - timedelta(days=type[1] + 2),
+                                 finish_date=finish_date - timedelta(days=type[1] + 1)
                                  )
             LastModified.objects.filter(type='hourlyTask').update(
                 date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
@@ -1597,8 +1597,8 @@ def refreshPrecalculatedDataCampaings(start_date, finish_date):
         # sub data
         if finish_date == finish_date.replace(hour=0, minute=0, second=0, microsecond=0):
             subCampaignsGridData(type=type[0],
-                                  start_date=finish_date - timedelta(days=type[1] + 1),
-                                  finish_date=finish_date - timedelta(days=type[1])
+                                  start_date=finish_date - timedelta(days=type[1] + 2),
+                                  finish_date=finish_date - timedelta(days=type[1] + 1)
                                   )
             LastModified.objects.filter(type='hourlyTask').update(
                 date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
@@ -1614,8 +1614,8 @@ def refreshPrecalculatedDataCampaings(start_date, finish_date):
         # sub data
         if finish_date == finish_date.replace(hour=0, minute=0, second=0, microsecond=0):
             subAdvertisersGraphData(type=type[0],
-                                    start_date=finish_date - timedelta(days=type[1] + 1),
-                                    finish_date=finish_date - timedelta(days=type[1])
+                                    start_date=finish_date - timedelta(days=type[1] + 2),
+                                    finish_date=finish_date - timedelta(days=type[1] + 1)
                                     )
             LastModified.objects.filter(type='hourlyTask').update(
                 date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))

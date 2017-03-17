@@ -41,6 +41,7 @@
       .then(function (res) {
         for (var index in res.data.statistics) {
           res.data.statistics[index].cvr = +parseFloat(res.data.statistics[index].cvr).toFixed(4);
+          res.data.statistics[index].conv = res.data.statistics[index].conversions;
           res.data.statistics[index].ctr = +parseFloat(res.data.statistics[index].ctr).toFixed(4);
           res.data.statistics[index].cpc = +parseFloat(res.data.statistics[index].cpc).toFixed(2);
           res.data.statistics[index].cpm = +parseFloat(res.data.statistics[index].cpm).toFixed(4);
@@ -144,7 +145,7 @@
       .then(function (res) {
         for (var index in res.data.campaigns) {
           for (var indexJ in res.data.campaigns[index].chart) {
-            res.data.campaigns[index].chart[indexJ].conv = +parseFloat(res.data.campaigns[index].chart[indexJ].conv).toFixed(4);
+            res.data.campaigns[index].chart[indexJ].conv = res.data.campaigns[index].chart[indexJ].conversions;
             res.data.campaigns[index].chart[indexJ].cpc = +parseFloat(res.data.campaigns[index].chart[indexJ].cpc).toFixed(2);
             res.data.campaigns[index].chart[indexJ].ctr = +parseFloat(res.data.campaigns[index].chart[indexJ].ctr.toFixed(4));
             res.data.campaigns[index].chart[indexJ].cvr = +parseFloat(res.data.campaigns[index].chart[indexJ].cvr).toFixed(4);

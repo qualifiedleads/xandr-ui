@@ -766,9 +766,9 @@ insert into ui_usual_placements_grid_data_""" + str(type) + """_tracker as ut (
     0,
     0,
     0
-from rtb_click_tracker
-left join rtb_conversion_tracker
-  on rtb_impression_tracker."AuctionId" = rtb_conversion_tracker."AuctionId"
+from rtb_conversion_tracker
+left join rtb_impression_tracker
+  on rtb_conversion_tracker."AuctionId" = rtb_impression_tracker."AuctionId"
 where rtb_conversion_tracker."Date" > '""" + str(start_date) + """' and rtb_conversion_tracker."Date" <= '""" + str(finish_date) + """'
 group by rtb_impression_tracker."CpId",rtb_impression_tracker."PlacementId"
 ON CONFLICT (campaign_id, placement_id)
@@ -2140,11 +2140,14 @@ def refreshPrecalculatedDataTrackerCron():
     lastRefreshDate = LastModified.objects.filter(type='lastPrecalculatedTrackerCron')[0].date
     lastDownloaded = RtbImpressionTracker.objects.aggregate(m=Max('Date'))['m']
 
+    lastRefreshDate = datetime(microsecond=lastRefreshDate.microsecond, second=lastRefreshDate.second, minute=lastRefreshDate.minute, hour=lastRefreshDate.hour, day=lastRefreshDate.day, month=lastRefreshDate.month, year=lastRefreshDate.year)
+    lastDownloaded = datetime(microsecond=lastDownloaded.microsecond, second=lastDownloaded.second, minute=lastDownloaded.minute, hour=lastDownloaded.hour, day=lastDownloaded.day, month=lastDownloaded.month, year=lastDownloaded.year)
+
     while (lastRefreshDate + timedelta(minutes=10)) <= lastDownloaded:
         with transaction.atomic():
             LastModified.objects.filter(type='get_data_from_impression_tracker').update(
                 date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
-            refreshPrecalculatedDataTracker(start_date=lastRefreshDate, finish_date=lastRefreshDate + timedelta(minutes=10))
+            refreshPrecalculatedDataTracker(start_date=lastRefreshDate, finish_date=(lastRefreshDate + timedelta(minutes=10)))
             LastModified.objects.filter(
                 type='lastPrecalculatedTrackerCron'
             ).update(
@@ -2158,8 +2161,6 @@ def refreshPrecalculatedDataTrackerCron():
 
 def refreshPrecalculatedDataTracker(start_date, finish_date):
     print "Refreshing tracker precalculated data from " + str(start_date) + " to " + str(finish_date) + " started: " + str(datetime.now())
-    finish_date = datetime(hour=finish_date.hour, day=finish_date.day, month=finish_date.month, year=finish_date.year)
-    start_date = datetime(hour=start_date.hour, day=start_date.day, month=start_date.month, year=start_date.year)
     tableTypes = [
         ["yesterday", 1],
         ["last_3_days", 3],

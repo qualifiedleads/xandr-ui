@@ -12,6 +12,7 @@ import sys
 import re
 from django.utils import timezone
 from django.db.models import Sum, Min, Max, Avg, Value, When, Case, F, Q, Func, FloatField, Count
+from rtb.crons.ui_data_fill_cron import refreshPrecalculatedDataTrackerCron
 
 
 def issetValue(s):
@@ -169,6 +170,9 @@ def get():
                 startStr = (result + timedelta(seconds=1)).strftime('%Y-%m-%d %H:%M:%S')
         except Exception as e:
             print ' Ad-start Error: ' + str(e)
+
+        # refresh data for the UI (grids and graphs)
+        refreshPrecalculatedDataTrackerCron()
 
         LastModified.objects.filter(type='get_data_from_impression_tracker').delete()
     except ValueError, e:

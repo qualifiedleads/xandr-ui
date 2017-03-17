@@ -307,7 +307,7 @@
         },
         export: {
           enabled: true,
-          fileName: 'Employees'
+          fileName: 'rtbstats'
         },
         allowColumnReordering: true,
         allowColumnResizing: true,

@@ -4,7 +4,7 @@ from urllib import addbase
 from django.http import JsonResponse
 from django.db.models import Sum, Min, Max, Avg, Value, When, Case, F, Q, Func, FloatField
 from django.db.models.functions import Coalesce
-from models import SiteDomainPerformanceReport, Campaign, GeoAnaliticsReport
+from models import Advertiser, SiteDomainPerformanceReport, Campaign, GeoAnaliticsReport
 from django.core.cache import cache
 from pytz import utc
 import operator
@@ -17,7 +17,7 @@ from utils import parse_get_params, make_sum, check_user_advertiser_permissions
 from django.contrib.auth.decorators import login_required, user_passes_test
 import countries
 from rest_framework import status
-from rtb.models.ui_data_models import UIUsualCampaignsGraph
+from rtb.models.ui_data_models import UIUsualCampaignsGraph, UIUsualAdvertisersGraphTracker
 
 
 def to_unix_timestamp(d):
@@ -157,6 +157,13 @@ Get campaigns data for given period
         + Example: TODO
 
     """
+    source = Advertiser.objects.get(id=request.GET.get("advertiser_id")).grid_data_source
+
+    if source == "tracker":
+        source = "_tracker"
+    else:
+        source = ''
+
     allCampaignsInfo = {}
     params = parse_get_params(request.GET)
     filt, order = getUsualFilterQueryString(params["filter"], request.GET.get("sort"), request.GET.get("order"))
@@ -168,7 +175,7 @@ Get campaigns data for given period
       camp_info.*
     from
       campaign
-      left join ui_usual_campaigns_grid_data_""" + str(request.GET.get("type")) +""" camp_info
+      left join ui_usual_campaigns_grid_data_""" + str(request.GET.get("type")) + str(source) +""" camp_info
       on campaign.id=camp_info.campaign_id
     where
       advertiser_id=""" + str(request.GET.get("advertiser_id")) +
@@ -199,7 +206,7 @@ Get campaigns data for given period
               count(1) id
             from
               campaign
-              left join ui_usual_campaigns_grid_data_""" + str(request.GET.get("type")) + """ camp_info
+              left join ui_usual_campaigns_grid_data_""" + str(request.GET.get("type")) + str(source) + """ camp_info
               on campaign.id=camp_info.campaign_id
             where
               advertiser_id=""" + str(request.GET.get("advertiser_id")) +
@@ -362,6 +369,13 @@ def totals(request):
         + Example: 1466667274
 
     """
+    source = Advertiser.objects.get(id=request.GET.get("advertiser_id")).grid_data_source
+
+    if source == "tracker":
+        source = "_tracker"
+    else:
+        source = ''
+
     try:
         queryRes = Campaign.objects.raw("""
 select
@@ -374,7 +388,7 @@ select
   case SUM(camp_info.clicks) when 0 then 0 else SUM(camp_info.spent) / SUM(camp_info.clicks) end cpc
 from
   campaign
-  left join ui_usual_campaigns_grid_data_""" + str(request.GET.get("type")) +""" camp_info
+  left join ui_usual_campaigns_grid_data_""" + str(request.GET.get("type")) + str(source) +""" camp_info
   on campaign.id=camp_info.campaign_id
 where
   campaign.advertiser_id=""" + str(request.GET.get("advertiser_id")) + """
@@ -416,10 +430,18 @@ def statistics(request):
         + Example: impressions,cpa,cpc
     """
     try:
-        return JsonResponse({'statistics': UIUsualCampaignsGraph.objects.filter(
-            advertiser_id=request.GET.get("advertiser_id"),
-            type=request.GET.get("type")
-        )[0].day_chart})
+        source = Advertiser.objects.get(id=request.GET.get("advertiser_id")).grid_data_source
+        if source == "report":
+            return JsonResponse({'statistics': UIUsualCampaignsGraph.objects.filter(
+                advertiser_id=request.GET.get("advertiser_id"),
+                type=request.GET.get("type")
+            )[0].day_chart})
+        if source == "tracker":
+            return JsonResponse({'statistics': UIUsualAdvertisersGraphTracker.objects.filter(
+                advertiser_id=request.GET.get("advertiser_id"),
+                type=request.GET.get("type")
+            )[0].day_chart})
+        return Response(status=status.HTTP_200_OK)
     except Exception, e:
         print "Can not get graph data for " + str(request.GET.get("advertiser_id")) + " advertiser. Error " + str(e)
         return Response(status=status.HTTP_200_OK)

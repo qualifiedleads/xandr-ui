@@ -1,21 +1,25 @@
-from django.core.management import BaseCommand
-from django.db import connection
+from __future__ import unicode_literals
 
-class Command(BaseCommand):
-    help = """
-        Call for truncate and refresh tables with UI table data
-        """
+import django.contrib.postgres.fields.jsonb
+from django.db import migrations, models
+import django.db.models.deletion
 
-    def handle(self, *args, **options):
-        print "refreshPrecalculatedUIData started"
-        with connection.cursor() as cursor:
-            ###
-            #REFRESH PLACEMENTS GRID DATA
-            ###
-            cursor.execute("delete from ui_usual_placements_grid_data_all")
-            print "Placements grid data refreshing started"
-            cursor.execute("""
-insert into ui_usual_placements_grid_data_all as ut (
+
+class Migration(migrations.Migration):
+
+    dependencies = [
+        ('rtb', '0153_auto_20170309_1140'),
+    ]
+
+    operations = [
+        ##
+        #PLACEMENTS GRID
+        ##
+
+        migrations.RunSQL("delete from ui_usual_placements_grid_data_all"),
+
+        migrations.RunSQL("""
+            insert into ui_usual_placements_grid_data_all as ut (
         campaign_id,
         placement_id,
         imps,
@@ -50,13 +54,13 @@ insert into ui_usual_placements_grid_data_all as ut (
       from
         network_analytics_report_by_placement t
       group by
-        t.campaign_id, t.placement_id;
-                        """)
+        t.campaign_id, t.placement_id
+                """),
 
-            cursor.execute("delete from ui_usual_placements_grid_data_yesterday;")
+        migrations.RunSQL("delete from ui_usual_placements_grid_data_yesterday"),
 
-            cursor.execute("""
-insert into ui_usual_placements_grid_data_yesterday as ut (
+        migrations.RunSQL("""
+                insert into ui_usual_placements_grid_data_yesterday as ut (
             campaign_id,
             placement_id,
             imps,
@@ -93,13 +97,13 @@ insert into ui_usual_placements_grid_data_yesterday as ut (
           where
             t."hour" >= date_trunc('day',(select max(hour) from network_analytics_report_by_placement) - interval '1 day')
           group by
-            t.campaign_id, t.placement_id;
-                                    """)
+            t.campaign_id, t.placement_id
+                    """),
 
-            cursor.execute("delete from ui_usual_placements_grid_data_last_3_days;")
+        migrations.RunSQL("delete from ui_usual_placements_grid_data_last_3_days"),
 
-            cursor.execute("""
-insert into ui_usual_placements_grid_data_last_3_days as ut (
+        migrations.RunSQL("""
+                    insert into ui_usual_placements_grid_data_last_3_days as ut (
                 campaign_id,
                 placement_id,
                 imps,
@@ -136,13 +140,13 @@ insert into ui_usual_placements_grid_data_last_3_days as ut (
               where
                 t."hour" >= date_trunc('day',(select max(hour) from network_analytics_report_by_placement) - interval '3 day')
               group by
-                t.campaign_id, t.placement_id;
-                                    """)
+                t.campaign_id, t.placement_id
+                        """),
 
-            cursor.execute("delete from ui_usual_placements_grid_data_last_7_days;")
+        migrations.RunSQL("delete from ui_usual_placements_grid_data_last_7_days"),
 
-            cursor.execute("""
-insert into ui_usual_placements_grid_data_last_7_days as ut (
+        migrations.RunSQL("""
+                    insert into ui_usual_placements_grid_data_last_7_days as ut (
                 campaign_id,
                 placement_id,
                 imps,
@@ -179,13 +183,13 @@ insert into ui_usual_placements_grid_data_last_7_days as ut (
               where
                 t."hour" >= date_trunc('day',(select max(hour) from network_analytics_report_by_placement) - interval '7 day')
               group by
-                t.campaign_id, t.placement_id;
-                                    """)
+                t.campaign_id, t.placement_id
+                        """),
 
-            cursor.execute("delete from ui_usual_placements_grid_data_last_14_days;")
+        migrations.RunSQL("delete from ui_usual_placements_grid_data_last_14_days"),
 
-            cursor.execute("""
-insert into ui_usual_placements_grid_data_last_14_days as ut (
+        migrations.RunSQL("""
+                    insert into ui_usual_placements_grid_data_last_14_days as ut (
                 campaign_id,
                 placement_id,
                 imps,
@@ -222,13 +226,13 @@ insert into ui_usual_placements_grid_data_last_14_days as ut (
               where
                 t."hour" >= date_trunc('day',(select max(hour) from network_analytics_report_by_placement) - interval '14 day')
               group by
-                t.campaign_id, t.placement_id;
-                                    """)
+                t.campaign_id, t.placement_id
+                        """),
 
-            cursor.execute("delete from ui_usual_placements_grid_data_last_21_days;")
+        migrations.RunSQL("delete from ui_usual_placements_grid_data_last_21_days"),
 
-            cursor.execute("""
-insert into ui_usual_placements_grid_data_last_21_days as ut (
+        migrations.RunSQL("""
+                    insert into ui_usual_placements_grid_data_last_21_days as ut (
                 campaign_id,
                 placement_id,
                 imps,
@@ -265,13 +269,13 @@ insert into ui_usual_placements_grid_data_last_21_days as ut (
               where
                 t."hour" >= date_trunc('day',(select max(hour) from network_analytics_report_by_placement) - interval '21 day')
               group by
-                t.campaign_id, t.placement_id;
-                                    """)
+                t.campaign_id, t.placement_id
+                        """),
 
-            cursor.execute("delete from ui_usual_placements_grid_data_last_90_days;")
+        migrations.RunSQL("delete from ui_usual_placements_grid_data_last_90_days"),
 
-            cursor.execute("""
-insert into ui_usual_placements_grid_data_last_90_days as ut (
+        migrations.RunSQL("""
+                    insert into ui_usual_placements_grid_data_last_90_days as ut (
                 campaign_id,
                 placement_id,
                 imps,
@@ -308,13 +312,13 @@ insert into ui_usual_placements_grid_data_last_90_days as ut (
               where
                 t."hour" >= date_trunc('day',(select max(hour) from network_analytics_report_by_placement) - interval '90 day')
               group by
-                t.campaign_id, t.placement_id;
-                                    """)
+                t.campaign_id, t.placement_id
+                        """),
 
-            cursor.execute("delete from ui_usual_placements_grid_data_last_month;")
+        migrations.RunSQL("delete from ui_usual_placements_grid_data_last_month"),
 
-            cursor.execute("""
-insert into ui_usual_placements_grid_data_last_month as ut (
+        migrations.RunSQL("""
+                    insert into ui_usual_placements_grid_data_last_month as ut (
                 campaign_id,
                 placement_id,
                 imps,
@@ -352,13 +356,13 @@ insert into ui_usual_placements_grid_data_last_month as ut (
                 t."hour" >= date_trunc('month',(select max(hour) from network_analytics_report_by_placement) - interval '1 month')
                 and t."hour" < date_trunc('month',(select max(hour) from network_analytics_report_by_placement))
               group by
-                t.campaign_id, t.placement_id;
-                                    """)
+                t.campaign_id, t.placement_id
+                        """),
 
-            cursor.execute("delete from ui_usual_placements_grid_data_cur_month;")
+        migrations.RunSQL("delete from ui_usual_placements_grid_data_cur_month"),
 
-            cursor.execute("""
-insert into ui_usual_placements_grid_data_cur_month as ut (
+        migrations.RunSQL("""
+                    insert into ui_usual_placements_grid_data_cur_month as ut (
                 campaign_id,
                 placement_id,
                 imps,
@@ -395,18 +399,17 @@ insert into ui_usual_placements_grid_data_cur_month as ut (
               where
                 t."hour" >= date_trunc('month',(select max(hour) from network_analytics_report_by_placement))
               group by
-                t.campaign_id, t.placement_id;
-                                    """)
+                t.campaign_id, t.placement_id
+                        """),
 
-            print "Placements grid data refreshing finished"
+        ##
+        #CAMPAIGNS GRID
+        ##
 
-            ###
-            #CAMPAIGNS GRID
-            ###
-            cursor.execute("delete from ui_usual_campaigns_grid_data_all;")
-            print "Campaigns grid data refreshing started"
-            cursor.execute("""
-insert into ui_usual_campaigns_grid_data_all as ut (
+        migrations.RunSQL("delete from ui_usual_campaigns_grid_data_all"),
+
+        migrations.RunSQL("""
+    insert into ui_usual_campaigns_grid_data_all as ut (
         campaign_id,
         imps,
         clicks,
@@ -462,12 +465,12 @@ insert into ui_usual_campaigns_grid_data_all as ut (
             site_domain_performance_report site_r1
           WINDOW w as (partition by site_r1.campaign_id order by site_r1.day desc)
          ) page;
-                                    """)
+            """),
 
-            cursor.execute("delete from ui_usual_campaigns_grid_data_yesterday;")
+        migrations.RunSQL("delete from ui_usual_campaigns_grid_data_yesterday"),
 
-            cursor.execute("""
-insert into ui_usual_campaigns_grid_data_yesterday as ut (
+        migrations.RunSQL("""
+        insert into ui_usual_campaigns_grid_data_yesterday as ut (
             campaign_id,
             imps,
             clicks,
@@ -527,12 +530,12 @@ insert into ui_usual_campaigns_grid_data_yesterday as ut (
                 site_r1.hour >= date_trunc('day',(select max(hour) from site_domain_performance_report) - interval '1 day')
               WINDOW w as (partition by site_r1.campaign_id order by site_r1.day desc)
              ) page;
-                                                """)
+                """),
 
-            cursor.execute("delete from ui_usual_campaigns_grid_data_last_3_days;")
+        migrations.RunSQL("delete from ui_usual_campaigns_grid_data_last_3_days"),
 
-            cursor.execute("""
-insert into ui_usual_campaigns_grid_data_last_3_days as ut (
+        migrations.RunSQL("""
+        insert into ui_usual_campaigns_grid_data_last_3_days as ut (
             campaign_id,
             imps,
             clicks,
@@ -592,12 +595,12 @@ insert into ui_usual_campaigns_grid_data_last_3_days as ut (
                 site_r1.hour >= date_trunc('day',(select max(hour) from site_domain_performance_report) - interval '3 day')
               WINDOW w as (partition by site_r1.campaign_id order by site_r1.day desc)
              ) page;
-                                                """)
+                """),
 
-            cursor.execute("delete from ui_usual_campaigns_grid_data_last_7_days;")
+        migrations.RunSQL("delete from ui_usual_campaigns_grid_data_last_7_days"),
 
-            cursor.execute("""
-insert into ui_usual_campaigns_grid_data_last_7_days as ut (
+        migrations.RunSQL("""
+        insert into ui_usual_campaigns_grid_data_last_7_days as ut (
             campaign_id,
             imps,
             clicks,
@@ -657,12 +660,12 @@ insert into ui_usual_campaigns_grid_data_last_7_days as ut (
                 site_r1.hour >= date_trunc('day',(select max(hour) from site_domain_performance_report) - interval '7 day')
               WINDOW w as (partition by site_r1.campaign_id order by site_r1.day desc)
              ) page;
-                                                """)
+                """),
 
-            cursor.execute("delete from ui_usual_campaigns_grid_data_last_14_days;")
+        migrations.RunSQL("delete from ui_usual_campaigns_grid_data_last_14_days"),
 
-            cursor.execute("""
-insert into ui_usual_campaigns_grid_data_last_14_days as ut (
+        migrations.RunSQL("""
+        insert into ui_usual_campaigns_grid_data_last_14_days as ut (
             campaign_id,
             imps,
             clicks,
@@ -722,12 +725,12 @@ insert into ui_usual_campaigns_grid_data_last_14_days as ut (
                 site_r1.hour >= date_trunc('day',(select max(hour) from site_domain_performance_report) - interval '14 day')
               WINDOW w as (partition by site_r1.campaign_id order by site_r1.day desc)
              ) page;
-                                                """)
+                """),
 
-            cursor.execute("delete from ui_usual_campaigns_grid_data_last_21_days;")
+        migrations.RunSQL("delete from ui_usual_campaigns_grid_data_last_21_days"),
 
-            cursor.execute("""
-insert into ui_usual_campaigns_grid_data_last_21_days as ut (
+        migrations.RunSQL("""
+        insert into ui_usual_campaigns_grid_data_last_21_days as ut (
             campaign_id,
             imps,
             clicks,
@@ -787,12 +790,12 @@ insert into ui_usual_campaigns_grid_data_last_21_days as ut (
                 site_r1.hour >= date_trunc('day',(select max(hour) from site_domain_performance_report) - interval '21 day')
               WINDOW w as (partition by site_r1.campaign_id order by site_r1.day desc)
              ) page;
-                                                """)
+                """),
 
-            cursor.execute("delete from ui_usual_campaigns_grid_data_last_90_days;")
+        migrations.RunSQL("delete from ui_usual_campaigns_grid_data_last_90_days"),
 
-            cursor.execute("""
-insert into ui_usual_campaigns_grid_data_last_90_days as ut (
+        migrations.RunSQL("""
+        insert into ui_usual_campaigns_grid_data_last_90_days as ut (
             campaign_id,
             imps,
             clicks,
@@ -856,12 +859,12 @@ insert into ui_usual_campaigns_grid_data_last_90_days as ut (
                 site_r1.day >= date_trunc('day',(select max(hour) from site_domain_performance_report) - interval '90 day')
               WINDOW w as (partition by site_r1.campaign_id order by site_r1.day desc)
              ) page;
-                                                """)
+                """),
 
-            cursor.execute("delete from ui_usual_campaigns_grid_data_last_month;")
+        migrations.RunSQL("delete from ui_usual_campaigns_grid_data_last_month"),
 
-            cursor.execute("""
-insert into ui_usual_campaigns_grid_data_last_month as ut (
+        migrations.RunSQL("""
+            insert into ui_usual_campaigns_grid_data_last_month as ut (
                 campaign_id,
                 imps,
                 clicks,
@@ -923,12 +926,12 @@ insert into ui_usual_campaigns_grid_data_last_month as ut (
                     and site_r1.hour < date_trunc('month',(select max(hour) from site_domain_performance_report))
                   WINDOW w as (partition by site_r1.campaign_id order by site_r1.day desc)
                  ) page;
-                                                """)
+                    """),
 
-            cursor.execute("delete from ui_usual_campaigns_grid_data_cur_month;")
+        migrations.RunSQL("delete from ui_usual_campaigns_grid_data_cur_month"),
 
-            cursor.execute("""
-insert into ui_usual_campaigns_grid_data_cur_month as ut (
+        migrations.RunSQL("""
+            insert into ui_usual_campaigns_grid_data_cur_month as ut (
                 campaign_id,
                 imps,
                 clicks,
@@ -988,20 +991,16 @@ insert into ui_usual_campaigns_grid_data_cur_month as ut (
                     site_r1.hour >= date_trunc('month',(select max(hour) from site_domain_performance_report))
                   WINDOW w as (partition by site_r1.campaign_id order by site_r1.day desc)
                  ) page;
-                                                """)
+                    """),
 
-            print "Campaigns grid data refreshing finished"
+        ##
+        #ADVERTISERS GRAPH
+        ##
 
-            ###
-            # REFRESH ADVERTISERS GRAPH DATA
-            ###
+        migrations.RunSQL("delete from ui_usual_advertisers_graph"),
 
-            cursor.execute("delete from ui_usual_advertisers_graph;")
-
-            print "Advertisers graph data refreshing started"
-
-            cursor.execute("""
-insert into ui_usual_advertisers_graph as ut (
+        migrations.RunSQL("""
+      insert into ui_usual_advertisers_graph as ut (
         advertiser_id,
         type,
         day_chart)
@@ -1026,10 +1025,10 @@ insert into ui_usual_advertisers_graph as ut (
         order by "day"
       ))
     from (select distinct advertiser_id from site_domain_performance_report)ads;
-                                                """)
+                            """),
 
-            cursor.execute("""
-insert into ui_usual_advertisers_graph as ut (
+        migrations.RunSQL("""
+          insert into ui_usual_advertisers_graph as ut (
             advertiser_id,
             type,
             day_chart)
@@ -1059,10 +1058,10 @@ insert into ui_usual_advertisers_graph as ut (
                select distinct advertiser_id from site_domain_performance_report
                 where
                 "hour" >= date_trunc('day',(select max(hour) from site_domain_performance_report) - interval '1 day'))ads;
-                                                            """)
+                                """),
 
-            cursor.execute("""
-insert into ui_usual_advertisers_graph as ut (
+        migrations.RunSQL("""
+          insert into ui_usual_advertisers_graph as ut (
             advertiser_id,
             type,
             day_chart)
@@ -1092,10 +1091,10 @@ insert into ui_usual_advertisers_graph as ut (
                select distinct advertiser_id from site_domain_performance_report
                 where
                 "hour" >= date_trunc('day',(select max(hour) from site_domain_performance_report) - interval '3 day'))ads;
-                                                            """)
+                                """),
 
-            cursor.execute("""
-insert into ui_usual_advertisers_graph as ut (
+        migrations.RunSQL("""
+              insert into ui_usual_advertisers_graph as ut (
                 advertiser_id,
                 type,
                 day_chart)
@@ -1125,10 +1124,10 @@ insert into ui_usual_advertisers_graph as ut (
                    select distinct advertiser_id from site_domain_performance_report
                     where
                     "hour" >= date_trunc('day',(select max(hour) from site_domain_performance_report) - interval '7 day'))ads;
-                                                            """)
+                                    """),
 
-            cursor.execute("""
-insert into ui_usual_advertisers_graph as ut (
+        migrations.RunSQL("""
+              insert into ui_usual_advertisers_graph as ut (
                 advertiser_id,
                 type,
                 day_chart)
@@ -1158,10 +1157,10 @@ insert into ui_usual_advertisers_graph as ut (
                    select distinct advertiser_id from site_domain_performance_report
                     where
                     "hour" >= date_trunc('day',(select max(hour) from site_domain_performance_report) - interval '14 day'))ads;
-                                                            """)
+                                    """),
 
-            cursor.execute("""
-insert into ui_usual_advertisers_graph as ut (
+        migrations.RunSQL("""
+              insert into ui_usual_advertisers_graph as ut (
                 advertiser_id,
                 type,
                 day_chart)
@@ -1191,10 +1190,10 @@ insert into ui_usual_advertisers_graph as ut (
                    select distinct advertiser_id from site_domain_performance_report
                     where
                     "hour" >= date_trunc('day',(select max(hour) from site_domain_performance_report) - interval '21 day'))ads;
-                                                            """)
+                                    """),
 
-            cursor.execute("""
-insert into ui_usual_advertisers_graph as ut (
+        migrations.RunSQL("""
+              insert into ui_usual_advertisers_graph as ut (
         advertiser_id,
         type,
         day_chart)
@@ -1228,10 +1227,10 @@ insert into ui_usual_advertisers_graph as ut (
             ("day" >= (select max(hour) from site_domain_performance_report) - interval '90 day'
                   or
                    "hour" >= (select max(hour) from site_domain_performance_report) - interval '90 day'))ads;
-                                                            """)
+                                    """),
 
-            cursor.execute("""
-insert into ui_usual_advertisers_graph as ut (
+        migrations.RunSQL("""
+                  insert into ui_usual_advertisers_graph as ut (
                     advertiser_id,
                     type,
                     day_chart)
@@ -1265,10 +1264,10 @@ insert into ui_usual_advertisers_graph as ut (
                         "hour" >= date_trunc('month',(select max(hour) from site_domain_performance_report) - interval '1 month')
                         and
                         "hour" < date_trunc('month',(select max(hour) from site_domain_performance_report)))ads;
-                                                            """)
+                                        """),
 
-            cursor.execute("""
-insert into ui_usual_advertisers_graph as ut (
+        migrations.RunSQL("""
+                  insert into ui_usual_advertisers_graph as ut (
                     advertiser_id,
                     type,
                     day_chart)
@@ -1298,19 +1297,16 @@ insert into ui_usual_advertisers_graph as ut (
                        select distinct advertiser_id from site_domain_performance_report
                         where
                         "hour" >= date_trunc('month',(select max(hour) from site_domain_performance_report)))ads;
-                                                            """)
+                                        """),
 
-            print "Advertisers graph data refreshing finished"
-            ###
-            # REFRESH CAMPAIGNS GRAPH DATA
-            ###
+        ##
+        #CAMPAIGNS GRAPH
+        ##
 
-            cursor.execute("delete from ui_usual_placements_graph;")
+        migrations.RunSQL("delete from ui_usual_placements_graph"),
 
-            print "Campaigns graph data refreshing started"
-
-            cursor.execute("""
-            insert into ui_usual_placements_graph as ut (
+        migrations.RunSQL("""
+    insert into ui_usual_placements_graph as ut (
         campaign_id,
         type,
         day_chart)
@@ -1335,10 +1331,10 @@ insert into ui_usual_advertisers_graph as ut (
         order by "hour"::timestamp::date
       ))
     from (select distinct campaign_id from network_analytics_report_by_placement) camps;
-            """)
+                        """),
 
-            cursor.execute("""
-insert into ui_usual_placements_graph as ut (
+        migrations.RunSQL("""
+        insert into ui_usual_placements_graph as ut (
             campaign_id,
             type,
             day_chart)
@@ -1367,10 +1363,10 @@ insert into ui_usual_placements_graph as ut (
                select distinct campaign_id from network_analytics_report_by_placement
                where
                "hour" >= date_trunc('day',(select max(hour) from network_analytics_report_by_placement) - interval '1 day')) camps;
-                        """)
+                            """),
 
-            cursor.execute("""
-insert into ui_usual_placements_graph as ut (
+        migrations.RunSQL("""
+            insert into ui_usual_placements_graph as ut (
                 campaign_id,
                 type,
                 day_chart)
@@ -1399,10 +1395,10 @@ insert into ui_usual_placements_graph as ut (
                    select distinct campaign_id from network_analytics_report_by_placement
                    where
                    "hour" >= date_trunc('day',(select max(hour) from network_analytics_report_by_placement) - interval '3 day')) camps;
-                        """)
+                                """),
 
-            cursor.execute("""
-insert into ui_usual_placements_graph as ut (
+        migrations.RunSQL("""
+            insert into ui_usual_placements_graph as ut (
                 campaign_id,
                 type,
                 day_chart)
@@ -1431,10 +1427,10 @@ insert into ui_usual_placements_graph as ut (
                    select distinct campaign_id from network_analytics_report_by_placement
                    where
                    "hour" >= date_trunc('day',(select max(hour) from network_analytics_report_by_placement) - interval '7 day')) camps;
-                        """)
+                                """),
 
-            cursor.execute("""
-insert into ui_usual_placements_graph as ut (
+        migrations.RunSQL("""
+            insert into ui_usual_placements_graph as ut (
                 campaign_id,
                 type,
                 day_chart)
@@ -1463,10 +1459,10 @@ insert into ui_usual_placements_graph as ut (
                    select distinct campaign_id from network_analytics_report_by_placement
                    where
                    "hour" >= date_trunc('day',(select max(hour) from network_analytics_report_by_placement) - interval '14 day')) camps;
-                                    """)
+                                """),
 
-            cursor.execute("""
-insert into ui_usual_placements_graph as ut (
+        migrations.RunSQL("""
+            insert into ui_usual_placements_graph as ut (
                 campaign_id,
                 type,
                 day_chart)
@@ -1495,10 +1491,10 @@ insert into ui_usual_placements_graph as ut (
                    select distinct campaign_id from network_analytics_report_by_placement
                    where
                    "hour" >= date_trunc('day',(select max(hour) from network_analytics_report_by_placement) - interval '21 day')) camps;
-                                    """)
+                                """),
 
-            cursor.execute("""
-insert into ui_usual_placements_graph as ut (
+        migrations.RunSQL("""
+                insert into ui_usual_placements_graph as ut (
                     campaign_id,
                     type,
                     day_chart)
@@ -1527,10 +1523,10 @@ insert into ui_usual_placements_graph as ut (
                        select distinct campaign_id from network_analytics_report_by_placement
                        where
                        "hour" >= date_trunc('day',(select max(hour) from network_analytics_report_by_placement) - interval '90 day')) camps;
-                        """)
+                                    """),
 
-            cursor.execute("""
-insert into ui_usual_placements_graph as ut (
+        migrations.RunSQL("""
+                    insert into ui_usual_placements_graph as ut (
                         campaign_id,
                         type,
                         day_chart)
@@ -1563,10 +1559,10 @@ insert into ui_usual_placements_graph as ut (
                            "hour" >= date_trunc('month',(select max(hour) from network_analytics_report_by_placement) - interval '1 month')
                            and
                            "hour" < date_trunc('month',(select max(hour) from network_analytics_report_by_placement))) camps;
-                                    """)
+                                        """),
 
-            cursor.execute("""
-insert into ui_usual_placements_graph as ut (
+        migrations.RunSQL("""
+                    insert into ui_usual_placements_graph as ut (
                         campaign_id,
                         type,
                         day_chart)
@@ -1595,8 +1591,5 @@ insert into ui_usual_placements_graph as ut (
                            select distinct campaign_id from network_analytics_report_by_placement
                            where
                            "hour" >= date_trunc('month',(select max(hour) from network_analytics_report_by_placement))) camps;
-                                    """)
-
-            print "Campaigns graph data refreshing finished"
-
-        print "refreshPrecalculatedUIData finished"
+                                        """),
+    ]

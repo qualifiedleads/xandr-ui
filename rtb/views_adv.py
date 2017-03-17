@@ -24,7 +24,7 @@ from models.rtb_impression_tracker import RtbImpressionTrackerPlacement, RtbImpr
 from django.db import connection
 from django.utils import timezone
 from rtb.models.technical_works import AttentionMessage, TechnicalWork
-from models.ui_data_models import UIUsualPlacementsGraph
+from models.ui_data_models import UIUsualPlacementsGraph, UIUsualCampaignsGraphTracker
 
 import bisect
 from django.contrib.auth.decorators import login_required, user_passes_test
@@ -155,10 +155,22 @@ Get single campaign statistics data for given period by selected categories: imp
 
     """
     try:
-        return Response(UIUsualPlacementsGraph.objects.filter(
-            campaign_id=id,
-            type=request.GET.get("type")
-        )[0].day_chart)
+        source = Advertiser.objects.get(
+            id=Campaign.objects.get(
+                id=id
+            ).advertiser_id
+        ).grid_data_source
+        if source == "report":
+            return Response(UIUsualPlacementsGraph.objects.filter(
+                campaign_id=id,
+                type=request.GET.get("type")
+            )[0].day_chart)
+        if source == "tracker":
+            return Response(UIUsualCampaignsGraphTracker.objects.filter(
+                campaign_id=id,
+                type=request.GET.get("type")
+            )[0].day_chart)
+        return Response(status=status.HTTP_200_OK)
     except Exception, e:
         print "Can not get graph data for " + str(id) + " campaign. Error " + str(e)
         return Response(status=status.HTTP_200_OK)
@@ -333,6 +345,17 @@ Get single campaign details by domains
 
 Field "placement" must contain name and id of placement. Id in parenthesis
     """
+    source = Advertiser.objects.get(
+        id=Campaign.objects.get(
+            id=id
+        ).advertiser_id
+    ).grid_data_source
+
+    if source == "tracker":
+        source = "_tracker"
+    else:
+        source = ''
+
     allCampaignsInfo = {}
     params = parse_get_params(request.GET)
     filt, order = getUsualFilterQueryString(params["filter"], request.GET.get("sort"), request.GET.get("order"))
@@ -358,7 +381,7 @@ select
   calc_place_info.view_measurement_rate * 100.0 as view_measurement_rate,
   calc_place_info.view_rate * 100.0 as view_rate
 from
-  ui_usual_placements_grid_data_""" + str(request.GET.get("type")) + """ calc_place_info
+  ui_usual_placements_grid_data_""" + str(request.GET.get("type")) + str(source) + """ calc_place_info
   left join placement
   on placement.id=calc_place_info.placement_id
   left join placements_additional_names report
@@ -434,7 +457,7 @@ from
   calc_place_info.view_measurement_rate * 100.0 as view_measurement_rate,
   calc_place_info.view_rate * 100.0 as view_rate
 from
-  ui_usual_placements_grid_data_""" + str(request.GET.get("type")) + """ calc_place_info
+  ui_usual_placements_grid_data_""" + str(request.GET.get("type")) + str(source) + """ calc_place_info
   left join placement
   on placement.id=calc_place_info.placement_id
   left join placements_additional_names report
@@ -456,7 +479,7 @@ where calc_place_info.campaign_id = """ + str(id) + ' ' + filt + """) info;""")[
 
 def getUsualFilterQueryString(incFilters, incSort, incOrder):
     vocabulary = {}
-    vocabulary["placement"] = "placement.id"
+    vocabulary["placement"] = "calc_place_info.placement_id"
     vocabulary["placement__rtbimpressiontrackerplacementdomain__domain"] = "rtb_impression_tracker_placement_domain.domain"
     vocabulary["NetworkPublisher"] = "concat(report.publisher_name, '/', report.seller_member_name)"
     vocabulary["conv"] = "calc_place_info.conversions"

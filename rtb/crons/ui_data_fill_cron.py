@@ -2,6 +2,8 @@ from datetime import timedelta, datetime
 from django.db import connection, transaction
 from django.utils import timezone
 from rtb.models.placement_state import LastModified
+from rtb.models.rtb_impression_tracker import RtbImpressionTracker
+from django.db.models import Max
 #
 # PLACEMENTS GRID REPORT
 #
@@ -640,7 +642,7 @@ ON CONFLICT (campaign_id, type)
 def cummulatePlacementsGridDataTracker(type, start_date, finish_date):
     with connection.cursor() as cursor:
         cursor.execute("""
-insert into ui_usual_placements_grid_data_all_tracker as ut (
+insert into ui_usual_placements_grid_data_""" + str(type) + """_tracker as ut (
     campaign_id,
     placement_id,
     imps,
@@ -673,7 +675,7 @@ insert into ui_usual_placements_grid_data_all_tracker as ut (
     0,
     0
 from rtb_impression_tracker
-where "Date" > '2017-02-13 00:00:00' and "Date" <= '2017-03-13 04:00:00'
+where "Date" > '""" + str(start_date) + """' and "Date" <= '""" + str(finish_date) + """'
 group by "CpId", "PlacementId"
 ON CONFLICT (campaign_id, placement_id)
   DO UPDATE SET
@@ -782,32 +784,20 @@ def subPlacementsGridDataTracker(type, start_date, finish_date):
 update ui_usual_placements_grid_data_""" + str(type) + """_tracker as ut
 set
   imps = ut.imps - info.imp,
-  clicks = ut.clicks - info.clicks,
   spent = ut.spent - info.spent,
-  conversions = ut.conversions - info.conversions,
-  imps_viewed = ut.imps_viewed - info.imps_viewed,
-  view_measured_imps = ut.view_measured_imps - info.view_measured_imps,
   cpm = case (ut.imps - info.imp) when 0 then 0 else (ut.spent - info.spent) / (ut.imps - info.imp) * 1000.0 end,
-  cvr = case (ut.imps - info.imp) when 0 then 0 else (ut.conversions - info.conversions) / (ut.imps - info.imp) end,
-  ctr = case (ut.imps - info.imp) when 0 then 0 else (ut.clicks - info.clicks) / (ut.imps - info.imp) end,
-  cpc = case (ut.clicks - info.clicks) when 0 then 0 else (ut.spent - info.spent) / (ut.clicks - info.clicks) end,
-  cpa = case (ut.conversions - info.conversions) when 0 then 0 else (ut.spent - info.spent) / (ut.conversions - info.conversions) end,
-  view_measurement_rate = case (imps - info.imp) when 0 then 0 else (ut.view_measured_imps - info.view_measured_imps) / (ut.imps - info.imp) end,
-  view_rate = case (ut.view_measured_imps - info.view_measured_imps) when 0 then 0 else (ut.imps_viewed - info.imps_viewed) / (ut.view_measured_imps - info.view_measured_imps) end
+  cvr = case (ut.imps - info.imp) when 0 then 0 else ut.conversions / (ut.imps - info.imp) end,
+  ctr = case (ut.imps - info.imp) when 0 then 0 else ut.clicks / (ut.imps - info.imp) end,
+  cpc = case ut.clicks when 0 then 0 else (ut.spent - info.spent) / ut.clicks end,
+  cpa = case ut.conversions when 0 then 0 else (ut.spent - info.spent) / ut.conversions end
 FROM (
   select
   t."CpId",
   t."PlacementId",
   count(t."id") as imp,
-  count(clicktable.id) as clicks,
-  sum(t."PricePaid") as spent,
-  count(conversiontable.id) as conversions,
-  0 as imps_viewed,
-  0 as view_measured_imps
+  sum(t."PricePaid") as spent
 from
   rtb_impression_tracker t
-  LEFT JOIN rtb_click_tracker clicktable ON clicktable."AuctionId" = t."AuctionId"
-  LEFT JOIN rtb_conversion_tracker conversiontable ON conversiontable."AuctionId" = t."AuctionId"
 where
   t."Date" >= '""" + str(start_date) + """'
   and t."Date" < '""" + str(finish_date) + """'
@@ -816,6 +806,46 @@ group by
 ) info
 where ut.campaign_id = info."CpId" and ut.placement_id = info."PlacementId";
         """)
+
+        cursor.execute("""
+update ui_usual_placements_grid_data_""" + str(type) + """_tracker as ut
+set
+  clicks = ut.clicks - info.clicks,
+  ctr = case ut.imps when 0 then 0 else (ut.clicks - info.clicks)::float / ut.imps end,
+  cpc = case ut.clicks when 0 then 0 else ut.spent / (ut.clicks - info.clicks) end
+FROM (
+  select
+  rtb_impression_tracker."CpId",
+  rtb_impression_tracker."PlacementId",
+  count(rtb_click_tracker."id") as clicks
+from rtb_click_tracker
+left join rtb_impression_tracker
+  on rtb_impression_tracker."AuctionId" = rtb_click_tracker."AuctionId"
+where rtb_click_tracker."Date" >= '""" + str(start_date) + """' and rtb_click_tracker."Date" < '""" + str(type) + """'
+group by rtb_impression_tracker."CpId", rtb_impression_tracker."PlacementId"
+) info
+where ut.campaign_id = info."CpId" and ut.placement_id = info."PlacementId";
+                """)
+
+        cursor.execute("""
+update ui_usual_placements_grid_data_""" + str(type) + """_tracker as ut
+set
+  conversions = ut.conversions - info.conversions,
+  cvr = case ut.imps when 0 then 0 else (ut.conversions - info.conversions)::float / ut.imps end,
+  cpa = case (ut.conversions - info.conversions) when 0 then 0 else ut.spent / (ut.conversions - info.conversions) end
+FROM (
+  select
+  rtb_impression_tracker."CpId",
+  rtb_impression_tracker."PlacementId",
+  count(rtb_conversion_tracker."id") as conversions
+from rtb_conversion_tracker
+left join rtb_impression_tracker
+  on rtb_impression_tracker."AuctionId" = rtb_conversion_tracker."AuctionId"
+where rtb_conversion_tracker."Date" >= '""" + str(start_date) + """' and rtb_conversion_tracker."Date" < '""" + str(finish_date) + """'
+group by rtb_impression_tracker."CpId", rtb_impression_tracker."PlacementId"
+) info
+where ut.campaign_id = info."CpId" and ut.placement_id = info."PlacementId";
+                """)
 
 def refreshPlacementsLastMonthGridDataTracker(start_date, finish_date):
     with connection.cursor() as cursor:
@@ -902,77 +932,57 @@ insert into ui_usual_campaigns_grid_data_""" + str(type) + """_tracker as ut (
     view_rate,
     day_chart)
   select
-  page."CpId",
-  page.imps,
-  page.clicks,
-  page.spend,
-  page.conversions,
-  page.imps_viewed,
-  page.view_measured_imps,
-  page.cpm,
-  page.cvr,
-  page.ctr,
-  page.cpc,
-  page.view_measurement_rate,
-  page.view_rate,
-  array_to_json(array((select
+    page."CpId",
+    page.imps,
+    0 as clicks,
+    page.spent,
+    0 as conversions,
+    0,
+    0,
+    case coalesce(page.imps, 0) when 0 then 0 else coalesce(page.spent, 0) / coalesce(page.imps, 0) * 1000.0 end,
+    0,
+    0,
+    0,
+    0,
+    0,
+    array_to_json(array((select
          json_build_object(
          'day', site_r."Date"::timestamp::date,
          'imp', count(site_r."id"),
          'spend', sum(site_r."PricePaid"),
-         'clicks', count(clicktable.id),
-         'conversions', count(conversiontable.id),
-         'cvr', case count(site_r."id") when 0 then 0 else (count(conversiontable.id))::float/count(site_r."id") end,
-         'cpc', case count(clicktable.id) when 0 then 0 else sum(site_r."PricePaid")::float/count(clicktable.id) end,
-         'ctr', case count(site_r."id") when 0 then 0 else count(clicktable.id)::float/count(site_r."id") end)
+         'clicks', 0,
+         'conversions', 0,
+         'cvr', 0,
+         'cpc', 0,
+         'ctr', 0)
        from
             rtb_impression_tracker site_r
-            LEFT JOIN rtb_click_tracker clicktable ON clicktable."AuctionId" = site_r."AuctionId"
-            LEFT JOIN rtb_conversion_tracker conversiontable ON conversiontable."AuctionId" = site_r."AuctionId"
        where site_r."CpId"= page."CpId"
          and (
          site_r."Date" > '""" + str(start_date) + """'
          and site_r."Date" <= '""" + str(finish_date) + """')
        group by site_r."Date"::timestamp::date
-       order by site_r."Date"::timestamp::date))) id
+       order by site_r."Date"::timestamp::date)))
 from (
       select
-        t."CpId",
-        count(clicktable.id) as clicks,
-        count(conversiontable.id) as conversions,
-        count(t."id") as imps,
-        sum(t."PricePaid") as spend,
-        0 as imps_viewed,
-        0 as view_measured_imps,
-        case count(t."id") when 0 then 0 else sum(t."PricePaid") / count(t."id") * 1000.0 end cpm,
-        case count(t."id") when 0 then 0 else count(conversiontable.id)::float / count(t."id") end cvr,
-        case count(t."id") when 0 then 0 else count(clicktable.id)::float / count(t."id") end ctr,
-        case count(clicktable.id) when 0 then 0 else sum(t."PricePaid") / count(clicktable.id) end cpc,
-        0 as view_measurement_rate,
-        0 as view_rate
+        "CpId",
+        count(id) as imps,
+        sum("PricePaid") as spent
       from
-        rtb_impression_tracker t
-        LEFT JOIN rtb_click_tracker clicktable ON clicktable."AuctionId" = t."AuctionId"
-        LEFT JOIN rtb_conversion_tracker conversiontable ON conversiontable."AuctionId" = t."AuctionId"
+        rtb_impression_tracker
       where
-        t."Date" > '""" + str(start_date) + """'
-        and t."Date" <= '""" + str(finish_date) + """'
-      group by t."CpId"
+        "Date" > '""" + str(start_date) + """' and "Date" <= '""" + str(finish_date) + """'
+      group by
+        "CpId"
      ) page
 ON CONFLICT (campaign_id)
   DO UPDATE SET
      imps = coalesce(ut.imps, 0) + coalesce(Excluded.imps, 0),
-     clicks = coalesce(ut.clicks, 0) + coalesce(Excluded.clicks, 0),
      spent = coalesce(ut.spent, 0) + coalesce(Excluded.spent, 0),
-     conversions = coalesce(ut.conversions, 0) + coalesce(Excluded.conversions, 0),
-     imps_viewed = coalesce(ut.imps_viewed, 0) + coalesce(Excluded.imps_viewed, 0),
-     view_measured_imps = coalesce(ut.view_measured_imps, 0) + coalesce(Excluded.view_measured_imps, 0),
      cpm = case (coalesce(ut.imps, 0) + coalesce(Excluded.imps, 0)) when 0 then 0 else (coalesce(ut.spent, 0) + coalesce(Excluded.spent, 0)) / (coalesce(ut.imps, 0) + coalesce(Excluded.imps, 0)) * 1000.0 end,
      cvr = case (coalesce(ut.imps, 0) + coalesce(Excluded.imps, 0)) when 0 then 0 else (coalesce(ut.conversions, 0) + coalesce(Excluded.conversions, 0))::float / (coalesce(ut.imps, 0) + coalesce(Excluded.imps, 0)) end,
      ctr = case (coalesce(ut.imps, 0) + coalesce(Excluded.imps, 0)) when 0 then 0 else (coalesce(ut.clicks, 0) + coalesce(Excluded.clicks, 0))::float / (coalesce(ut.imps, 0) + coalesce(Excluded.imps, 0)) end,
      cpc = case (coalesce(ut.clicks, 0) + coalesce(Excluded.clicks, 0)) when 0 then 0 else (coalesce(ut.spent, 0) + coalesce(Excluded.spent, 0)) / (coalesce(ut.clicks, 0) + coalesce(Excluded.clicks, 0)) end,
-     view_measurement_rate = case (coalesce(ut.imps, 0) + coalesce(Excluded.imps, 0)) when 0 then 0 else (coalesce(ut.view_measured_imps, 0) + coalesce(Excluded.view_measured_imps, 0))::float / (coalesce(ut.imps, 0) + coalesce(Excluded.imps, 0)) end,
-     view_rate = case (coalesce(ut.view_measured_imps, 0) + coalesce(Excluded.view_measured_imps, 0)) when 0 then 0 else (coalesce(ut.imps_viewed, 0) + coalesce(Excluded.imps_viewed, 0))::float / (coalesce(ut.view_measured_imps, 0) + coalesce(Excluded.view_measured_imps, 0)) end,
      day_chart = case (ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'day')::text when (Excluded.day_chart::json->0->'day')::text
                   then jsonb_set(
                     ut.day_chart::jsonb,
@@ -981,8 +991,8 @@ ON CONFLICT (campaign_id)
                         'day', ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'day',
                         'imp', coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'imp')::text::integer,0) + coalesce((Excluded.day_chart::json->0->'imp')::text::integer,0),
                         'spend', coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'spend')::text::float,0) + coalesce((Excluded.day_chart::json->0->'spend')::text::float,0),
-                        'clicks', coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'clicks')::text::integer,0) + coalesce((Excluded.day_chart::json->0->'clicks')::text::integer,0),
-                        'conversions', coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'conversions')::text::integer,0) + coalesce((Excluded.day_chart::json->0->'conversions')::text::integer,0),
+                        'clicks', coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'clicks')::text::integer,0),
+                        'conversions', coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'conversions')::text::integer,0),
                         'cvr', case (coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'imp')::text::integer,0) + coalesce((Excluded.day_chart::json->0->'imp')::text::integer,0))
                                when 0 then 0
                                else (coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'conversions')::text::float,0) + coalesce((Excluded.day_chart::json->0->'conversions')::text::float,0))/(coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'imp')::text::float,0) + coalesce((Excluded.day_chart::json->0->'imp')::text::float,0)) end,
@@ -997,6 +1007,181 @@ ON CONFLICT (campaign_id)
                   else ut.day_chart||Excluded.day_chart end;
         """)
 
+        cursor.execute("""
+insert into ui_usual_campaigns_grid_data_""" + str(type) + """_tracker as ut (
+    campaign_id,
+    imps,
+    clicks,
+    spent,
+    conversions,
+    imps_viewed,
+    view_measured_imps,
+    cpm,
+    cvr,
+    ctr,
+    cpc,
+    view_measurement_rate,
+    view_rate,
+    day_chart)
+  select
+    page."CpId",
+    0,
+    page.clicks,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    array_to_json(array((select
+         json_build_object(
+         'day', site_r."Date"::timestamp::date,
+         'imp', 0,
+         'mediaspent', 0,
+         'clicks', count(site_r."id"),
+         'conversions', 0,
+         'cpa', 0,
+         'cpc', 0,
+         'ctr', 0)
+       from
+            rtb_click_tracker site_r
+       where site_r."CpId"= page."CpId"
+         and (
+         site_r."Date" > '""" + str(start_date) + """'
+         and site_r."Date" <= '""" + str(finish_date) + """')
+       group by site_r."Date"::timestamp::date
+       order by site_r."Date"::timestamp::date)))
+from (
+      select
+        "CpId",
+        count(id) as clicks
+      from
+        rtb_click_tracker
+      where
+        "Date" > '""" + str(start_date) + """' and "Date" <= '""" + str(finish_date) + """'
+      group by
+        "CpId"
+     ) page
+ON CONFLICT (campaign_id)
+  DO UPDATE SET
+     clicks = coalesce(ut.clicks, 0) + coalesce(Excluded.clicks, 0),
+     ctr = case (coalesce(ut.imps, 0) + coalesce(Excluded.imps, 0)) when 0 then 0 else (coalesce(ut.clicks, 0) + coalesce(Excluded.clicks, 0))::float / (coalesce(ut.imps, 0) + coalesce(Excluded.imps, 0)) end,
+     cpc = case (coalesce(ut.clicks, 0) + coalesce(Excluded.clicks, 0)) when 0 then 0 else (coalesce(ut.spent, 0) + coalesce(Excluded.spent, 0)) / (coalesce(ut.clicks, 0) + coalesce(Excluded.clicks, 0)) end,
+     day_chart = case (ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'day')::text when (Excluded.day_chart::json->0->'day')::text
+                  then jsonb_set(
+                    ut.day_chart::jsonb,
+                    concat('{', (jsonb_array_length(ut.day_chart)-1), '}')::text[],
+                    json_build_object(
+                        'day', ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'day',
+                        'imp', coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'imp')::text::integer,0),
+                        'spend', coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'spend')::text::float,0),
+                        'clicks', coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'clicks')::text::integer,0) + coalesce((Excluded.day_chart::json->0->'clicks')::text::integer,0),
+                        'conversions', coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'conversions')::text::integer,0),
+                        'cvr', case (coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'imp')::text::integer,0) + coalesce((Excluded.day_chart::json->0->'imp')::text::integer,0))
+                               when 0 then 0
+                               else (coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'conversions')::text::float,0) + coalesce((Excluded.day_chart::json->0->'conversions')::text::float,0))/(coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'imp')::text::float,0) + coalesce((Excluded.day_chart::json->0->'imp')::text::float,0)) end,
+                        'cpc', case (coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'clicks')::text::integer,0) + coalesce((Excluded.day_chart::json->0->'clicks')::text::integer,0))
+                               when 0 then 0
+                               else (coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'spend')::text::float,0) + coalesce((Excluded.day_chart::json->0->'spend')::text::float,0))/(coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'clicks')::text::float,0) + coalesce((Excluded.day_chart::json->0->'clicks')::text::float,0)) end,
+                        'ctr', case coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'imp')::text::integer,0) + coalesce((Excluded.day_chart::json->0->'imp')::text::integer,0)
+                               when 0 then 0
+                               else (coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'clicks')::text::float,0) + coalesce((Excluded.day_chart::json->0->'clicks')::text::float,0))/(coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'imp')::text::float,0) + coalesce((Excluded.day_chart::json->0->'imp')::text::float,0)) end
+                    )::jsonb,
+                    true)
+                  else ut.day_chart||Excluded.day_chart end;
+                """)
+
+        cursor.execute("""
+insert into ui_usual_campaigns_grid_data_""" + str(type) + """_tracker as ut (
+    campaign_id,
+    imps,
+    clicks,
+    spent,
+    conversions,
+    imps_viewed,
+    view_measured_imps,
+    cpm,
+    cvr,
+    ctr,
+    cpc,
+    view_measurement_rate,
+    view_rate,
+    day_chart)
+  select
+    page."CpId",
+    0,
+    0,
+    page.conversions,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    array_to_json(array((select
+         json_build_object(
+         'day', site_r."Date"::timestamp::date,
+         'imp', 0,
+         'mediaspent', 0,
+         'clicks', count(site_r."id"),
+         'conversions', 0,
+         'cpa', 0,
+         'cpc', 0,
+         'ctr', 0)
+       from
+            rtb_conversion_tracker site_r
+       where site_r."CpId"= page."CpId"
+         and (
+         site_r."Date" > '""" + str(start_date) + """'
+         and site_r."Date" <= '""" + str(finish_date) + """')
+       group by site_r."Date"::timestamp::date
+       order by site_r."Date"::timestamp::date)))
+from (
+      select
+        "CpId",
+        count(id) as conversions
+      from
+        rtb_conversion_tracker
+      where
+        "Date" > '""" + str(start_date) + """' and "Date" <= '""" + str(finish_date) + """'
+      group by
+        "CpId"
+     ) page
+ON CONFLICT (campaign_id)
+  DO UPDATE SET
+     conversions = coalesce(ut.conversions, 0) + coalesce(Excluded.conversions, 0),
+     cvr = case (coalesce(ut.imps, 0) + coalesce(Excluded.imps, 0)) when 0 then 0 else (coalesce(ut.conversions, 0) + coalesce(Excluded.conversions, 0))::float / (coalesce(ut.imps, 0) + coalesce(Excluded.imps, 0)) end,
+     day_chart = case (ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'day')::text when (Excluded.day_chart::json->0->'day')::text
+                  then jsonb_set(
+                    ut.day_chart::jsonb,
+                    concat('{', (jsonb_array_length(ut.day_chart)-1), '}')::text[],
+                    json_build_object(
+                        'day', ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'day',
+                        'imp', coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'imp')::text::integer,0),
+                        'spend', coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'spend')::text::float,0),
+                        'clicks', coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'clicks')::text::integer,0),
+                        'conversions', coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'conversions')::text::integer,0)  + coalesce((Excluded.day_chart::json->0->'conversions')::text::integer,0),
+                        'cvr', case (coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'imp')::text::integer,0) + coalesce((Excluded.day_chart::json->0->'imp')::text::integer,0))
+                               when 0 then 0
+                               else (coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'conversions')::text::float,0) + coalesce((Excluded.day_chart::json->0->'conversions')::text::float,0))/(coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'imp')::text::float,0) + coalesce((Excluded.day_chart::json->0->'imp')::text::float,0)) end,
+                        'cpc', case (coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'clicks')::text::integer,0) + coalesce((Excluded.day_chart::json->0->'clicks')::text::integer,0))
+                               when 0 then 0
+                               else (coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'spend')::text::float,0) + coalesce((Excluded.day_chart::json->0->'spend')::text::float,0))/(coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'clicks')::text::float,0) + coalesce((Excluded.day_chart::json->0->'clicks')::text::float,0)) end,
+                        'ctr', case coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'imp')::text::integer,0) + coalesce((Excluded.day_chart::json->0->'imp')::text::integer,0)
+                               when 0 then 0
+                               else (coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'clicks')::text::float,0) + coalesce((Excluded.day_chart::json->0->'clicks')::text::float,0))/(coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'imp')::text::float,0) + coalesce((Excluded.day_chart::json->0->'imp')::text::float,0)) end
+                    )::jsonb,
+                    true)
+                  else ut.day_chart||Excluded.day_chart end;
+                """)
+
 
 def subCampaignsGridDataTracker(type, start_date, finish_date):
     with connection.cursor() as cursor:
@@ -1004,38 +1189,60 @@ def subCampaignsGridDataTracker(type, start_date, finish_date):
 update ui_usual_campaigns_grid_data_""" + str(type) + """_tracker as ut
 set
   imps = ut.imps - info.imp,
-  clicks = ut.clicks - info.clicks,
   spent = ut.spent - info.spent,
-  conversions = ut.conversions - info.conversions,
-  imps_viewed = ut.imps_viewed - info.imps_viewed,
-  view_measured_imps = ut.view_measured_imps - info.view_measured_imps,
   cpm = case (ut.imps - info.imp) when 0 then 0 else (ut.spent - info.spent) / (ut.imps - info.imp) * 1000.0 end,
-  cvr = case (ut.imps - info.imp) when 0 then 0 else (ut.conversions - info.conversions) / (ut.imps - info.imp) end,
-  ctr = case (ut.imps - info.imp) when 0 then 0 else (ut.clicks - info.clicks) / (ut.imps - info.imp) end,
-  cpc = case (ut.clicks - info.clicks) when 0 then 0 else (ut.spent - info.spent) / (ut.clicks - info.clicks) end,
-  view_measurement_rate = case (imps - info.imp) when 0 then 0 else (ut.view_measured_imps - info.view_measured_imps) / (ut.imps - info.imp) end,
-  view_rate = case (ut.view_measured_imps - info.view_measured_imps) when 0 then 0 else (ut.imps_viewed - info.imps_viewed) / (ut.view_measured_imps - info.view_measured_imps) end,
-  day_chart = day_chart - 0
+  cvr = case (ut.imps - info.imp) when 0 then 0 else ut.conversions / (ut.imps - info.imp) end,
+  ctr = case (ut.imps - info.imp) when 0 then 0 else ut.clicks / (ut.imps - info.imp) end,
+  cpc = case ut.clicks when 0 then 0 else (ut.spent - info.spent) / ut.clicks end,
+  day_chart=day_chart - 0
 FROM (
   select
-    t."CpId",
-    count(clicktable.id) as clicks,
-    count(conversiontable.id) as conversions,
-    count(t."id") as imp,
-    sum(t."PricePaid") as spent,
-    0 as imps_viewed,
-    0 as view_measured_imps,
-  from
-    rtb_impression_tracker t
-    LEFT JOIN rtb_click_tracker clicktable ON clicktable."AuctionId" = t."AuctionId"
-    LEFT JOIN rtb_conversion_tracker conversiontable ON conversiontable."AuctionId" = t."AuctionId"
-  where
-    t."Date" >= '""" + str(start_date) + """'
-    and t."Date" < '""" + str(finish_date) + """'
-  group by t."CpId"
+  t."CpId",
+  count(t."id") as imp,
+  sum(t."PricePaid") as spent
+from
+  rtb_impression_tracker t
+where
+  t."Date" >= '""" + str(start_date) + """'
+  and t."Date" < '""" + str(finish_date) + """'
+group by
+  t."CpId"
 ) info
 where ut.campaign_id = info."CpId";
-        """)
+                """)
+
+        cursor.execute("""
+update ui_usual_campaigns_grid_data_""" + str(type) + """_tracker as ut
+set
+  clicks = ut.clicks - info.clicks,
+  ctr = case ut.imps when 0 then 0 else (ut.clicks - info.clicks)::float / ut.imps end,
+  cpc = case ut.clicks when 0 then 0 else ut.spent / (ut.clicks - info.clicks) end
+FROM (
+  select
+  "CpId",
+  count("id") as clicks
+from rtb_click_tracker
+where "Date" >= '""" + str(start_date) + """' and "Date" < '""" + str(finish_date) + """'
+group by "CpId"
+) info
+where ut.campaign_id = info."CpId";
+                        """)
+
+        cursor.execute("""
+update ui_usual_campaigns_grid_data_""" + str(type) + """_tracker as ut
+set
+  conversions = ut.conversions - info.conversions,
+  cvr = case ut.imps when 0 then 0 else (ut.conversions - info.conversions)::float / ut.imps end
+FROM (
+  select
+  "CpId",
+  count("id") as conversions
+from rtb_conversion_tracker
+where "Date" >= '""" + str(start_date) + """' and "Date" < '""" + str(finish_date) + """'
+group by "CpId"
+) info
+where ut.campaign_id = info."CpId";
+                        """)
 
 
 def refreshCampaignsLastMonthGridDataTracker(start_date, finish_date):
@@ -1151,15 +1358,13 @@ insert into ui_usual_advertisers_graph_tracker as ut (
          'day', site_r."Date"::timestamp::date,
          'imp', count(site_r."id"),
          'spend', sum(site_r."PricePaid"),
-         'clicks', count(clicktable.id),
-         'conversions', count(conversiontable.id),
-         'cvr', case count(site_r."id") when 0 then 0 else (count(conversiontable.id))::float/count(site_r."id") end,
-         'cpc', case count(clicktable.id) when 0 then 0 else sum(site_r."PricePaid")::float/count(clicktable.id) end,
-         'ctr', case count(site_r."id") when 0 then 0 else count(clicktable.id)::float/count(site_r."id") end)
+         'clicks', 0,
+         'conversions', 0,
+         'cvr', 0,
+         'cpc', 0,
+         'ctr', 0)
        from
             rtb_impression_tracker site_r
-            LEFT JOIN rtb_click_tracker clicktable ON clicktable."AuctionId" = site_r."AuctionId"
-            LEFT JOIN rtb_conversion_tracker conversiontable ON conversiontable."AuctionId" = site_r."AuctionId"
        where site_r."AdvId"= page."AdvId"
          and (
          site_r."Date" > '""" + str(start_date) + """'
@@ -1172,7 +1377,7 @@ from (
       from
         rtb_impression_tracker
       where
-        "Date" > '""" + str(start_date) + """'
+        "Date" > '""" + str(finish_date) + """'
         and "Date" <= '""" + str(finish_date) + """'
      ) page
 ON CONFLICT (advertiser_id, type)
@@ -1185,8 +1390,8 @@ ON CONFLICT (advertiser_id, type)
                         'day', ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'day',
                         'imp', coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'imp')::text::integer,0) + coalesce((Excluded.day_chart::json->0->'imp')::text::integer,0),
                         'spend', coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'spend')::text::float,0) + coalesce((Excluded.day_chart::json->0->'spend')::text::float,0),
-                        'clicks', coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'clicks')::text::integer,0) + coalesce((Excluded.day_chart::json->0->'clicks')::text::integer,0),
-                        'conversions', coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'conversions')::text::integer,0) + coalesce((Excluded.day_chart::json->0->'conversions')::text::integer,0),
+                        'clicks', coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'clicks')::text::integer,0),
+                        'conversions', coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'conversions')::text::integer,0),
                         'cvr', case (coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'imp')::text::integer,0) + coalesce((Excluded.day_chart::json->0->'imp')::text::integer,0))
                                when 0 then 0
                                else (coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'conversions')::text::float,0) + coalesce((Excluded.day_chart::json->0->'conversions')::text::float,0))/(coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'imp')::text::float,0) + coalesce((Excluded.day_chart::json->0->'imp')::text::float,0)) end,
@@ -1200,6 +1405,128 @@ ON CONFLICT (advertiser_id, type)
                     true)
                   else ut.day_chart||Excluded.day_chart end;
         """)
+
+        cursor.execute("""
+insert into ui_usual_advertisers_graph_tracker as ut (
+    advertiser_id,
+    type,
+    day_chart)
+  select
+  page."AdvId",
+  '""" + str(type) + """',
+  array_to_json(array((select
+         json_build_object(
+         'day', site_r."Date"::timestamp::date,
+         'imp', 0,
+         'spend', 0,
+         'clicks', count(site_r."id"),
+         'conversions', 0,
+         'cvr', 0,
+         'cpc', 0,
+         'ctr', 0)
+       from
+            rtb_click_tracker site_r
+       where site_r."AdvId"= page."AdvId"
+         and (
+         site_r."Date" > '""" + str(start_date) + """'
+         and site_r."Date" <= '""" + str(finish_date) + """')
+       group by site_r."Date"::timestamp::date
+       order by site_r."Date"::timestamp::date))) id
+from (
+      select
+        distinct rtb_click_tracker."AdvId"
+      from
+        rtb_click_tracker
+      where
+        rtb_click_tracker."Date" > '""" + str(start_date) + """'
+        and rtb_click_tracker."Date" <= '""" + str(finish_date) + """'
+     ) page
+ON CONFLICT (advertiser_id, type)
+  DO UPDATE SET
+     day_chart = case (ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'day')::text when (Excluded.day_chart::json->0->'day')::text
+                  then jsonb_set(
+                    ut.day_chart::jsonb,
+                    concat('{', (jsonb_array_length(ut.day_chart)-1), '}')::text[],
+                    json_build_object(
+                        'day', ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'day',
+                        'imp', coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'imp')::text::integer,0),
+                        'spend', coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'spend')::text::float,0),
+                        'clicks', coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'clicks')::text::integer,0) + coalesce((Excluded.day_chart::json->0->'clicks')::text::integer,0),
+                        'conversions', coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'conversions')::text::integer,0),
+                        'cvr', case (coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'imp')::text::integer,0) + coalesce((Excluded.day_chart::json->0->'imp')::text::integer,0))
+                               when 0 then 0
+                               else (coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'conversions')::text::float,0) + coalesce((Excluded.day_chart::json->0->'conversions')::text::float,0))/(coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'imp')::text::float,0) + coalesce((Excluded.day_chart::json->0->'imp')::text::float,0)) end,
+                        'cpc', case (coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'clicks')::text::integer,0) + coalesce((Excluded.day_chart::json->0->'clicks')::text::integer,0))
+                               when 0 then 0
+                               else (coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'spend')::text::float,0) + coalesce((Excluded.day_chart::json->0->'spend')::text::float,0))/(coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'clicks')::text::float,0) + coalesce((Excluded.day_chart::json->0->'clicks')::text::float,0)) end,
+                        'ctr', case coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'imp')::text::integer,0) + coalesce((Excluded.day_chart::json->0->'imp')::text::integer,0)
+                               when 0 then 0
+                               else (coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'clicks')::text::float,0) + coalesce((Excluded.day_chart::json->0->'clicks')::text::float,0))/(coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'imp')::text::float,0) + coalesce((Excluded.day_chart::json->0->'imp')::text::float,0)) end
+                    )::jsonb,
+                    true)
+                  else ut.day_chart||Excluded.day_chart end;
+                """)
+
+        cursor.execute("""
+insert into ui_usual_advertisers_graph_tracker as ut (
+    advertiser_id,
+    type,
+    day_chart)
+  select
+  page."AdvId",
+  '""" + str(type) + """',
+  array_to_json(array((select
+         json_build_object(
+         'day', site_r."Date"::timestamp::date,
+         'imp', 0,
+         'spend', 0,
+         'clicks', 0,
+         'conversions', count(site_r."id"),
+         'cvr', 0,
+         'cpc', 0,
+         'ctr', 0)
+       from
+            rtb_conversion_tracker site_r
+       where site_r."AdvId"= page."AdvId"
+         and (
+         site_r."Date" > '""" + str(start_date) + """'
+         and site_r."Date" <= '""" + str(finish_date) + """')
+       group by site_r."Date"::timestamp::date
+       order by site_r."Date"::timestamp::date))) id
+from (
+      select
+        distinct "AdvId"
+      from
+        rtb_conversion_tracker
+      where
+        rtb_conversion_tracker."Date" > '""" + str(start_date) + """'
+        and rtb_conversion_tracker."Date" <= '""" + str(finish_date) + """'
+     ) page
+ON CONFLICT (advertiser_id, type)
+  DO UPDATE SET
+     day_chart = case (ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'day')::text when (Excluded.day_chart::json->0->'day')::text
+                  then jsonb_set(
+                    ut.day_chart::jsonb,
+                    concat('{', (jsonb_array_length(ut.day_chart)-1), '}')::text[],
+                    json_build_object(
+                        'day', ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'day',
+                        'imp', coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'imp')::text::integer,0),
+                        'spend', coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'spend')::text::float,0),
+                        'clicks', coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'clicks')::text::integer,0),
+                        'conversions', coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'conversions')::text::integer,0) + coalesce((Excluded.day_chart::json->0->'conversions')::text::integer,0),
+                        'cvr', case (coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'imp')::text::integer,0) + coalesce((Excluded.day_chart::json->0->'imp')::text::integer,0))
+                               when 0 then 0
+                               else (coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'conversions')::text::float,0) + coalesce((Excluded.day_chart::json->0->'conversions')::text::float,0))/(coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'imp')::text::float,0) + coalesce((Excluded.day_chart::json->0->'imp')::text::float,0)) end,
+                        'cpc', case (coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'clicks')::text::integer,0) + coalesce((Excluded.day_chart::json->0->'clicks')::text::integer,0))
+                               when 0 then 0
+                               else (coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'spend')::text::float,0) + coalesce((Excluded.day_chart::json->0->'spend')::text::float,0))/(coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'clicks')::text::float,0) + coalesce((Excluded.day_chart::json->0->'clicks')::text::float,0)) end,
+                        'ctr', case coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'imp')::text::integer,0) + coalesce((Excluded.day_chart::json->0->'imp')::text::integer,0)
+                               when 0 then 0
+                               else (coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'clicks')::text::float,0) + coalesce((Excluded.day_chart::json->0->'clicks')::text::float,0))/(coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'imp')::text::float,0) + coalesce((Excluded.day_chart::json->0->'imp')::text::float,0)) end
+                    )::jsonb,
+                    true)
+                  else ut.day_chart||Excluded.day_chart end;
+                """)
 
 
 def subAdvertisersGraphDataTracker(type, start_date, finish_date):
@@ -1278,37 +1605,35 @@ insert into ui_usual_campaigns_graph_tracker as ut (
     type,
     day_chart)
   select
-      page."CpId",
-      '""" + str(type) + """',
-      array_to_json(array((select
-             json_build_object(
-             'day', site_r."Date"::timestamp::date,
-             'impression', count(site_r."id"),
-             'mediaspent', sum(site_r."PricePaid"),
-             'clicks', count(clicktable.id),
-             'conversions', count(conversiontable.id),
-             'cpa', case count(conversiontable.id) when 0 then 0 else sum(site_r."PricePaid")/count(conversiontable.id) end,
-             'cpc', case count(clicktable.id) when 0 then 0 else sum(site_r."PricePaid")::float/count(clicktable.id) end,
-             'ctr', case count(site_r."id") when 0 then 0 else count(clicktable.id)::float/count(site_r."id") end)
-           from
-                rtb_impression_tracker site_r
-                LEFT JOIN rtb_click_tracker clicktable ON clicktable."AuctionId" = site_r."AuctionId"
-                LEFT JOIN rtb_conversion_tracker conversiontable ON conversiontable."AuctionId" = site_r."AuctionId"
-           where site_r."CpId"= page."CpId"
-             and (
-             site_r."Date" > '""" + str(start_date) + """'
-             and site_r."Date" <= '""" + str(finish_date) + """')
-           group by site_r."Date"::timestamp::date
-           order by site_r."Date"::timestamp::date))) id
-    from (
-          select
-            distinct "CpId"
-          from
-            rtb_impression_tracker
-          where
-            "Date" > '""" + str(start_date) + """'
-            and "Date" <= '""" + str(finish_date) + """'
-         ) page
+  page."CpId",
+  '""" + str(type) + """',
+  array_to_json(array((select
+         json_build_object(
+         'day', site_r."Date"::timestamp::date,
+         'imp', count(site_r."id"),
+         'mediaspent', sum(site_r."PricePaid"),
+         'clicks', 0,
+         'conversions', 0,
+         'cpa', 0,
+         'cpc', 0,
+         'ctr', 0)
+       from
+            rtb_impression_tracker site_r
+       where site_r."CpId"= page."CpId"
+         and (
+         site_r."Date" > '""" + str(start_date) + """'
+         and site_r."Date" <= '""" + str(finish_date) + """')
+       group by site_r."Date"::timestamp::date
+       order by site_r."Date"::timestamp::date))) id
+from (
+      select
+        distinct "CpId"
+      from
+        rtb_impression_tracker
+      where
+        "Date" > '""" + str(start_date) + """'
+        and "Date" <= '""" + str(finish_date) + """'
+     ) page
 ON CONFLICT (campaign_id, type)
   DO UPDATE SET
      day_chart = case (ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'day')::text when (Excluded.day_chart::json->0->'day')::text
@@ -1317,9 +1642,131 @@ ON CONFLICT (campaign_id, type)
                     concat('{', (jsonb_array_length(ut.day_chart)-1), '}')::text[],
                     json_build_object(
                         'day', ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'day',
-                        'impression', coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'impression')::text::integer,0) + coalesce((Excluded.day_chart::json->0->'impression')::text::integer,0),
+                        'imp', coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'imp')::text::integer,0) + coalesce((Excluded.day_chart::json->0->'imp')::text::integer,0),
                         'mediaspent', coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'mediaspent')::text::float,0) + coalesce((Excluded.day_chart::json->0->'mediaspent')::text::float,0),
+                        'clicks', coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'clicks')::text::integer,0),
+                        'conversions', coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'conversions')::text::integer,0),
+                        'cpa', case (coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'conversions')::text::integer,0) + coalesce((Excluded.day_chart::json->0->'conversions')::text::integer,0))
+                               when 0 then 0
+                               else (coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'mediaspent')::text::float,0) + coalesce((Excluded.day_chart::json->0->'mediaspent')::text::float,0))/(coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'conversions')::text::float,0) + coalesce((Excluded.day_chart::json->0->'conversions')::text::float,0)) end,
+                        'cpc', case (coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'clicks')::text::integer,0) + coalesce((Excluded.day_chart::json->0->'clicks')::text::integer,0))
+                               when 0 then 0
+                               else (coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'mediaspent')::text::float,0) + coalesce((Excluded.day_chart::json->0->'mediaspent')::text::float,0))/(coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'clicks')::text::float,0) + coalesce((Excluded.day_chart::json->0->'clicks')::text::float,0)) end,
+                        'ctr', case coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'imp')::text::integer,0) + coalesce((Excluded.day_chart::json->0->'imp')::text::integer,0)
+                               when 0 then 0
+                               else (coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'clicks')::text::float,0) + coalesce((Excluded.day_chart::json->0->'clicks')::text::float,0))/(coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'imp')::text::float,0) + coalesce((Excluded.day_chart::json->0->'imp')::text::float,0)) end
+                    )::jsonb,
+                    true)
+                  else ut.day_chart||Excluded.day_chart end;
+        """)
+
+        cursor.execute("""
+insert into ui_usual_campaigns_graph_tracker as ut (
+    campaign_id,
+    type,
+    day_chart)
+  select
+  page."CpId",
+  '""" + str(type) + """',
+  array_to_json(array((select
+         json_build_object(
+         'day', site_r."Date"::timestamp::date,
+         'imp', 0,
+         'mediaspent', 0,
+         'clicks', count(site_r."id"),
+         'conversions', 0,
+         'cpa', 0,
+         'cpc', 0,
+         'ctr', 0)
+       from
+            rtb_click_tracker site_r
+       where site_r."CpId"= page."CpId"
+         and (
+         site_r."Date" > '""" + str(start_date) + """'
+         and site_r."Date" <= '""" + str(finish_date) + """')
+       group by site_r."Date"::timestamp::date
+       order by site_r."Date"::timestamp::date))) id
+from (
+      select
+        distinct rtb_click_tracker."CpId"
+      from
+        rtb_click_tracker
+      where
+        rtb_click_tracker."Date" > '""" + str(start_date) + """'
+        and rtb_click_tracker."Date" <= '""" + str(finish_date) + """'
+     ) page
+ON CONFLICT (campaign_id, type)
+  DO UPDATE SET
+     day_chart = case (ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'day')::text when (Excluded.day_chart::json->0->'day')::text
+                  then jsonb_set(
+                    ut.day_chart::jsonb,
+                    concat('{', (jsonb_array_length(ut.day_chart)-1), '}')::text[],
+                    json_build_object(
+                        'day', ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'day',
+                        'imp', coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'imp')::text::integer,0),
+                        'mediaspent', coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'mediaspent')::text::float,0),
                         'clicks', coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'clicks')::text::integer,0) + coalesce((Excluded.day_chart::json->0->'clicks')::text::integer,0),
+                        'conversions', coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'conversions')::text::integer,0),
+                        'cpa', case (coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'conversions')::text::integer,0) + coalesce((Excluded.day_chart::json->0->'conversions')::text::integer,0))
+                               when 0 then 0
+                               else (coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'mediaspent')::text::float,0) + coalesce((Excluded.day_chart::json->0->'mediaspent')::text::float,0))/(coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'conversions')::text::float,0) + coalesce((Excluded.day_chart::json->0->'conversions')::text::float,0)) end,
+                        'cpc', case (coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'clicks')::text::integer,0) + coalesce((Excluded.day_chart::json->0->'clicks')::text::integer,0))
+                               when 0 then 0
+                               else (coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'mediaspent')::text::float,0) + coalesce((Excluded.day_chart::json->0->'mediaspent')::text::float,0))/(coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'clicks')::text::float,0) + coalesce((Excluded.day_chart::json->0->'clicks')::text::float,0)) end,
+                        'ctr', case coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'imp')::text::integer,0) + coalesce((Excluded.day_chart::json->0->'imp')::text::integer,0)
+                               when 0 then 0
+                               else (coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'clicks')::text::float,0) + coalesce((Excluded.day_chart::json->0->'clicks')::text::float,0))/(coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'imp')::text::float,0) + coalesce((Excluded.day_chart::json->0->'imp')::text::float,0)) end
+                    )::jsonb,
+                    true)
+                  else ut.day_chart||Excluded.day_chart end;
+                """)
+
+        cursor.execute("""
+insert into ui_usual_campaigns_graph_tracker as ut (
+    campaign_id,
+    type,
+    day_chart)
+  select
+  page."CpId",
+  '""" + str(type) + """',
+  array_to_json(array((select
+         json_build_object(
+         'day', site_r."Date"::timestamp::date,
+         'imp', 0,
+         'spend', 0,
+         'clicks', 0,
+         'conversions', count(site_r."id"),
+         'cpa', 0,
+         'cpc', 0,
+         'ctr', 0)
+       from
+            rtb_conversion_tracker site_r
+       where site_r."CpId"= page."CpId"
+         and (
+         site_r."Date" > '""" + str(start_date) + """'
+         and site_r."Date" <= '""" + str(finish_date) + """')
+       group by site_r."Date"::timestamp::date
+       order by site_r."Date"::timestamp::date))) id
+from (
+      select
+        distinct "CpId"
+      from
+        rtb_conversion_tracker
+      where
+        rtb_conversion_tracker."Date" > '""" + str(start_date) + """'
+        and rtb_conversion_tracker."Date" <= '""" + str(finish_date) + """'
+     ) page
+ON CONFLICT (campaign_id, type)
+  DO UPDATE SET
+     day_chart = case (ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'day')::text when (Excluded.day_chart::json->0->'day')::text
+                  then jsonb_set(
+                    ut.day_chart::jsonb,
+                    concat('{', (jsonb_array_length(ut.day_chart)-1), '}')::text[],
+                    json_build_object(
+                        'day', ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'day',
+                        'imp', coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'imp')::text::integer,0),
+                        'mediaspent', coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'mediaspent')::text::float,0),
+                        'clicks', coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'clicks')::text::integer,0),
                         'conversions', coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'conversions')::text::integer,0) + coalesce((Excluded.day_chart::json->0->'conversions')::text::integer,0),
                         'cpa', case (coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'conversions')::text::integer,0) + coalesce((Excluded.day_chart::json->0->'conversions')::text::integer,0))
                                when 0 then 0
@@ -1327,13 +1774,13 @@ ON CONFLICT (campaign_id, type)
                         'cpc', case (coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'clicks')::text::integer,0) + coalesce((Excluded.day_chart::json->0->'clicks')::text::integer,0))
                                when 0 then 0
                                else (coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'mediaspent')::text::float,0) + coalesce((Excluded.day_chart::json->0->'mediaspent')::text::float,0))/(coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'clicks')::text::float,0) + coalesce((Excluded.day_chart::json->0->'clicks')::text::float,0)) end,
-                        'ctr', case coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'impression')::text::integer,0) + coalesce((Excluded.day_chart::json->0->'impression')::text::integer,0)
+                        'ctr', case coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'imp')::text::integer,0) + coalesce((Excluded.day_chart::json->0->'imp')::text::integer,0)
                                when 0 then 0
-                               else (coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'clicks')::text::float,0) + coalesce((Excluded.day_chart::json->0->'clicks')::text::float,0))/(coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'impression')::text::float,0) + coalesce((Excluded.day_chart::json->0->'impression')::text::float,0)) end
+                               else (coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'clicks')::text::float,0) + coalesce((Excluded.day_chart::json->0->'clicks')::text::float,0))/(coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'imp')::text::float,0) + coalesce((Excluded.day_chart::json->0->'imp')::text::float,0)) end
                     )::jsonb,
                     true)
                   else ut.day_chart||Excluded.day_chart end;
-        """)
+                """)
 
 
 def subCampaignsGraphDataTracker(type, start_date, finish_date):
@@ -1349,7 +1796,7 @@ FROM (
         rtb_impression_tracker
       where
         "Date" >= '""" + str(start_date) + """'
-        and "Date" <= '""" + str(finish_date) + """'
+        and "Date" < '""" + str(finish_date) + """'
 ) info
 where ut.campaign_id = info."CpId" and type='""" + str(type) + """';
         """)
@@ -1466,8 +1913,8 @@ ON CONFLICT (placement_id)
         # sub data
         if finish_date == finish_date.replace(hour=0, minute=0, second=0, microsecond=0):
             subPlacementsGridData(type=type[0],
-                                  start_date=finish_date - timedelta(days=type[1] + 2),
-                                  finish_date=finish_date - timedelta(days=type[1] + 1)
+                                  start_date=finish_date - timedelta(days=type[1] + 1),
+                                  finish_date=finish_date - timedelta(days=type[1])
                                   )
             LastModified.objects.filter(type='hourlyTask').update(
                 date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
@@ -1483,8 +1930,8 @@ ON CONFLICT (placement_id)
         # sub data
         if finish_date == finish_date.replace(hour=0, minute=0, second=0, microsecond=0):
             subCampaignsGraphData(type=type[0],
-                                 start_date=finish_date - timedelta(days=type[1] + 2),
-                                 finish_date=finish_date - timedelta(days=type[1] + 1)
+                                 start_date=finish_date - timedelta(days=type[1] + 1),
+                                 finish_date=finish_date - timedelta(days=type[1])
                                  )
             LastModified.objects.filter(type='hourlyTask').update(
                 date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
@@ -1597,8 +2044,8 @@ def refreshPrecalculatedDataCampaings(start_date, finish_date):
         # sub data
         if finish_date == finish_date.replace(hour=0, minute=0, second=0, microsecond=0):
             subCampaignsGridData(type=type[0],
-                                  start_date=finish_date - timedelta(days=type[1] + 2),
-                                  finish_date=finish_date - timedelta(days=type[1] + 1)
+                                  start_date=finish_date - timedelta(days=type[1] + 1),
+                                  finish_date=finish_date - timedelta(days=type[1])
                                   )
             LastModified.objects.filter(type='hourlyTask').update(
                 date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
@@ -1614,8 +2061,8 @@ def refreshPrecalculatedDataCampaings(start_date, finish_date):
         # sub data
         if finish_date == finish_date.replace(hour=0, minute=0, second=0, microsecond=0):
             subAdvertisersGraphData(type=type[0],
-                                    start_date=finish_date - timedelta(days=type[1] + 2),
-                                    finish_date=finish_date - timedelta(days=type[1] + 1)
+                                    start_date=finish_date - timedelta(days=type[1] + 1),
+                                    finish_date=finish_date - timedelta(days=type[1])
                                     )
             LastModified.objects.filter(type='hourlyTask').update(
                 date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
@@ -1686,34 +2133,25 @@ def refreshPrecalculatedDataCampaings(start_date, finish_date):
         datetime.now())
 
 def refreshPrecalculatedDataTrackerCron():
-    change_state = LastModified.objects.filter(type='refreshPrecalculatedDataTrackerCron')
-    if len(change_state) >= 1:
-        if timezone.make_aware(datetime.now(), timezone.get_default_timezone()) - change_state[0].date >= timedelta(
-                minutes=15):
-            LastModified.objects.filter(type='refreshPrecalculatedDataTrackerCron').delete()
-        else:
-            print "refreshPrecalculatedDataTrackerCron is busy, wait..."
-            return None
     print "refreshPrecalculatedDataTrackerCron started: " + str(datetime.now())
-    LastModified(type='refreshPrecalculatedDataTrackerCron',
-                 date=timezone.make_aware(datetime.now(), timezone.get_default_timezone())).save()
+    LastModified.objects.filter(type='get_data_from_impression_tracker').update(
+        date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
 
     lastRefreshDate = LastModified.objects.filter(type='lastPrecalculatedTrackerCron')[0].date
-    now = datetime.now()
+    lastDownloaded = RtbImpressionTracker.objects.aggregate(m=Max('Date'))['m']
 
-    while (lastRefreshDate + timedelta(minutes=5)) <= now:
+    while (lastRefreshDate + timedelta(minutes=10)) <= lastDownloaded:
         with transaction.atomic():
-            LastModified.objects.filter(type='refreshPrecalculatedDataTrackerCron').update(
+            LastModified.objects.filter(type='get_data_from_impression_tracker').update(
                 date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
-            refreshPrecalculatedDataTracker(start_date=lastRefreshDate, finish_date=lastRefreshDate + timedelta(minutes=5))
+            refreshPrecalculatedDataTracker(start_date=lastRefreshDate, finish_date=lastRefreshDate + timedelta(minutes=10))
             LastModified.objects.filter(
                 type='lastPrecalculatedTrackerCron'
             ).update(
-                date=timezone.make_aware((lastRefreshDate + timedelta(minutes=5)), timezone.get_default_timezone())
+                date=timezone.make_aware((lastRefreshDate + timedelta(minutes=10)), timezone.get_default_timezone())
             )
-            lastRefreshDate = lastRefreshDate + timedelta(minutes=5)
+            lastRefreshDate = lastRefreshDate + timedelta(minutes=10)
 
-    LastModified.objects.filter(type='refreshPrecalculatedDataTrackerCron').delete()
     print "refreshPrecalculatedDataTrackerCron finished: " + str(datetime.now())
 
 

@@ -662,10 +662,10 @@ insert into ui_usual_placements_grid_data_""" + str(type) + """_tracker as ut (
     "CpId",
     "PlacementId",
     count(id) as imps,
-    sum("PricePaid") as spent,
+    sum("PricePaid") / 1000.0 as spent,
     0,
     0,
-    case coalesce(count(id), 0) when 0 then 0 else sum("PricePaid") / count(id) * 1000.0 end,
+    case coalesce(count(id), 0) when 0 then 0 else (sum("PricePaid") / 1000.0) / count(id) * 1000.0 end,
     0,
     0,
     0,
@@ -795,7 +795,7 @@ FROM (
   t."CpId",
   t."PlacementId",
   count(t."id") as imp,
-  sum(t."PricePaid") as spent
+  sum(t."PricePaid")  / 1000.0 as spent
 from
   rtb_impression_tracker t
 where
@@ -871,15 +871,15 @@ insert into ui_usual_placements_grid_data_last_month as ut (
   t."PlacementId" as id,
   count(t."id") as imps,
   count(clicktable.id) as clicks,
-  sum(t."PricePaid") as spend,
+  sum(t."PricePaid") / 1000.0 as spend,
   count(conversiontable.id) as conversions,
   0 as imps_viewed,
   0 as view_measured_imps,
-  case count(t."id") when 0 then 0 else sum(t."PricePaid") / count(t."id") * 1000.0 end cpm,
+  case count(t."id") when 0 then 0 else (sum(t."PricePaid")  / 1000.0) / count(t."id") * 1000.0 end cpm,
   case count(t."id") when 0 then 0 else count(conversiontable.id)::float / count(t."id") end cvr,
   case count(t."id") when 0 then 0 else count(clicktable.id)::float / count(t."id") end ctr,
-  case count(clicktable.id) when 0 then 0 else sum(t."PricePaid") / count(clicktable.id) end cpc,
-  case count(conversiontable.id) when 0 then 0 else sum(t."PricePaid") / count(conversiontable.id) end cpa,
+  case count(clicktable.id) when 0 then 0 else (sum(t."PricePaid") / 1000.0) / count(clicktable.id) end cpc,
+  case count(conversiontable.id) when 0 then 0 else (sum(t."PricePaid") / 1000.0) / count(conversiontable.id) end cpa,
   0 as view_measurement_rate,
   0 as view_rate
 from
@@ -949,7 +949,7 @@ insert into ui_usual_campaigns_grid_data_""" + str(type) + """_tracker as ut (
          json_build_object(
          'day', site_r."Date"::timestamp::date,
          'imp', count(site_r."id"),
-         'spend', sum(site_r."PricePaid"),
+         'spend', sum(site_r."PricePaid") / 1000.0,
          'clicks', 0,
          'conversions', 0,
          'cvr', 0,
@@ -967,7 +967,7 @@ from (
       select
         "CpId",
         count(id) as imps,
-        sum("PricePaid") as spent
+        sum("PricePaid") / 1000.0 as spent
       from
         rtb_impression_tracker
       where
@@ -1199,7 +1199,7 @@ FROM (
   select
   t."CpId",
   count(t."id") as imp,
-  sum(t."PricePaid") as spent
+  sum(t."PricePaid") / 1000.0 as spent
 from
   rtb_impression_tracker t
 where
@@ -1281,11 +1281,11 @@ insert into ui_usual_campaigns_grid_data_""" + str(type) + """ as ut (
          json_build_object(
          'day', site_r."Date"::timestamp::date,
          'imp', count(site_r."id"),
-         'spend', sum(site_r."PricePaid"),
+         'spend', sum(site_r."PricePaid") / 1000.0,
          'clicks', count(clicktable.id),
          'conversions', count(conversiontable.id),
          'cvr', case count(site_r."id") when 0 then 0 else (count(conversiontable.id))::float/count(site_r."id") end,
-         'cpc', case count(clicktable.id) when 0 then 0 else sum(site_r."PricePaid")::float/count(clicktable.id) end,
+         'cpc', case count(clicktable.id) when 0 then 0 else (sum(site_r."PricePaid") / 1000.0)::float/count(clicktable.id) end,
          'ctr', case count(site_r."id") when 0 then 0 else count(clicktable.id)::float/count(site_r."id") end)
        from
             rtb_impression_tracker site_r
@@ -1357,7 +1357,7 @@ insert into ui_usual_advertisers_graph_tracker as ut (
          json_build_object(
          'day', site_r."Date"::timestamp::date,
          'imp', count(site_r."id"),
-         'spend', sum(site_r."PricePaid"),
+         'spend', sum(site_r."PricePaid") / 1000.0,
          'clicks', 0,
          'conversions', 0,
          'cvr', 0,
@@ -1562,11 +1562,11 @@ insert into ui_usual_advertisers_graph_tracker as ut (
          json_build_object(
          'day', site_r."Date"::timestamp::date,
          'imp', count(site_r."id"),
-         'spend', sum(site_r."PricePaid"),
+         'spend', sum(site_r."PricePaid") / 1000.0,
          'clicks', count(clicktable.id),
          'conversions', count(conversiontable.id),
          'cvr', case count(site_r."id") when 0 then 0 else (count(conversiontable.id))::float/count(site_r."id") end,
-         'cpc', case count(clicktable.id) when 0 then 0 else sum(site_r."PricePaid")::float/count(clicktable.id) end,
+         'cpc', case count(clicktable.id) when 0 then 0 else (sum(site_r."PricePaid") / 1000.0)::float/count(clicktable.id) end,
          'ctr', case count(site_r."id") when 0 then 0 else count(clicktable.id)::float/count(site_r."id") end)
        from
             rtb_impression_tracker site_r
@@ -1611,7 +1611,7 @@ insert into ui_usual_campaigns_graph_tracker as ut (
          json_build_object(
          'day', site_r."Date"::timestamp::date,
          'impression', count(site_r."id"),
-         'mediaspent', sum(site_r."PricePaid"),
+         'mediaspent', (sum(site_r."PricePaid") / 1000.0),
          'clicks', 0,
          'conversions', 0,
          'cpa', 0,
@@ -1816,11 +1816,11 @@ insert into ui_usual_placements_graph as ut (
              json_build_object(
              'day', site_r."Date"::timestamp::date,
              'impression', count(site_r."id"),
-             'mediaspent', sum(site_r."PricePaid"),
+             'mediaspent', sum(site_r."PricePaid") / 1000.0,
              'clicks', count(clicktable.id),
              'conversions', count(conversiontable.id),
-             'cpa', case count(conversiontable.id) when 0 then 0 else sum(site_r."PricePaid")/count(conversiontable.id) end,
-             'cpc', case count(clicktable.id) when 0 then 0 else sum(site_r."PricePaid")::float/count(clicktable.id) end,
+             'cpa', case count(conversiontable.id) when 0 then 0 else (sum(site_r."PricePaid") / 1000.0)/count(conversiontable.id) end,
+             'cpc', case count(clicktable.id) when 0 then 0 else (sum(site_r."PricePaid") / 1000.0)::float/count(clicktable.id) end,
              'ctr', case count(site_r."id") when 0 then 0 else count(clicktable.id)::float/count(site_r."id") end)
            from
                 rtb_impression_tracker site_r

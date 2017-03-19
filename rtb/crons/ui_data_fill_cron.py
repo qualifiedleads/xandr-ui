@@ -1610,7 +1610,7 @@ insert into ui_usual_campaigns_graph_tracker as ut (
   array_to_json(array((select
          json_build_object(
          'day', site_r."Date"::timestamp::date,
-         'imp', count(site_r."id"),
+         'impression', count(site_r."id"),
          'mediaspent', sum(site_r."PricePaid"),
          'clicks', 0,
          'conversions', 0,
@@ -1642,7 +1642,7 @@ ON CONFLICT (campaign_id, type)
                     concat('{', (jsonb_array_length(ut.day_chart)-1), '}')::text[],
                     json_build_object(
                         'day', ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'day',
-                        'imp', coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'imp')::text::integer,0) + coalesce((Excluded.day_chart::json->0->'imp')::text::integer,0),
+                        'impression', coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'impression')::text::integer,0) + coalesce((Excluded.day_chart::json->0->'impression')::text::integer,0),
                         'mediaspent', coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'mediaspent')::text::float,0) + coalesce((Excluded.day_chart::json->0->'mediaspent')::text::float,0),
                         'clicks', coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'clicks')::text::integer,0),
                         'conversions', coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'conversions')::text::integer,0),
@@ -1652,9 +1652,9 @@ ON CONFLICT (campaign_id, type)
                         'cpc', case (coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'clicks')::text::integer,0) + coalesce((Excluded.day_chart::json->0->'clicks')::text::integer,0))
                                when 0 then 0
                                else (coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'mediaspent')::text::float,0) + coalesce((Excluded.day_chart::json->0->'mediaspent')::text::float,0))/(coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'clicks')::text::float,0) + coalesce((Excluded.day_chart::json->0->'clicks')::text::float,0)) end,
-                        'ctr', case coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'imp')::text::integer,0) + coalesce((Excluded.day_chart::json->0->'imp')::text::integer,0)
+                        'ctr', case coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'impression')::text::integer,0) + coalesce((Excluded.day_chart::json->0->'impression')::text::integer,0)
                                when 0 then 0
-                               else (coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'clicks')::text::float,0) + coalesce((Excluded.day_chart::json->0->'clicks')::text::float,0))/(coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'imp')::text::float,0) + coalesce((Excluded.day_chart::json->0->'imp')::text::float,0)) end
+                               else (coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'clicks')::text::float,0) + coalesce((Excluded.day_chart::json->0->'clicks')::text::float,0))/(coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'impression')::text::float,0) + coalesce((Excluded.day_chart::json->0->'impression')::text::float,0)) end
                     )::jsonb,
                     true)
                   else ut.day_chart||Excluded.day_chart end;
@@ -1671,7 +1671,7 @@ insert into ui_usual_campaigns_graph_tracker as ut (
   array_to_json(array((select
          json_build_object(
          'day', site_r."Date"::timestamp::date,
-         'imp', 0,
+         'impression', 0,
          'mediaspent', 0,
          'clicks', count(site_r."id"),
          'conversions', 0,
@@ -1703,7 +1703,7 @@ ON CONFLICT (campaign_id, type)
                     concat('{', (jsonb_array_length(ut.day_chart)-1), '}')::text[],
                     json_build_object(
                         'day', ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'day',
-                        'imp', coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'imp')::text::integer,0),
+                        'impression', coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'impression')::text::integer,0),
                         'mediaspent', coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'mediaspent')::text::float,0),
                         'clicks', coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'clicks')::text::integer,0) + coalesce((Excluded.day_chart::json->0->'clicks')::text::integer,0),
                         'conversions', coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'conversions')::text::integer,0),
@@ -1713,9 +1713,9 @@ ON CONFLICT (campaign_id, type)
                         'cpc', case (coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'clicks')::text::integer,0) + coalesce((Excluded.day_chart::json->0->'clicks')::text::integer,0))
                                when 0 then 0
                                else (coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'mediaspent')::text::float,0) + coalesce((Excluded.day_chart::json->0->'mediaspent')::text::float,0))/(coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'clicks')::text::float,0) + coalesce((Excluded.day_chart::json->0->'clicks')::text::float,0)) end,
-                        'ctr', case coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'imp')::text::integer,0) + coalesce((Excluded.day_chart::json->0->'imp')::text::integer,0)
+                        'ctr', case coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'impression')::text::integer,0) + coalesce((Excluded.day_chart::json->0->'impression')::text::integer,0)
                                when 0 then 0
-                               else (coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'clicks')::text::float,0) + coalesce((Excluded.day_chart::json->0->'clicks')::text::float,0))/(coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'imp')::text::float,0) + coalesce((Excluded.day_chart::json->0->'imp')::text::float,0)) end
+                               else (coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'clicks')::text::float,0) + coalesce((Excluded.day_chart::json->0->'clicks')::text::float,0))/(coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'impression')::text::float,0) + coalesce((Excluded.day_chart::json->0->'impression')::text::float,0)) end
                     )::jsonb,
                     true)
                   else ut.day_chart||Excluded.day_chart end;
@@ -1732,8 +1732,8 @@ insert into ui_usual_campaigns_graph_tracker as ut (
   array_to_json(array((select
          json_build_object(
          'day', site_r."Date"::timestamp::date,
-         'imp', 0,
-         'spend', 0,
+         'impression', 0,
+         'mediaspent', 0,
          'clicks', 0,
          'conversions', count(site_r."id"),
          'cpa', 0,
@@ -1764,7 +1764,7 @@ ON CONFLICT (campaign_id, type)
                     concat('{', (jsonb_array_length(ut.day_chart)-1), '}')::text[],
                     json_build_object(
                         'day', ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'day',
-                        'imp', coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'imp')::text::integer,0),
+                        'impression', coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'impression')::text::integer,0),
                         'mediaspent', coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'mediaspent')::text::float,0),
                         'clicks', coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'clicks')::text::integer,0),
                         'conversions', coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'conversions')::text::integer,0) + coalesce((Excluded.day_chart::json->0->'conversions')::text::integer,0),
@@ -1774,9 +1774,9 @@ ON CONFLICT (campaign_id, type)
                         'cpc', case (coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'clicks')::text::integer,0) + coalesce((Excluded.day_chart::json->0->'clicks')::text::integer,0))
                                when 0 then 0
                                else (coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'mediaspent')::text::float,0) + coalesce((Excluded.day_chart::json->0->'mediaspent')::text::float,0))/(coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'clicks')::text::float,0) + coalesce((Excluded.day_chart::json->0->'clicks')::text::float,0)) end,
-                        'ctr', case coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'imp')::text::integer,0) + coalesce((Excluded.day_chart::json->0->'imp')::text::integer,0)
+                        'ctr', case coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'impression')::text::integer,0) + coalesce((Excluded.day_chart::json->0->'impression')::text::integer,0)
                                when 0 then 0
-                               else (coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'clicks')::text::float,0) + coalesce((Excluded.day_chart::json->0->'clicks')::text::float,0))/(coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'imp')::text::float,0) + coalesce((Excluded.day_chart::json->0->'imp')::text::float,0)) end
+                               else (coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'clicks')::text::float,0) + coalesce((Excluded.day_chart::json->0->'clicks')::text::float,0))/(coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'impression')::text::float,0) + coalesce((Excluded.day_chart::json->0->'impression')::text::float,0)) end
                     )::jsonb,
                     true)
                   else ut.day_chart||Excluded.day_chart end;

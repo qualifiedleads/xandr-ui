@@ -79,7 +79,8 @@
     "validateQuoteMarks": { "mark": "'", "escape": true, "ignoreJSX": true },
     "validateIndentation": 2,
     "maximumLineLength": {
-        "value": 100,
+        "value": 200,
         "allExcept": ["urlComments"]
-    }
+    },
+    "maxErrors": null
 }

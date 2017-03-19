@@ -6,17 +6,17 @@
     .controller('CPAController', CPAController);
 
   /** @ngInject */
-  function CPAController($window, $state, $localStorage, $translate, CPA, ChartDetails, CpaBucketsAll, Campaign) {
+  function CPAController($window, $state, $localStorage, $translate, CPA, ChartDetails, CpaBucketsAll, Campaign, Home) {
     var vm = this;
     vm.Camp = CPA;
     vm.multipleTotalCount = 0;
     vm.checkChart = [];
     vm.by = 'imp,cvr,cpc,clicks,spend,conv,ctr';
     var LC = $translate.instant;
-    vm.campName = Campaign.campaign;
-    vm.campId = Campaign.id;
-    vm.line_item = Campaign.line_item;
-    vm.line_item_id = Campaign.line_item_id;
+    vm.campName = Home.AdverInfo.campaign;
+    vm.campId = Home.AdverInfo.id;
+    vm.line_item = Home.AdverInfo.line_item;
+    vm.line_item_id = Home.AdverInfo.line_item_id;
     vm.cpaResult = [];
     vm.selectedSection = $localStorage.selectedSection;
 

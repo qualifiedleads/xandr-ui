@@ -15,6 +15,7 @@
         totalCount: function () {
           return _totalCount;
         },
+
         load: function () {
           return _appNexusUser();
         }
@@ -24,14 +25,14 @@
     function _appNexusUser() {
       return $http({
         method: 'GET',
-        headers: { 'Authorization': 'Token ' + $cookies.get('token') },
+        headers: { Authorization: 'Token ' + $cookies.get('token') },
         url: '/api/v1/appnexus/user'
       })
         .then(function (res) {
           return res.data;
         })
         .catch(function (err) {
-          $window.DevExpress.ui.notify(err.data.detail, "error", 4000);
+          $window.DevExpress.ui.notify(err.data.detail, 'error', 4000);
         });
     }
     // .then(function (result) {
@@ -43,6 +44,7 @@
         totalCount: function () {
           return 0;
         },
+
         load: function () {
           return _techRecord();
         }
@@ -52,29 +54,30 @@
     function _techRecord() {
       return $http({
         method: 'GET',
-        headers: { 'Authorization': 'Token ' + $cookies.get('token') },
+        headers: { Authorization: 'Token ' + $cookies.get('token') },
         url: '/api/v1/technicalwork'
       })
         .then(function (res) {
           return res.data;
         })
         .catch(function (err) {
-          $window.DevExpress.ui.notify(err.data.detail, "error", 4000);
+          $window.DevExpress.ui.notify(err.data.detail, 'error', 4000);
         });
     }
-
 
     function usersStore() {
       return new $window.DevExpress.data.CustomStore({
         totalCount: function () {
           return 0;
         },
+
         load: function () {
           return _usersList()
             .then(function (result) {
               return result;
             });
         },
+
         remove: function (user) {
           return _usersRemove(user.id);
         }
@@ -86,6 +89,7 @@
         totalCount: function () {
           return 0;
         },
+
         load: function () {
           return _advertiserList()
             .then(function (result) {
@@ -98,28 +102,28 @@
     function _advertiserList() {
       return $http({
         method: 'GET',
-        headers: { 'Authorization': 'Token ' + $cookies.get('token') },
+        headers: { Authorization: 'Token ' + $cookies.get('token') },
         url: '/api/v1/advertisers'
       })
         .then(function (res) {
           return res.data;
         })
         .catch(function (err) {
-          $window.DevExpress.ui.notify(err.data.detail, "error", 4000);
+          $window.DevExpress.ui.notify(err.data.detail, 'error', 4000);
         });
     }
 
     function _usersList() {
       return $http({
         method: 'GET',
-        headers: { 'Authorization': 'Token ' + $cookies.get('token') },
+        headers: { Authorization: 'Token ' + $cookies.get('token') },
         url: '/api/v1/user/'
       })
         .then(function (res) {
           return res.data;
         })
         .catch(function (err) {
-          $window.DevExpress.ui.notify(err.data.detail, "error", 4000);
+          $window.DevExpress.ui.notify(err.data.detail, 'error', 4000);
         });
     }
 
@@ -127,13 +131,13 @@
       return $http({
         method: 'DELETE',
         url: '/api/v1/user/' + id,
-        headers: { 'Authorization': 'Token ' + $cookies.get('token') }
+        headers: { Authorization: 'Token ' + $cookies.get('token') }
       })
         .then(function (response) {
           return response.data;
         })
         .catch(function (err) {
-          $window.DevExpress.ui.notify(err.data.detail, "error", 4000);
+          $window.DevExpress.ui.notify(err.data.detail, 'error', 4000);
         });
     }
 
@@ -141,14 +145,14 @@
       return $http({
         method: 'POST',
         url: '/api/v1/user/',
-        headers: { 'Authorization': 'Token ' + $cookies.get('token') },
+        headers: { Authorization: 'Token ' + $cookies.get('token') },
         data: user
       })
         .then(function (res) {
           return res.data;
         })
         .catch(function (err) {
-          $window.DevExpress.ui.notify(err.data.detail, "error", 4000);
+          $window.DevExpress.ui.notify(err.data.detail, 'error', 4000);
         });
     }
 
@@ -156,7 +160,7 @@
       return $http({
         method: 'PUT',
         url: '/api/v1/advertisersType',
-        headers: { 'Authorization': 'Token ' + $cookies.get('token') },
+        headers: { Authorization: 'Token ' + $cookies.get('token') },
         data: {
           id: id,
           ad_type: adType
@@ -166,84 +170,103 @@
           return res.data;
         })
         .catch(function (err) {
-          $window.DevExpress.ui.notify(err.data.detail, "error", 4000);
+          $window.DevExpress.ui.notify(err.data.detail, 'error', 4000);
         });
     }
+
+    function editAdvertiserDataSource(id, dataSource) {
+      return $http({
+        method: 'PUT',
+        url: '/api/v1/advertisersDataSource',
+        headers: { Authorization: 'Token ' + $cookies.get('token') },
+        data: {
+          id: id,
+          data_source: dataSource
+        }
+      })
+        .then(function (res) {
+          return res.data;
+        })
+        .catch(function (err) {
+          $window.DevExpress.ui.notify(err.data.detail, 'error', 4000);
+        });
+    }
+
     function bannerTextReturn() {
       //return  'Этот текст будет показан при проведении технических работ';
       return $http({
         method: 'GET',
-        headers: { 'Authorization': 'Token ' + $cookies.get('token') },
+        headers: { Authorization: 'Token ' + $cookies.get('token') },
         url: '/api/v1/banner'
       })
         .then(function (res) {
           return res.data;
         })
         .catch(function (err) {
-          $window.DevExpress.ui.notify(err.data.detail, "error", 4000);
+          $window.DevExpress.ui.notify(err.data.detail, 'error', 4000);
         });
     }
 
-    function bannerTextRecord (text) {
+    function bannerTextRecord(text) {
       return $http({
         method: 'POST',
         url: '/api/v1/banner',
-        headers: { 'Authorization': 'Token ' + $cookies.get('token') },
+        headers: { Authorization: 'Token ' + $cookies.get('token') },
         data: text
       })
         .then(function (res) {
           return res.data;
         })
         .catch(function (err) {
-          $window.DevExpress.ui.notify(err.data.detail, "error", 4000);
+          $window.DevExpress.ui.notify(err.data.detail, 'error', 4000);
         });
     }
 
-    function bannerOff () {
+    function bannerOff() {
       return $http({
         method: 'PUT',
         url: '/api/v1/banner',
-        headers: { 'Authorization': 'Token ' + $cookies.get('token') }
+        headers: { Authorization: 'Token ' + $cookies.get('token') }
       })
         .then(function (res) {
           return res.data;
         })
         .catch(function (err) {
-          $window.DevExpress.ui.notify(err.data.detail, "error", 4000);
+          $window.DevExpress.ui.notify(err.data.detail, 'error', 4000);
         });
     }
 
-    function statusTech (status) {
+    function statusTech(status) {
       return $http({
         method: 'POST',
         url: '/api/v1/technicalwork',
-        headers: { 'Authorization': 'Token ' + $cookies.get('token') },
+        headers: { Authorization: 'Token ' + $cookies.get('token') },
         data: status
       })
         .then(function (res) {
           return res.data;
         })
         .catch(function (err) {
-          $window.DevExpress.ui.notify(err.data.detail, "error", 4000);
+          $window.DevExpress.ui.notify(err.data.detail, 'error', 4000);
         });
     }
 
-    function getValueOfTech () {
+    function getValueOfTech() {
       return $http({
         method: 'GET',
-        headers: { 'Authorization': 'Token ' + $cookies.get('token') },
+        headers: { Authorization: 'Token ' + $cookies.get('token') },
         url: '/api/v1/technicalwork/last'
       })
         .then(function (res) {
           return res.data;
         })
         .catch(function (err) {
-          $window.DevExpress.ui.notify(err.data.detail, "error", 4000);
+          $window.DevExpress.ui.notify(err.data.detail, 'error', 4000);
         });
     }
 
-
     _this.selectNexusUsersStore = selectNexusUsersStore;
+    _this.editAdvertiserDataSource = editAdvertiserDataSource;
     _this.editAdvertiserList = editAdvertiserList;
     _this.advertiserListStore = advertiserListStore;
     _this.usersStore = usersStore;

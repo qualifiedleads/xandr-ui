@@ -31,6 +31,7 @@ from rtb.crons.video_ad_cron import fillVideoAdDataCron
 from django.utils import timezone
 from datetime import timedelta
 from rtb.controllers.campaign_create import getToken
+from rtb.crons.ui_data_fill_cron import refreshPrecalculatedDataCampaings, refreshPrecalculatedDataPlacements
 table_names = {c._meta.db_table: c for c in get_all_classes_in_models(models)}
 
 _default_values_for_types = {
@@ -669,11 +670,13 @@ def hourlyTask(dayWithHour=None, load_objects_from_services=True, output=None):
 
     one_hour = datetime.timedelta(hours=1)
 
+    incDayWithHour = dayWithHour
+
     if dayWithHour:
         dayWithHour = datetime.datetime(hour=dayWithHour.hour, day=dayWithHour.day, month=dayWithHour.month, year=dayWithHour.year, tzinfo=utc)
     else:
         dayWithHour = SiteDomainPerformanceReport.objects.aggregate(m=Max('hour'))['m']
-        print 'Last loaded hour', dayWithHour
+        print 'Last loaded site domain prefomance report hour', dayWithHour
 
         if dayWithHour:
             dayWithHour = datetime.datetime(hour=dayWithHour.hour, day=dayWithHour.day, month=dayWithHour.month,
@@ -682,21 +685,67 @@ def hourlyTask(dayWithHour=None, load_objects_from_services=True, output=None):
             dayWithHour -= one_hour
 
     dateNow = datetime.datetime.utcnow().replace(minute=0, second=0, microsecond=0, tzinfo=utc)
+    prevMaxHour = SiteDomainPerformanceReport.objects.aggregate(m=Max('hour'))['m']
+    prevMaxHour = datetime.datetime(hour=prevMaxHour.hour, day=prevMaxHour.day, month=prevMaxHour.month,
+                                    year=prevMaxHour.year, tzinfo=utc)
     try:
         token = getToken()
         if load_objects_from_services:
             load_depending_data(token, False, isLastModified=True)
         while dayWithHour <= dateNow:
-            print 'NetworkAnalyticsReport_ByPlacement  start', get_current_time().strftime('%Y-%m-%dT%H-%M-%S')
-            load_report(token, dayWithHour, NetworkAnalyticsReport_ByPlacement, isHour=True)
-            print 'SiteDomainPerformanceReport  start', get_current_time().strftime('%Y-%m-%dT%H-%M-%S')
-            load_reports_for_all_advertisers(token, dayWithHour, SiteDomainPerformanceReport, isHour=True)
-
-            LastModified.objects.filter(type='hourlyTask')\
-                .update(date=timezone.make_aware(datetime.datetime.now(), timezone.get_default_timezone()))
-            token = getToken()
+            with transaction.atomic():
+                print 'SiteDomainPerformanceReport  start', get_current_time().strftime('%Y-%m-%dT%H-%M-%S')
+                load_reports_for_all_advertisers(token, dayWithHour, SiteDomainPerformanceReport, isHour=True)
+                LastModified.objects.filter(type='hourlyTask')\
+                    .update(date=timezone.make_aware(datetime.datetime.now(), timezone.get_default_timezone()))
+                
+                curMaxHour = SiteDomainPerformanceReport.objects.aggregate(m=Max('hour'))['m']
+                curMaxHour = datetime.datetime(hour=curMaxHour.hour, day=curMaxHour.day, month=curMaxHour.month,
+                                                year=curMaxHour.year, tzinfo=utc)
+                if prevMaxHour != curMaxHour:
+                    refreshPrecalculatedDataCampaings(
+                        start_date=dayWithHour - one_hour,
+                        finish_date=dayWithHour
+                    )
+                    prevMaxHour = curMaxHour
+                token = getToken()
             dayWithHour += one_hour
-        fillVideoAdDataCron()
+        # fillVideoAdDataCron()
+        if incDayWithHour:
+            dayWithHour = datetime.datetime(hour=incDayWithHour.hour, day=incDayWithHour.day, month=incDayWithHour.month,
+                                            year=incDayWithHour.year, tzinfo=utc)
+        else:
+            dayWithHour = NetworkAnalyticsReport_ByPlacement.objects.aggregate(m=Max('hour'))['m']
+            print 'Last loaded network analytics report hour', dayWithHour
+
+            if dayWithHour:
+                dayWithHour = datetime.datetime(hour=dayWithHour.hour, day=dayWithHour.day, month=dayWithHour.month,
+                                                year=dayWithHour.year, tzinfo=utc)
+            else:
+                dayWithHour -= one_hour
+        prevMaxHour = NetworkAnalyticsReport_ByPlacement.objects.aggregate(m=Max('hour'))['m']
+        prevMaxHour = datetime.datetime(hour=prevMaxHour.hour, day=prevMaxHour.day, month=prevMaxHour.month,
+                                        year=prevMaxHour.year, tzinfo=utc)
+
+        while dayWithHour <= dateNow:
+            with transaction.atomic():
+                token = getToken()
+                print 'NetworkAnalyticsReport_ByPlacement  start', get_current_time().strftime('%Y-%m-%dT%H-%M-%S')
+                load_report(token, dayWithHour, NetworkAnalyticsReport_ByPlacement, isHour=True)
+                LastModified.objects.filter(type='hourlyTask') \
+                    .update(date=timezone.make_aware(datetime.datetime.now(), timezone.get_default_timezone()))
+
+                curMaxHour = NetworkAnalyticsReport_ByPlacement.objects.aggregate(m=Max('hour'))['m']
+                curMaxHour = datetime.datetime(hour=curMaxHour.hour, day=curMaxHour.day, month=curMaxHour.month,
+                                               year=curMaxHour.year, tzinfo=utc)
+                if prevMaxHour != curMaxHour:
+                    refreshPrecalculatedDataPlacements(
+                        start_date=dayWithHour - one_hour,
+                        finish_date=dayWithHour
+                    )
+                    prevMaxHour = curMaxHour
+            dayWithHour += one_hour
+
     except Exception as e:
         print 'Error by fetching data: %s' % e
         print traceback.print_exc(file=output)

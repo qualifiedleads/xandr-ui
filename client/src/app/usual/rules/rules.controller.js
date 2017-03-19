@@ -6,19 +6,19 @@
     .controller('rulesController', rulesController);
 
   /** @ngInject */
-  function rulesController($window, $state, $rootScope, $localStorage, $translate, Rules, Campaign) {
+  function rulesController($window, $state, $rootScope, $localStorage, $translate, Rules, Home) {
     var vm = this;
     var LC = $translate.instant;
     var ruleSuspend = false;
     var ruleIndexPopUp = '';
-    vm.campName = Campaign.campaign;
-    vm.campId = Campaign.id;
-    vm.line_item = Campaign.line_item;
-    vm.line_item_id = Campaign.line_item_id;
+    vm.campName = Home.AdverInfo.campaign;
+    vm.campId = Home.AdverInfo.id;
+    vm.line_item = Home.AdverInfo.line_item;
+    vm.line_item_id = Home.AdverInfo.line_item_id;
     vm.popUpIf = false;
     vm.arrayDiagram = [];
 
-    if ($localStorage.campaign == null) {
+    if (!Home.AdverInfo.id) {
       $state.go('home.main');
     }
 
@@ -44,12 +44,12 @@
     }
 
     function saveRules() {
-      Rules.saveRules(Campaign.id, vm.rulesArray);
+      Rules.saveRules(Home.AdverInfo.id, vm.rulesArray);
     }
 
 
     Rules
-      .getRules(Campaign.id)
+      .getRules(Home.AdverInfo.id)
       .then(function (rule) {
         if (rule){
           vm.rulesArray = rule;

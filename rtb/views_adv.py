@@ -4,12 +4,12 @@ from django.http import JsonResponse
 from utils import parse_get_params, make_sum, check_user_advertiser_permissions
 from models.models import LineItem
 from models import SiteDomainPerformanceReport, Campaign, GeoAnaliticsReport, NetworkAnalyticsReport_ByPlacement, \
-    Placement, NetworkCarrierReport_Simple, NetworkDeviceReport_Simple
+    Placement, NetworkCarrierReport_Simple, NetworkDeviceReport_Simple, Advertiser
 from django.db.models import Sum, Min, Max, Avg, Value, When, Case, F, Q, Func, FloatField
 from django.db.models.functions import Coalesce, Concat, ExtractWeekDay
 from django.db import connection
 from django.core.cache import cache
-import itertools
+import itertools, re
 import datetime
 from pytz import utc
 import filter_func
@@ -24,6 +24,7 @@ from models.rtb_impression_tracker import RtbImpressionTrackerPlacement, RtbImpr
 from django.db import connection
 from django.utils import timezone
 from rtb.models.technical_works import AttentionMessage, TechnicalWork
+from models.ui_data_models import UIUsualPlacementsGraph, UIUsualCampaignsGraphTracker
 
 import bisect
 from django.contrib.auth.decorators import login_required, user_passes_test
@@ -41,6 +42,13 @@ def advertisercampaigns(request):
 
 @api_view()
 @check_user_advertiser_permissions(campaign_id_num=0)
+def advertiserSingle(request, id):
+    adv = Advertiser.objects.get(pk=id)
+    return Response({'id': adv.id, 'name': adv.name})
+
+
+@api_view()
+@check_user_advertiser_permissions(campaign_id_num=0)
 def singleCampaign(request, id):
     """
 Get campaign name by id
@@ -53,11 +61,12 @@ Get campaign name by id
 
     """
     obj = Campaign.objects.get(pk=id)
+    adv = Advertiser.objects.get(pk=obj.advertiser_id)
     if obj.line_item_id is not None:
         li = list(LineItem.objects.filter(id=int(obj.line_item_id)))
         if len(li)==1:
-            return Response({'id': obj.id, 'campaign': obj.name, 'line_item': li[0].name, 'line_item_id': li[0].id})
-    return Response({'id': obj.id, 'campaign': obj.name, 'line_item': None})
+            return Response({'id': obj.id, 'campaign': obj.name, 'line_item': li[0].name, 'line_item_id': li[0].id, "advertiser_name": adv.name, "advertiser_id": adv.id})
+    return Response({'id': obj.id, 'campaign': obj.name, 'line_item': None, "advertiser_name": adv.name, "advertiser_id": adv.id})
 
 
 zero_sum = {
@@ -145,14 +154,26 @@ Get single campaign statistics data for given period by selected categories: imp
         + Example: impressions,cpa,cpc
 
     """
-    c = Campaign.objects.get(pk=int(id))
-    if not c:
-        return Response({'error': "Unknown object id %d" % id})
-    #advertiser_id = c.advertiser_id
-    params = parse_get_params(request.GET, ["impression", "cpa", "cpc", "clicks", "mediaspent", "conversions", "ctr",
-                                            'imps_viewed', 'view_measured_imps', 'view_rate', 'view_measurement_rate',])
-    res = get_campaign_data(id, params['from_date'], params['to_date'])
-    return Response(res)
+    try:
+        source = Advertiser.objects.get(
+            id=Campaign.objects.get(
+                id=id
+            ).advertiser_id
+        ).grid_data_source
+        if source == "report":
+            return Response(UIUsualPlacementsGraph.objects.filter(
+                campaign_id=id,
+                type=request.GET.get("type")
+            )[0].day_chart)
+        if source == "tracker":
+            return Response(UIUsualCampaignsGraphTracker.objects.filter(
+                campaign_id=id,
+                type=request.GET.get("type")
+            )[0].day_chart)
+        return Response(status=status.HTTP_200_OK)
+    except Exception, e:
+        print "Can not get graph data for " + str(id) + " campaign. Error " + str(e)
+        return Response(status=status.HTTP_200_OK)
 
 
 def get_campaign_cpa(advertiser_id, campaign_id, from_date, to_date):
@@ -324,44 +345,235 @@ Get single campaign details by domains
 
 Field "placement" must contain name and id of placement. Id in parenthesis
     """
+    source = Advertiser.objects.get(
+        id=Campaign.objects.get(
+            id=id
+        ).advertiser_id
+    ).grid_data_source
 
+    if source == "tracker":
+        source = "_tracker"
+    else:
+        source = ''
+
+    allCampaignsInfo = {}
     params = parse_get_params(request.GET)
-    if params['from_date'] > params['to_date']:
-        params['from_date'], params['to_date'] = params['to_date'], params['from_date']
-    res = get_campaign_placement(id, params['from_date'], params['to_date'])
-    if params['filter']:
-        filter_function = filter_func.get_filter_function(params['filter'])
-        res = filter(filter_function, res)
-    reverse_order = params['order'] == 'desc'
-    allowed_key_names = set(
-        ["placement", "NetworkPublisher", "placementState", "cost", "conv", "imp", "clicks", "cpc", "cpm", "cvr", "ctr", "cpa",
-         'imps_viewed', 'view_measured_imps', 'view_rate', 'view_measurement_rate', "analitics"])
-    key_name = params['sort']
-    if 'sort' not in request.GET:
-        key_name = 'imp'
-        reverse_order = True
-    if key_name not in allowed_key_names:
-        key_name = 'placement'
-    res.sort(key=lambda x: x[key_name], reverse=reverse_order)
-    totalCount = len(res)
+    filt, order = getUsualFilterQueryString(params["filter"], request.GET.get("sort"), request.GET.get("order"))
+    try:
+        queryRes = Campaign.objects.raw("""
+select
+  calc_place_info.placement_id as id,
+  concat(report.publisher_name, '/', report.seller_member_name) publisher,
+  placement_state.state,
+  placement.name,
+  rtb_impression_tracker_placement_domain.domain,
+  calc_place_info.spent,
+  calc_place_info.conversions,
+  calc_place_info.imps,
+  calc_place_info.clicks,
+  calc_place_info.cpa,
+  calc_place_info.cpc,
+  calc_place_info.cpm,
+  calc_place_info.cvr * 100.0 as cvr,
+  calc_place_info.ctr * 100.0 as ctr,
+  calc_place_info.imps_viewed,
+  calc_place_info.view_measured_imps,
+  calc_place_info.view_measurement_rate * 100.0 as view_measurement_rate,
+  calc_place_info.view_rate * 100.0 as view_rate
+from
+  ui_usual_placements_grid_data_""" + str(request.GET.get("type")) + str(source) + """ calc_place_info
+  left join placement
+  on placement.id=calc_place_info.placement_id
+  left join placements_additional_names report
+  on calc_place_info.placement_id= report.placement_id
+  left join (select * from placement_state where campaign_id = """ + str(id) + """) as placement_state
+  on calc_place_info.placement_id=placement_state.placement_id
+  left join rtb_impression_tracker_placement_domain
+  on calc_place_info.placement_id=rtb_impression_tracker_placement_domain.placement_id
+where calc_place_info.campaign_id = """ + str(id) + ' ' + filt + ' ' + order + " LIMIT " + str(params["take"]) + " OFFSET " + str(params["skip"]) + ';')
 
-    result = {"data": res[params['skip']:params['skip'] + params['take']], "totalCount": totalCount}
+        allCampaignsInfo["data"] = []
 
-    sums = reduce(make_sum, res, {"cost":0, "conv":0, "imp":0, "clicks":0, "imps_viewed":0, "view_measured_imps":0,
-                                  "view_rate":0, "view_measurement_rate":0})
-    sums['cpc'] = float(sums['cost']) / sums['clicks'] if sums['clicks'] else 0
-    sums['cpa'] = float(sums["cost"]) / sums['conv'] if sums['conv'] else 0
-    sums['view_rate'] = 100.0 * float(sums['imps_viewed']) / float(sums['view_measured_imps']) if sums[
-        'view_measured_imps'] else 0
-    sums['view_measurement_rate'] = 100.0 * float(sums['view_measured_imps']) / float(sums['imp']) if sums['imp'] else 0
-    sums["cpm"] = 1000.0 * float(sums['cost'])/sums['imp'] if sums['imp'] else 0
-    sums["cvr"] = float(sums['conv'])/sums['imp'] if sums['imp'] else 0
-    sums['ctr'] = 100.0 * float(sums["clicks"]) / sums['imp'] if sums['imp'] else 0
+        for row in queryRes:
+            allCampaignsInfo["data"].append({
+                "placement": row.id,
+                "placement_name": row.name,
+                "NetworkPublisher": row.publisher,
+                "placement__rtbimpressiontrackerplacementdomain__domain": row.domain,
+                "analitics": mlFillPredictionAnswer(row.id, False, "kmeans", "ctr_cvr_cpc_cpm_cpa"),
+                "analitics1": mlFillPredictionAnswer(row.id, False, "log", "ctr_cvr_cpc_cpm_cpa"),
+                "campaign": row.name,
+                "clicks": 0 if row.clicks is None else row.clicks,
+                "conv": 0 if row.conversions is None else row.conversions,
+                "cost": 0 if row.spent is None else row.spent,
+                "cpa": 0 if row.cpa is None else row.cpa,
+                "cpc": 0 if row.cpc is None else row.cpc,
+                "cpm": 0 if row.cpm is None else row.cpm,
+                "ctr": 0 if row.ctr is None else row.ctr,
+                "cvr": 0 if row.cvr is None else row.cvr,
+                "view_measurement_rate": 0 if row.view_measurement_rate is None else row.view_measurement_rate,
+                "imp": 0 if row.imps is None else row.imps,
+                "imps_viewed": 0 if row.imps_viewed is None else row.imps_viewed,
+                "view_measured_imps": 0 if row.view_measured_imps is None else row.view_measured_imps,
+                "view_rate": 0 if row.view_rate is None else row.view_rate
+            })
 
-    result['totalSummary'] = sums
+            queryRes = Campaign.objects.raw("""
+            select
+  count(info.id) total_count,
+  json_build_object(
+    'clicks', sum(info.clicks),
+    'conv', sum(info.conversions),
+    'cost', sum(info.spent),
+    'imp', sum(info.imps),
+    'cpc', case sum(info.clicks) when 0 then 0 else sum(info.spent) / sum(info.clicks) end,
+    'cpm', case sum(info.imps) when 0 then 0 else sum(info.spent) / sum(info.imps) * 1000.0 end,
+    'cvr', case sum(info.imps) when 0 then 0 else sum(info.conversions)::float / sum(info.imps) * 100.0 end,
+    'ctr', case sum(info.imps) when 0 then 0 else sum(info.clicks)::float / sum(info.imps) * 100.0 end,
+    'cpa', case sum(info.conversions) when 0 then 0 else sum(info.spent) / sum(info.conversions) end,
+    'imps_viewed', sum(info.imps_viewed),
+    'view_measured_imps', sum(info.view_measured_imps),
+    'view_rate', case sum(info.imps) when 0 then 0 else sum(info.view_measured_imps)::float / sum(info.imps) * 100.0 end,
+    'view_measurment_rate', case sum(info.view_measured_imps) when 0 then 0 else sum(info.imps_viewed)::float / sum(info.view_measured_imps) * 100.0 end
+    ) id
+from
+  (select
+  calc_place_info.placement_id as id,
+  concat(report.publisher_name, '/', report.seller_member_name) publisher,
+  placement_state.state,
+  placement.name,
+  rtb_impression_tracker_placement_domain.domain,
+  calc_place_info.spent,
+  calc_place_info.conversions,
+  calc_place_info.imps,
+  calc_place_info.clicks,
+  calc_place_info.cpa,
+  calc_place_info.cpc,
+  calc_place_info.cpm,
+  calc_place_info.cvr * 100.0 as cvr,
+  calc_place_info.ctr * 100.0 as ctr,
+  calc_place_info.imps_viewed,
+  calc_place_info.view_measured_imps,
+  calc_place_info.view_measurement_rate * 100.0 as view_measurement_rate,
+  calc_place_info.view_rate * 100.0 as view_rate
+from
+  ui_usual_placements_grid_data_""" + str(request.GET.get("type")) + str(source) + """ calc_place_info
+  left join placement
+  on placement.id=calc_place_info.placement_id
+  left join placements_additional_names report
+  on calc_place_info.placement_id= report.placement_id
+  left join (select * from placement_state where campaign_id = """ + str(id) + """) as placement_state
+  on calc_place_info.placement_id=placement_state.placement_id
+  left join rtb_impression_tracker_placement_domain
+  on calc_place_info.placement_id=rtb_impression_tracker_placement_domain.placement_id
+where calc_place_info.campaign_id = """ + str(id) + ' ' + filt + """) info;""")[0]
 
-    return Response(result)
+            allCampaignsInfo["totalCount"] = queryRes.total_count
 
+            allCampaignsInfo["totalSummary"] = queryRes.id
+
+        return Response(allCampaignsInfo)
+    except Exception, e:
+        print "Can not get data for " + str(id) + " campaign. Error: " + str(e)
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+def getUsualFilterQueryString(incFilters, incSort, incOrder):
+    vocabulary = {}
+    vocabulary["placement"] = "calc_place_info.placement_id"
+    vocabulary["placement__rtbimpressiontrackerplacementdomain__domain"] = "rtb_impression_tracker_placement_domain.domain"
+    vocabulary["NetworkPublisher"] = "concat(report.publisher_name, '/', report.seller_member_name)"
+    vocabulary["conv"] = "calc_place_info.conversions"
+    vocabulary["imp"] = "calc_place_info.imps"
+    vocabulary["cpa"] = "calc_place_info.cpa"
+    vocabulary["cost"] = "calc_place_info.spent"
+    vocabulary["clicks"] = "calc_place_info.clicks"
+    vocabulary["cpc"] = "calc_place_info.cpc"
+    vocabulary["cpm"] = "calc_place_info.cpm"
+    vocabulary["cvr"] = "calc_place_info.cvr * 100.0"
+    vocabulary["ctr"] = "calc_place_info.ctr * 100.0"
+    vocabulary["state"] = "placement_state.state"
+    vocabulary["imps_viewed"] = "calc_place_info.imps_viewed"
+    vocabulary["view_measured_imps"] = "calc_place_info.view_measured_imps"
+    vocabulary["view_measurement_rate"] = "calc_place_info.view_measurement_rate * 100.0"
+    vocabulary["view_rate"] = "calc_place_info.view_rate * 100.0"
+
+    ansWhere = "AND ("
+    ansOrder = "ORDER BY "
+
+    ansOrder = ansOrder + vocabulary[str(incSort)] + ' ' + str(incOrder)
+    equlitiesMarks = ["=", "<=", ">="]
+
+    clause = re.compile(r'\s*\[\s*"([^"]*)",\s*"([^"]*)",\s*(\w+|\d+(?:\.\d*)?|(?:"(?:[^"]|\\\S)*"))\s*\]')
+    separatedFilters = re.findall(clause, incFilters)
+    # one condition
+    if not separatedFilters:
+        clause = re.compile(r"^(.*?)(>|<|=|<>|>=|<=|\bcontains\b|\bnotcontains\b|\bstartswith\b|\bendswith\b)(.*)$")
+        separatedFilters = re.match(clause, incFilters)
+        if separatedFilters is None:# without filtration
+            return '', ansOrder
+        else:
+            filt = separatedFilters.string.split(' ')
+            for i in xrange(3, len(filt)):# if campaign name have spaces
+                filt[2] += (' ' + filt[i])
+            if filt[0] == "NetworkPublisher" or filt[0] == "placement__rtbimpressiontrackerplacementdomain__domain":
+                if filt[1] == "<>":
+                    return ansWhere + vocabulary[filt[0]] + " NOT LIKE '%%" + filt[2] + "%%')", ansOrder
+                else:
+                    return ansWhere + vocabulary[filt[0]] + " LIKE '%%" + filt[2] + "%%')", ansOrder
+            else:
+                if filt[1] in equlitiesMarks and filt[2] == '0':
+                    filt[2] += (" OR " + vocabulary[filt[0]] + " IS NULL")
+                if filt[1] == "<>":
+                    if filt[2] == '0':
+                        filt[2] += (" AND " + vocabulary[filt[0]] + " IS NOT NULL")
+                    else:
+                        filt[2] += (" OR " + vocabulary[filt[0]] + " IS NULL")
+
+                return ansWhere + vocabulary[filt[0]] + filt[1] + filt[2] + ')', ansOrder
+    # multiple conditions
+    if separatedFilters[0][0] == "NetworkPublisher" or separatedFilters[0][0] == "placement__rtbimpressiontrackerplacementdomain__domain":
+        if separatedFilters[0][1] == "<>":
+            ansWhere = ansWhere + vocabulary[separatedFilters[0][0]] + " NOT LIKE '%%" + separatedFilters[0][2][1:-1] + "%%'"
+        else:
+            ansWhere = ansWhere + vocabulary[separatedFilters[0][0]] + " LIKE '%%" + separatedFilters[0][2][
+                                                                                     1:-1] + "%%'"
+    else:
+        temp = str(separatedFilters[0][2])
+        if separatedFilters[0][1] in equlitiesMarks and separatedFilters[0][2] == '0':
+            temp = temp + " OR " + str(vocabulary[separatedFilters[0][0]]) + " IS NULL"
+        if separatedFilters[0][1] == "<>":
+            if separatedFilters[0][2] == '0':
+                temp += (" AND " + vocabulary[separatedFilters[0][0]] + " IS NOT NULL")
+            else:
+                temp += (" OR " + vocabulary[separatedFilters[0][0]] + " IS NULL")
+        ansWhere = ansWhere + vocabulary[separatedFilters[0][0]] + separatedFilters[0][1] + temp
+    lastColumn = separatedFilters[0][0]
+
+    for i in xrange(1, len(separatedFilters)):
+        if lastColumn == separatedFilters[i][0] and separatedFilters[i][1] == '=':# for between
+            ansWhere += " OR "
+        else:
+            ansWhere += ") AND ("
+        if separatedFilters[i][0] == "NetworkPublisher" or separatedFilters[i][0] == "placement__rtbimpressiontrackerplacementdomain__domain":
+            if separatedFilters[i][1] == "<>":
+                ansWhere = ansWhere + vocabulary[separatedFilters[i][0]] + " NOT LIKE '%%" + separatedFilters[i][2][1:-1] + "%%'"
+            else:
+                ansWhere = ansWhere + vocabulary[separatedFilters[i][0]] + " LIKE '%%" + separatedFilters[i][2][
+                                                                                         1:-1] + "%%'"
+        else:
+            temp = str(separatedFilters[i][2])
+            if separatedFilters[i][1] in equlitiesMarks and separatedFilters[i][2] == '0':
+                temp = temp + " OR " + vocabulary[separatedFilters[i][0]] + " IS NULL"
+            if separatedFilters[i][1] == "<>":
+                if separatedFilters[i][2] == '0':
+                    temp += (" AND " + vocabulary[separatedFilters[i][0]] + " IS NOT NULL")
+                else:
+                    temp += (" OR " + vocabulary[separatedFilters[i][0]] + " IS NULL")
+            ansWhere = ansWhere + vocabulary[separatedFilters[i][0]] + separatedFilters[i][1] + temp
+        lastColumn = separatedFilters[i][0]
+    ansWhere += ')'
+
+    return ansWhere, ansOrder
 
 def sum_for_data_and_percent(arr, group_others=False):
     arr.sort(key=lambda x: x['data'])

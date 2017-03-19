@@ -69,7 +69,8 @@
         "ADVERTISER-LIST": {
           'NAME': 'Name',
           'ID': 'Id',
-          'AD-TYPE': 'Type of the advertiser'
+          'AD-TYPE': 'Type of the advertiser',
+          'DATA_SOURCE': 'Data source'
         }
       },
       'INDEX': {

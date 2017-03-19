@@ -6,7 +6,7 @@
     .controller('HomeController', HomeController);
 
   /** @ngInject */
-  function HomeController($localStorage, $state, $cookies, $window, $rootScope, AdminService) {
+  function HomeController($localStorage, $cookies, $window, AdminService, Home) {
     var vm = this;
     vm.advertiser = {};
     vm.isEven = false;
@@ -14,6 +14,10 @@
     vm.bannerText = '';
     vm.video = false;
     vm.usual = false;
+    vm.advertiser.name = Home.AdverInfo.advertiser_name;
+    vm.advertiser.id = Home.AdverInfo.advertiser_id;
+    vm.id = Home.AdverInfo.id;
+    vm.name = Home.AdverInfo.campaign;
 
     if ($localStorage.advertiser.ad_type === 'videoAds') {
       vm.video = true;
@@ -34,11 +38,6 @@
       vm.banner.addClass('non-visible');
     };
 
-    if (($rootScope.id == null) && ($rootScope.name == null) && ($localStorage.campaign != null)) {
-      $rootScope.id = $localStorage.campaign.id;
-      $rootScope.name = $localStorage.campaign.name;
-    }
-
     if (($cookies.get('token')) &&
       (($cookies.get('permission') == 'adminfull') || $cookies.get('permission') == 'adminread')) {
       vm.isEven = true;
@@ -49,12 +48,6 @@
       (($cookies.get('permission') == 'userfull') || $cookies.get('permission') == 'userread')) {
       vm.isEven = false;
       vm.userAuth = true;
-    }
-
-    if ($localStorage.advertiser == null) {
-      $state.go('auth');
-    } else {
-      vm.advertiser.name = $localStorage.advertiser.name;
     }
 
     vm.checked = function (value) {

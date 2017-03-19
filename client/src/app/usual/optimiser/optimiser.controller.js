@@ -6,16 +6,16 @@
     .controller('CampaignOptimiserController', CampaignOptimiserController);
 
   /** @ngInject */
-  function CampaignOptimiserController($window, $state, $rootScope, $localStorage, $scope, $translate, $compile, CampaignOptimiser,Campaign) {
+  function CampaignOptimiserController($window, $state, $rootScope, $localStorage, $scope, $translate, $compile, CampaignOptimiser, Home) {
     var vm = this;
     var LC = $translate.instant;
     var dataSuspend = null;
     var tempSespendRow = {};
     var oneSuspend = false;
-    vm.campName = Campaign.campaign;
-    vm.campId = Campaign.id;
-    vm.line_item = Campaign.line_item;
-    vm.line_item_id = Campaign.line_item_id;
+    vm.campName = Home.AdverInfo.campaign;
+    vm.campId = Home.AdverInfo.id;
+    vm.line_item = Home.AdverInfo.line_item;
+    vm.line_item_id = Home.AdverInfo.line_item_id;
     vm.object = CampaignOptimiser.campaignTargeting(1, 1, 1);
     vm.popUpIf = false;
     vm.arrayDiagram = [];
@@ -27,23 +27,28 @@
     }
 
     //region DATE PIKER
-    /** DATE PIKER **/
+    /** DATE PIKER - START **/
     if ($localStorage.SelectedTime == null) {
       $localStorage.SelectedTime = 0;
-      $localStorage.dataStart = $window.moment({hour: '00'}).subtract(1, 'day').unix();
-      $localStorage.dataEnd = $window.moment({hour: '00'}).subtract(1, 'day').endOf('day').unix();
-      vm.dataStart = $window.moment({hour: '00'}).subtract(1, 'day').unix();
-      vm.dataEnd = $window.moment({hour: '00'}).subtract(1, 'day').endOf('day').unix();
+      $localStorage.dataStart = $window.moment({ hour: '00' }).subtract(1, 'day').unix();
+      $localStorage.dataEnd = $window.moment({ hour: '00' }).subtract(1, 'day').endOf('day').unix();
+      $localStorage.type = 'yesterday';
+      vm.dataStart = $window.moment({ hour: '00' }).subtract(1, 'day').unix();
+      vm.dataEnd = $window.moment({ hour: '00' }).subtract(1, 'day').endOf('day').unix();
+      vm.type = 'yesterday';
     } else {
-      if ($localStorage.dataStart == null || $localStorage.dataEnd == null) {
+      if ($localStorage.dataStart == undefined || !$localStorage.dataEnd || !$localStorage.type) {
         $localStorage.SelectedTime = 0;
-        $localStorage.dataStart = $window.moment({hour: '00'}).subtract(1, 'day').unix();
-        $localStorage.dataEnd = $window.moment({hour: '00'}).subtract(1, 'day').endOf('day').unix();
-        vm.dataStart = $window.moment({hour: '00'}).subtract(1, 'day').unix();
-        vm.dataEnd = $window.moment({hour: '00'}).subtract(1, 'day').endOf('day').unix();
+        $localStorage.dataStart = $window.moment({ hour: '00' }).subtract(1, 'day').unix();
+        $localStorage.dataEnd = $window.moment({ hour: '00' }).subtract(1, 'day').endOf('day').unix();
+        $localStorage.type = 'yesterday';
+        vm.dataStart = $window.moment({ hour: '00' }).subtract(1, 'day').unix();
+        vm.dataEnd = $window.moment({ hour: '00' }).subtract(1, 'day').endOf('day').unix();
+        vm.type = 'yesterday';
       } else {
         vm.dataStart = $localStorage.dataStart;
         vm.dataEnd = $localStorage.dataEnd;
+        vm.type = $localStorage.type;
       }
     }
 
@@ -51,50 +56,58 @@
       {
         ID: 0,
         Name: LC('MAIN.DATE_PICKER.YESTERDAY'),
-        dataStart: $window.moment({hour: '00'}).subtract(1, 'day').unix(),
-        dataEnd: $window.moment({hour: '00'}).subtract(1, 'day').endOf('day').unix()
+        dataStart: $window.moment({ hour: '00' }).subtract(1, 'day').unix(),
+        dataEnd: $window.moment().unix(),
+        type: 'yesterday'
       }, {
         ID: 1,
         Name: LC('MAIN.DATE_PICKER.LAST_3_DAYS'),
-        dataStart: $window.moment({hour: '00'}).subtract(3, 'day').unix(),
-        dataEnd: $window.moment({hour: '00'}).unix()
+        dataStart: $window.moment({ hour: '00' }).subtract(3, 'day').unix(),
+        dataEnd: $window.moment().unix(),
+        type: 'last_3_days'
       }, {
         ID: 2,
         Name: LC('MAIN.DATE_PICKER.LAST_7_DAYS'),
-        dataStart: $window.moment({hour: '00'}).subtract(7, 'day').unix(),
-        dataEnd: $window.moment({hour: '00'}).unix()
+        dataStart: $window.moment({ hour: '00' }).subtract(7, 'day').unix(),
+        dataEnd: $window.moment().unix(),
+        type: 'last_7_days'
       }, {
         ID: 3,
         Name: LC('MAIN.DATE_PICKER.LAST_14_DAYS'),
-        dataStart: $window.moment({hour: '00'}).subtract(14, 'day').unix(),
-        dataEnd: $window.moment({hour: '00'}).unix()
+        dataStart: $window.moment({ hour: '00' }).subtract(14, 'day').unix(),
+        dataEnd: $window.moment().unix(),
+        type: 'last_14_days'
       }, {
         ID: 4,
         Name: LC('MAIN.DATE_PICKER.LAST_21_DAYS'),
-        dataStart: $window.moment({hour: '00'}).subtract(21, 'day').unix(),
-        dataEnd: $window.moment({hour: '00'}).unix()
+        dataStart: $window.moment({ hour: '00' }).subtract(21, 'day').unix(),
+        dataEnd: $window.moment().unix(),
+        type: 'last_21_days'
       }, {
         ID: 5,
         Name: LC('MAIN.DATE_PICKER.CURRENT_MONTH'),
         dataStart: $window.moment().startOf('month').unix(),
-        dataEnd: $window.moment().unix()
+        dataEnd: $window.moment().unix(),
+        type: 'cur_month'
       }, {
         ID: 6,
         Name: LC('MAIN.DATE_PICKER.LAST_MONTH'),
         dataStart: $window.moment().subtract(1, 'month').startOf('month').unix(),
-        dataEnd: $window.moment().subtract(1, 'month').endOf('month').unix()
+        dataEnd: $window.moment().unix(),
+        type: 'last_month'
       }, {
         ID: 7,
         Name: LC('MAIN.DATE_PICKER.LAST_90_DAYS'),
-        dataStart: $window.moment({hour: '00'}).subtract(90, 'day').unix(),
-        dataEnd: $window.moment().unix()
+        dataStart: $window.moment({ hour: '00' }).subtract(90, 'day').unix(),
+        dataEnd: $window.moment().unix(),
+        type: 'last_90_days'
       }, {
         ID: 8,
         Name: LC('MAIN.DATE_PICKER.ALL_TIME'),
         dataStart: 0,
-        dataEnd: $window.moment().unix()
-      }
-    ];
+        dataEnd: $window.moment().unix(),
+        type: 'all'
+      }];
     //endregion
 
     //region MULTIPLE
@@ -117,7 +130,7 @@
     //endregion
 
     //region STORE
-    vm.gridStore = CampaignOptimiser.getGridCampaignStore(vm.campId, vm.dataStart, vm.dataEnd);
+    vm.gridStore = CampaignOptimiser.getGridCampaignStore(vm.campId, vm.dataStart, vm.dataEnd, vm.type);
     //endregion
 
     var startDate = new Date(1981, 3, 27),
@@ -304,6 +317,7 @@
           $localStorage.SelectedTime = e.value;
           $localStorage.dataStart = products[e.value].dataStart;
           $localStorage.dataEnd = products[e.value].dataEnd;
+          $localStorage.type = products[e.value].type;
           $state.reload();
         }
       },
@@ -883,7 +897,7 @@
               column: "conv",
               summaryType: "sum",
               customizeText: function (data) {
-                data.valueText = 'Conv: ' + CampaignOptimiser.totalSummary.conv;
+                data.valueText = 'Conv: ' + ((CampaignOptimiser.totalSummary != null) ? CampaignOptimiser.totalSummary.conv : '0');
                 return data.valueText;
               }
             },
@@ -891,7 +905,7 @@
               column: "imp",
               summaryType: "sum",
               customizeText: function (data) {
-                data.valueText = 'Imp: ' + CampaignOptimiser.totalSummary.imp.toString().split(/(?=(?:\d{3})+(?!\d))/).join();
+                data.valueText = 'Imp: ' + ((CampaignOptimiser.totalSummary != null) ? CampaignOptimiser.totalSummary.imp.toString().split(/(?=(?:\d{3})+(?!\d))/).join() : '0');
                 return data.valueText;
               }
             },
@@ -900,7 +914,7 @@
               summaryType: "sum",
               valueFormat: "currency",
               customizeText: function (data) {
-                data.valueText = 'CPA: $' + CampaignOptimiser.totalSummary.cpa.toFixed(4);
+                data.valueText = 'CPA: $' + ((CampaignOptimiser.totalSummary != null) ? CampaignOptimiser.totalSummary.cpa.toFixed(4) : '0');
                 return data.valueText;
               }
             },
@@ -909,7 +923,7 @@
               summaryType: "sum",
               valueFormat: "currency",
               customizeText: function (data) {
-                data.valueText = 'Cost: $' + CampaignOptimiser.totalSummary.cost.toFixed(2);
+                data.valueText = 'Cost: $' + ((CampaignOptimiser.totalSummary != null) ? CampaignOptimiser.totalSummary.cost.toFixed(2) : '0');
                 return data.valueText;
               }
             },
@@ -917,7 +931,7 @@
               column: "clicks",
               summaryType: "sum",
               customizeText: function (data) {
-                data.valueText = 'Clicks: ' + CampaignOptimiser.totalSummary.clicks;
+                data.valueText = 'Clicks: ' + ((CampaignOptimiser.totalSummary != null) ? CampaignOptimiser.totalSummary.clicks : '0');
                 return data.valueText;
               }
             },
@@ -925,7 +939,7 @@
               column: "cpc",
               summaryType: "sum",
               customizeText: function (data) {
-                data.valueText = 'CPC: $' + CampaignOptimiser.totalSummary.cpc.toFixed(4);
+                data.valueText = 'CPC: $' + ((CampaignOptimiser.totalSummary != null) ? CampaignOptimiser.totalSummary.cpc.toFixed(4) : '0');
                 return data.valueText;
               }
             },
@@ -933,7 +947,7 @@
               column: "cpm",
               summaryType: "sum",
               customizeText: function (data) {
-                data.valueText = 'CPM: $' + CampaignOptimiser.totalSummary.cpm.toFixed(4);
+                data.valueText = 'CPM: $' + ((CampaignOptimiser.totalSummary != null) ? CampaignOptimiser.totalSummary.cpm.toFixed(4) : '0');
                 return data.valueText;
               }
             },
@@ -941,7 +955,7 @@
               column: "cvr",
               summaryType: "sum",
               customizeText: function (data) {
-                data.valueText = 'CVR: %' + CampaignOptimiser.totalSummary.cvr.toFixed(4);
+                data.valueText = 'CVR: %' + ((CampaignOptimiser.totalSummary != null) ? CampaignOptimiser.totalSummary.cvr.toFixed(4) : '0');
                 return data.valueText;
               }
             },
@@ -949,7 +963,7 @@
               column: "ctr",
               summaryType: "sum",
               customizeText: function (data) {
-                data.valueText = 'CTR: %' + CampaignOptimiser.totalSummary.ctr.toFixed(4);
+                data.valueText = 'CTR: %' + ((CampaignOptimiser.totalSummary != null) ? CampaignOptimiser.totalSummary.ctr.toFixed(4) : '0');
                 return data.valueText;
               }
             }

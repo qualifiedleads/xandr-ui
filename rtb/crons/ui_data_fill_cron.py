@@ -821,7 +821,7 @@ FROM (
 from rtb_click_tracker
 left join rtb_impression_tracker
   on rtb_impression_tracker."AuctionId" = rtb_click_tracker."AuctionId"
-where rtb_click_tracker."Date" >= '""" + str(start_date) + """' and rtb_click_tracker."Date" < '""" + str(type) + """'
+where rtb_click_tracker."Date" >= '""" + str(start_date) + """' and rtb_click_tracker."Date" < '""" + str(finish_date) + """'
 group by rtb_impression_tracker."CpId", rtb_impression_tracker."PlacementId"
 ) info
 where ut.campaign_id = info."CpId" and ut.placement_id = info."PlacementId";
@@ -850,7 +850,7 @@ where ut.campaign_id = info."CpId" and ut.placement_id = info."PlacementId";
 def refreshPlacementsLastMonthGridDataTracker(start_date, finish_date):
     with connection.cursor() as cursor:
         cursor.execute("""
-insert into ui_usual_placements_grid_data_last_month as ut (
+insert into ui_usual_placements_grid_data_last_month_tracker as ut (
         campaign_id,
         placement_id,
         imps,
@@ -1248,7 +1248,7 @@ where ut.campaign_id = info."CpId";
 def refreshCampaignsLastMonthGridDataTracker(start_date, finish_date):
     with connection.cursor() as cursor:
         cursor.execute("""
-insert into ui_usual_campaigns_grid_data_""" + str(type) + """ as ut (
+insert into ui_usual_campaigns_grid_data_""" + str(type) + """_tracker as ut (
     campaign_id,
     imps,
     clicks,
@@ -1377,7 +1377,7 @@ from (
       from
         rtb_impression_tracker
       where
-        "Date" > '""" + str(finish_date) + """'
+        "Date" > '""" + str(start_date) + """'
         and "Date" <= '""" + str(finish_date) + """'
      ) page
 ON CONFLICT (advertiser_id, type)
@@ -1805,7 +1805,7 @@ where ut.campaign_id = info."CpId" and type='""" + str(type) + """';
 def refreshCampaignsLastMonthGraphDataTracker(start_date, finish_date):
     with connection.cursor() as cursor:
         cursor.execute("""
-insert into ui_usual_placements_graph as ut (
+insert into ui_usual_campaigns_graph_tracker as ut (
     campaign_id,
     type,
     day_chart)

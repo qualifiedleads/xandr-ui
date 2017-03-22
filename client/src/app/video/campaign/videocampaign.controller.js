@@ -6,26 +6,22 @@
     .controller('VideoCampaignController', VideoCampaignController);
 
   /** @ngInject */
-  function VideoCampaignController($window, $state, $localStorage, $translate, $timeout, VideoCampMain, Campaign, $rootScope) {
+  function VideoCampaignController($window, $state, $localStorage, $translate, VideoCampMain, Campaign, Home) {
     var vm = this;
     var LC = $translate.instant;
     var dataSuspend = null;
     var tempSespendRow = {};
     var now = new Date();
     var oneSuspend = false;
-    $rootScope.id = Campaign.id;
-    $rootScope.name = Campaign.campaign;
-    $rootScope.line_item = Campaign.line_item;
-    $rootScope.line_item_id = Campaign.line_item_id;
 
     if ($localStorage.campaign == null) {
       $state.go('home.main');
     }
 
-    vm.campName = Campaign.campaign;
-    vm.campId = Campaign.id;
-    vm.line_item = Campaign.line_item;
-    vm.line_item_id = Campaign.line_item_id;
+    vm.campName = Home.AdverInfo.campaign;
+    vm.campId = Home.AdverInfo.id;
+    vm.line_item = Home.AdverInfo.line_item;
+    vm.line_item_id = Home.AdverInfo.line_item_id;
     vm.Init = [];
 
     if ($localStorage.checkChartVideo == null) {

@@ -104,7 +104,7 @@
           }
 
           if (vm.selectedService.ad_type == 'videoAds') {
-            $state.go('home.videomain');
+            $state.go('home.videomain', {"id": vm.selectedService.id});
           }
 
         }

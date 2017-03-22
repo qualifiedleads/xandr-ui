@@ -59,7 +59,7 @@
               loadOptions.take, loadOptions.sort, loadOptions.order,
               by, loadOptions.filter, loadOptions.totalSummary)
           .then(function (result) {
-            _multipleTotalCount = result.total_count;
+            _multipleTotalCount = result.total_count || 0;
             return result.campaigns;
           });
         }
@@ -109,14 +109,14 @@
 
         _this.totalSummary = {
           campaign: res.data.total_count || 0,
-          ad_starts: res.data.total_ad_starts,
-          cpm: res.data.total_cpm,
-          fill_rate: res.data.total_fill_rate,
-          fill_rate_hour: res.data.total_fill_rate_hour,
-          profit_loss: res.data.total_profit_loss,
-          profit_loss_hour: res.data.total_profit_loss_hour,
-          spent: res.data.total_spent,
-          sum_imps: res.data.total_sum_imps
+          ad_starts: res.data.total_ad_starts || 0,
+          cpm: res.data.total_cpm || 0,
+          fill_rate: res.data.total_fill_rate || 0,
+          fill_rate_hour: res.data.total_fill_rate_hour || 0,
+          profit_loss: res.data.total_profit_loss || 0,
+          profit_loss_hour: res.data.total_profit_loss_hour || 0,
+          spent: res.data.total_spent || 0,
+          sum_imps: res.data.total_sum_imps || 0
         };
         return res.data;
       })

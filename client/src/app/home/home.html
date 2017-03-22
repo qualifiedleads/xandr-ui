@@ -27,7 +27,7 @@
             </a>
           </div>
           <a ui-sref="home.main({id: home.advertiser.id})" ng-show="home.usual" class="navbar-brand" > {{ 'INDEX.ADVERTISER_TITLE' | translate }} {{ home.advertiser.name }}</a>
-          <a ui-sref="home.videomain" ng-show="home.video" class="navbar-brand" > {{ 'INDEX.ADVERTISER_TITLE' | translate }} {{ home.advertiser.name }}</a>
+          <a ui-sref="home.videomain({id: home.advertiser.id})" ng-show="home.video" class="navbar-brand" > {{ 'INDEX.ADVERTISER_TITLE' | translate }} {{ home.advertiser.name }}</a>
           <div ng-if="home.bannerText != ''" class="wrapping-tech-banner" id="techBanner">
             <div class="tech-banner">
               {{home.bannerText}}

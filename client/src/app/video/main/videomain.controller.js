@@ -6,10 +6,9 @@
     .controller('VideoMainController', VideoMainController);
 
   /** @ngInject */
-  function VideoMainController($window, $state, $timeout, $localStorage, $translate, VideoMain, $rootScope) {
+  function VideoMainController($window, $state, $timeout, $localStorage, $translate, VideoMain, advertiserParams) {
     var vm = this;
     var buttonIndicator;
-    vm.advertiser = $localStorage.advertiser;
     vm.VideoMain = VideoMain;
     vm.multipleTotalCount = 0;
     vm.Init = [];
@@ -17,7 +16,6 @@
     vm.selectedItems = [];
     vm.chartOptionsFuncgrid = [];
     vm.charIsUpdating = false;
-    $rootScope.id = null;
     var LC = $translate.instant;
     /** LOCAL STORAGE CHECKBOX - START **/
 
@@ -222,14 +220,14 @@
 
     var clicksByCountry = {};
 
-    vm.VideoMain.statsMap(vm.advertiser.id, vm.dataStart, vm.dataEnd)
+    vm.VideoMain.statsMap(advertiserParams.id, vm.dataStart, vm.dataEnd)
       .then(function (res) {
         clicksByCountry = res;
         $window.$('#visualMap').dxVectorMap(vm.UI.vectorMapOptions);
       });
 
-    vm.chartStore = VideoMain.chartStore(vm.advertiser.id, vm.dataStart, vm.dataEnd, ['imp', 'spend', 'ad_starts', 'fill_rate', 'profit_loss']);
-    vm.multipleStore = VideoMain.multipleStore(vm.advertiser.id, vm.dataStart, vm.dataEnd, ['imp', 'spend', 'ad_starts', 'fill_rate', 'profit_loss']);
+    vm.chartStore = VideoMain.chartStore(advertiserParams.id, vm.dataStart, vm.dataEnd, ['imp', 'spend', 'ad_starts', 'fill_rate', 'profit_loss']);
+    vm.multipleStore = VideoMain.multipleStore(advertiserParams.id, vm.dataStart, vm.dataEnd, ['imp', 'spend', 'ad_starts', 'fill_rate', 'profit_loss']);
     vm.UI = {
       datePiker: {
         items: products,
@@ -261,7 +259,7 @@
         onClick: function (data) {
           data.component.option('text', LC('MAIN.UPDATE_CAMPAIGN'));
           buttonIndicator.option('visible', true);
-          VideoMain.updateCampaign(vm.advertiser.id).then(function (res) {
+          VideoMain.updateCampaign(advertiserParams.id).then(function (res) {
             if (res == 200) {
               buttonIndicator.option('visible', false);
               data.component.option('text', LC('MAIN.UPDATE_CAMPAIGN'));
@@ -362,7 +360,7 @@
               column: 'ad_starts',
               summaryType: 'sum',
               customizeText: function (data) {
-                data.valueText = 'Ad starts: ' + VideoMain.totalSummary.ad_starts.toString().split(/(?=(?:\d{3})+(?!\d))/).join();;
+                data.valueText = 'Ad starts: ' + VideoMain.totalSummary.ad_starts.toString().split(/(?=(?:\d{3})+(?!\d))/).join();
                 return data.valueText;
               }
             },

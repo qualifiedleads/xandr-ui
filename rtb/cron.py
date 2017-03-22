@@ -694,11 +694,11 @@ def hourlyTask(dayWithHour=None, load_objects_from_services=True, output=None):
             load_depending_data(token, False, isLastModified=True)
         try:
             while dayWithHour <= dateNow:
+                LastModified.objects.filter(type='hourlyTask').update(date=timezone.make_aware(datetime.datetime.now(), timezone.get_default_timezone()))
                 with transaction.atomic():
                     print 'SiteDomainPerformanceReport  start', get_current_time().strftime('%Y-%m-%dT%H-%M-%S'), ' for day - ', dayWithHour
                     load_reports_for_all_advertisers(token, dayWithHour, SiteDomainPerformanceReport, isHour=True)
-                    LastModified.objects.filter(type='hourlyTask')\
-                        .update(date=timezone.make_aware(datetime.datetime.now(), timezone.get_default_timezone()))
+
                     print '==================================SiteDomainPerformanceReport  END', get_current_time().strftime('%Y-%m-%dT%H-%M-%S')
                     curMaxHour = SiteDomainPerformanceReport.objects.aggregate(m=Max('hour'))['m']
                     curMaxHour = datetime.datetime(hour=curMaxHour.hour, day=curMaxHour.day, month=curMaxHour.month,

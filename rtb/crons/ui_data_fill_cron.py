@@ -682,7 +682,7 @@ ON CONFLICT (campaign_id, placement_id)
     imps = coalesce(ut.imps, 0) + coalesce(Excluded.imps, 0),
     spent = coalesce(ut.spent, 0) + coalesce(Excluded.spent, 0),
     cpm = case (coalesce(ut.imps, 0) + coalesce(Excluded.imps, 0)) when 0 then 0 else (coalesce(ut.spent, 0) + coalesce(Excluded.spent, 0)) / (coalesce(ut.imps, 0) + coalesce(Excluded.imps, 0)) * 1000.0 end,
-    ctr = case (coalesce(ut.imps, 0) + coalesce(Excluded.imps, 0)) when 0 then 0 else ut.clicks ::float / coalesce(ut.imps, 0) + coalesce(Excluded.imps, 0) end,
+    ctr = case (coalesce(ut.imps, 0) + coalesce(Excluded.imps, 0)) when 0 then 0 else ut.clicks ::float / (coalesce(ut.imps, 0) + coalesce(Excluded.imps, 0)) end,
     cpc = case ut.clicks when 0 then 0 else (coalesce(ut.spent, 0) + coalesce(Excluded.spent, 0)) / ut.clicks end,
     cvr = case (coalesce(ut.imps, 0) + coalesce(Excluded.imps, 0)) when 0 then 0 else ut.conversions::float / (coalesce(ut.imps, 0) + coalesce(Excluded.imps, 0)) end,
     cpa = case ut.conversions when 0 then 0 else (coalesce(ut.spent, 0) + coalesce(Excluded.spent, 0)) / ut.conversions end;
@@ -729,7 +729,7 @@ group by rtb_impression_tracker."CpId", rtb_impression_tracker."PlacementId"
 ON CONFLICT (campaign_id, placement_id)
   DO UPDATE SET
     clicks = coalesce(ut.clicks, 0) + coalesce(Excluded.clicks, 0),
-    ctr = case coalesce(ut.imps, 0) when 0 then 0 else (ut.clicks + Excluded.clicks)::float / ut.imps end,
+    ctr = case coalesce(ut.imps, 0) when 0 then 0 else (ut.clicks + Excluded.clicks)::float / coalesce(ut.imps, 0) end,
     cpc = case (ut.clicks + Excluded.clicks) when 0 then 0 else ut.spent / (ut.clicks + Excluded.clicks) end;
                 """)
 
@@ -774,8 +774,8 @@ group by rtb_impression_tracker."CpId",rtb_impression_tracker."PlacementId"
 ON CONFLICT (campaign_id, placement_id)
   DO UPDATE SET
     conversions = ut.conversions + Excluded.conversions,
-    cvr = case coalesce(ut.imps, 0) when 0 then 0 else coalesce((ut.conversions + Excluded.conversions),0)::float / ut.imps end,
-    cpa = case coalesce((ut.conversions + Excluded.conversions),0) when 0 then 0 else coalesce(ut.spent, 0) / (ut.conversions + Excluded.conversions) end;
+    cvr = case coalesce(ut.imps, 0) when 0 then 0 else coalesce((ut.conversions + Excluded.conversions),0)::float / coalesce(ut.imps, 0) end,
+    cpa = case coalesce((ut.conversions + Excluded.conversions),0) when 0 then 0 else coalesce(ut.spent, 0) / coalesce((ut.conversions + Excluded.conversions),0) end;
                 """)
 
 def subPlacementsGridDataTracker(type, start_date, finish_date):
@@ -2169,56 +2169,56 @@ def refreshPrecalculatedDataTracker(start_date, finish_date):
         ["last_21_days", 21],
         ["last_90_days", 90]
     ]
-    LastModified.objects.filter(type='refreshPrecalculatedDataTrackerCron').update(
+    LastModified.objects.filter(type='get_data_from_impression_tracker').update(
         date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
 
     # refreshing campaigns grid
     cummulateCampaignsGridDataTracker(type="all", start_date=start_date, finish_date=finish_date)
-    LastModified.objects.filter(type='refreshPrecalculatedDataTrackerCron').update(
+    LastModified.objects.filter(type='get_data_from_impression_tracker').update(
         date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
     print "Refreshing all time campaigns grid data finished: " + str(datetime.now())
     cummulateCampaignsGridDataTracker(type="cur_month", start_date=start_date, finish_date=finish_date)
-    LastModified.objects.filter(type='refreshPrecalculatedDataTrackerCron').update(
+    LastModified.objects.filter(type='get_data_from_impression_tracker').update(
         date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
     print "Refreshing current month campaigns grid data finished: " + str(datetime.now())
 
     # refreshing placements grid
     cummulatePlacementsGridDataTracker(type="all", start_date=start_date, finish_date=finish_date)
-    LastModified.objects.filter(type='refreshPrecalculatedDataTrackerCron').update(
+    LastModified.objects.filter(type='get_data_from_impression_tracker').update(
         date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
     print "Refreshing all time placements grid data finished: " + str(datetime.now())
     cummulatePlacementsGridDataTracker(type="cur_month", start_date=start_date, finish_date=finish_date)
-    LastModified.objects.filter(type='refreshPrecalculatedDataTrackerCron').update(
+    LastModified.objects.filter(type='get_data_from_impression_tracker').update(
         date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
     print "Refreshing current month placements grid data finished: " + str(datetime.now())
 
     # refreshing advertisers graph
     cummulateAdvertisersGraphDataTracker(type="all", start_date=start_date, finish_date=finish_date)
-    LastModified.objects.filter(type='refreshPrecalculatedDataTrackerCron').update(
+    LastModified.objects.filter(type='get_data_from_impression_tracker').update(
         date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
     print "Refreshing all time advertisers graph data finished: " + str(datetime.now())
     cummulateAdvertisersGraphDataTracker(type="cur_month", start_date=start_date, finish_date=finish_date)
-    LastModified.objects.filter(type='refreshPrecalculatedDataTrackerCron').update(
+    LastModified.objects.filter(type='get_data_from_impression_tracker').update(
         date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
     print "Refreshing current month advertisers graph data finished: " + str(datetime.now())
 
     # refreshing campaigns graph
     cummulateCampaignsGraphDataTracker(type="all", start_date=start_date, finish_date=finish_date)
-    LastModified.objects.filter(type='refreshPrecalculatedDataTrackerCron').update(
+    LastModified.objects.filter(type='get_data_from_impression_tracker').update(
         date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
     print "Refreshing all time campaigns graph data finished: " + str(datetime.now())
     cummulateCampaignsGraphDataTracker(type="cur_month", start_date=start_date, finish_date=finish_date)
-    LastModified.objects.filter(type='refreshPrecalculatedDataTrackerCron').update(
+    LastModified.objects.filter(type='get_data_from_impression_tracker').update(
         date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
     print "Refreshing current month campaigns graph data finished: " + str(datetime.now())
 
     for type in tableTypes:
         # refreshing campaigns grid
-        LastModified.objects.filter(type='refreshPrecalculatedDataTrackerCron').update(
+        LastModified.objects.filter(type='get_data_from_impression_tracker').update(
             date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
         # adding data
         cummulateCampaignsGridDataTracker(type=type[0], start_date=start_date, finish_date=finish_date)
-        LastModified.objects.filter(type='refreshPrecalculatedDataTrackerCron').update(
+        LastModified.objects.filter(type='get_data_from_impression_tracker').update(
             date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
         # sub data
         if finish_date == finish_date.replace(hour=0, minute=0, second=0, microsecond=0):
@@ -2226,16 +2226,16 @@ def refreshPrecalculatedDataTracker(start_date, finish_date):
                                   start_date=finish_date - timedelta(days=type[1] + 1),
                                   finish_date=finish_date - timedelta(days=type[1])
                                   )
-            LastModified.objects.filter(type='refreshPrecalculatedDataTrackerCron').update(
+            LastModified.objects.filter(type='get_data_from_impression_tracker').update(
                 date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
         print "Refreshing " + str(type[0]) + " campaigns grid data finished: " + str(datetime.now())
 
         # refreshing placements grid
-        LastModified.objects.filter(type='refreshPrecalculatedDataTrackerCron').update(
+        LastModified.objects.filter(type='get_data_from_impression_tracker').update(
             date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
         # adding data
         cummulatePlacementsGridDataTracker(type=type[0], start_date=start_date, finish_date=finish_date)
-        LastModified.objects.filter(type='refreshPrecalculatedDataTrackerCron').update(
+        LastModified.objects.filter(type='get_data_from_impression_tracker').update(
             date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
         # sub data
         if finish_date == finish_date.replace(hour=0, minute=0, second=0, microsecond=0):
@@ -2243,16 +2243,16 @@ def refreshPrecalculatedDataTracker(start_date, finish_date):
                                   start_date=finish_date - timedelta(days=type[1]+1),
                                   finish_date=finish_date - timedelta(days=type[1])
                                   )
-            LastModified.objects.filter(type='refreshPrecalculatedDataTrackerCron').update(
+            LastModified.objects.filter(type='get_data_from_impression_tracker').update(
                 date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
         print "Refreshing " + str(type[0]) + " placements grid data finished: " + str(datetime.now())
 
         # refreshing advertisers grid
-        LastModified.objects.filter(type='refreshPrecalculatedDataTrackerCron').update(
+        LastModified.objects.filter(type='get_data_from_impression_tracker').update(
             date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
         # adding data
         cummulateAdvertisersGraphDataTracker(type=type[0], start_date=start_date, finish_date=finish_date)
-        LastModified.objects.filter(type='refreshPrecalculatedDataTrackerCron').update(
+        LastModified.objects.filter(type='get_data_from_impression_tracker').update(
             date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
         # sub data
         if finish_date == finish_date.replace(hour=0, minute=0, second=0, microsecond=0):
@@ -2260,16 +2260,16 @@ def refreshPrecalculatedDataTracker(start_date, finish_date):
                                  start_date=finish_date - timedelta(days=type[1] + 1),
                                  finish_date=finish_date - timedelta(days=type[1])
                                  )
-            LastModified.objects.filter(type='refreshPrecalculatedDataTrackerCron').update(
+            LastModified.objects.filter(type='get_data_from_impression_tracker').update(
                 date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
         print "Refreshing " + str(type[0]) + " advertisers graph data finished: " + str(datetime.now())
 
         # refreshing campaigns grid
-        LastModified.objects.filter(type='refreshPrecalculatedDataTrackerCron').update(
+        LastModified.objects.filter(type='get_data_from_impression_tracker').update(
             date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
         # adding data
         cummulateCampaignsGraphDataTracker(type=type[0], start_date=start_date, finish_date=finish_date)
-        LastModified.objects.filter(type='refreshPrecalculatedDataTrackerCron').update(
+        LastModified.objects.filter(type='get_data_from_impression_tracker').update(
             date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
         # sub data
         if finish_date == finish_date.replace(hour=0, minute=0, second=0, microsecond=0):
@@ -2277,13 +2277,13 @@ def refreshPrecalculatedDataTracker(start_date, finish_date):
                                  start_date=finish_date - timedelta(days=type[1] + 1),
                                  finish_date=finish_date - timedelta(days=type[1])
                                  )
-            LastModified.objects.filter(type='refreshPrecalculatedDataTrackerCron').update(
+            LastModified.objects.filter(type='get_data_from_impression_tracker').update(
                 date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
         print "Refreshing " + str(type[0]) + " campaigns graph data finished: " + str(datetime.now())
     # refresh last month
     if finish_date == finish_date.replace(day=1, hour=0, minute=0, second=0, microsecond=0):
         # campaigns grid refreshing
-        LastModified.objects.filter(type='refreshPrecalculatedDataTrackerCron').update(
+        LastModified.objects.filter(type='get_data_from_impression_tracker').update(
             date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
         with connection.cursor() as cursor:
             cursor.execute("""
@@ -2323,7 +2323,7 @@ def refreshPrecalculatedDataTracker(start_date, finish_date):
         print "Refreshing last month campaigns grid data finished: " + str(datetime.now())
 
         # placements grid refreshing
-        LastModified.objects.filter(type='refreshPrecalculatedDataTrackerCron').update(
+        LastModified.objects.filter(type='get_data_from_impression_tracker').update(
             date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
         with connection.cursor() as cursor:
             cursor.execute("""
@@ -2363,7 +2363,7 @@ def refreshPrecalculatedDataTracker(start_date, finish_date):
         print "Refreshing last month placements grid data finished: " + str(datetime.now())
 
         # advertisers graph refreshing
-        LastModified.objects.filter(type='refreshPrecalculatedDataTrackerCron').update(
+        LastModified.objects.filter(type='get_data_from_impression_tracker').update(
             date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
         with connection.cursor() as cursor:
             cursor.execute("""
@@ -2381,7 +2381,7 @@ def refreshPrecalculatedDataTracker(start_date, finish_date):
         print "Refreshing last month advertisers graph data finished: " + str(datetime.now())
 
         # campaigns graph refreshing
-        LastModified.objects.filter(type='refreshPrecalculatedDataTrackerCron').update(
+        LastModified.objects.filter(type='get_data_from_impression_tracker').update(
             date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
         with connection.cursor() as cursor:
             cursor.execute("""
@@ -2397,5 +2397,5 @@ def refreshPrecalculatedDataTracker(start_date, finish_date):
                         ).replace(day=1, hour=0, minute=0, second=0, microsecond=0),
             finish_date=finish_date.replace(day=1, hour=0, minute=0, second=0, microsecond=0))
         print "Refreshing last month campaigns graph data finished: " + str(datetime.now())
-    LastModified.objects.filter(type='refreshPrecalculatedDataTrackerCron').update(date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
+    LastModified.objects.filter(type='get_data_from_impression_tracker').update(date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
     print "Refreshing tracker precalculated from " + str(start_date) + " to " + str(finish_date) + " finished: " + str(datetime.now())

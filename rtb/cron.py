@@ -692,25 +692,30 @@ def hourlyTask(dayWithHour=None, load_objects_from_services=True, output=None):
         token = getToken()
         if load_objects_from_services:
             load_depending_data(token, False, isLastModified=True)
-        while dayWithHour <= dateNow:
-            with transaction.atomic():
-                print 'SiteDomainPerformanceReport  start', get_current_time().strftime('%Y-%m-%dT%H-%M-%S')
-                load_reports_for_all_advertisers(token, dayWithHour, SiteDomainPerformanceReport, isHour=True)
-                LastModified.objects.filter(type='hourlyTask')\
-                    .update(date=timezone.make_aware(datetime.datetime.now(), timezone.get_default_timezone()))
-                
-                curMaxHour = SiteDomainPerformanceReport.objects.aggregate(m=Max('hour'))['m']
-                curMaxHour = datetime.datetime(hour=curMaxHour.hour, day=curMaxHour.day, month=curMaxHour.month,
-                                                year=curMaxHour.year, tzinfo=utc)
-                if prevMaxHour != curMaxHour:
-                    refreshPrecalculatedDataCampaings(
-                        start_date=dayWithHour - one_hour,
-                        finish_date=dayWithHour
-                    )
-                    prevMaxHour = curMaxHour
-                token = getToken()
-            dayWithHour += one_hour
-        # fillVideoAdDataCron()
+        try:
+            while dayWithHour <= dateNow:
+                LastModified.objects.filter(type='hourlyTask').update(date=timezone.make_aware(datetime.datetime.now(), timezone.get_default_timezone()))
+                with transaction.atomic():
+                    print 'SiteDomainPerformanceReport  start', get_current_time().strftime('%Y-%m-%dT%H-%M-%S'), ' for day - ', dayWithHour
+                    load_reports_for_all_advertisers(token, dayWithHour, SiteDomainPerformanceReport, isHour=True)
+
+                    print '==================================SiteDomainPerformanceReport  END', get_current_time().strftime('%Y-%m-%dT%H-%M-%S')
+                    curMaxHour = SiteDomainPerformanceReport.objects.aggregate(m=Max('hour'))['m']
+                    curMaxHour = datetime.datetime(hour=curMaxHour.hour, day=curMaxHour.day, month=curMaxHour.month,
+                                                    year=curMaxHour.year, tzinfo=utc)
+                    if prevMaxHour != curMaxHour:
+                        refreshPrecalculatedDataCampaings(
+                            start_date=dayWithHour - one_hour,
+                            finish_date=dayWithHour
+                        )
+                        prevMaxHour = curMaxHour
+                    token = getToken()
+                dayWithHour += one_hour
+            # fillVideoAdDataCron()
+        except Exception as e:
+            print 'Error by fetching data: %s' % e
+            print traceback.print_exc(file=output)
+
         if incDayWithHour:
             dayWithHour = datetime.datetime(hour=incDayWithHour.hour, day=incDayWithHour.day, month=incDayWithHour.month,
                                             year=incDayWithHour.year, tzinfo=utc)

@@ -51,11 +51,25 @@
         }
       })
       .state('home.videomain', {
-        url: '/video/main',
+        url: '/video/main/:id',
         templateUrl: 'app/video/main/videomain.html',
         controller: 'VideoMainController',
         controllerAs: 'vmain',
         resolve: {
+          advertiserParams: function(Auth,$stateParams, $state, Home){
+            if (!$stateParams.id) {
+              $state.go('/');
+            }
+
+            return Auth.advertiser($stateParams.id)
+              .then(function (res) {
+                if (res == undefined) {
+                  $state.go('/');
+                }
+                Home.AdverInfo.advertiser_name = res.name;
+                return res;
+              });
+          },
           TWStatus: function (AdminService, $stateParams, $state, $cookies) {
             return AdminService.getValueOfTech().then(function (res) {
               if ((res == "on") &&
@@ -73,12 +87,13 @@
         controller: 'VideoCampaignController',
         controllerAs: 'videocamp',
         resolve: {
-          Campaign: function (CampMain, $stateParams, $state) {
+          Campaign: function (CampMain, $stateParams, $state, Home) {
             if (!$stateParams.id) {
               $state.go('home.main');
             }
             return CampMain.nameCampaigns($stateParams.id).then(function (res) {
-              return res
+              Home.AdverInfo = res;
+              return res;
             });
           },
           TWStatus: function (AdminService, $stateParams, $state, $cookies) {
@@ -98,12 +113,13 @@
         controller: 'AutomaticCpmController',
         controllerAs: 'acpmc',
         resolve: {
-          Campaign: function (CampMain, $stateParams, $state) {
+          Campaign: function (CampMain, $stateParams, $state, Home) {
             if (!$stateParams.id) {
               $state.go('home.main');
             }
             return CampMain.nameCampaigns($stateParams.id).then(function (res) {
-              return res
+              Home.AdverInfo = res;
+              return res;
             });
           },
           TWStatus: function (AdminService, $stateParams, $state, $cookies) {

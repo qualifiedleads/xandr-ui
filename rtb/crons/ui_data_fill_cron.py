@@ -685,7 +685,7 @@ ON CONFLICT (campaign_id, placement_id)
     ctr = case (coalesce(ut.imps, 0) + coalesce(Excluded.imps, 0)) when 0 then 0 else ut.clicks ::float / coalesce(ut.imps, 0) + coalesce(Excluded.imps, 0) end,
     cpc = case ut.clicks when 0 then 0 else (coalesce(ut.spent, 0) + coalesce(Excluded.spent, 0)) / ut.clicks end,
     cvr = case (coalesce(ut.imps, 0) + coalesce(Excluded.imps, 0)) when 0 then 0 else ut.conversions::float / (coalesce(ut.imps, 0) + coalesce(Excluded.imps, 0)) end,
-    cpa = case ut.conversions + Excluded.conversions when 0 then 0 else (coalesce(ut.spent, 0) + coalesce(Excluded.spent, 0)) / ut.conversions end;
+    cpa = case ut.conversions when 0 then 0 else (coalesce(ut.spent, 0) + coalesce(Excluded.spent, 0)) / ut.conversions end;
        """)
 
         cursor.execute("""
@@ -795,7 +795,7 @@ FROM (
   t."CpId",
   t."PlacementId",
   count(t."id") as imp,
-  coalesce(sum(t."PricePaid"),0)  / 1000.0 as spent
+  coalesce(sum(t."PricePaid"),0) / 1000.0 as spent
 from
   rtb_impression_tracker t
 where
@@ -812,7 +812,7 @@ update ui_usual_placements_grid_data_""" + str(type) + """_tracker as ut
 set
   clicks = ut.clicks - info.clicks,
   ctr = case ut.imps when 0 then 0 else (ut.clicks - info.clicks)::float / ut.imps end,
-  cpc = case ut.clicks when 0 then 0 else ut.spent / (ut.clicks - info.clicks) end
+  cpc = case (ut.clicks - info.clicks) when 0 then 0 else ut.spent / (ut.clicks - info.clicks) end
 FROM (
   select
   rtb_impression_tracker."CpId",
@@ -1130,8 +1130,8 @@ insert into ui_usual_campaigns_grid_data_""" + str(type) + """_tracker as ut (
          'day', site_r."Date"::timestamp::date,
          'imp', 0,
          'mediaspent', 0,
-         'clicks', count(site_r."id"),
-         'conversions', 0,
+         'clicks', 0,
+         'conversions', count(site_r."id"),
          'cpa', 0,
          'cpc', 0,
          'ctr', 0)
@@ -1216,7 +1216,7 @@ update ui_usual_campaigns_grid_data_""" + str(type) + """_tracker as ut
 set
   clicks = ut.clicks - info.clicks,
   ctr = case ut.imps when 0 then 0 else (ut.clicks - info.clicks)::float / ut.imps end,
-  cpc = case ut.clicks when 0 then 0 else ut.spent / (ut.clicks - info.clicks) end
+  cpc = case (ut.clicks - info.clicks) when 0 then 0 else ut.spent / (ut.clicks - info.clicks) end
 FROM (
   select
   "CpId",

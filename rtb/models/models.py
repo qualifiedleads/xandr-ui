@@ -305,6 +305,7 @@ class Advertiser(models.Model):
     is_malicious = models.NullBooleanField(null=True, blank=True)
     #object_stats	object #should be in sepparait model if needed
     #thirdparty_pixels	array # see the model AdvertiserThirdpartyPixels below
+    rules_type = models.TextField(null=True, blank=True, db_index=True, default="report") #type of rules - "report"/"tracker"
     ad_type = models.TextField(null=True, blank=True, db_index=True, default="usualAds") #type of advertiser (usualAds/videoAd)
     grid_data_source = models.TextField(null=True, blank=True, db_index=True, default="report") # source of the grid data (report/tracker)
 

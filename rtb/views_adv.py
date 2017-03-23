@@ -402,6 +402,7 @@ where calc_place_info.campaign_id = """ + str(id) + ' ' + filt + ' ' + order + "
                 "placement__rtbimpressiontrackerplacementdomain__domain": row.domain,
                 "analitics": mlFillPredictionAnswer(row.id, False, "kmeans", "ctr_cvr_cpc_cpm_cpa"),
                 "analitics1": mlFillPredictionAnswer(row.id, False, "log", "ctr_cvr_cpc_cpm_cpa"),
+                "state": row.state,
                 "campaign": row.name,
                 "clicks": 0 if row.clicks is None else row.clicks,
                 "conv": 0 if row.conversions is None else row.conversions,

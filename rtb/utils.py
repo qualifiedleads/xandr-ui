@@ -109,9 +109,14 @@ def check_user_advertiser_permissions(**field_names):
                 if user.is_superuser or user.is_staff:
                     assert not(user.is_staff and check_write)
                 else:
-                    advertiser_id = request.GET.get('advertiser_id') or \
-                                    ('advertiser_id_num' in field_names and args[field_names['advertiser_id_num']]) or \
-                                    ('advertiser_id_name' in field_names and kwargs[field_names['advertiser_id_name']])
+                    k = parse_get_params(request.GET)
+                    if 'advertiser_id_name' in field_names and field_names['advertiser_id_name'] == 5 and float(args[0]):
+                        advertiser_id = Advertiser.objects.get(pk=float(args[0])).id
+                    else:
+                        advertiser_id = request.GET.get('advertiser_id') or \
+                                        ('advertiser_id_num' in field_names and args[field_names['advertiser_id_num']]) or \
+                                        ('advertiser_id_name' in field_names and kwargs[field_names['advertiser_id_name']])
+
                     if not advertiser_id:
                         campaign_id = request.GET.get('campaign_id') or \
                                       ('campaign_id_num' in field_names and args[field_names['campaign_id_num']]) or \
@@ -127,7 +132,7 @@ def check_user_advertiser_permissions(**field_names):
                     else:
                         filter_param={'frameworkuser_id':user.pk, 'advertiser_id':advertiser_id}
                         if check_write:
-                            filter_param['can_write']=True;
+                            filter_param['can_write']=True
                         membership_info = MembershipUserToAdvertiser.objects.filter(filter_param)
                     assert membership_info.exists()
             except:

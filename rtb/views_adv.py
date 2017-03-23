@@ -41,7 +41,7 @@ def advertisercampaigns(request):
 
 
 @api_view()
-@check_user_advertiser_permissions(campaign_id_num=0)
+@check_user_advertiser_permissions(advertiser_id_name=5)
 def advertiserSingle(request, id):
     adv = Advertiser.objects.get(pk=id)
     return Response({'id': adv.id, 'name': adv.name})

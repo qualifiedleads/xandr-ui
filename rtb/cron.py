@@ -308,6 +308,11 @@ def analize_csv(filename, modelClass, metadata={}, isHour=False):
                 rows = list(islice(reader, 0, 4000))
                 if not rows:
                     break
+                print "before - ", len(rows)
+                for index, objSing in enumerate(rows):
+                    if objSing['campaign_id'] == '0':
+                        del rows[index]
+                print "after - ", len(rows)
                 if isHour == False:
                     if len(rows) > 100:
                         objects_to_save = worker.map(create_object_from_dict, rows)
@@ -315,9 +320,8 @@ def analize_csv(filename, modelClass, metadata={}, isHour=False):
                         context_initializer(context)
                         objects_to_save = map(create_object_from_dict, rows)
                 else:
-                    if len(rows) > 0:
-                        context_initializer(context)
-                        objects_to_save = map(create_object_from_dict, rows)
+                    context_initializer(context)
+                    objects_to_save = map(create_object_from_dict, rows)
                 if len(rows) != len(objects_to_save):
                     print "There are error in multithreaded map"
                 if not all(objects_to_save):

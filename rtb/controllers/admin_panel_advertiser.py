@@ -22,3 +22,13 @@ def apiSetAdDataSource(request):
         print "Can not update advertiser data source: ", str(e)
         return Response(status=status.HTTP_400_BAD_REQUEST)
     return Response(status=status.HTTP_200_OK)
+
+@api_view(["PUT"])
+# @check_user_advertiser_permissions(campaign_id_num=0)
+def apiSetAdRulesType(request):
+    try:
+        Advertiser.objects.filter(id=request.data.get("id")).update(rules_type=request.data.get("rules_type"))
+    except Exception, e:
+        print "Can not update advertiser rules type: ", str(e)
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+    return Response(status=status.HTTP_200_OK)

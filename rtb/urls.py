@@ -52,5 +52,6 @@ urlpatterns = [
     url(r'^technicalwork[/]?$', technical_work.handler),
     url(r'^advertisersType[/]?$', admin_panel_advertiser.apiSetAdType),
     url(r'^advertisersDataSource[/]?$', admin_panel_advertiser.apiSetAdDataSource),
+    url(r'^advertisersRulesType[/]?$', admin_panel_advertiser.apiSetAdRulesType),
     url(r'^banner[/]?$', technical_work.banner)
 ]

@@ -54,23 +54,24 @@
           'PERMISSION':'Разрешение'
         },
         "TECHNICAL-WORK": {
-          "EDIT-USERS" : "Редактировать пользователей",
+          "EDIT-USERS": "Редактировать пользователей",
           'TECH-WORK':'Технические работы',
           'ADVERTISER-LIST':'Cписок рекламодателей',
           'TECH-WORK-SWITCHER':'проведение технических работ на сайте',
           'TECH-JOURNAL':'Журнал проведения технических работ',
-          'TECH-DATE':'Дата',
-          'TECH-STATUS':'Статус',
-          'TECH-STATUS-BANNER':'СТАТУС БАННЕРА',
-          'APNEXUS-ID':'Id пользователя AppNexus',
-          'APNEXUS-NAME':'Имя пользователя AppNexus',
-          'PERMISSION':'Разрешение'
+          'TECH-DATE': 'Дата',
+          'TECH-STATUS': 'Статус',
+          'TECH-STATUS-BANNER': 'СТАТУС БАННЕРА',
+          'APNEXUS-ID': 'Id пользователя AppNexus',
+          'APNEXUS-NAME': 'Имя пользователя AppNexus',
+          'PERMISSION': 'Разрешение'
         },
         "ADVERTISER-LIST": {
-          'NAME' : 'Имя',
-          'ID' : 'Id',
+          'NAME': 'Имя',
+          'ID': 'Id',
           'AD-TYPE': 'Тип рекламодателя',
-          'DATA_SOURCE': 'Источник данных'
+          'DATA_SOURCE': 'Источник данных',
+          'DATA-FOR-RULES': 'Данные для правил'
         }
       },
       'INDEX':{

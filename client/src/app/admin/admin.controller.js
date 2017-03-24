@@ -498,6 +498,107 @@
                 tracker.addClass('state-blackDS' + options.data.id).appendTo(container);
               }
             }
+          },
+          {
+            caption: LC('ADMIN.ADVERTISER-LIST.DATA-FOR-RULES'),
+            width: 204,
+            columnIndex: 16,
+            allowEditing: false,
+            dataField: 'rules_type',
+            alignment: 'left',
+            cellTemplate: function (container, options) {
+              var report = $window.$('<div />').dxButton({
+                text: 'Report',
+                height: 30,
+                width: 89,
+                disabled: false,
+                onClick: function (e) {
+                  var w = $window.$('div.state-whiteRT' + options.data.id);
+                  var b = $window.$('div.state-blackRT' + options.data.id);
+                  w.dxButton('instance').option('disabled', true);
+                  b.dxButton('instance').option('disabled', true);
+                  w.removeClass('active-white');
+                  b.removeClass('active-white');
+                  AdminService.changeAdvertiserDataforrules(options.data.id, 'report')
+                    .then(function (res) {
+                      w.dxButton('instance').option('disabled', false);
+                      b.dxButton('instance').option('disabled', false);
+                      if (res == 404) {
+                        $window.DevExpress.ui.notify('Not found', 'warning', 4000);
+                        $('#gridContainerWhite').dxDataGrid('instance').refresh();
+                        return res;
+                      }
+
+                      if (res == 503) {
+                        $window.DevExpress.ui.notify('Not connect to appnexus server, please try again later', 'warning', 4000);
+                        $window.$('#gridContainer2').dxDataGrid('instance').refresh();
+                        return res;
+                      }
+
+                      if (res !== 'Unactive') {
+                        w.addClass('active-white');
+                      }
+
+                      return res;
+                    })
+                    .catch(function (err) {
+                      return err;
+                    });
+                }
+              });
+
+              if (options.data.grid_data_source == 'report') {
+                report.addClass('state-whiteRT' + options.data.id).addClass('active-white').appendTo(container);
+              } else {
+                report.addClass('state-whiteRT' + options.data.id).appendTo(container);
+              }
+
+              var tracker = $window.$('<div />').dxButton({
+                text: 'Tracker',
+                height: 30,
+                width: 89,
+                disabled: false,
+                onClick: function (e) {
+                  var w = $window.$('div.state-whiteRT' + options.data.id);
+                  var b = $window.$('div.state-blackRT' + options.data.id);
+                  w.dxButton('instance').option('disabled', true);
+                  b.dxButton('instance').option('disabled', true);
+                  w.removeClass('active-white');
+                  b.removeClass('active-white');
+                  AdminService.changeAdvertiserDataforrules(options.data.id, 'tracker')
+                    .then(function (res) {
+                      w.dxButton('instance').option('disabled', false);
+                      b.dxButton('instance').option('disabled', false);
+                      if (res == 404) {
+                        $window.DevExpress.ui.notify('Not found', 'warning', 4000);
+                        $window.$('#gridContainer2').dxDataGrid('instance').refresh();
+                        return res;
+                      }
+
+                      if (res == 503) {
+                        $window.DevExpress.ui.notify('Not connect to appnexus server, please try again later', 'warning', 4000);
+                        $window.$('#gridContainer2').dxDataGrid('instance').refresh();
+                        return res;
+                      }
+
+                      if (res !== 'Unactive') {
+                        b.addClass('active-white');
+                      }
+
+                      return res;
+                    })
+                    .catch(function (err) {
+                      return err;
+                    });
+                }
+              });
+
+              if (options.data.grid_data_source == 'tracker') {
+                tracker.addClass('state-blackRT' + options.data.id).addClass('active-white').appendTo(container);
+              } else {
+                tracker.addClass('state-blackRT' + options.data.id).appendTo(container);
+              }
+            }
           }
         ]
       }

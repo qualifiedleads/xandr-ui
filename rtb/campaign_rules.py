@@ -11,10 +11,6 @@ import pytz
 def checkRules():
     try:    # update table
         print "Start - check rules"
-        query = """ REFRESH MATERIALIZED VIEW view_rules_campaign_placements """
-        cursor = connection.cursor()
-        cursor.execute(query, locals())
-        print "     REFRESHED VIEW view_rules_campaign_placements"
         allRule = list(CampaignRules.objects.all())
         for campaignRules in allRule:
             for oneCampaignRules in campaignRules.rules:
@@ -22,7 +18,7 @@ def checkRules():
                 queryString = ''
                 if len(oneCampaignRules['if']) >= 1:
                     result = recursionParseRule(oneCampaignRules['if'], queryString)
-                    query = """ SELECT placement_id FROM view_rules_campaign_placements WHERE campaign_id=""" + str(campaignRules.campaign_id) + ' and ' + result
+                    query = """ SELECT placement_id FROM view_rule_type_usual WHERE campaign_id=""" + str(campaignRules.campaign_id) + ' and ' + result
                     cursor = connection.cursor()
                     cursor.execute(query, locals())
                     numrows = int(cursor.rowcount)

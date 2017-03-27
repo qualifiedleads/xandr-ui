@@ -1,4 +1,4 @@
-from models.models import Campaign, Profile, LastToken
+from models.models import Campaign, Profile, LastToken, Advertiser
 from rtb.models.placement_state import CampaignRules, PlacementState
 from django.db import connection
 from django.utils import timezone
@@ -9,16 +9,23 @@ import pytz
 
 
 def checkRules():
-    try:    # update table
+    try:    
         print "Start - check rules"
-        allRule = list(CampaignRules.objects.all())
+        allRule = list(CampaignRules.objects.all().select_related("campaign"))
         for campaignRules in allRule:
+            tableType = ''
+            if campaignRules.campaign.advertiser_id:
+                rulesType = Advertiser.objects.get(pk=campaignRules.campaign.advertiser_id).rules_type
+                if rulesType == 'report':
+                    tableType = "view_rule_type_usual"
+                if rulesType == 'tracker':
+                    tableType = "view_rule_type_tracker"
             for oneCampaignRules in campaignRules.rules:
                 place = []
                 queryString = ''
                 if len(oneCampaignRules['if']) >= 1:
                     result = recursionParseRule(oneCampaignRules['if'], queryString)
-                    query = """ SELECT placement_id FROM view_rule_type_usual WHERE campaign_id=""" + str(campaignRules.campaign_id) + ' and ' + result
+                    query = """ SELECT placement_id FROM """ + str(tableType) + """ WHERE campaign_id=""" + str(campaignRules.campaign_id) + ' and ' + result
                     cursor = connection.cursor()
                     cursor.execute(query, locals())
                     numrows = int(cursor.rowcount)

@@ -19,10 +19,11 @@ class MLPlacementDailyFeatures(models.Model):
     cvr = models.DecimalField(null=True, max_digits=35, decimal_places=10)
     cpc = models.DecimalField(null=True, max_digits=35, decimal_places=10)
     cpm = models.DecimalField(null=True, max_digits=35, decimal_places=10)
+    adv_type = models.TextField(null=True, blank=True, db_index=True)
 
     class Meta:
         db_table = "ml_placement_daily_features"
-        unique_together = (('placement', 'day'),)
+        unique_together = (('placement', 'day', 'adv_type'),)
 
 
 class MLPlacementsClustersKmeans(models.Model):
@@ -36,10 +37,11 @@ class MLPlacementsClustersKmeans(models.Model):
     test_number = models.IntegerField(null=True)
     expert_decision = models.NullBooleanField(null=True)
     good = models.NullBooleanField(null=True)
+    adv_type = models.TextField(null=True, blank=True, db_index=True)
 
     class Meta:
         db_table = "ml_placements_clusters_kmeans"
-        unique_together = (('placement', 'day', 'test_number'),)
+        unique_together = (('placement', 'day', 'test_number', 'adv_type'),)
 
 
 class MLClustersCentroidsKmeans(models.Model):
@@ -50,10 +52,11 @@ class MLClustersCentroidsKmeans(models.Model):
             models.DecimalField(max_digits=35, decimal_places=10),
         )
     test_number = models.IntegerField(null=True)
+    adv_type = models.TextField(null=True, blank=True, db_index=True)
 
     class Meta:
         db_table = "ml_clusters_centroids_kmeans"
-        unique_together = (('cluster', 'day', 'test_number'),)
+        unique_together = (('cluster', 'day', 'test_number', 'adv_type'),)
 
 class MLNormalizationData(models.Model):
     id = models.AutoField(primary_key=True)
@@ -63,10 +66,11 @@ class MLNormalizationData(models.Model):
     maxcvr = models.DecimalField(null=True, max_digits=35, decimal_places=10)
     maxcpc = models.DecimalField(null=True, max_digits=35, decimal_places=10)
     maxcpm = models.DecimalField(null=True, max_digits=35, decimal_places=10)
+    adv_type = models.TextField(null=True, blank=True, db_index=True)
 
     class Meta:
         db_table = "ml_normalization_data"
-        unique_together = (('test_number', 'day'),)
+        unique_together = (('test_number', 'day', 'adv_type'),)
 
 class MLExpertsPlacementsMarks(models.Model):
     id = models.AutoField(primary_key=True)

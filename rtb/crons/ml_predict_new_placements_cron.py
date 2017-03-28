@@ -23,9 +23,9 @@ def mlPredictNewPlacementsCron():
                      date=timezone.make_aware(datetime.datetime.now(), timezone.get_default_timezone())).save()
 
         impsBorder = 1000
-        goodClusters = mlGetGoodClusters("ctr_cvr_cpc_cpm_cpa")
+        goodClusters = mlGetGoodClusters("ctr_cvr_cpc_cpm_cpa", "ecommerceAd")
         if goodClusters == -1:
-            print "K-means model is not taught"
+            print "K-means eCommerce model is not taught"
         else:
             # find new placements for test_number 2
             newPlacementsList = NetworkAnalyticsReport_ByPlacement.objects.raw(
@@ -33,12 +33,16 @@ def mlPredictNewPlacementsCron():
                       t1.placement_id as id
                     FROM
                       network_analytics_report_by_placement t1
-                      left join ml_placements_clusters_kmeans t2 on t2.placement_id = t1.placement_id and test_number = 2
-                    where t2.placement_id is null
+                      left join ml_placements_clusters_kmeans t2 on t2.placement_id = t1.placement_id and test_number = 2 and t2.adv_type='ecommerceAd'
+                      join campaign
+                      on t1.campaign_id = campaign.id
+                      join advertiser
+                        on advertiser.id=campaign.advertiser_id
+                    where t2.placement_id is null and advertiser.ad_type='ecommerceAd'
                     GROUP BY
                       t1.placement_id
                     HAVING
-                      COUNT(DISTINCT extract ( dow from t1.hour)) = 7 and SUM(t1.imps) >="""+ str(impsBorder)
+                      COUNT(DISTINCT extract ( dow from t1.hour)) = 7 and SUM(t1.imps) >=""" + str(impsBorder)
             )
             # predict new placements for test_number 2
             n = 0
@@ -48,10 +52,44 @@ def mlPredictNewPlacementsCron():
             for row in newPlacementsList:
                 LastModified.objects.filter(type='mlPredictNewPlacementsCron') \
                     .update(date=timezone.make_aware(datetime.datetime.now(), timezone.get_default_timezone()))
-                mlPredictKmeans(row.id, "ctr_cvr_cpc_cpm_cpa")
+                mlPredictKmeans(row.id, "ctr_cvr_cpc_cpm_cpa", advertiser_type="ecommerceAd")
                 n += 1
 
-            print "K-means placements recognized: " + str(n)
+            print "K-means eCommerce placements recognized: " + str(n)
+
+        goodClusters = mlGetGoodClusters("ctr_cvr_cpc_cpm_cpa", "leadGenerationAd")
+        if goodClusters == -1:
+            print "K-means lead-generation model is not taught"
+        else:
+            # find new placements for test_number 2
+            newPlacementsList = NetworkAnalyticsReport_ByPlacement.objects.raw(
+                """SELECT
+                      t1.placement_id as id
+                    FROM
+                      network_analytics_report_by_placement t1
+                      left join ml_placements_clusters_kmeans t2 on t2.placement_id = t1.placement_id and test_number = 2 and t2.adv_type='leadGenerationAd'
+                      join campaign
+                      on t1.campaign_id = campaign.id
+                      join advertiser
+                        on advertiser.id=campaign.advertiser_id
+                    where t2.placement_id is null and advertiser.ad_type='leadGenerationAd'
+                    GROUP BY
+                      t1.placement_id
+                    HAVING
+                      COUNT(DISTINCT extract ( dow from t1.hour)) = 7 and SUM(t1.imps) >=""" + str(impsBorder)
+            )
+            # predict new placements for test_number 2
+            n = 0
+            LastModified.objects.filter(type='mlPredictNewPlacementsCron') \
+                .update(date=timezone.make_aware(datetime.datetime.now(), timezone.get_default_timezone()))
+
+            for row in newPlacementsList:
+                LastModified.objects.filter(type='mlPredictNewPlacementsCron') \
+                    .update(date=timezone.make_aware(datetime.datetime.now(), timezone.get_default_timezone()))
+                mlPredictKmeans(row.id, "ctr_cvr_cpc_cpm_cpa", advertiser_type="leadGenerationAd")
+                n += 1
+
+            print "K-means lead-generation placements recognized: " + str(n)
 
         #logreg
         n = 0

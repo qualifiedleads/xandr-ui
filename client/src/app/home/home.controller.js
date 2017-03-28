@@ -23,7 +23,7 @@
       vm.video = true;
     }
 
-    if ($localStorage.advertiser.ad_type === 'usualAds' || $localStorage.advertiser.ad_type === null) {
+    if ($localStorage.advertiser.ad_type === 'leadGenerationAd' || $localStorage.advertiser.ad_type === 'ecommerceAd' || $localStorage.advertiser.ad_type === null) {
       vm.usual = true;
     }
 

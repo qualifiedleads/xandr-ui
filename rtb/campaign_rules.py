@@ -16,16 +16,25 @@ def checkRules():
         for campaignRules in allRule:
             tableType = ''
             if campaignRules.campaign.advertiser_id:
-                rulesType = Advertiser.objects.get(pk=campaignRules.campaign.advertiser_id).rules_type
+                currentAdvertiser = Advertiser.objects.get(pk=campaignRules.campaign.advertiser_id)
+                rulesType = currentAdvertiser.rules_type
+                adType = currentAdvertiser.ad_type
+                if adType == 'ecommerceAd':
+                    predType= 'predictionecomm'
+                else:
+                    predType = 'predictionleadgen'
                 if rulesType == 'report':
-                    tableType = "view_rule_type_usual"
+                    tableType = "view_rule_type_report"
+                    unsuspendTableType = "view_rule_unsuspend_type_report"
+                    prediction = ''
                 if rulesType == 'tracker':
                     tableType = "view_rule_type_tracker"
+                    unsuspendTableType = "view_rule_unsuspend_type_tracker"
             for oneCampaignRules in campaignRules.rules:
                 place = []
                 queryString = ''
                 if len(oneCampaignRules['if']) >= 1:
-                    result = recursionParseRule(oneCampaignRules['if'], queryString)
+                    result = recursionParseRule(oneCampaignRules['if'], queryString, predType)
                     query = """ SELECT placement_id FROM """ + str(tableType) + """ WHERE campaign_id=""" + str(campaignRules.campaign_id) + ' and ' + result
                     cursor = connection.cursor()
                     cursor.execute(query, locals())
@@ -42,9 +51,20 @@ def checkRules():
                                 unsuspendPlacementId.append(itemPlacement.placement_id)
                                 usualPlacementId.remove(itemPlacement.placement_id)
                         if len(unsuspendPlacementId) > 0:
-                            pass
+                            unsuspendPlacement = []
+                            placementIndict = '(' + str(unsuspendPlacementId)[1:-1] + ')'
+                            unsuspendQuery = """ SELECT placement_id FROM """ + str(unsuspendTableType) \
+                                    + """ WHERE campaign_id=""" + str(campaignRules.campaign_id) + """ and """ \
+                                    + """ placement_id in """ + placementIndict \
+                                    + """ and """ + result
+                            cursor = connection.cursor()
+                            cursor.execute(unsuspendQuery, locals())
+                            numrows = int(cursor.rowcount)
+                            for x in range(0, numrows):
+                                unsuspendPlacement.append(cursor.fetchone()[0])
+                            changeRulesState(oneCampaignRules['then'], campaignRules.campaign_id, unsuspendPlacement)
                         if len(usualPlacementId) > 0:
-                            changed = changeRulesState(oneCampaignRules['then'], campaignRules.campaign_id, place)
+                            changeRulesState(oneCampaignRules['then'], campaignRules.campaign_id, usualPlacementId)
 
                     else:
                         print "         Not have placement-{0}".format(place)
@@ -54,17 +74,17 @@ def checkRules():
         print 'Error: ' + str(e)
 
 
-def recursionParseRule(rule, queryString):
+def recursionParseRule(rule, queryString, predType):
     for arrayIf in rule:
         if type(arrayIf) is list:
-            queryString = queryString + '( ' + recursionParseRule(arrayIf, '')
+            queryString = queryString + '( ' + recursionParseRule(arrayIf, '', predType)
             queryString = queryString + ' )'
         if type(arrayIf) is dict and arrayIf['type'] == 'condition':
-            if arrayIf['payment'] == 'prediction1' or arrayIf['payment'] == 'prediction2':
+            if arrayIf['payment'] == 'prediction':
                 if arrayIf['value'] == 'bad':
-                    queryString = str(queryString) + str(arrayIf['payment']) + str(arrayIf['compare']) + 'false '
+                    queryString = str(queryString) + predType + str(arrayIf['compare']) + 'false '
                 else:
-                    queryString = str(queryString) + str(arrayIf['payment']) + str(arrayIf['compare']) + 'true '
+                    queryString = str(queryString) + predType + str(arrayIf['compare']) + 'true '
             else:
                 queryString = str(queryString) + str(arrayIf['payment']) + str(arrayIf['compare']) + str(
                     arrayIf['value']) + ' '
@@ -87,7 +107,13 @@ def changeRulesState (then, campaign_id, arrayPlacement):
         if then in ['1', '3', '7']:
             state = 1
             date = timezone.make_aware(datetime.datetime.now(), timezone.get_default_timezone()) + datetime.timedelta(days=int(then))
+        listForPirntCountAdd = []
         for placement in arrayPlacement:
+            if date is not None:
+                tempRow = list(PlacementState.objects.filter(campaign_id=campaign_id, placement_id=placement))
+                if len(tempRow) > 0:
+                    if tempRow[0].suspend is not None:
+                        continue
             obj, created = PlacementState.objects.update_or_create(campaign_id=campaign_id,
                                                                    placement_id=placement,
                                                                    defaults=dict(
@@ -95,6 +121,7 @@ def changeRulesState (then, campaign_id, arrayPlacement):
                                                                        suspend=date,
                                                                        change=True
                                                                    ))
-        print "         Changed placement-{0} to state {1}-{2}".format(arrayPlacement, then, state)
+            listForPirntCountAdd.append(placement)
+        print "         Changed placement-{0} to state {1}-{2}".format(listForPirntCountAdd, then, state)
     except Exception, e:
         print 'Error: ' + str(e)

@@ -1,5 +1,6 @@
 from models.models import Campaign, Profile, LastToken, Advertiser
 from rtb.models.placement_state import CampaignRules, PlacementState
+from rtb.models.placement_state_unsuspend import PlacementStateUnsuspend
 from django.db import connection
 from django.utils import timezone
 from datetime import timedelta
@@ -9,7 +10,7 @@ import pytz
 
 
 def checkRules():
-    try:    
+    try:
         print "Start - check rules"
         allRule = list(CampaignRules.objects.all().select_related("campaign"))
         for campaignRules in allRule:
@@ -33,7 +34,18 @@ def checkRules():
                         place.append(cursor.fetchone()[0])
                     print '     Campaign-{0} rule-{1}'.format(campaignRules.campaign_id, oneCampaignRules['id'])
                     if len(place) >= 1:
-                        changed = changeRulesState(oneCampaignRules['then'], campaignRules.campaign_id, place)
+                        usualPlacementId = place
+                        unsuspendPlacementId = []
+                        unsuspendList = list(PlacementStateUnsuspend.objects.filter(placement_id__in=place, campaign_id=campaignRules.campaign_id))
+                        for itemPlacement in unsuspendList:
+                            if itemPlacement.placement_id in place:
+                                unsuspendPlacementId.append(itemPlacement.placement_id)
+                                usualPlacementId.remove(itemPlacement.placement_id)
+                        if len(unsuspendPlacementId) > 0:
+                            pass
+                        if len(usualPlacementId) > 0:
+                            changed = changeRulesState(oneCampaignRules['then'], campaignRules.campaign_id, place)
+
                     else:
                         print "         Not have placement-{0}".format(place)
 

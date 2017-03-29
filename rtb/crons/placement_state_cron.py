@@ -6,24 +6,24 @@ from datetime import timedelta
 
 def suspend_state_middleware_cron():
     try:
-        change_state = LastModified.objects.filter(type='suspend_state_middleware_cron')
-        if len(change_state) >= 1:
-            if timezone.make_aware(datetime.datetime.now(), timezone.get_default_timezone()) - change_state[
-                0].date >= timedelta(
-                    minutes=15):
-                LastModified.objects.filter(type='suspend_state_middleware_cron').delete()
-            else:
-                print "suspend_state_middleware_cron is busy, wait..."
-                return None
-        LastModified(type='suspend_state_middleware_cron',
-                     date=timezone.make_aware(datetime.datetime.now(), timezone.get_default_timezone())).save()
+        # change_state = LastModified.objects.filter(type='suspend_state_middleware_cron')
+        # if len(change_state) >= 1:
+        #     if timezone.make_aware(datetime.datetime.now(), timezone.get_default_timezone()) - change_state[
+        #         0].date >= timedelta(
+        #             minutes=15):
+        #         LastModified.objects.filter(type='suspend_state_middleware_cron').delete()
+        #     else:
+        #         print "suspend_state_middleware_cron is busy, wait..."
+        #         return None
+        # LastModified(type='suspend_state_middleware_cron',
+        #              date=timezone.make_aware(datetime.datetime.now(), timezone.get_default_timezone())).save()
 
         state = PlacementState(None, None)
         state.suspend_state_middleware()
 
-        LastModified.objects.filter(type='suspend_state_middleware_cron').delete()
+        # LastModified.objects.filter(type='suspend_state_middleware_cron').delete()
     except Exception, e:
-        LastModified.objects.filter(type='suspend_state_middleware_cron').delete()
+        # LastModified.objects.filter(type='suspend_state_middleware_cron').delete()
         print 'Cron job - suspend_state_middleware_cron Error: ' + str(e)
 
 

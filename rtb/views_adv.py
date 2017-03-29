@@ -420,8 +420,7 @@ where calc_place_info.campaign_id = """ + str(id) + ' ' + filt + ' ' + order + "
                 "imp": 0 if row.imps is None else row.imps,
                 "imps_viewed": 0 if row.imps_viewed is None else row.imps_viewed,
                 "view_measured_imps": 0 if row.view_measured_imps is None else row.view_measured_imps,
-                "view_rate": 0 if row.view_rate is None else row.view_rate,
-                "advertiser_type": advInfo.ad_type
+                "view_rate": 0 if row.view_rate is None else row.view_rate
             })
 
             queryRes = Campaign.objects.raw("""
@@ -477,6 +476,8 @@ where calc_place_info.campaign_id = """ + str(id) + ' ' + filt + """) info;""")[
             allCampaignsInfo["totalCount"] = queryRes.total_count
 
             allCampaignsInfo["totalSummary"] = queryRes.id
+
+            allCampaignsInfo["advertiser_type"] = advInfo.ad_type
 
         return Response(allCampaignsInfo)
     except Exception, e:

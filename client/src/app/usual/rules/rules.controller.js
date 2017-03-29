@@ -26,7 +26,7 @@
     vm.popUpHide = popUpHide;
     vm.checkTime = checkTime;
 
-    function popUpHide () {
+    function popUpHide() {
       vm.popUpIf = false;
     }
 
@@ -47,40 +47,38 @@
       Rules.saveRules(Home.AdverInfo.id, vm.rulesArray);
     }
 
-
     Rules
       .getRules(Home.AdverInfo.id)
       .then(function (rule) {
-        if (rule){
+        if (rule) {
           vm.rulesArray = rule;
         }
       });
 
     //wrapper.classList.remove('hidden-menu');
 
-
     vm.addField = function (rule) {
       if (rule.$parent.$parent.$parent.$parent.rule) {
         rule.$parent.$parent.$parent.$parent.rule.push(
-          {"type": "logic", "logicOrAnd": 'and'},
+          { type: 'logic', logicOrAnd: 'and' },
           {
-            "type": "condition",
-            "target": "Placement/App",
-            "payment": "CPA",
-            "compare": ">",
-            "value": 0
+            type: 'condition',
+            target: 'Placement/App',
+            payment: 'CPA',
+            compare: '>',
+            value: 0
           }
         );
 
       } else {
         rule.$parent.$parent.rules.if.push(
-          {"type": "logic", "logicOrAnd": 'and'},
+          { type: 'logic', logicOrAnd: 'and' },
           {
-            "type": "condition",
-            "target": "Placement/App",
-            "payment": "cpa",
-            "compare": ">",
-            "value": 0
+            type: 'condition',
+            target: 'Placement/App',
+            payment: 'cpa',
+            compare: '>',
+            value: 0
           }
         );
       }
@@ -89,28 +87,28 @@
     vm.addGroup = function (rule, ind) {
       if (rule.$parent.$parent.$parent.rule) {
         rule.$parent.$parent.$parent.rule.push({
-            "type": "logic",
-            "logicOrAnd": 'and'
+            type: 'logic',
+            logicOrAnd: 'and'
           },
           [
             {
-              "type": "condition",
-              "target": "Placement/App",
-              "payment": "cpa",
-              "compare": ">",
-              "value": 0
+              type: 'condition',
+              target: 'Placement/App',
+              payment: 'cpa',
+              compare: '>',
+              value: 0
             }
           ]
         );
       } else {
-        rule.$parent.rules.if.push({"type": "logic", "logicOrAnd": 'and'},
+        rule.$parent.rules.if.push({ type: 'logic', logicOrAnd: 'and' },
           [
             {
-              "type": "condition",
-              "target": "Placement/App",
-              "payment": "cpa",
-              "compare": ">",
-              "value": 0
+              type: 'condition',
+              target: 'Placement/App',
+              payment: 'cpa',
+              compare: '>',
+              value: 0
             }
           ]
         );
@@ -121,17 +119,17 @@
       var newItemNo = vm.rulesArray.length + 1;
       vm.rulesArray.push(
         {
-          "id": newItemNo,
-          "if": [
+          id: newItemNo,
+          if: [
             {
-              "type": "condition",
-              "target": "Placement/App",
-              "payment": "cpa",
-              "compare": ">",
-              "value": 0
+              type: 'condition',
+              target: 'Placement/App',
+              payment: 'cpa',
+              compare: '>',
+              value: 0
             }
           ],
-          "then": "Blacklist"
+          then: 'Blacklist'
         }
       );
     };
@@ -179,23 +177,24 @@
         return false;
       }
     };
+
     //endregion
 
     //region DATE PIKER
     /** DATE PIKER **/
     if ($localStorage.SelectedTime == null) {
       $localStorage.SelectedTime = 0;
-      $localStorage.dataStart = $window.moment({hour: '00'}).subtract(1, 'day').unix();
-      $localStorage.dataEnd = $window.moment({hour: '00'}).subtract(1, 'day').endOf('day').unix();
-      vm.dataStart = $window.moment({hour: '00'}).subtract(1, 'day').unix();
-      vm.dataEnd = $window.moment({hour: '00'}).subtract(1, 'day').endOf('day').unix();
+      $localStorage.dataStart = $window.moment({ hour: '00' }).subtract(1, 'day').unix();
+      $localStorage.dataEnd = $window.moment({ hour: '00' }).subtract(1, 'day').endOf('day').unix();
+      vm.dataStart = $window.moment({ hour: '00' }).subtract(1, 'day').unix();
+      vm.dataEnd = $window.moment({ hour: '00' }).subtract(1, 'day').endOf('day').unix();
     } else {
       if ($localStorage.dataStart == null || $localStorage.dataEnd == null) {
         $localStorage.SelectedTime = 0;
-        $localStorage.dataStart = $window.moment({hour: '00'}).subtract(1, 'day').unix();
-        $localStorage.dataEnd = $window.moment({hour: '00'}).subtract(1, 'day').endOf('day').unix();
-        vm.dataStart = $window.moment({hour: '00'}).subtract(1, 'day').unix();
-        vm.dataEnd = $window.moment({hour: '00'}).subtract(1, 'day').endOf('day').unix();
+        $localStorage.dataStart = $window.moment({ hour: '00' }).subtract(1, 'day').unix();
+        $localStorage.dataEnd = $window.moment({ hour: '00' }).subtract(1, 'day').endOf('day').unix();
+        vm.dataStart = $window.moment({ hour: '00' }).subtract(1, 'day').unix();
+        vm.dataEnd = $window.moment({ hour: '00' }).subtract(1, 'day').endOf('day').unix();
       } else {
         vm.dataStart = $localStorage.dataStart;
         vm.dataEnd = $localStorage.dataEnd;
@@ -206,28 +205,28 @@
       {
         ID: 0,
         Name: LC('MAIN.DATE_PICKER.YESTERDAY'),
-        dataStart: $window.moment({hour: '00'}).subtract(1, 'day').unix(),
-        dataEnd: $window.moment({hour: '00'}).subtract(1, 'day').endOf('day').unix()
+        dataStart: $window.moment({ hour: '00' }).subtract(1, 'day').unix(),
+        dataEnd: $window.moment({ hour: '00' }).subtract(1, 'day').endOf('day').unix()
       }, {
         ID: 1,
         Name: LC('MAIN.DATE_PICKER.LAST_3_DAYS'),
-        dataStart: $window.moment({hour: '00'}).subtract(3, 'day').unix(),
-        dataEnd: $window.moment({hour: '00'}).unix()
+        dataStart: $window.moment({ hour: '00' }).subtract(3, 'day').unix(),
+        dataEnd: $window.moment({ hour: '00' }).unix()
       }, {
         ID: 2,
         Name: LC('MAIN.DATE_PICKER.LAST_7_DAYS'),
-        dataStart: $window.moment({hour: '00'}).subtract(7, 'day').unix(),
-        dataEnd: $window.moment({hour: '00'}).unix()
+        dataStart: $window.moment({ hour: '00' }).subtract(7, 'day').unix(),
+        dataEnd: $window.moment({ hour: '00' }).unix()
       }, {
         ID: 3,
         Name: LC('MAIN.DATE_PICKER.LAST_14_DAYS'),
-        dataStart: $window.moment({hour: '00'}).subtract(14, 'day').unix(),
-        dataEnd: $window.moment({hour: '00'}).unix()
+        dataStart: $window.moment({ hour: '00' }).subtract(14, 'day').unix(),
+        dataEnd: $window.moment({ hour: '00' }).unix()
       }, {
         ID: 4,
         Name: LC('MAIN.DATE_PICKER.LAST_21_DAYS'),
-        dataStart: $window.moment({hour: '00'}).subtract(21, 'day').unix(),
-        dataEnd: $window.moment({hour: '00'}).unix()
+        dataStart: $window.moment({ hour: '00' }).subtract(21, 'day').unix(),
+        dataEnd: $window.moment({ hour: '00' }).unix()
       }, {
         ID: 5,
         Name: LC('MAIN.DATE_PICKER.CURRENT_MONTH'),
@@ -241,7 +240,7 @@
       }, {
         ID: 7,
         Name: LC('MAIN.DATE_PICKER.LAST_90_DAYS'),
-        dataStart: $window.moment({hour: '00'}).subtract(90, 'day').unix(),
+        dataStart: $window.moment({ hour: '00' }).subtract(90, 'day').unix(),
         dataEnd: $window.moment().unix()
       }, {
         ID: 8,
@@ -250,6 +249,7 @@
         dataEnd: $window.moment().unix()
       }
     ];
+
     //endregion
 
     vm.UI = {

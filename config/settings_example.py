@@ -144,6 +144,7 @@ CRONJOBS = [
     ('*/15 * * * *', 'rtb.crons.placement_state_cron.platform_placement_targets'),
     ('* * * * *', 'rtb.crons.placement_state_cron.suspend_state_middleware_cron'),
     ('*/10 * * * *', 'rtb.crons.imp_tracker_cron.get'),
+    ('*/15 * * * *', 'rtb.cron.load_entities'),
     ('5 0 * * *', 'rtb.cron.dayly_task'),
     ('0 */1 * * *', 'rtb.crons.ml_predict_new_placements_cron.mlPredictNewPlacementsCron'),
     ('0 6 * * 7', 'rtb.crons.ml_refresh_view_full_placements_data_cron.mlRefreshViewFullPlacementsDataCron'),

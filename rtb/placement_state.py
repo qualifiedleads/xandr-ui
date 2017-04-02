@@ -150,30 +150,6 @@ class PlacementState:
         for oneState in suspendState:
             now = datetime.datetime.now(pytz.timezone('UTC'))
             if oneState.suspend < now:
-                placementData = list(UIUsualPlacementsGridDataAll.objects.filter(campaign_id=oneState.campaign_id, placement_id=oneState.placement_id))[0]
-                if placementData:
-                    try:
-                        obj, created = PlacementStateUnsuspend.objects.update_or_create(
-                            placement_id=placementData.placement_id,
-                            campaign_id=placementData.campaign_id,
-                            defaults={
-                                'spent': placementData.spent,
-                                'conversions': placementData.conversions,
-                                'imps': placementData.imps,
-                                'clicks': placementData.clicks,
-                                'cpa': placementData.cpa,
-                                'cpc': placementData.cpc,
-                                'cpm': placementData.cpm,
-                                'cvr': placementData.cvr,
-                                'ctr': placementData.ctr,
-                                'imps_viewed': placementData.imps_viewed,
-                                'view_measured_imps': placementData.view_measured_imps,
-                                'view_measurement_rate': placementData.view_measurement_rate,
-                                'view_rate': placementData.view_rate
-                            }
-                        )
-                    except Exception, e:
-                        print "Can't save table of the PlacementStateUnsuspend. Error: " + str(e)
                 oneState.state = 0
                 oneState.change = True
                 oneState.suspend = None

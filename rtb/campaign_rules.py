@@ -1,8 +1,10 @@
 from models.models import Campaign, Profile, LastToken, Advertiser
 from rtb.models.placement_state import CampaignRules, PlacementState
-from rtb.models.placement_state_unsuspend import PlacementStateUnsuspend
+from rtb.models.placement_state_unsuspend import PlacementStateUnsuspend, PlacementStateHistory
 from django.db import connection
 from django.utils import timezone
+from models.placement_state_unsuspend import PlacementStateUnsuspend
+from models.ui_data_models import UIUsualPlacementsGridDataAll, UIUsualPlacementsGridDataAllTracker
 from datetime import timedelta
 import json
 import datetime
@@ -26,11 +28,12 @@ def checkRules():
                 if rulesType == 'report':
                     tableType = "view_rule_type_report"
                     unsuspendTableType = "view_rule_unsuspend_type_report"
-                    prediction = ''
+                    parentTable = UIUsualPlacementsGridDataAll
                 if rulesType == 'tracker':
                     tableType = "view_rule_type_tracker"
                     unsuspendTableType = "view_rule_unsuspend_type_tracker"
-            for oneCampaignRules in campaignRules.rules:
+                    parentTable = UIUsualPlacementsGridDataAllTracker
+            for indexRule, oneCampaignRules in enumerate(campaignRules.rules):
                 place = []
                 queryString = ''
                 if len(oneCampaignRules['if']) >= 1:
@@ -45,7 +48,10 @@ def checkRules():
                     if len(place) >= 1:
                         usualPlacementId = place
                         unsuspendPlacementId = []
-                        unsuspendList = list(PlacementStateUnsuspend.objects.filter(placement_id__in=place, campaign_id=campaignRules.campaign_id))
+                        unsuspendList = list(PlacementStateUnsuspend.objects.filter(placement_id__in=place,
+                                                                                    campaign_id=campaignRules.campaign_id,
+                                                                                    rule_id=campaignRules.id,
+                                                                                    rule_index=indexRule))
                         for itemPlacement in unsuspendList:
                             if itemPlacement.placement_id in place:
                                 unsuspendPlacementId.append(itemPlacement.placement_id)
@@ -56,22 +62,90 @@ def checkRules():
                             unsuspendQuery = """ SELECT placement_id FROM """ + str(unsuspendTableType) \
                                     + """ WHERE campaign_id=""" + str(campaignRules.campaign_id) + """ and """ \
                                     + """ placement_id in """ + placementIndict \
+                                    + """ and rule_id=""" + str(campaignRules.id) \
+                                    + """ and rule_index=""" + str(indexRule) \
                                     + """ and """ + result
                             cursor = connection.cursor()
                             cursor.execute(unsuspendQuery, locals())
                             numrows = int(cursor.rowcount)
                             for x in range(0, numrows):
                                 unsuspendPlacement.append(cursor.fetchone()[0])
-                            changeRulesState(oneCampaignRules['then'], campaignRules.campaign_id, unsuspendPlacement)
+                            appliedRuleForPlacement = changeRulesState(oneCampaignRules['then'], campaignRules.campaign_id, unsuspendPlacement)
+                            saveToUnsupendTable(appliedRuleForPlacement, campaignRules.id, indexRule, parentTable)
+                            saveHistoryForPlacementState(appliedRuleForPlacement, campaignRules.id, indexRule, unsuspendQuery, parentTable)
                         if len(usualPlacementId) > 0:
-                            changeRulesState(oneCampaignRules['then'], campaignRules.campaign_id, usualPlacementId)
-
+                            appliedRuleForPlacement = changeRulesState(oneCampaignRules['then'], campaignRules.campaign_id, usualPlacementId)
+                            saveToUnsupendTable(appliedRuleForPlacement, campaignRules.id, indexRule, parentTable)
+                            saveHistoryForPlacementState(appliedRuleForPlacement, campaignRules.id, indexRule, query, parentTable)
                     else:
                         print "         Not have placement-{0}".format(place)
-
         print "End - check rules"
     except Exception, e:
         print 'Error: ' + str(e)
+
+
+def saveHistoryForPlacementState(appliedRuleForPlacement, ruleId, indexRule, query, parentTable):
+    try:
+        for itemObj in appliedRuleForPlacement:
+            placementData = list(parentTable.objects.filter(campaign_id=itemObj['campaign_id'],
+                                                            placement_id=itemObj['placement_id']))[0]
+            if placementData:
+                PlacementStateHistory(
+                    placement_id=placementData.placement_id,
+                    campaign_id=placementData.campaign_id,
+                    rule_id=ruleId,
+                    rule_index=indexRule,
+                    spent=placementData.spent,
+                    conversions=placementData.conversions,
+                    imps=placementData.imps,
+                    clicks=placementData.clicks,
+                    cpa=placementData.cpa,
+                    cpc=placementData.cpc,
+                    cpm=placementData.cpm,
+                    cvr=placementData.cvr,
+                    ctr=placementData.ctr,
+                    imps_viewed=placementData.imps_viewed,
+                    view_measured_imps=placementData.view_measured_imps,
+                    view_measurement_rate=placementData.view_measurement_rate,
+                    view_rate=placementData.view_rate,
+                    date=timezone.make_aware(datetime.datetime.utcnow(), timezone.get_default_timezone()),
+                    then=itemObj['then'],
+                    select=query,
+                ).save()
+
+    except Exception, e:
+        print "Can't save to PlacementStateHistory. Error: " + str(e)
+
+
+def saveToUnsupendTable(appliedRuleForPlacement, ruleId, indexRule, parentTable):
+    try:
+        for itemObj in appliedRuleForPlacement:
+            placementData = list(parentTable.objects.filter(campaign_id=itemObj['campaign_id'],
+                                                            placement_id=itemObj['placement_id']))[0]
+            if placementData:
+                obj, created = PlacementStateUnsuspend.objects.update_or_create(
+                    placement_id=placementData.placement_id,
+                    campaign_id=placementData.campaign_id,
+                    rule_id=ruleId,
+                    rule_index=indexRule,
+                    defaults={
+                        'spent': placementData.spent,
+                        'conversions': placementData.conversions,
+                        'imps': placementData.imps,
+                        'clicks': placementData.clicks,
+                        'cpa': placementData.cpa,
+                        'cpc': placementData.cpc,
+                        'cpm': placementData.cpm,
+                        'cvr': placementData.cvr,
+                        'ctr': placementData.ctr,
+                        'imps_viewed': placementData.imps_viewed,
+                        'view_measured_imps': placementData.view_measured_imps,
+                        'view_measurement_rate': placementData.view_measurement_rate,
+                        'view_rate': placementData.view_rate
+                    }
+                )
+    except Exception, e:
+        print "Can't save table of the PlacementStateUnsuspend. Error: " + str(e)
 
 
 def recursionParseRule(rule, queryString, predType):
@@ -93,6 +167,7 @@ def recursionParseRule(rule, queryString, predType):
 
     return queryString
 
+
 def changeRulesState (then, campaign_id, arrayPlacement):
     try:
         if then == 'Blacklist':
@@ -107,13 +182,8 @@ def changeRulesState (then, campaign_id, arrayPlacement):
         if then in ['1', '3', '7']:
             state = 1
             date = timezone.make_aware(datetime.datetime.now(), timezone.get_default_timezone()) + datetime.timedelta(days=int(then))
-        listForPirntCountAdd = []
+        listForCheckRule = []
         for placement in arrayPlacement:
-            if date is not None:
-                tempRow = list(PlacementState.objects.filter(campaign_id=campaign_id, placement_id=placement))
-                if len(tempRow) > 0:
-                    if tempRow[0].suspend is not None:
-                        continue
             obj, created = PlacementState.objects.update_or_create(campaign_id=campaign_id,
                                                                    placement_id=placement,
                                                                    defaults=dict(
@@ -121,7 +191,13 @@ def changeRulesState (then, campaign_id, arrayPlacement):
                                                                        suspend=date,
                                                                        change=True
                                                                    ))
-            listForPirntCountAdd.append(placement)
-        print "         Changed placement-{0} to state {1}-{2}".format(listForPirntCountAdd, then, state)
+            listForCheckRule.append({
+                'placement_id': placement,
+                'then': then,
+                'campaign_id': campaign_id
+            })
+        print "         Changed placement-{0} to state {1}-{2}".format(arrayPlacement, then, state)
+        return listForCheckRule
     except Exception, e:
         print 'Error: ' + str(e)
+

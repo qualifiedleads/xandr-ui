@@ -177,8 +177,12 @@ def mlPredictOnePlacementLogisticRegression(placement_id, test_name = "ctr_cvr_c
                                       case SUM(imps) when 0 then 0 else SUM(cost)::float/SUM(imps) end cpm
                                     FROM
                                       network_analytics_report_by_placement
+                                      join campaign
+                                        on network_analytics_report_by_placement.campaign_id = campaign.id
+                                        join advertiser
+                                          on advertiser.id=campaign.advertiser_id
                                     WHERE
-                                      placement_id = """ + str(placement_id) + """
+                                      placement_id = """ + str(placement_id) + """ and (advertiser.ad_type='ecommerceAd' or advertiser.ad_type='leadGenerationAd')
                                     group by
                                       placement_id, extract (dow from hour)
                                     ORDER BY

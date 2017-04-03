@@ -192,6 +192,24 @@
         });
     }
 
+    function changeAdvertiserDataforrules(id, rulesType) {
+      return $http({
+        method: 'PUT',
+        url: '/api/v1/advertisersRulesType',
+        headers: { Authorization: 'Token ' + $cookies.get('token') },
+        data: {
+          id: id,
+          rules_type: rulesType
+        }
+      })
+        .then(function (res) {
+          return res.data;
+        })
+        .catch(function (err) {
+          $window.DevExpress.ui.notify(err.data.detail, 'error', 4000);
+        });
+    }
+
     function bannerTextReturn() {
       //return  'Этот текст будет показан при проведении технических работ';
       return $http({
@@ -265,6 +283,7 @@
         });
     }
 
+    _this.changeAdvertiserDataforrules = changeAdvertiserDataforrules;
     _this.selectNexusUsersStore = selectNexusUsersStore;
     _this.editAdvertiserDataSource = editAdvertiserDataSource;
     _this.editAdvertiserList = editAdvertiserList;

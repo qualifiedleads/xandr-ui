@@ -99,7 +99,7 @@
         text: LC('AUTH.GO_BUTTON'),
         onClick: function () {
           $localStorage.advertiser = vm.selectedService;
-          if (vm.selectedService.ad_type === 'usualAds' || vm.selectedService.ad_type === null) {
+          if (vm.selectedService.ad_type === 'leadGenerationAd' || vm.selectedService.ad_type === 'ecommerceAd' || vm.selectedService.ad_type === null) {
             $state.go('home.main', {"id": vm.selectedService.id});
           }
 

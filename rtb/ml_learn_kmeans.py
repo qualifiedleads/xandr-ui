@@ -8,7 +8,7 @@ from django.db.models import Sum, Min, Max, Avg, Value, When, Case, F, Q, Func, 
 import math
 import csv
 
-def mlLearnKmeans (test_name = "ctr_viewrate"):#learn machine, save clusters, predict on training set
+def mlLearnKmeans (test_name = "ctr_viewrate", advertiser_type="ecommerceAd"):#learn machine, save clusters, predict on training set
     kmeansSpaces = []
     colNumb = 0
     numbDays = 7
@@ -24,6 +24,10 @@ def mlLearnKmeans (test_name = "ctr_viewrate"):#learn machine, save clusters, pr
         print "Wrong test name"
         return -1
 
+    if advertiser_type != "ecommerceAd" and advertiser_type != "leadGenerationAd":
+        print "Wrong test name"
+        return -1
+
     numbClusters = 2
     random_state = 266
     for i in xrange(numbDays):#for every day K-means space
@@ -36,12 +40,14 @@ def mlLearnKmeans (test_name = "ctr_viewrate"):#learn machine, save clusters, pr
         onePlacementFeatures = np.zeros(numbFeaturesInDay)
 
         queryResults = MLPlacementDailyFeatures.objects.filter(#get features for i-weekday
-            day=i
+            day=i,
+            adv_type=advertiser_type
         ).order_by(
             "placement_id")
 
         maxdata = MLPlacementDailyFeatures.objects.filter(
             day=i,
+            adv_type=advertiser_type
         ).aggregate(
             Max("cpa"),
             Max("cvr"),
@@ -50,30 +56,19 @@ def mlLearnKmeans (test_name = "ctr_viewrate"):#learn machine, save clusters, pr
         )
 
         try:
-            tempQuery = MLNormalizationData.objects.filter(
+            MLNormalizationData.objects.update_or_create(
                 test_number=test_number_base,
-                day=i
+                day=i,
+                adv_type=advertiser_type,
+                defaults={
+                    "maxcpa": maxdata["cpa__max"],
+                    "maxcvr": maxdata["cvr__max"],
+                    "maxcpc": maxdata["cpc__max"],
+                    "maxcpm": maxdata["cpm__max"],
+                }
             )
-            if not tempQuery:
-                normalizationDataRecord = MLNormalizationData(
-                    maxcpa=maxdata["cpa__max"],
-                    maxcvr=maxdata["cvr__max"],
-                    maxcpc=maxdata["cpc__max"],
-                    maxcpm=maxdata["cpm__max"],
-                    test_number=test_number_base,
-                    day=i
-                )
-                normalizationDataRecord.save()
-            else:
-                tempQuery.update(
-                    maxcpa=maxdata["cpa__max"],
-                    maxcvr=maxdata["cvr__max"],
-                    maxcpc=maxdata["cpc__max"],
-                    maxcpm=maxdata["cpm__max"],
-                )
         except Exception, e:
             print "Can't save normalization data into the database. Error: " + str(e)
-
 
         for row in queryResults:#filling placements features for learning
             if test_name == "ctr_viewrate":
@@ -120,7 +115,9 @@ def mlLearnKmeans (test_name = "ctr_viewrate"):#learn machine, save clusters, pr
     allFeaturesPlacement = []
     allFeatures = []
     failedPlacement = 0
-    maxdata = MLPlacementDailyFeatures.objects.aggregate(
+    maxdata = MLPlacementDailyFeatures.objects.filter(
+        adv_type=advertiser_type
+    ).aggregate(
         Max("cpa"),
         Max("cvr"),
         Max("cpc"),
@@ -128,27 +125,17 @@ def mlLearnKmeans (test_name = "ctr_viewrate"):#learn machine, save clusters, pr
     )
 
     try:
-        tempQuery = MLNormalizationData.objects.filter(
+        MLNormalizationData.objects.update_or_create(
             test_number=test_number_base,
-            day=numbDays
+            day=numbDays,
+            adv_type=advertiser_type,
+            defaults={
+                "maxcpa": maxdata["cpa__max"],
+                "maxcvr": maxdata["cvr__max"],
+                "maxcpc": maxdata["cpc__max"],
+                "maxcpm": maxdata["cpm__max"],
+            }
         )
-        if not tempQuery:
-            normalizationDataRecord = MLNormalizationData(
-                maxcpa=maxdata["cpa__max"],
-                maxcvr=maxdata["cvr__max"],
-                maxcpc=maxdata["cpc__max"],
-                maxcpm=maxdata["cpm__max"],
-                test_number=test_number_base,
-                day=numbDays
-            )
-            normalizationDataRecord.save()
-        else:
-            tempQuery.update(
-                maxcpa=maxdata["cpa__max"],
-                maxcvr=maxdata["cvr__max"],
-                maxcpc=maxdata["cpc__max"],
-                maxcpm=maxdata["cpm__max"],
-            )
     except Exception, e:
         print "Can't save normalization data into the database. Error: " + str(e)
 
@@ -196,51 +183,35 @@ def mlLearnKmeans (test_name = "ctr_viewrate"):#learn machine, save clusters, pr
     print "Saving centroids into the database..."
 
     for i in xrange(numbDays + 1):#saving clusters centroids
-        centroidsRecord = MLClustersCentroidsKmeans(
-            day=i,
-            cluster=1,
-            centroid=kmeansSpaces[i].cluster_centers_[0].tolist(),
-            test_number=test_number_base)
         try:
-            tempQuery = MLClustersCentroidsKmeans.objects.filter(
-                cluster=centroidsRecord.cluster,
-                day=centroidsRecord.day,
-                test_number=test_number_base
+            MLClustersCentroidsKmeans.objects.update_or_create(
+                test_number=test_number_base,
+                day=i,
+                cluster=1,
+                adv_type=advertiser_type,
+                defaults={
+                    "centroid": kmeansSpaces[i].cluster_centers_[0].tolist()
+                }
             )
-            if not tempQuery:
-                centroidsRecord.save()
-            else:
-                tempQuery.update(
-                    centroid=centroidsRecord.centroid
-                )
         except Exception, e:
-            print "Can't save centroid into the database. Error: " + str(e)
+            print "Can't save cluster centroids data into the database. Error: " + str(e)
 
-
-        centroidsRecord = MLClustersCentroidsKmeans(
-            day=i,
-            cluster=2,
-            centroid=kmeansSpaces[i].cluster_centers_[1].tolist(),
-            test_number=test_number_base)
         try:
-            tempQuery = MLClustersCentroidsKmeans.objects.filter(
-                cluster=centroidsRecord.cluster,
-                day=centroidsRecord.day,
-                test_number=test_number_base
+            MLClustersCentroidsKmeans.objects.update_or_create(
+                test_number=test_number_base,
+                day=i,
+                cluster=2,
+                adv_type=advertiser_type,
+                defaults={
+                    "centroid": kmeansSpaces[i].cluster_centers_[1].tolist()
+                }
             )
-
-            if not tempQuery:
-                centroidsRecord.save()
-            else:
-                tempQuery.update(
-                    centroid=centroidsRecord.centroid
-                )
         except Exception, e:
-            print "Can't save centroid to database. Error: " + str(e)
+            print "Can't save cluster centroids data into the database. Error: " + str(e)
 
     print "Learning finished"
 
-def mlPredictKmeans(placement_idRecogn = 1, test_name = "ctr_viewrate"):#prediction
+def mlPredictKmeans(placement_idRecogn = 1, test_name = "ctr_viewrate", advertiser_type="ecommerceAd"):#prediction
 
     numbFeaturesInDay = 0
     if test_name == "ctr_viewrate":
@@ -265,14 +236,16 @@ def mlPredictKmeans(placement_idRecogn = 1, test_name = "ctr_viewrate"):#predict
         for plId in queryResultsAllPlacements:#sending every placement id on recognirion
             mlPredictOnePlacement(placement_id=plId.id,
                                   numbClusters=numbClusters,
-                                  test_name=test_name)
+                                  test_name=test_name,
+                                  advertiser_type=advertiser_type)
     else:#recognition of one placement in database
         mlPredictOnePlacement(placement_id=placement_idRecogn,
                               numbClusters=numbClusters,
-                              test_name=test_name)
+                              test_name=test_name,
+                              advertiser_type=advertiser_type)
 
 
-def mlGetPlacementInfoKmeans(placement_id = 1, flagAllWeek = False, test_type = "kmeans", test_name = "ctr_viewrate"):#getting info about placement cluster from database
+def mlGetPlacementInfoKmeans(placement_id = 1, flagAllWeek = False, test_type = "kmeans", test_name = "ctr_viewrate", advertiser_type="ecommerceAd"):#getting info about placement cluster from database
     #placement_id - palcement for recognition
     # flagAllWeek: True - return data about all weekdays, False - return about only whole week analyze
     wholeWeekInd = 7#index of whole week recognition data in column "day"
@@ -285,7 +258,7 @@ def mlGetPlacementInfoKmeans(placement_id = 1, flagAllWeek = False, test_type = 
     if test_number == 0:
         return -1
 
-    queryClusterInfo = MLPlacementsClustersKmeans.objects.filter(placement_id=placement_id, test_number=test_number)
+    queryClusterInfo = MLPlacementsClustersKmeans.objects.filter(placement_id=placement_id, test_number=test_number, adv_type=advertiser_type)
 
     if not queryClusterInfo:#if that placement is not recognized
         return -2
@@ -322,11 +295,15 @@ def mlGetPlacementInfoKmeans(placement_id = 1, flagAllWeek = False, test_type = 
         queryClusterInfo = MLPlacementsClustersKmeans.objects.filter(
             placement_id=placement_id,
             day=wholeWeekInd,
-            test_number=test_number)
+            test_number=test_number,
+            adv_type=advertiser_type
+        )
         if not queryClusterInfo:
             queryClusterInfo = MLPlacementsClustersKmeans.objects.filter(
                 placement_id=placement_id,
-                test_number=test_number)
+                test_number=test_number,
+                adv_type=advertiser_type
+            )
             badDistance = 0
             goodDistance = 0
             n = 0
@@ -348,7 +325,7 @@ def mlGetPlacementInfoKmeans(placement_id = 1, flagAllWeek = False, test_type = 
     return mlAnswer
 
 
-def mlGetGoodClusters(test_name = "ctr_viewrate"):#get array of "good" clusters for every k-means space
+def mlGetGoodClusters(test_name = "ctr_viewrate", advertiser_type="ecommerceAd"):#get array of "good" clusters for every k-means space
     numbFeaturesInDay = 0
     test_number = mlGetTestNumber("kmeans", test_name)
     if test_name == "ctr_viewrate":
@@ -363,8 +340,7 @@ def mlGetGoodClusters(test_name = "ctr_viewrate"):#get array of "good" clusters 
     numbClusters = 2
     numbDays = 8
 
-    #queryResults = MLClustersCentroidsKmeans.objects.all()#get info from database about clusters centroids
-    queryResults = MLClustersCentroidsKmeans.objects.filter(test_number=test_number)
+    queryResults = MLClustersCentroidsKmeans.objects.filter(test_number=test_number, adv_type=advertiser_type)
     if not queryResults:
         return -1
 
@@ -427,7 +403,7 @@ def mlGetGoodClusters(test_name = "ctr_viewrate"):#get array of "good" clusters 
     goodClusters.append(maxClust)
     return goodClusters
 
-def mlPredictOnePlacement(placement_id, numbClusters, test_name = "ctr_viewrate"):
+def mlPredictOnePlacement(placement_id, numbClusters, test_name = "ctr_viewrate", advertiser_type="ecommerceAd"):
     numbDays = 8
     numbFeaturesInDay = 0
     test_number = 0
@@ -442,7 +418,7 @@ def mlPredictOnePlacement(placement_id, numbClusters, test_name = "ctr_viewrate"
         print "Wrong test name"
         return -1
 
-    queryResults = MLClustersCentroidsKmeans.objects.filter(test_number=test_number)
+    queryResults = MLClustersCentroidsKmeans.objects.filter(test_number=test_number, adv_type=advertiser_type)
     centroidsCoord = [0] * numbDays
     for i in xrange(numbDays):
         centroidsCoord[i] = [0] * numbClusters
@@ -467,8 +443,12 @@ def mlPredictOnePlacement(placement_id, numbClusters, test_name = "ctr_viewrate"
                   case SUM(imps) when 0 then 0 else SUM(view_measured_imps)::float/SUM(imps) end view_measurement_rate
                 FROM
                   network_analytics_report_by_placement
+                  join campaign
+                      on network_analytics_report_by_placement.campaign_id = campaign.id
+                      join advertiser
+                        on advertiser.id=campaign.advertiser_id
                 WHERE
-                  placement_id = """ + str(placement_id) + """
+                  placement_id = """ + str(placement_id) + """ and advertiser.ad_type='""" + str(advertiser_type) + """'
                 group by
                   placement_id, extract (dow from hour)
                 ORDER BY
@@ -481,10 +461,12 @@ def mlPredictOnePlacement(placement_id, numbClusters, test_name = "ctr_viewrate"
     for row in queryResultsPlacementInfo:#recognition of every weekday
         maxdata = MLNormalizationData.objects.filter(
             day=row.dow,
-            test_number=test_number
+            test_number=test_number,
+            adv_type=advertiser_type
         )
         maxdata = maxdata[0]
         placementClusterRecord = MLPlacementsClustersKmeans()
+        placementClusterRecord.adv_type = advertiser_type
         placementClusterRecord.day = row.dow
         placementClusterRecord.placement_id = placement_id
         clustersDistance = []
@@ -561,6 +543,7 @@ def mlPredictOnePlacement(placement_id, numbClusters, test_name = "ctr_viewrate"
         return 1
     else:
         placementClusterRecord = MLPlacementsClustersKmeans()
+        placementClusterRecord.adv_type = advertiser_type
         placementClusterRecord.day = 7
         placementClusterRecord.placement_id = placement_id
         clustersDistance = []
@@ -580,7 +563,7 @@ def mlPredictOnePlacement(placement_id, numbClusters, test_name = "ctr_viewrate"
                 minDistance = clustersDistance[i]
                 placementClusterRecord.cluster = i + 1
 
-        goodClusters = mlGetGoodClusters("ctr_cvr_cpc_cpm_cpa")
+        goodClusters = mlGetGoodClusters("ctr_cvr_cpc_cpm_cpa", advertiser_type=advertiser_type)
         if placementClusterRecord.cluster == goodClusters[7]:
             placementClusterRecord.good = True
         else:

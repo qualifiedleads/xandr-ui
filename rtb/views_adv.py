@@ -345,13 +345,13 @@ Get single campaign details by domains
 
 Field "placement" must contain name and id of placement. Id in parenthesis
     """
-    source = Advertiser.objects.get(
+    advInfo = Advertiser.objects.get(
         id=Campaign.objects.get(
             id=id
         ).advertiser_id
-    ).grid_data_source
+    )
 
-    if source == "tracker":
+    if advInfo.grid_data_source == "tracker":
         source = "_tracker"
     else:
         source = ''
@@ -400,8 +400,12 @@ where calc_place_info.campaign_id = """ + str(id) + ' ' + filt + ' ' + order + "
                 "placement_name": row.name,
                 "NetworkPublisher": row.publisher,
                 "placement__rtbimpressiontrackerplacementdomain__domain": row.domain,
-                "analitics": mlFillPredictionAnswer(row.id, False, "kmeans", "ctr_cvr_cpc_cpm_cpa"),
-                "analitics1": mlFillPredictionAnswer(row.id, False, "log", "ctr_cvr_cpc_cpm_cpa"),
+                "analitics": mlFillPredictionAnswer(
+                    placement_id=row.id,
+                    flagAllWeek=False,
+                    test_type="kmeans",
+                    test_name="ctr_cvr_cpc_cpm_cpa",
+                    advertiser_type=advInfo.ad_type),
                 "state": row.state,
                 "campaign": row.name,
                 "clicks": 0 if row.clicks is None else row.clicks,
@@ -472,6 +476,8 @@ where calc_place_info.campaign_id = """ + str(id) + ' ' + filt + """) info;""")[
             allCampaignsInfo["totalCount"] = queryRes.total_count
 
             allCampaignsInfo["totalSummary"] = queryRes.id
+
+            allCampaignsInfo["advertiser_type"] = advInfo.ad_type
 
         return Response(allCampaignsInfo)
     except Exception, e:
@@ -902,9 +908,9 @@ def mlApiSaveExpertDecision(request):
     )
     return Response(res)
 
-def mlFillPredictionAnswer(placement_id = 1, flagAllWeek = False, test_type = "kmeans", test_name = "ctr_viewrate"):
+def mlFillPredictionAnswer(placement_id = 1, flagAllWeek = False, test_type = "kmeans", test_name = "ctr_viewrate", advertiser_type="ecommerceAd"):
     if test_type == "kmeans":
-        mlAnswer = mlGetPlacementInfoKmeans(placement_id, flagAllWeek, test_type, test_name)
+        mlAnswer = mlGetPlacementInfoKmeans(placement_id, flagAllWeek, test_type, test_name, advertiser_type)
         if flagAllWeek == False:
             wholeWeekInd = 7
             if mlAnswer == -1 or mlAnswer == -2:
@@ -929,7 +935,7 @@ def mlFillPredictionAnswer(placement_id = 1, flagAllWeek = False, test_type = "k
                 })
             return res
         else:
-            mlAnswer = mlGetPlacementInfoKmeans(placement_id, True, test_type, test_name)  # get data from recognition database
+            mlAnswer = mlGetPlacementInfoKmeans(placement_id, True, test_type, test_name, advertiser_type)  # get data from recognition database
             res = []
             if mlAnswer == -1 or mlAnswer == -2:  # error with data in database
                 for weekday in xrange(8):  # for all week, 8 - quantity of weekdays+whole week in mlAnswer

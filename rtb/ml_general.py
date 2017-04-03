@@ -89,22 +89,26 @@ def mlGetPlacementsInfo(test_name = None, placementsIds = None, teacher = False,
 def mlGetOnePlacementFeatures(test_name, placement_id):
     if test_name == "ctr_cvr_cpc_cpm_cpa":
         placementInfo = NetworkAnalyticsReport_ByPlacement.objects.raw("""
-                                            SELECT
-                                              placement_id AS id,
-                                              extract (dow from hour) "dow",
-                                              case SUM(total_convs) when 0 then 0 else SUM(cost)::float/SUM(total_convs) end cpa,
-                                              case SUM(imps) when 0 then 0 else SUM(clicks)::float/SUM(imps) end ctr,
-                                              case SUM(imps) when 0 then 0 else SUM(total_convs)::float/SUM(imps) end cvr,
-                                              case SUM(clicks) when 0 then 0 else SUM(cost)::float/SUM(clicks) end cpc,
-                                              case SUM(imps) when 0 then 0 else SUM(cost)::float/SUM(imps) end cpm
-                                            FROM
-                                              network_analytics_report_by_placement
-                                            WHERE
-                                              placement_id = """ + str(placement_id) + """
-                                            group by
-                                              placement_id, extract (dow from hour)
-                                            ORDER BY
-                                              id, dow;
+                    SELECT
+                      placement_id AS id,
+                      extract (dow from hour) "dow",
+                      case SUM(total_convs) when 0 then 0 else SUM(cost)::float/SUM(total_convs) end cpa,
+                      case SUM(imps) when 0 then 0 else SUM(clicks)::float/SUM(imps) end ctr,
+                      case SUM(imps) when 0 then 0 else SUM(total_convs)::float/SUM(imps) end cvr,
+                      case SUM(clicks) when 0 then 0 else SUM(cost)::float/SUM(clicks) end cpc,
+                      case SUM(imps) when 0 then 0 else SUM(cost)::float/SUM(imps) end cpm
+                    FROM
+                      network_analytics_report_by_placement
+                      join campaign
+                          on network_analytics_report_by_placement.campaign_id = campaign.id
+                          join advertiser
+                            on advertiser.id=campaign.advertiser_id
+                    WHERE
+                      placement_id = """ + str(placement_id) + """ and (advertiser.ad_type='ecommerceAd' or advertiser.ad_type='leadGenerationAd')
+                    group by
+                      placement_id, extract (dow from hour)
+                    ORDER BY
+                      id, dow;
                                             """
                                                                                    )
         placementFeatures = np.zeros(35)# getting placement features

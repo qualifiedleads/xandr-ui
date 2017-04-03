@@ -434,7 +434,7 @@ def load_depending_data(token, force_update=False, daily_load=True, isLastModifi
             #with transaction.atomic():
             date_in_db = ContentCategory.objects.aggregate(
                 m=Max('fetch_date'))['m']
-            if cd - date_in_db > settings.INVALIDATE_TIME:
+            if date_in_db is None:
                 o1 = nexus_get_objects(token,
                                        {},  # {'type':'universal'}
                                        ContentCategory, force_update,
@@ -442,6 +442,15 @@ def load_depending_data(token, force_update=False, daily_load=True, isLastModifi
                 o2 = nexus_get_objects(token,
                                        {},
                                        ContentCategory, force_update, isLastModified=isLastModified)
+            else:
+                if cd - date_in_db > settings.INVALIDATE_TIME:
+                    o1 = nexus_get_objects(token,
+                                           {},  # {'type':'universal'}
+                                           ContentCategory, force_update,
+                                           {'category_type': 'universal'}, isLastModified=isLastModified)
+                    o2 = nexus_get_objects(token,
+                                           {},
+                                           ContentCategory, force_update, isLastModified=isLastModified)
             # end transaction
             print 'There is %d content categories ' % ContentCategory.objects.count()
 
@@ -686,12 +695,17 @@ def hourlyTask(dayWithHour=None, load_objects_from_services=True, output=None):
             dayWithHour = datetime.datetime(hour=dayWithHour.hour, day=dayWithHour.day, month=dayWithHour.month,
                                             year=dayWithHour.year, tzinfo=utc)
         else:
-            dayWithHour -= one_hour
+            dayWithHour = datetime.datetime.utcnow()-datetime.timedelta(days=2)
+            dayWithHour = datetime.datetime(hour=dayWithHour.hour, day=dayWithHour.day, month=dayWithHour.month,
+                                            year=dayWithHour.year, tzinfo=utc)
 
     dateNow = datetime.datetime.utcnow().replace(minute=0, second=0, microsecond=0, tzinfo=utc)
     prevMaxHour = SiteDomainPerformanceReport.objects.aggregate(m=Max('hour'))['m']
-    prevMaxHour = datetime.datetime(hour=prevMaxHour.hour, day=prevMaxHour.day, month=prevMaxHour.month,
-                                    year=prevMaxHour.year, tzinfo=utc)
+    if prevMaxHour:
+        prevMaxHour = datetime.datetime(hour=prevMaxHour.hour, day=prevMaxHour.day, month=prevMaxHour.month,
+                                        year=prevMaxHour.year, tzinfo=utc)
+    else:
+        prevMaxHour = datetime.datetime(hour=1, day=1, month=1, year=1970, tzinfo=utc)
     try:
         token = getToken()
         if load_objects_from_services:
@@ -731,10 +745,15 @@ def hourlyTask(dayWithHour=None, load_objects_from_services=True, output=None):
                 dayWithHour = datetime.datetime(hour=dayWithHour.hour, day=dayWithHour.day, month=dayWithHour.month,
                                                 year=dayWithHour.year, tzinfo=utc)
             else:
-                dayWithHour -= one_hour
+                dayWithHour = datetime.datetime.utcnow() - datetime.timedelta(days=2)
+                dayWithHour = datetime.datetime(hour=dayWithHour.hour, day=dayWithHour.day, month=dayWithHour.month,
+                                                year=dayWithHour.year, tzinfo=utc)
         prevMaxHour = NetworkAnalyticsReport_ByPlacement.objects.aggregate(m=Max('hour'))['m']
-        prevMaxHour = datetime.datetime(hour=prevMaxHour.hour, day=prevMaxHour.day, month=prevMaxHour.month,
+        if prevMaxHour:
+            prevMaxHour = datetime.datetime(hour=prevMaxHour.hour, day=prevMaxHour.day, month=prevMaxHour.month,
                                         year=prevMaxHour.year, tzinfo=utc)
+        else:
+            prevMaxHour = datetime.datetime(hour=1, day=1, month=1, year=1970, tzinfo=utc)
 
         while dayWithHour <= dateNow:
             with transaction.atomic():
@@ -765,6 +784,41 @@ def hourlyTask(dayWithHour=None, load_objects_from_services=True, output=None):
             file_output.close()
     LastModified.objects.filter(type='hourlyTask').delete()
     print "OK"
+
+
+def load_entities(load_objects_from_services=True, output=None):
+    try:
+        old_stdout, old_error = sys.stdout, sys.stderr
+        file_output = None
+
+        try:
+            if not output:
+                if hasattr(settings, 'LOG_DIR') and settings.LOG_DIR:
+                    catalog_name = settings.LOG_DIR
+                else:
+                    catalog_name = os.path.join(os.path.dirname(__file__), 'logs')
+                clean_old_files(catalog_name)
+                log_file_name = 'load_entities_%s.log' % get_current_time().strftime('%Y-%m-%dT%H-%M-%S')
+                log_file_name = os.path.join(catalog_name, log_file_name)
+                file_output = open(log_file_name, 'w', 1)  # line buffered file
+                file_output.write('Begin write log file {}\n'.format(get_current_time()))
+                output = file_output
+        except:
+            pass
+        if output:
+            sys.stdout, sys.stderr = output, output
+
+        token = get_auth_token()
+        if load_objects_from_services:
+            load_depending_data(token, True)
+    except Exception as e:
+        print 'Error by fetching data: %s' % e
+        print traceback.print_exc(file=output)
+    finally:
+        file_output.write('Finish write log file {}\n'.format(get_current_time()))
+        sys.stdout, sys.stderr = old_stdout, old_error
+        if file_output:
+            file_output.close()
 
 
 # Task, executed once in day. Get new data from NexusApp

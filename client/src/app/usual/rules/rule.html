@@ -46,8 +46,7 @@
       <select class="select1" data-ng-model="rule.payment">
         <option ng-selected="rule.payment == 'cpa'">cpa</option>
         <option ng-selected="rule.payment == 'spent'">spent</option>
-        <option ng-selected="rule.payment == 'prediction1'">prediction1</option>
-        <option ng-selected="rule.payment == 'prediction2'">prediction2</option>
+        <option ng-selected="rule.payment == 'prediction'">prediction</option>
         <option ng-selected="rule.payment == 'impressions'">impressions</option>
         <option ng-selected="rule.payment == 'clicks'">clicks</option>
         <option ng-selected="rule.payment == 'ctr'">ctr</option>
@@ -57,7 +56,7 @@
       </span>
     </div>
         <!-- START OTHER-->
-    <div ng-if="rule.payment != 'prediction1'  || rule.payment != 'prediction2'" class="dropdown2">
+    <div ng-if="rule.payment != 'prediction'" class="dropdown2">
       compare
       <span>
         <select class="select2" data-ng-model="rule.compare">
@@ -69,7 +68,7 @@
         </select>
       </span>
     </div>
-    <div ng-if="rule.payment != 'prediction1'  || rule.payment != 'prediction2'" class="inputm">
+    <div ng-if="rule.payment != 'prediction'" class="inputm">
       <label>
         Value
         <input class="money" type="number" ng-model="rule.value">
@@ -78,10 +77,10 @@
     <!-- END OTHER-->
 
     <!-- START PREDICTION-->
-    <div ng-if="rule.payment == 'prediction1'  || rule.payment == 'prediction2'" class="dropdown2">
+    <div ng-if="rule.payment == 'prediction'" class="dropdown2">
       {{rule.compare='='}}
     </div>
-    <div ng-if="rule.payment == 'prediction1'  || rule.payment == 'prediction2'" class="inputm">
+    <div ng-if="rule.payment == 'prediction'" class="inputm">
       <label>
         Value
         <select class="money" data-ng-model="rule.value">

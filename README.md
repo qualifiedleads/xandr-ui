@@ -36,13 +36,16 @@ ML commands
 1. Create test set for learning
 python manage.py mlcreatetestset
 2. Learn k-means model
-python manage.py mllearnsavemodel <test_type> <test_name>
+python manage.py mllearnsavemodel <test_type> <test_name> <advertiser_type>
 valid test types:
   1) kmeans
   2) log - logistic regression
 valid test names:
   1) ctr_viewrate (kmeans)
   2) ctr_cvr_cpc_cpm_cpa (kmeans, log)
+valid advertiser type:
+  1) ecommerceAd (kmeans)
+  2) leadGenerationAd (kmeans)
 3. Predict placement and save to database
 python manage.py mlpredictkmeans <placement_id> <test_type> <test_name>
 Example for one placement: python manage.py mlpredictkmeans 3898 kmeans ctr_cvr_cpc_cpm_cpa

@@ -53,8 +53,8 @@
           'APNEXUS-NAME': 'AppNexus user name',
           'PERMISSION': 'Permission'
         },
-        "TECHNICAL-WORK": {
-          "EDIT-USERS": "Edit users",
+        'TECHNICAL-WORK': {
+          'EDIT-USERS': 'Edit users',
           'TECH-WORK': 'Technical works',
           'ADVERTISER-LIST': 'Advertiser list',
           'TECH-WORK-SWITCHER': 'carrying out technical works on the site',
@@ -70,7 +70,8 @@
           'NAME': 'Name',
           'ID': 'Id',
           'AD-TYPE': 'Type of the advertiser',
-          'DATA_SOURCE': 'Data source'
+          'DATA_SOURCE': 'Data source',
+          'DATA-FOR-RULES': 'Data for rules'
         }
       },
       'INDEX': {

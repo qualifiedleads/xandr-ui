@@ -299,31 +299,35 @@
           },
           {
             caption: LC('ADMIN.ADVERTISER-LIST.AD-TYPE'),
-            width: 204,
+            width: 357,
             columnIndex: 16,
             allowEditing: false,
             dataField: 'ad_type',
             alignment: 'left',
             cellTemplate: function (container, options) {
-              var usualAds = $window.$('<div />').dxButton({
-                text: 'Usual',
+              var ecommerceAd = $window.$('<div />').dxButton({
+                text: 'eCommerce',
                 height: 30,
-                width: 89,
+                width: 105,
                 disabled: false,
                 onClick: function (e) {
                   var w = $window.$('div.state-white' + options.data.id);
                   var b = $window.$('div.state-black' + options.data.id);
+                  var o = $window.$('div.state-orange' + options.data.id);
                   w.dxButton('instance').option('disabled', true);
                   b.dxButton('instance').option('disabled', true);
+                  o.dxButton('instance').option('disabled', true);
                   w.removeClass('active-white');
                   b.removeClass('active-white');
-                  AdminService.editAdvertiserList(options.data.id, 'usualAds')
+                  o.removeClass('active-white');
+                  AdminService.editAdvertiserList(options.data.id, 'ecommerceAd')
                     .then(function (res) {
                       w.dxButton('instance').option('disabled', false);
                       b.dxButton('instance').option('disabled', false);
+                      o.dxButton('instance').option('disabled', false);
                       if (res == 404) {
                         $window.DevExpress.ui.notify('Not found', 'warning', 4000);
-                        $('#gridContainerWhite').dxDataGrid('instance').refresh();
+                        $window.$('#gridContainer2').dxDataGrid('instance').refresh();
                         return res;
                       }
 
@@ -345,12 +349,62 @@
                 }
               });
 
-              if (options.data.ad_type == 'usualAds') {
-                usualAds.addClass('state-white' + options.data.id).addClass('active-white').appendTo(container);
+              if (options.data.ad_type == 'ecommerceAd') {
+                ecommerceAd.addClass('state-white' + options.data.id).addClass('active-white').appendTo(container);
               } else {
-                usualAds.addClass('state-white' + options.data.id).appendTo(container);
+                ecommerceAd.addClass('state-white' + options.data.id).appendTo(container);
               }
+              /**/
+              var leadGenerationAd = $window.$('<div />').dxButton({
+                text: 'Lead-generators',
+                height: 30,
+                width: 135,
+                disabled: false,
+                onClick: function (e) {
+                  var w = $window.$('div.state-white' + options.data.id);
+                  var b = $window.$('div.state-black' + options.data.id);
+                  var o = $window.$('div.state-orange' + options.data.id);
+                  w.dxButton('instance').option('disabled', true);
+                  b.dxButton('instance').option('disabled', true);
+                  o.dxButton('instance').option('disabled', true);
+                  w.removeClass('active-white');
+                  b.removeClass('active-white');
+                  o.removeClass('active-white');
+                  AdminService.editAdvertiserList(options.data.id, 'leadGenerationAd')
+                    .then(function (res) {
+                      w.dxButton('instance').option('disabled', false);
+                      b.dxButton('instance').option('disabled', false);
+                      o.dxButton('instance').option('disabled', false);
+                      if (res == 404) {
+                        $window.DevExpress.ui.notify('Not found', 'warning', 4000);
+                        $window.$('#gridContainer2').dxDataGrid('instance').refresh();
+                        return res;
+                      }
 
+                      if (res == 503) {
+                        $window.DevExpress.ui.notify('Not connect to appnexus server, please try again later', 'warning', 4000);
+                        $window.$('#gridContainer2').dxDataGrid('instance').refresh();
+                        return res;
+                      }
+
+                      if (res !== 'Unactive') {
+                        o.addClass('active-white');
+                      }
+
+                      return res;
+                    })
+                    .catch(function (err) {
+                      return err;
+                    });
+                }
+              });
+
+              if (options.data.ad_type == 'leadGenerationAd') {
+                leadGenerationAd.addClass('state-orange' + options.data.id).addClass('active-white').appendTo(container);
+              } else {
+                leadGenerationAd.addClass('state-orange' + options.data.id).appendTo(container);
+              }
+              /**/
               var videoAds = $window.$('<div />').dxButton({
                 text: 'Video',
                 height: 30,
@@ -359,14 +413,18 @@
                 onClick: function (e) {
                   var w = $window.$('div.state-white' + options.data.id);
                   var b = $window.$('div.state-black' + options.data.id);
+                  var o = $window.$('div.state-orange' + options.data.id);
                   w.dxButton('instance').option('disabled', true);
                   b.dxButton('instance').option('disabled', true);
+                  o.dxButton('instance').option('disabled', true);
                   w.removeClass('active-white');
                   b.removeClass('active-white');
+                  o.removeClass('active-white');
                   AdminService.editAdvertiserList(options.data.id, 'videoAds')
                     .then(function (res) {
                       w.dxButton('instance').option('disabled', false);
                       b.dxButton('instance').option('disabled', false);
+                      o.dxButton('instance').option('disabled', false);
                       if (res == 404) {
                         $window.DevExpress.ui.notify('Not found', 'warning', 4000);
                         $window.$('#gridContainer2').dxDataGrid('instance').refresh();
@@ -496,6 +554,107 @@
                 tracker.addClass('state-blackDS' + options.data.id).addClass('active-white').appendTo(container);
               } else {
                 tracker.addClass('state-blackDS' + options.data.id).appendTo(container);
+              }
+            }
+          },
+          {
+            caption: LC('ADMIN.ADVERTISER-LIST.DATA-FOR-RULES'),
+            width: 204,
+            columnIndex: 16,
+            allowEditing: false,
+            dataField: 'rules_type',
+            alignment: 'left',
+            cellTemplate: function (container, options) {
+              var report = $window.$('<div />').dxButton({
+                text: 'Report',
+                height: 30,
+                width: 89,
+                disabled: false,
+                onClick: function (e) {
+                  var w = $window.$('div.state-whiteRT' + options.data.id);
+                  var b = $window.$('div.state-blackRT' + options.data.id);
+                  w.dxButton('instance').option('disabled', true);
+                  b.dxButton('instance').option('disabled', true);
+                  w.removeClass('active-white');
+                  b.removeClass('active-white');
+                  AdminService.changeAdvertiserDataforrules(options.data.id, 'report')
+                    .then(function (res) {
+                      w.dxButton('instance').option('disabled', false);
+                      b.dxButton('instance').option('disabled', false);
+                      if (res == 404) {
+                        $window.DevExpress.ui.notify('Not found', 'warning', 4000);
+                        $('#gridContainerWhite').dxDataGrid('instance').refresh();
+                        return res;
+                      }
+
+                      if (res == 503) {
+                        $window.DevExpress.ui.notify('Not connect to appnexus server, please try again later', 'warning', 4000);
+                        $window.$('#gridContainer2').dxDataGrid('instance').refresh();
+                        return res;
+                      }
+
+                      if (res !== 'Unactive') {
+                        w.addClass('active-white');
+                      }
+
+                      return res;
+                    })
+                    .catch(function (err) {
+                      return err;
+                    });
+                }
+              });
+
+              if (options.data.grid_data_source == 'report') {
+                report.addClass('state-whiteRT' + options.data.id).addClass('active-white').appendTo(container);
+              } else {
+                report.addClass('state-whiteRT' + options.data.id).appendTo(container);
+              }
+
+              var tracker = $window.$('<div />').dxButton({
+                text: 'Tracker',
+                height: 30,
+                width: 89,
+                disabled: false,
+                onClick: function (e) {
+                  var w = $window.$('div.state-whiteRT' + options.data.id);
+                  var b = $window.$('div.state-blackRT' + options.data.id);
+                  w.dxButton('instance').option('disabled', true);
+                  b.dxButton('instance').option('disabled', true);
+                  w.removeClass('active-white');
+                  b.removeClass('active-white');
+                  AdminService.changeAdvertiserDataforrules(options.data.id, 'tracker')
+                    .then(function (res) {
+                      w.dxButton('instance').option('disabled', false);
+                      b.dxButton('instance').option('disabled', false);
+                      if (res == 404) {
+                        $window.DevExpress.ui.notify('Not found', 'warning', 4000);
+                        $window.$('#gridContainer2').dxDataGrid('instance').refresh();
+                        return res;
+                      }
+
+                      if (res == 503) {
+                        $window.DevExpress.ui.notify('Not connect to appnexus server, please try again later', 'warning', 4000);
+                        $window.$('#gridContainer2').dxDataGrid('instance').refresh();
+                        return res;
+                      }
+
+                      if (res !== 'Unactive') {
+                        b.addClass('active-white');
+                      }
+
+                      return res;
+                    })
+                    .catch(function (err) {
+                      return err;
+                    });
+                }
+              });
+
+              if (options.data.grid_data_source == 'tracker') {
+                tracker.addClass('state-blackRT' + options.data.id).addClass('active-white').appendTo(container);
+              } else {
+                tracker.addClass('state-blackRT' + options.data.id).appendTo(container);
               }
             }
           }

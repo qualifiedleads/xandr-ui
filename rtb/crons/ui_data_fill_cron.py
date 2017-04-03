@@ -307,7 +307,7 @@ where ut.campaign_id = info.campaign_id;
 def refreshCampaignsLastMonthGridData(start_date, finish_date):
     with connection.cursor() as cursor:
         cursor.execute("""
-insert into ui_usual_campaigns_grid_data_""" + str(type) + """ as ut (
+insert into ui_usual_campaigns_grid_data_last_month as ut (
     campaign_id,
     imps,
     clicks,
@@ -1248,7 +1248,7 @@ where ut.campaign_id = info."CpId";
 def refreshCampaignsLastMonthGridDataTracker(start_date, finish_date):
     with connection.cursor() as cursor:
         cursor.execute("""
-insert into ui_usual_campaigns_grid_data_""" + str(type) + """_tracker as ut (
+insert into ui_usual_campaigns_grid_data_last_month_tracker as ut (
     campaign_id,
     imps,
     clicks,

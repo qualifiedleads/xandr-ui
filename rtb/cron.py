@@ -695,12 +695,17 @@ def hourlyTask(dayWithHour=None, load_objects_from_services=True, output=None):
             dayWithHour = datetime.datetime(hour=dayWithHour.hour, day=dayWithHour.day, month=dayWithHour.month,
                                             year=dayWithHour.year, tzinfo=utc)
         else:
-            dayWithHour -= one_hour
+            dayWithHour = datetime.datetime.utcnow()-datetime.timedelta(days=2)
+            dayWithHour = datetime.datetime(hour=dayWithHour.hour, day=dayWithHour.day, month=dayWithHour.month,
+                                            year=dayWithHour.year, tzinfo=utc)
 
     dateNow = datetime.datetime.utcnow().replace(minute=0, second=0, microsecond=0, tzinfo=utc)
     prevMaxHour = SiteDomainPerformanceReport.objects.aggregate(m=Max('hour'))['m']
-    prevMaxHour = datetime.datetime(hour=prevMaxHour.hour, day=prevMaxHour.day, month=prevMaxHour.month,
-                                    year=prevMaxHour.year, tzinfo=utc)
+    if prevMaxHour:
+        prevMaxHour = datetime.datetime(hour=prevMaxHour.hour, day=prevMaxHour.day, month=prevMaxHour.month,
+                                        year=prevMaxHour.year, tzinfo=utc)
+    else:
+        prevMaxHour = datetime.datetime(hour=1, day=1, month=1, year=1970, tzinfo=utc)
     try:
         token = getToken()
         if load_objects_from_services:
@@ -740,10 +745,15 @@ def hourlyTask(dayWithHour=None, load_objects_from_services=True, output=None):
                 dayWithHour = datetime.datetime(hour=dayWithHour.hour, day=dayWithHour.day, month=dayWithHour.month,
                                                 year=dayWithHour.year, tzinfo=utc)
             else:
-                dayWithHour -= one_hour
+                dayWithHour = datetime.datetime.utcnow() - datetime.timedelta(days=2)
+                dayWithHour = datetime.datetime(hour=dayWithHour.hour, day=dayWithHour.day, month=dayWithHour.month,
+                                                year=dayWithHour.year, tzinfo=utc)
         prevMaxHour = NetworkAnalyticsReport_ByPlacement.objects.aggregate(m=Max('hour'))['m']
-        prevMaxHour = datetime.datetime(hour=prevMaxHour.hour, day=prevMaxHour.day, month=prevMaxHour.month,
+        if prevMaxHour:
+            prevMaxHour = datetime.datetime(hour=prevMaxHour.hour, day=prevMaxHour.day, month=prevMaxHour.month,
                                         year=prevMaxHour.year, tzinfo=utc)
+        else:
+            prevMaxHour = datetime.datetime(hour=1, day=1, month=1, year=1970, tzinfo=utc)
 
         while dayWithHour <= dateNow:
             with transaction.atomic():

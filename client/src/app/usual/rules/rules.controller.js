@@ -18,6 +18,10 @@
     vm.popUpIf = false;
     vm.arrayDiagram = [];
 
+    function generateUniqId() {
+      return new Date().getTime() + '' + Math.floor(Math.random() * 10000);
+    }
+
     if (!Home.AdverInfo.id) {
       $state.go('home.main');
     }
@@ -116,10 +120,9 @@
     };
 
     vm.addNewRule = function () {
-      var newItemNo = vm.rulesArray.length + 1;
       vm.rulesArray.push(
         {
-          id: newItemNo,
+          id: generateUniqId(),
           if: [
             {
               type: 'condition',

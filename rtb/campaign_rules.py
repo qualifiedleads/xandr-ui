@@ -33,7 +33,8 @@ def checkRules():
                     tableType = "view_rule_type_tracker"
                     unsuspendTableType = "view_rule_unsuspend_type_tracker"
                     parentTable = UIUsualPlacementsGridDataAllTracker
-            for indexRule, oneCampaignRules in enumerate(campaignRules.rules):
+            for oneCampaignRules in campaignRules.rules:
+                indexRule = oneCampaignRules['id']
                 place = []
                 queryString = ''
                 if len(oneCampaignRules['if']) >= 1:
@@ -63,7 +64,7 @@ def checkRules():
                                     + """ WHERE campaign_id=""" + str(campaignRules.campaign_id) + """ and """ \
                                     + """ placement_id in """ + placementIndict \
                                     + """ and rule_id=""" + str(campaignRules.id) \
-                                    + """ and rule_index=""" + str(indexRule) \
+                                    + """ and rule_index=""" + '\'' + str(indexRule) + '\'' \
                                     + """ and """ + result
                             cursor = connection.cursor()
                             cursor.execute(unsuspendQuery, locals())

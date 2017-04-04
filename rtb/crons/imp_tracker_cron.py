@@ -40,7 +40,7 @@ def perdelta(start, end, delta):
 def get():
     try:
         # Verbtimedelta - it is time range
-        Verbtimedelta = 10
+        Verbtimedelta = 6
 
         change_state = LastModified.objects.filter(type='get_data_from_impression_tracker')
         if len(change_state) >= 1:

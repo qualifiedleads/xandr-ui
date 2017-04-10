@@ -526,7 +526,8 @@ def mlPredictOnePlacement(placement_id, numbClusters, test_name = "ctr_viewrate"
             tempQuery = MLPlacementsClustersKmeans.objects.filter(
                 placement_id=placement_id,
                 day=placementClusterRecord.day,
-                test_number=test_number
+                test_number=test_number,
+                adv_type=advertiser_type
             )
             if not tempQuery:
                 placementClusterRecord.save()
@@ -562,26 +563,24 @@ def mlPredictOnePlacement(placement_id, numbClusters, test_name = "ctr_viewrate"
             if clustersDistance[i] < minDistance:
                 minDistance = clustersDistance[i]
                 placementClusterRecord.cluster = i + 1
-
         goodClusters = mlGetGoodClusters("ctr_cvr_cpc_cpm_cpa", advertiser_type=advertiser_type)
         if placementClusterRecord.cluster == goodClusters[7]:
             placementClusterRecord.good = True
         else:
             placementClusterRecord.good = False
+
         try:
-            tempQuery = MLPlacementsClustersKmeans.objects.filter(
+            MLPlacementsClustersKmeans.objects.update_or_create(
                 placement_id=placement_id,
                 day=placementClusterRecord.day,
-                test_number=test_number
+                test_number=test_number,
+                adv_type=advertiser_type,
+                defaults={
+                    "distance_to_clusters": placementClusterRecord.distance_to_clusters,
+                    "cluster": placementClusterRecord.cluster,
+                    "good": placementClusterRecord.good
+                }
             )
-            if not tempQuery:
-                placementClusterRecord.save()
-            else:
-                tempQuery.update(
-                    distance_to_clusters=placementClusterRecord.distance_to_clusters,
-                    cluster=placementClusterRecord.cluster,
-                    good=placementClusterRecord.good
-                )
         except Exception, e:
             print "Can't save recognition info. Error: " + str(e)
         print "Prediction completed " + str(placement_id)

@@ -15,6 +15,7 @@
       _this.AdverInfo = {
         'advertiser_id': advObject.advertiser_id || '',
         'advertiser_name': advObject.advertiser_name || '',
+        'advertiser_ad_type': advObject.advertiser_ad_type || '',
         'campaign': advObject.campaign || '',
         'id': advObject.id || '',
         'line_item': advObject.line_item || '',

@@ -1,4 +1,4 @@
-<div class="logic-rule" ng-if="rulesC.typeOfLogic(rule)" >
+<div class="logic-rule" ng-if="rulesC.typeOfLogic(rule)">
   <button class=" btn-danger removeF" ng-click="rulesC.deleteFilds($parent,IndexF)" data-title="Delete">X</button>
 
   <div class="RadioRule">
@@ -23,7 +23,7 @@
 </div>
 <div class="object-rule" ng-if="rulesC.typeOfObject(rule)">
   <div ng-if="$index == 0">
-    <button class="btn green addfields" ng-click="rulesC.addField($parent)" data-title="Add Field" >F+</button>
+    <button class="btn green addfields" ng-click="rulesC.addField($parent)" data-title="Add Field">F+</button>
     <button class="btn green addgroup" ng-click="rulesC.addGroup($parent, IndexF)" data-title="Add Group">G+</button>
   </div>
   <div class="RuleShow">
@@ -46,7 +46,8 @@
       <select class="select1" data-ng-model="rule.payment">
         <option ng-selected="rule.payment == 'cpa'">cpa</option>
         <option ng-selected="rule.payment == 'spent'">spent</option>
-        <option ng-selected="rule.payment == 'prediction'">prediction</option>
+        <option
+          ng-selected="rule.payment == 'FraudPrediction(eCommerce)' || rule.payment == 'FraudPrediction(lead-gen)'">{{rulesC.titlePrediction}}</option>
         <option ng-selected="rule.payment == 'impressions'">impressions</option>
         <option ng-selected="rule.payment == 'clicks'">clicks</option>
         <option ng-selected="rule.payment == 'ctr'">ctr</option>
@@ -55,8 +56,9 @@
       </select>
       </span>
     </div>
-        <!-- START OTHER-->
-    <div ng-if="rule.payment != 'prediction'" class="dropdown2">
+    <!-- START OTHER-->
+    <div ng-if="rule.payment != 'FraudPrediction(eCommerce)' || rule.payment != 'FraudPrediction(lead-gen)'"
+         class="dropdown2">
       compare
       <span>
         <select class="select2" data-ng-model="rule.compare">
@@ -68,7 +70,8 @@
         </select>
       </span>
     </div>
-    <div ng-if="rule.payment != 'prediction'" class="inputm">
+    <div ng-if="rule.payment != 'FraudPrediction(eCommerce)' || rule.payment != 'FraudPrediction(lead-gen)'"
+         class="inputm">
       <label>
         Value
         <input class="money" type="number" ng-model="rule.value">
@@ -77,16 +80,19 @@
     <!-- END OTHER-->
 
     <!-- START PREDICTION-->
-    <div ng-if="rule.payment == 'prediction'" class="dropdown2">
+    <div ng-if="rule.payment == 'FraudPrediction(eCommerce)' || rule.payment == 'FraudPrediction(lead-gen)'"
+         class="dropdown2">
       compare
       <span>
         <select class="select2" data-ng-model="rule.compare">
-          <option ng-selected="rule.compare == '='">=</option>
+          <option
+            ng-selected="rule.compare == '=' || !rule.compare||rule.compare!='<>'||rule.compare!='='?rule.compare='=':rule.compare">=</option>
           <option ng-selected="rule.compare == '<>'">&#x3c;&#x3e;</option>
         </select>
       </span>
     </div>
-    <div ng-if="rule.payment == 'prediction'" class="inputm">
+    <div ng-if="rule.payment == 'FraudPrediction(eCommerce)' || rule.payment == 'FraudPrediction(lead-gen)'"
+         class="inputm">
       <label>
         Value
         <select class="money" data-ng-model="rule.value">

@@ -15,8 +15,18 @@
     vm.campId = Home.AdverInfo.id;
     vm.line_item = Home.AdverInfo.line_item;
     vm.line_item_id = Home.AdverInfo.line_item_id;
+    vm.advertiser_ad_type = Home.AdverInfo.advertiser_ad_type;
     vm.popUpIf = false;
     vm.arrayDiagram = [];
+    vm.titlePrediction = '';
+
+    if (Home.AdverInfo.advertiser_ad_type === 'ecommerceAd') {
+      vm.titlePrediction = 'FraudPrediction(eCommerce)';
+    }
+
+    if (Home.AdverInfo.advertiser_ad_type === 'leadGenerationAd') {
+      vm.titlePrediction = 'FraudPrediction(lead-gen)';
+    }
 
     function generateUniqId() {
       return new Date().getTime() + '' + Math.floor(Math.random() * 10000);

@@ -1,4 +1,4 @@
-(function() {
+(function () {
   'use strict';
 
   angular
@@ -25,7 +25,7 @@
         controller: 'MainController',
         controllerAs: 'main',
         resolve: {
-          advertiserParams: function(Auth,$stateParams, $state, Home){
+          advertiserParams: function (Auth, $stateParams, $state, Home) {
             if (!$stateParams.id) {
               $state.go('/');
             }
@@ -35,13 +35,15 @@
                 if (res == undefined) {
                   $state.go('/');
                 }
+
                 Home.AdverInfo.advertiser_name = res.name;
                 return res;
               });
           },
+
           TWStatus: function (AdminService, $stateParams, $state, $cookies) {
             return AdminService.getValueOfTech().then(function (res) {
-              if ((res == "on") &&
+              if ((res == 'on') &&
                 ($cookies.get('token')) &&
                 (($cookies.get('permission') == 'userfull') || $cookies.get('permission') == 'userread')) {
                 $state.go('auth');
@@ -56,7 +58,7 @@
         controller: 'VideoMainController',
         controllerAs: 'vmain',
         resolve: {
-          advertiserParams: function(Auth,$stateParams, $state, Home){
+          advertiserParams: function (Auth, $stateParams, $state, Home) {
             if (!$stateParams.id) {
               $state.go('/');
             }
@@ -66,13 +68,15 @@
                 if (res == undefined) {
                   $state.go('/');
                 }
+
                 Home.AdverInfo.advertiser_name = res.name;
                 return res;
               });
           },
+
           TWStatus: function (AdminService, $stateParams, $state, $cookies) {
             return AdminService.getValueOfTech().then(function (res) {
-              if ((res == "on") &&
+              if ((res == 'on') &&
                 ($cookies.get('token')) &&
                 (($cookies.get('permission') == 'userfull') || $cookies.get('permission') == 'userread')) {
                 $state.go('auth');
@@ -91,14 +95,16 @@
             if (!$stateParams.id) {
               $state.go('home.main');
             }
+
             return CampMain.nameCampaigns($stateParams.id).then(function (res) {
               Home.AdverInfo = res;
               return res;
             });
           },
+
           TWStatus: function (AdminService, $stateParams, $state, $cookies) {
             return AdminService.getValueOfTech().then(function (res) {
-              if ((res == "on") &&
+              if ((res == 'on') &&
                 ($cookies.get('token')) &&
                 (($cookies.get('permission') == 'userfull') || $cookies.get('permission') == 'userread')) {
                 $state.go('auth');
@@ -117,14 +123,16 @@
             if (!$stateParams.id) {
               $state.go('home.main');
             }
+
             return CampMain.nameCampaigns($stateParams.id).then(function (res) {
               Home.AdverInfo = res;
               return res;
             });
           },
+
           TWStatus: function (AdminService, $stateParams, $state, $cookies) {
             return AdminService.getValueOfTech().then(function (res) {
-              if ((res == "on") &&
+              if ((res == 'on') &&
                 ($cookies.get('token')) &&
                 (($cookies.get('permission') == 'userfull') || $cookies.get('permission') == 'userread')) {
                 $state.go('auth');
@@ -143,14 +151,16 @@
             if (!$stateParams.id) {
               $state.go('home.main');
             }
+
             return CampMain.nameCampaigns($stateParams.id).then(function (res) {
               Home.AdverInfo = res;
               return res;
             });
           },
+
           TWStatus: function (AdminService, $stateParams, $state, $cookies) {
             return AdminService.getValueOfTech().then(function (res) {
-              if ((res == "on") &&
+              if ((res == 'on') &&
                 ($cookies.get('token')) &&
                 (($cookies.get('permission') == 'userfull') || $cookies.get('permission') == 'userread')) {
                 $state.go('auth');
@@ -165,17 +175,19 @@
         controller: 'CampaignOptimiserController',
         controllerAs: 'CO',
         resolve: {
-          Campaign:  function(CampMain,$stateParams, $state, Home){
+          Campaign:  function (CampMain, $stateParams, $state, Home) {
             if (!$stateParams.id) {
               $state.go('home.main');
             }
+
             return CampMain.nameCampaigns($stateParams.id).then(function (res) {
               return Home.AdverInfo = res;
             });
           },
+
           TWStatus: function (AdminService, $stateParams, $state, $cookies) {
             return AdminService.getValueOfTech().then(function (res) {
-              if ((res == "on") &&
+              if ((res == 'on') &&
                 ($cookies.get('token')) &&
                 (($cookies.get('permission') == 'userfull') || $cookies.get('permission') == 'userread')) {
                 $state.go('auth');
@@ -192,7 +204,7 @@
         resolve: {
           TWStatus: function (AdminService, $stateParams, $state, $cookies) {
             return AdminService.getValueOfTech().then(function (res) {
-              if ((res == "on") &&
+              if ((res == 'on') &&
                 ($cookies.get('token')) &&
                 (($cookies.get('permission') == 'userfull') || $cookies.get('permission') == 'userread')) {
                 $state.go('auth');
@@ -213,17 +225,19 @@
         controller: 'rulesController',
         controllerAs: 'rulesC',
         resolve: {
-          Campaign:  function(CampMain,$stateParams, $state, Home){
+          Campaign:  function (CampMain, $stateParams, $state, Home) {
             if (!$stateParams.id) {
               $state.go('home.main');
             }
+
             return CampMain.nameCampaigns($stateParams.id).then(function (res) {
               return Home.AdverInfo = res;
             });
           },
+
           TWStatus: function (AdminService, $stateParams, $state, $cookies) {
             return AdminService.getValueOfTech().then(function (res) {
-              if ((res == "on") &&
+              if ((res == 'on') &&
                 ($cookies.get('token')) &&
                 (($cookies.get('permission') == 'userfull') || $cookies.get('permission') == 'userread')) {
                 $state.go('auth');
@@ -238,17 +252,19 @@
         controller: 'BCCController',
         controllerAs: 'bcc',
         resolve: {
-          Campaign:  function(CampMain,$stateParams, $state){
+          Campaign:  function (CampMain, $stateParams, $state) {
             if (!$stateParams.id) {
               $state.go('home.main');
             }
+
             return CampMain.nameCampaigns($stateParams.id).then(function (res) {
-              return res
+              return res;
             });
           },
+
           TWStatus: function (AdminService, $stateParams, $state, $cookies) {
             return AdminService.getValueOfTech().then(function (res) {
-              if ((res == "on") &&
+              if ((res == 'on') &&
                 ($cookies.get('token')) &&
                 (($cookies.get('permission') == 'userfull') || $cookies.get('permission') == 'userread')) {
                 $state.go('auth');
@@ -263,18 +279,21 @@
         controller: 'CPAController',
         controllerAs: 'cpa',
         resolve: {
-          Campaign:  function(CampMain,$stateParams, $state,Home){
+          Campaign:  function (CampMain, $stateParams, $state, Home) {
             if (!$stateParams.id) {
               $state.go('home.main');
             }
+
             return CampMain.nameCampaigns($stateParams.id).then(function (res) {
               return Home.AdverInfo = res;
             });
           },
-          ChartDetails:  function(CPA,$stateParams, $state,$localStorage){
+
+          ChartDetails:  function (CPA, $stateParams, $state, $localStorage) {
             if (!$stateParams.id) {
               $state.go('home.main');
             }
+
             return CPA.detailsStoreAll(
               $stateParams.id,
               $localStorage.dataStart,
@@ -287,10 +306,12 @@
                 return err;
               });
           },
-          CpaBucketsAll:  function(CPA,$stateParams, $state,$localStorage){
+
+          CpaBucketsAll:  function (CPA, $stateParams, $state, $localStorage) {
             if (!$stateParams.id) {
               $state.go('home.main');
             }
+
             return CPA.bucketsCpa(
               $stateParams.id,
               $localStorage.dataStart,
@@ -303,9 +324,10 @@
                 return err;
               });
           },
+
           TWStatus: function (AdminService, $stateParams, $state, $cookies) {
             return AdminService.getValueOfTech().then(function (res) {
-              if ((res == "on") &&
+              if ((res == 'on') &&
                 ($cookies.get('token')) &&
                 (($cookies.get('permission') == 'userfull') || $cookies.get('permission') == 'userread')) {
                 $state.go('auth');

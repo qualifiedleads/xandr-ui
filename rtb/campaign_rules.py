@@ -155,7 +155,7 @@ def recursionParseRule(rule, queryString, predType):
             queryString = queryString + '( ' + recursionParseRule(arrayIf, '', predType)
             queryString = queryString + ' )'
         if type(arrayIf) is dict and arrayIf['type'] == 'condition':
-            if arrayIf['payment'] == 'prediction':
+            if arrayIf['payment'] == 'FraudPrediction(eCommerce)' or arrayIf['payment'] == 'FraudPrediction(lead-gen)':
                 if arrayIf['value'] == 'bad':
                     queryString = str(queryString) + predType + str(arrayIf['compare']) + 'false '
                 else:

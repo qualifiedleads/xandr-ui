@@ -85,8 +85,8 @@
       compare
       <span>
         <select class="select2" data-ng-model="rule.compare">
-          <option
-            ng-selected="rule.compare == '=' || !rule.compare||rule.compare!='<>'||rule.compare!='='?rule.compare='=':rule.compare">=</option>
+          <!--<option ng-selected="rule.compare == '=' || rule.compare == '>'">=</option>-->
+          <option ng-selected="rule.compare == '=' || rule.compare != '<>'?rule.compare='=':rule.compare">=</option>
           <option ng-selected="rule.compare == '<>'">&#x3c;&#x3e;</option>
         </select>
       </span>
@@ -96,7 +96,7 @@
       <label>
         Value
         <select class="money" data-ng-model="rule.value">
-          <option ng-selected="(rule.value == 'good')||(!rule.value?rule.value='good':rule.value)">good</option>
+          <option ng-selected="rule.value == 'good' || !rule.value?rule.value='good':rule.value">good</option>
           <option ng-selected="rule.value == 'bad'">bad</option>
         </select>
       </label>

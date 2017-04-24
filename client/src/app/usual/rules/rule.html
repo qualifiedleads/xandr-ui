@@ -57,7 +57,7 @@
       </span>
     </div>
     <!-- START OTHER-->
-    <div ng-if="rule.payment != 'FraudPrediction(eCommerce)' || rule.payment != 'FraudPrediction(lead-gen)'"
+    <div ng-if="rule.payment != 'FraudPrediction(eCommerce)' && rule.payment != 'FraudPrediction(lead-gen)'"
          class="dropdown2">
       compare
       <span>
@@ -70,7 +70,7 @@
         </select>
       </span>
     </div>
-    <div ng-if="rule.payment != 'FraudPrediction(eCommerce)' || rule.payment != 'FraudPrediction(lead-gen)'"
+    <div ng-if="rule.payment != 'FraudPrediction(eCommerce)' && rule.payment != 'FraudPrediction(lead-gen)'"
          class="inputm">
       <label>
         Value
@@ -96,7 +96,7 @@
       <label>
         Value
         <select class="money" data-ng-model="rule.value">
-          <option ng-selected="rule.value == 'good' || !rule.value?rule.value='good':rule.value">good</option>
+          <option ng-selected="(rule.value == 'good')||(!rule.value?rule.value='good':rule.value)">good</option>
           <option ng-selected="rule.value == 'bad'">bad</option>
         </select>
       </label>

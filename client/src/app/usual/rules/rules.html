@@ -5,7 +5,7 @@
         <a href="" ui-sref="home.campaign({id: rulesC.campId})"  >{{rulesC.campName}} ({{rulesC.campId}})</a>
       </span>
       <br><span translate="CAMP.LINE_ITEM" class="camp-header"></span><span class="camp-line-item"> {{rulesC.line_item}} ({{rulesC.line_item_id}})</span>
-        <div class="control pull-right" dx-select-box="rulesC.UI.datePiker"></div>
+      <div class="control pull-right" dx-select-box="rulesC.UI.datePiker"></div>
     </div>
   </div>
   <div class="row camp-content1">
@@ -31,19 +31,19 @@
           <label class="lr1-option" for="r1-option"> Whitelist</label>
 
           <div class="RadioTime1"  >   Suspend:
-            <input type="radio"class="option1" id="option1" ng-model="rules.then" value="1" ng-click="rulesC.checkTime(Index, rules)" >
+            <input type="radio" class="option1" id="option1" ng-model="rules.then" value="1" ng-click="rulesC.checkTime(Index, rules)" >
             <label class="lr-option-time" for="option1">24 hrs</label>
 
 
-            <input type="radio"class="option2" id="option2" ng-model="rules.then" value="3" ng-click="rulesC.checkTime(Index, rules)" >
+            <input type="radio" class="option2" id="option2" ng-model="rules.then" value="3" ng-click="rulesC.checkTime(Index, rules)" >
             <label class="lr1-option-time" for="option2">3 days</label>
 
 
-            <input type="radio"class="option3" id="option3" ng-model="rules.then" value="7" ng-click="rulesC.checkTime(Index, rules)" >
+            <input type="radio" class="option3" id="option3" ng-model="rules.then" value="7" ng-click="rulesC.checkTime(Index, rules)" >
             <label class="lr2-option-time" for="option3">7 days</label>
 
 
-            <input type="radio"class="option4" id="option4" ng-model="rules.then" value="0" ng-click="rulesC.checkTime(Index, rules)" >
+            <input type="radio" class="option4" id="option4" ng-model="rules.then" value="0" ng-click="rulesC.checkTime(Index, rules)" >
             <label class="lr3-option-time" for="option4">manual </label>
           </div>
           <p class="TimeRule" ng-if="rules.time">Time:{{rules.time}}</p>

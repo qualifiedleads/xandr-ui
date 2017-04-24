@@ -142,7 +142,14 @@
             };
           }
 
-          _this.titlePrediction = res.data.advertiser_type;
+          if (res.data.advertiser_type === 'ecommerceAd') {
+            _this.titlePrediction = 'eCommerce prediction';
+          }
+
+          if (res.data.advertiser_type === 'leadGenerationAd') {
+            _this.titlePrediction = 'Lead-generators prediction';
+          }
+
           _totalCountCampaign = res.data.totalCount ? res.data.totalCount : null;
           _this.totalSummary = res.data.totalSummary ? res.data.totalSummary : null;
 

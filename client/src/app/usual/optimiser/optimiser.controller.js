@@ -589,6 +589,10 @@
             dataField: 'analytics',
             allowEditing: false,
             cellTemplate: function (container, options) {
+              if (options.column.caption === 'Prediction') {
+                vm.dataGridOptionsMultipleFunc.columnOption('analytics', 'caption', CampaignOptimiser.titlePrediction);
+              }
+
               vm.arrayDiagram.push(options.data);
               if (options.data.analitics !== null) {
                 var bad = options.data.analitics.bad;
@@ -908,7 +912,6 @@
           vm.dataGridOptionsMultipleFunc._controllers.columns._commandColumns[1].visibleIndex = 9;
           vm.dataGridOptionsMultipleFunc._controllers.columns._commandColumns[1].width = 35;
         },
-
         onEditorPreparing: function (info) {
           if ((info.parentType == 'filterRow') && (info.dataField == 'state')) {
             info.editorElement.dxSelectBox({

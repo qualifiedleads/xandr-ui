@@ -78,7 +78,13 @@
 
     <!-- START PREDICTION-->
     <div ng-if="rule.payment == 'prediction'" class="dropdown2">
-      {{rule.compare='='}}
+      compare
+      <span>
+        <select class="select2" data-ng-model="rule.compare">
+          <option ng-selected="rule.compare == '='">=</option>
+          <option ng-selected="rule.compare == '<>'">&#x3c;&#x3e;</option>
+        </select>
+      </span>
     </div>
     <div ng-if="rule.payment == 'prediction'" class="inputm">
       <label>

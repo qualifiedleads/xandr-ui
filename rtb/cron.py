@@ -31,7 +31,7 @@ from rtb.crons.video_ad_cron import fillVideoAdDataCron
 from django.utils import timezone
 from datetime import timedelta
 from rtb.controllers.campaign_create import getToken
-from rtb.crons.ui_data_fill_cron import refreshPrecalculatedDataCampaings, refreshPrecalculatedDataPlacements
+from rtb.crons.ui_data_fill_cron import refreshPrecalculatedDataCampaings, refreshPrecalculatedDataPlacements, subPrecalculatedDataCampaings
 table_names = {c._meta.db_table: c for c in get_all_classes_in_models(models)}
 
 _default_values_for_types = {
@@ -689,7 +689,7 @@ def hourlyTask(dayWithHour=None, load_objects_from_services=True, output=None):
         dayWithHour = datetime.datetime(hour=dayWithHour.hour, day=dayWithHour.day, month=dayWithHour.month, year=dayWithHour.year, tzinfo=utc)
     else:
         dayWithHour = SiteDomainPerformanceReport.objects.aggregate(m=Max('hour'))['m']
-        print 'Last loaded site domain prefomance report hour', dayWithHour
+        print 'Last loaded site domain performance report hour', dayWithHour
 
         if dayWithHour:
             dayWithHour = datetime.datetime(hour=dayWithHour.hour, day=dayWithHour.day, month=dayWithHour.month,
@@ -700,12 +700,6 @@ def hourlyTask(dayWithHour=None, load_objects_from_services=True, output=None):
                                             year=dayWithHour.year, tzinfo=utc)
 
     dateNow = datetime.datetime.utcnow().replace(minute=0, second=0, microsecond=0, tzinfo=utc)
-    prevMaxHour = SiteDomainPerformanceReport.objects.aggregate(m=Max('hour'))['m']
-    if prevMaxHour:
-        prevMaxHour = datetime.datetime(hour=prevMaxHour.hour, day=prevMaxHour.day, month=prevMaxHour.month,
-                                        year=prevMaxHour.year, tzinfo=utc)
-    else:
-        prevMaxHour = datetime.datetime(hour=1, day=1, month=1, year=1970, tzinfo=utc)
     try:
         token = getToken()
         if load_objects_from_services:
@@ -715,18 +709,18 @@ def hourlyTask(dayWithHour=None, load_objects_from_services=True, output=None):
                 LastModified.objects.filter(type='hourlyTask').update(date=timezone.make_aware(datetime.datetime.now(), timezone.get_default_timezone()))
                 with transaction.atomic():
                     print 'SiteDomainPerformanceReport  start', get_current_time().strftime('%Y-%m-%dT%H-%M-%S'), ' for day - ', dayWithHour
+                    # sub previous data
+                    subPrecalculatedDataCampaings(
+                        start_date=dayWithHour - one_hour,
+                        finish_date=dayWithHour
+                    )
                     load_reports_for_all_advertisers(token, dayWithHour, SiteDomainPerformanceReport, isHour=True)
 
                     print '==================================SiteDomainPerformanceReport  END', get_current_time().strftime('%Y-%m-%dT%H-%M-%S')
-                    curMaxHour = SiteDomainPerformanceReport.objects.aggregate(m=Max('hour'))['m']
-                    curMaxHour = datetime.datetime(hour=curMaxHour.hour, day=curMaxHour.day, month=curMaxHour.month,
-                                                    year=curMaxHour.year, tzinfo=utc)
-                    if prevMaxHour != curMaxHour:
-                        refreshPrecalculatedDataCampaings(
-                            start_date=dayWithHour - one_hour,
-                            finish_date=dayWithHour
-                        )
-                        prevMaxHour = curMaxHour
+                    refreshPrecalculatedDataCampaings(
+                        start_date=dayWithHour - one_hour,
+                        finish_date=dayWithHour
+                    )
                     token = getToken()
                 dayWithHour += one_hour
             # fillVideoAdDataCron()

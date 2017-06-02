@@ -384,6 +384,88 @@ ON CONFLICT (campaign_id)
      day_chart = Excluded.day_chart;
     """)
 
+def preCummulateSubCampaignsGridData(type, start_date, finish_date):
+        with connection.cursor() as cursor:
+            cursor.execute("""
+    update ui_usual_campaigns_grid_data_""" + str(type) + """ as ut
+set
+  imps = ut.imps - info.imps,
+  clicks = ut.clicks - info.clicks,
+  spent = ut.spent - info.spent,
+  conversions = ut.conversions - info.conversions,
+  imps_viewed = ut.imps_viewed - info.imps_viewed,
+  view_measured_imps = ut.view_measured_imps - info.view_measured_imps,
+  cpm = case (ut.imps - info.imps) when 0 then 0 else (ut.spent - info.spent) / (ut.imps - info.imps) * 1000.0 end,
+  cvr = case (ut.imps - info.imps) when 0 then 0 else (ut.conversions - info.conversions) / (ut.imps - info.imps) end,
+  ctr = case (ut.imps - info.imps) when 0 then 0 else (ut.clicks - info.clicks) / (ut.imps - info.imps) end,
+  cpc = case (ut.clicks - info.clicks) when 0 then 0 else (ut.spent - info.spent) / (ut.clicks - info.clicks) end,
+  view_measurement_rate = case (ut.imps - info.imps) when 0 then 0 else (ut.view_measured_imps - info.view_measured_imps) / (ut.imps - info.imps) end,
+  view_rate = case (ut.view_measured_imps - info.view_measured_imps) when 0 then 0 else (ut.imps_viewed - info.imps_viewed) / (ut.view_measured_imps - info.view_measured_imps) end,
+  day_chart = case (ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'day')::text when (info.day_chart::json->0->'day')::text
+                  then jsonb_set(
+                    ut.day_chart::jsonb,
+                    concat('{', (jsonb_array_length(ut.day_chart)-1), '}')::text[],
+                    json_build_object(
+                        'day', ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'day',
+                        'imp', coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'imp')::text::integer,0) - coalesce((info.day_chart::json->0->'imp')::text::integer,0),
+                        'spend', coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'spend')::text::float,0) - coalesce((info.day_chart::json->0->'spend')::text::float,0),
+                        'clicks', coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'clicks')::text::integer,0) - coalesce((info.day_chart::json->0->'clicks')::text::integer,0),
+                        'conversions', coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'conversions')::text::integer,0) - coalesce((info.day_chart::json->0->'conversions')::text::integer,0),
+                        'cvr', case (coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'imp')::text::integer,0) - coalesce((info.day_chart::json->0->'imp')::text::integer,0))
+                               when 0 then 0
+                               else (coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'conversions')::text::float,0) - coalesce((info.day_chart::json->0->'conversions')::text::float,0))/(coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'imp')::text::float,0) - coalesce((info.day_chart::json->0->'imp')::text::float,0)) end,
+                        'cpc', case (coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'clicks')::text::integer,0) - coalesce((info.day_chart::json->0->'clicks')::text::integer,0))
+                               when 0 then 0
+                               else (coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'spend')::text::float,0) - coalesce((info.day_chart::json->0->'spend')::text::float,0))/(coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'clicks')::text::float,0) - coalesce((info.day_chart::json->0->'clicks')::text::float,0)) end,
+                        'ctr', case coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'imp')::text::integer,0) - coalesce((info.day_chart::json->0->'imp')::text::integer,0)
+                               when 0 then 0
+                               else (coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'clicks')::text::float,0) - coalesce((info.day_chart::json->0->'clicks')::text::float,0))/(coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'imp')::text::float,0) - coalesce((info.day_chart::json->0->'imp')::text::float,0)) end
+                    )::jsonb,
+                    true) end
+FROM (
+  select
+    page.campaign_id,
+    page.imps,
+    page.clicks,
+    page.spent,
+    page.conversions,
+    page.imps_viewed,
+    page.view_measured_imps,
+    array_to_json(array((select
+           json_build_object(
+           'day', site_r.day,
+           'imp', SUM(site_r.imps),
+           'spend', SUM(site_r.media_cost),
+           'clicks', SUM(site_r.clicks),
+           'conversions', SUM(site_r.post_click_convs) + SUM(site_r.post_view_convs),
+           'cvr', case SUM(site_r.imps) when 0 then 0 else (SUM(site_r.post_click_convs) + SUM(site_r.post_view_convs))::float/SUM(site_r.imps) end,
+           'cpc', case SUM(site_r.clicks) when 0 then 0 else SUM(site_r.media_cost)::float/SUM(site_r.clicks) end,
+           'ctr', case SUM(site_r.imps) when 0 then 0 else SUM(site_r.clicks)::float/SUM(site_r.imps) end)
+         from site_domain_performance_report site_r
+         where site_r.campaign_id=page.campaign_id
+           and site_r.hour > '""" + str(start_date) + """' and site_r.hour <= '""" + str(finish_date) + """'
+         group by site_r.campaign_id, site_r.day
+         order by site_r.day))) day_chart
+from (
+      select distinct on (site_r1.campaign_id)
+        site_r1.campaign_id,
+        SUM(site_r1.imps) over (partition by site_r1.campaign_id) imps,
+        SUM(site_r1.media_cost) over (partition by site_r1.campaign_id) spent,
+        SUM(site_r1.clicks) over (partition by site_r1.campaign_id) clicks,
+        (SUM(site_r1.post_view_convs) over (partition by site_r1.campaign_id) + SUM(site_r1.post_click_convs) over (partition by site_r1.campaign_id)) conversions,
+        SUM(site_r1.imps_viewed) over (partition by site_r1.campaign_id) imps_viewed,
+        SUM(site_r1.view_measured_imps) over (partition by site_r1.campaign_id) view_measured_imps
+      from
+        site_domain_performance_report site_r1
+      where
+        site_r1.hour > '""" + str(start_date) + """'
+        and site_r1.hour <= '""" + str(finish_date) + """'
+      WINDOW w as (partition by site_r1.campaign_id order by site_r1.day desc)
+     ) page
+) info
+where ut.campaign_id = info.campaign_id;
+            """)
+
 #
 # ADVERTISERS GRAPH REPORT
 #
@@ -508,6 +590,63 @@ from (
 ON CONFLICT (advertiser_id, type)
   DO UPDATE SET
      day_chart = Excluded.day_chart;
+        """)
+
+def preCummulateSubAdvertiserGraphData(type, start_date, finish_date):
+    with connection.cursor() as cursor:
+        cursor.execute("""
+update ui_usual_advertisers_graph as ut
+set
+    day_chart = case (ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'day')::text when (info.day_chart::json->0->'day')::text
+                  then jsonb_set(
+                    ut.day_chart::jsonb,
+                    concat('{', (jsonb_array_length(ut.day_chart)-1), '}')::text[],
+                    json_build_object(
+                        'day', ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'day',
+                        'imp', coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'imp')::text::integer,0) - coalesce((info.day_chart::json->0->'imp')::text::integer,0),
+                        'spend', coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'spend')::text::float,0) - coalesce((info.day_chart::json->0->'spend')::text::float,0),
+                        'clicks', coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'clicks')::text::integer,0) - coalesce((info.day_chart::json->0->'clicks')::text::integer,0),
+                        'conversions', coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'conversions')::text::integer,0) - coalesce((info.day_chart::json->0->'conversions')::text::integer,0),
+                        'cvr', case (coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'imp')::text::integer,0) - coalesce((info.day_chart::json->0->'imp')::text::integer,0))
+                               when 0 then 0
+                               else (coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'conversions')::text::float,0) - coalesce((info.day_chart::json->0->'conversions')::text::float,0))/(coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'imp')::text::float,0) - coalesce((info.day_chart::json->0->'imp')::text::float,0)) end,
+                        'cpc', case (coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'clicks')::text::integer,0) - coalesce((info.day_chart::json->0->'clicks')::text::integer,0))
+                               when 0 then 0
+                               else (coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'spend')::text::float,0) - coalesce((info.day_chart::json->0->'spend')::text::float,0))/(coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'clicks')::text::float,0) - coalesce((info.day_chart::json->0->'clicks')::text::float,0)) end,
+                        'ctr', case coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'imp')::text::integer,0) - coalesce((info.day_chart::json->0->'imp')::text::integer,0)
+                               when 0 then 0
+                               else (coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'clicks')::text::float,0) - coalesce((info.day_chart::json->0->'clicks')::text::float,0))/(coalesce((ut.day_chart::json->(jsonb_array_length(ut.day_chart)-1)->'imp')::text::float,0) - coalesce((info.day_chart::json->0->'imp')::text::float,0)) end
+                    )::jsonb,
+                    true) end
+FROM (
+  select
+  ads.advertiser_id,
+  array_to_json(array(
+    select json_build_object(
+      'day', "day",
+      'imp', sum(imps),
+      'spend', sum(media_cost),
+      'clicks', sum(clicks),
+      'conversions', sum(post_click_convs) + sum(post_view_convs)
+    )
+    from site_domain_performance_report tt
+    where
+      ads.advertiser_id=tt.advertiser_id
+    and
+     "hour" > '""" + str(start_date) + """'
+      and
+      "hour" <= '""" + str(finish_date) + """'
+    group by "day"
+    order by "day"
+  )) day_chart
+from (
+       select distinct advertiser_id from site_domain_performance_report
+        where
+         "hour" > '""" + str(start_date) + """'
+          and
+          "hour" <= '""" + str(finish_date) + """') ads
+) info
+where ut.advertiser_id = info.advertiser_id and type='""" + str(type) + """';
         """)
 
 #
@@ -2399,3 +2538,67 @@ def refreshPrecalculatedDataTracker(start_date, finish_date):
         print "Refreshing last month campaigns graph data finished: " + str(datetime.now())
     LastModified.objects.filter(type='get_data_from_impression_tracker').update(date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
     print "Refreshing tracker precalculated from " + str(start_date) + " to " + str(finish_date) + " finished: " + str(datetime.now())
+
+def subPrecalculatedDataCampaings(start_date, finish_date):
+    print "Deleting campaigns precalculated data from " + str(start_date) + " to " + str(finish_date) + " started: " + str(
+        datetime.now())
+    finish_date = datetime(hour=finish_date.hour, day=finish_date.day, month=finish_date.month, year=finish_date.year)
+    start_date = datetime(hour=start_date.hour, day=start_date.day, month=start_date.month, year=start_date.year)
+    tableTypes = [
+        ["yesterday", 1],
+        ["last_3_days", 3],
+        ["last_7_days", 7],
+        ["last_14_days", 14],
+        ["last_21_days", 21],
+        ["last_90_days", 90]
+    ]
+    LastModified.objects.filter(type='hourlyTask').update(
+        date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
+    # deleting in campaigns grid
+    preCummulateSubCampaignsGridData(type="all", start_date=start_date, finish_date=finish_date)
+    # cummulateCampaignsGridData(type="all", start_date=start_date, finish_date=finish_date)
+    LastModified.objects.filter(type='hourlyTask').update(
+        date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
+    print "Deleting all time campaigns grid data finished: " + str(datetime.now())
+    preCummulateSubCampaignsGridData(type="cur_month", start_date=start_date, finish_date=finish_date)
+    # cummulateCampaignsGridData(type="cur_month", start_date=start_date, finish_date=finish_date)
+    LastModified.objects.filter(type='hourlyTask').update(
+        date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
+    print "Deleting current month campaigns grid data finished: " + str(datetime.now())
+
+    # deleting advertisers graph
+    preCummulateSubAdvertiserGraphData(type="all", start_date=start_date, finish_date=finish_date)
+    # cummulateAdvertisersGraphData(type="all", start_date=start_date, finish_date=finish_date)
+    LastModified.objects.filter(type='hourlyTask').update(
+        date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
+    print "Deleting all time advertisers graph data finished: " + str(datetime.now())
+    preCummulateSubAdvertiserGraphData(type="cur_month", start_date=start_date, finish_date=finish_date)
+    # cummulateAdvertisersGraphData(type="cur_month", start_date=start_date, finish_date=finish_date)
+    LastModified.objects.filter(type='hourlyTask').update(
+        date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
+    print "Deleting current month advertisers graph data finished: " + str(datetime.now())
+
+    for type in tableTypes:
+        # deleting in campaigns grid
+        LastModified.objects.filter(type='hourlyTask').update(
+            date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
+        # adding data
+        preCummulateSubCampaignsGridData(type=type[0], start_date=start_date, finish_date=finish_date)
+        # cummulateCampaignsGridData(type=type[0], start_date=start_date, finish_date=finish_date)
+        LastModified.objects.filter(type='hourlyTask').update(
+            date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
+        print "Deleting " + str(type[0]) + " campaigns grid data finished: " + str(datetime.now())
+
+        # deleting in advertisers graph
+        LastModified.objects.filter(type='hourlyTask').update(
+            date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
+        # adding data
+        preCummulateSubAdvertiserGraphData(type=type[0], start_date=start_date, finish_date=finish_date)
+        # cummulateAdvertisersGraphData(type=type[0], start_date=start_date, finish_date=finish_date)
+        LastModified.objects.filter(type='hourlyTask').update(
+            date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
+        print "Deleting " + str(type[0]) + " advertisers graph data finished: " + str(datetime.now())
+
+    LastModified.objects.filter(type='hourlyTask').update(
+        date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
+    print "Deleting campaigns precalculated data from " + str(start_date) + " to " + str(finish_date) + " finished: " + str(datetime.now())

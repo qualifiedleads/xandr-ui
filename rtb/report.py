@@ -156,17 +156,20 @@ def get_specified_report(ReportClass, query_data=None, token=None, day=None, col
             data=data,
             headers=headers)
         response = json.loads(r.content)['response']
-        if response['status'] == 'error':
-            if response['error_id'] == 'NOAUTH':
-                token = get_auth_token()
-                time.sleep(10)
-            elif response['error_id'] == 'LIMIT':
-                print "Max report count limit reached, waiting..."
-                time.sleep(30)
-            else:
-                print 'Other error:', response['error']
-                time.sleep(10)
-            continue
+        try:
+            if response['status'] == 'error':
+                if response['error_id'] == 'NOAUTH':
+                    token = get_auth_token()
+                    time.sleep(10)
+                elif response['error_id'] == 'LIMIT':
+                    print "Max report count limit reached, waiting..."
+                    time.sleep(30)
+                else:
+                    print 'Other error:', response['error']
+                    time.sleep(10)
+                continue
+        except Exception as e:
+            print 'Error by getting response status: %s' % e
         try:
             report_id = response['report_id']
         except Exception as e:

@@ -700,6 +700,12 @@ def hourlyTask(dayWithHour=None, load_objects_from_services=True, output=None):
                                             year=dayWithHour.year, tzinfo=utc)
 
     dateNow = datetime.datetime.utcnow().replace(minute=0, second=0, microsecond=0, tzinfo=utc)
+    prevMaxHour = SiteDomainPerformanceReport.objects.aggregate(m=Max('hour'))['m']
+    if prevMaxHour:
+        prevMaxHour = datetime.datetime(hour=prevMaxHour.hour, day=prevMaxHour.day, month=prevMaxHour.month,
+                                        year=prevMaxHour.year, tzinfo=utc)
+    else:
+        prevMaxHour = datetime.datetime(hour=1, day=1, month=1, year=1970, tzinfo=utc)
     try:
         token = getToken()
         if load_objects_from_services:
@@ -717,10 +723,32 @@ def hourlyTask(dayWithHour=None, load_objects_from_services=True, output=None):
                     load_reports_for_all_advertisers(token, dayWithHour, SiteDomainPerformanceReport, isHour=True)
 
                     print '==================================SiteDomainPerformanceReport  END', get_current_time().strftime('%Y-%m-%dT%H-%M-%S')
-                    refreshPrecalculatedDataCampaings(
-                        start_date=dayWithHour - one_hour,
-                        finish_date=dayWithHour
-                    )
+                    curMaxHour = SiteDomainPerformanceReport.objects.aggregate(m=Max('hour'))['m']
+                    curMaxHour = datetime.datetime(hour=curMaxHour.hour, day=curMaxHour.day, month=curMaxHour.month,
+                                                   year=curMaxHour.year, tzinfo=utc)
+                    if prevMaxHour != curMaxHour and curMaxHour == curMaxHour.replace(hour=1, minute=0, second=0, microsecond=0):
+                        if curMaxHour == curMaxHour.replace(day=1, hour=1, minute=0, second=0, microsecond=0):
+                            refreshPrecalculatedDataCampaings(
+                                start_date=dayWithHour - one_hour,
+                                finish_date=dayWithHour,
+                                sub_day=True,
+                                new_month=True
+                            )
+                        else:
+                            refreshPrecalculatedDataCampaings(
+                                start_date=dayWithHour - one_hour,
+                                finish_date=dayWithHour,
+                                sub_day=True,
+                                new_month=False
+                            )
+                        prevMaxHour = curMaxHour
+                    else:
+                        refreshPrecalculatedDataCampaings(
+                            start_date=dayWithHour - one_hour,
+                            finish_date=dayWithHour,
+                            sub_day=False,
+                            new_month=False
+                        )
                     token = getToken()
                 dayWithHour += one_hour
             # fillVideoAdDataCron()

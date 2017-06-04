@@ -2137,7 +2137,7 @@ ON CONFLICT (placement_id)
     LastModified.objects.filter(type='hourlyTask').update(date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
     print "Refreshing placements precalculated data from " + str(start_date) + " to " + str(finish_date) + " finished: " + str(datetime.now())
 
-def refreshPrecalculatedDataCampaings(start_date, finish_date):
+def refreshPrecalculatedDataCampaings(start_date, finish_date, sub_day, new_month):
     print "Refreshing campaigns precalculated data from " + str(start_date) + " to " + str(finish_date) + " started: " + str(
         datetime.now())
     finish_date = datetime(hour=finish_date.hour, day=finish_date.day, month=finish_date.month, year=finish_date.year)
@@ -2181,10 +2181,10 @@ def refreshPrecalculatedDataCampaings(start_date, finish_date):
         LastModified.objects.filter(type='hourlyTask').update(
             date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
         # sub data
-        if finish_date == finish_date.replace(hour=0, minute=0, second=0, microsecond=0):
+        if sub_day:
             subCampaignsGridData(type=type[0],
-                                  start_date=finish_date - timedelta(days=type[1] + 1),
-                                  finish_date=finish_date - timedelta(days=type[1])
+                                  start_date=finish_date.replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(days=type[1] + 1),
+                                  finish_date=finish_date.replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(days=type[1])
                                   )
             LastModified.objects.filter(type='hourlyTask').update(
                 date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
@@ -2198,17 +2198,17 @@ def refreshPrecalculatedDataCampaings(start_date, finish_date):
         LastModified.objects.filter(type='hourlyTask').update(
             date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
         # sub data
-        if finish_date == finish_date.replace(hour=0, minute=0, second=0, microsecond=0):
+        if sub_day:
             subAdvertisersGraphData(type=type[0],
-                                    start_date=finish_date - timedelta(days=type[1] + 1),
-                                    finish_date=finish_date - timedelta(days=type[1])
+                                    start_date=finish_date.replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(days=type[1] + 1),
+                                    finish_date=finish_date.replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(days=type[1])
                                     )
             LastModified.objects.filter(type='hourlyTask').update(
                 date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))
         print "Refreshing " + str(type[0]) + " advertisers graph data finished: " + str(datetime.now())
 
     # refresh last month
-    if finish_date == finish_date.replace(day=1, hour=0, minute=0, second=0, microsecond=0):
+    if new_month:
         # campaigns grid refreshing
         LastModified.objects.filter(type='hourlyTask').update(
             date=timezone.make_aware(datetime.now(), timezone.get_default_timezone()))

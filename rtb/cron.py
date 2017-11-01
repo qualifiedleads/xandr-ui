@@ -885,7 +885,7 @@ def dayly_task(day=None, load_objects_from_services=True, output=None):
         day = datetime.datetime(day=day.day, month=day.month, year=day.year, tzinfo=utc)
         last_day=day
     else:
-        day = SiteDomainPerformanceReport.objects.aggregate(m=Max('day'))['m']
+        day = GeoAnaliticsReport.objects.aggregate(m=Max('day'))['m']
         print 'Last loaded day', day
         if day:
             day = datetime.datetime(day=day.day, month=day.month, year=day.year, tzinfo=utc)

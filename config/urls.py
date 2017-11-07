@@ -7,11 +7,12 @@ from django.contrib import admin
 from django.contrib.staticfiles.views import serve
 
 urlpatterns = [
-                  url(r'^admin/', admin.site.urls),
-                  url(r'^api/v1/', include('rtb.urls')),
-                  url(r'^docs/', include('rest_framework_docs.urls')),
-                  url(r'^$', serve, kwargs={'path': 'clientAngular/index.html'}),  #
-                  url(r'^(?!/?static/clientAngular/)(?!/?media/)(?P<path>.*\..*)$',
-                      RedirectView.as_view(url='/static/clientAngular/%(path)s', permanent=False)),
-              ]
+    url(r'^admin/', admin.site.urls),
+    url(r'^api/v1/domain[/]?', include('domain_api.urls')),
+    url(r'^api/v1/', include('rtb.urls')),
+    url(r'^docs/', include('rest_framework_docs.urls')),
+    url(r'^$', serve, kwargs={'path': 'clientAngular/index.html'}),  #
+    url(r'^(?!/?static/clientAngular/)(?!/?media/)(?P<path>.*\..*)$',
+    RedirectView.as_view(url='/static/clientAngular/%(path)s', permanent=False)),
+]
 

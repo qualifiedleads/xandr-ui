@@ -308,10 +308,12 @@ class Advertiser(models.Model):
     rules_type = models.TextField(null=True, blank=True, db_index=True, default="report") #type of rules - "report"/"tracker"
     ad_type = models.TextField(null=True, blank=True, db_index=True, default="usualAds") #type of advertiser (usualAds/videoAd)
     grid_data_source = models.TextField(null=True, blank=True, db_index=True, default="report") # source of the grid data (report/tracker)
+    token = models.TextField(null=True, blank=True, db_index=True, default=None)
 
     def __unicode__(self):
         return self.name
     api_endpoint = 'advertiser'
+
     class Meta:
         db_table = "advertiser"
 

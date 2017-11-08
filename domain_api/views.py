@@ -30,6 +30,8 @@ class DomainListView(ListCreateAPIView):
             oldName = request.data['name']
             request.data['name'] = '{0}_{1}'.format(advertiser.id, oldName)
             result = domainApi.addNewDomainList(request.data)
+            if isinstance(result, basestring):
+                raise Exception(result)
             DomainList.objects.create(pk=result['id'], name=oldName, advertiser=advertiser)
             return Response(data={"id": result['id']}, status=status.HTTP_200_OK)
         except Exception as e:
@@ -54,7 +56,9 @@ class DetailDomainListView(GenericAPIView):
         try:
             domainList = self.get_object(pk)
             domainApi = DomainListApi(pk)
-            result = domainApi.GetDomainListById()
+            result = domainApi.getDomainListById()
+            if isinstance(result, basestring):
+                raise Exception(result)
             return Response(
                 data={"id": domainList.id, "name": domainList.name, "domains": result['domains']},
                 status=status.HTTP_200_OK
@@ -64,8 +68,38 @@ class DetailDomainListView(GenericAPIView):
 
     def put(self, request, pk):
         try:
+            data = request.data
             domainList = self.get_object(pk)
-            return Response(data=request.data, status=status.HTTP_200_OK)
+            domainApi = DomainListApi(pk)
+            result = domainApi.getDomainListById()
+            if isinstance(result, basestring):
+                raise Exception(result)
+            newObjectDomainList = {
+                "domains": result['domains']
+            }
+            if data['action'] == 'append':
+                if isinstance(newObjectDomainList['domains'], list):
+                    newObjectDomainList['domains'].extend(request.data['domains'])
+                else:
+                    newObjectDomainList['domains'] = request.data['domains']
+
+            if data['action'] == 'remove':
+                if not isinstance(newObjectDomainList['domains'], list):
+                    newObjectDomainList['domains'] = []
+                newArrayDomainList = [domain for domain in newObjectDomainList['domains'] if domain not in request.data['domains']]
+                newObjectDomainList['domains'] = newArrayDomainList
+
+            if data['action'] == 'replace':
+                newObjectDomainList['domains'] = request.data['domains']
+
+            updatedDomainList = domainApi.updateDomainListById(newObjectDomainList)
+            if isinstance(updatedDomainList, basestring):
+                raise Exception(updatedDomainList)
+            return Response(data={
+                "name": domainList.name,
+                "id": updatedDomainList['id'],
+                "domains": updatedDomainList['domains']
+            }, status=status.HTTP_200_OK)
         except Exception as e:
             return Response(data=e.message, status=status.HTTP_400_BAD_REQUEST)
 
@@ -73,7 +107,9 @@ class DetailDomainListView(GenericAPIView):
         try:
             domainList = self.get_object(pk)
             domainApi = DomainListApi(pk)
-            result = domainApi.RemoveDomainListById()
+            result = domainApi.removeDomainListById()
+            if isinstance(result, basestring):
+                raise Exception(result)
             if result['status'] == 'OK':
                 domainList.delete()
             return Response(status=status.HTTP_200_OK)

@@ -37,7 +37,7 @@ class DomainListApi(PlacementState):
             print "addNewDomainList ERROR - " + error
             return error
 
-    def GetDomainListById(self):
+    def getDomainListById(self):
         try:
             headers = {"Authorization": self.get_token(), 'Content-Type': 'application/json'}
             auth_url = self._PlacementState__appnexus_url + "domain-list?id=" + self.domain_id
@@ -53,7 +53,7 @@ class DomainListApi(PlacementState):
             print "GetDomainListById ERROR - " + error
             return error
 
-    def RemoveDomainListById(self):
+    def removeDomainListById(self):
         try:
             headers = {"Authorization": self.get_token(), 'Content-Type': 'application/json'}
             auth_url = self._PlacementState__appnexus_url + "domain-list?id=" + self.domain_id
@@ -69,6 +69,25 @@ class DomainListApi(PlacementState):
             print "RemoveDomainListById ERROR - " + error
             return error
 
-
+    def updateDomainListById(self, newDomainList):
+        try:
+            headers = {"Authorization": self.get_token(), 'Content-Type': 'application/json'}
+            auth_url = self._PlacementState__appnexus_url + "domain-list?id=" + self.domain_id
+            data = {
+                "domain-list": {
+                    "domains": newDomainList['domains']
+                }
+            }
+            auth_request = requests.put(auth_url, data=json.dumps(data), headers=headers)
+            response = json.loads(auth_request.content)
+            try:
+                print "addNewDomainList Error - " + response['response']['error']
+                return response['response']['error']
+            except:
+                pass
+            return response['response']['domain-list']
+        except Exception as error:
+            print "addNewDomainList ERROR - " + error
+            return error
 
 

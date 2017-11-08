@@ -5,6 +5,8 @@ from rest_framework.decorators import api_view, authentication_classes, permissi
 from rest_framework.generics import ListCreateAPIView, GenericAPIView
 from advertiserTokenPermission import AdvertiserTokenPermission
 from rest_framework.response import Response
+
+from domain_api.appnexusDomainListApi import DomainListApi
 from models import DomainList
 from rtb.models import Advertiser
 
@@ -19,15 +21,19 @@ class DomainListView(ListCreateAPIView):
             domainList = list(DomainList.objects.filter(advertiser=advertiser.id))
             return JsonResponse({"domainList": domainList})
         except Exception as e:
-            Response(data=e.message, status=status.HTTP_400_BAD_REQUEST)
+            return Response(data=e.message, status=status.HTTP_400_BAD_REQUEST)
 
     def post(self, request, *args, **kwargs):
         try:
-            data = request.data
-            data['user'] = request.user.id
+            advertiser = self.getAdvertiserIdByHeader(request)[0]
+            domainApi = DomainListApi(None)
+            oldName = request.data['name']
+            request.data['name'] = '{0}_{1}'.format(advertiser.id, oldName)
+            result = domainApi.addNewDomainList(request.data)
+            DomainList.objects.create(pk=result['id'], name=oldName, advertiser=advertiser)
             return Response(status=status.HTTP_200_OK)
         except Exception as e:
-            Response(data=e.message, status=status.HTTP_400_BAD_REQUEST)
+            return Response(data=e.message, status=status.HTTP_400_BAD_REQUEST)
 
     def getAdvertiserIdByHeader(self, request):
         token = request.META['HTTP_AUTHORIZATION'].split(' ')[1]

@@ -36,3 +36,23 @@ class DomainListApi(PlacementState):
         except Exception as error:
             print "addNewDomainList ERROR - " + error
             return error
+
+    def GetDomainListById(self):
+        try:
+            headers = {"Authorization": self.get_token(), 'Content-Type': 'application/json'}
+            auth_url = self._PlacementState__appnexus_url + "domain-list?id=" + self.domain_id
+            auth_request = requests.get(auth_url, headers=headers)
+            response = json.loads(auth_request.content)
+            try:
+                print "GetDomainListById Error - " + response['response']['error']
+                return response['response']['error']
+            except:
+                pass
+            return response['response']['domain-list']
+        except Exception as error:
+            print "GetDomainListById ERROR - " + error
+            return error
+
+
+
+

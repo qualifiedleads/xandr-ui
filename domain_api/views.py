@@ -53,7 +53,12 @@ class DetailDomainListView(GenericAPIView):
     def get(self, request, pk):
         try:
             domainList = self.get_object(pk)
-            return Response(data={"name": domainList.name, "domains": []}, status=status.HTTP_200_OK)
+            domainApi = DomainListApi(pk)
+            result = domainApi.GetDomainListById()
+            return Response(
+                data={"id": domainList.id, "name": domainList.name, "domains": result['domains']},
+                status=status.HTTP_200_OK
+            )
         except Exception as e:
             Response(data=e.message, status=status.HTTP_400_BAD_REQUEST)
 

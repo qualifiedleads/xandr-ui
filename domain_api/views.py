@@ -31,7 +31,7 @@ class DomainListView(ListCreateAPIView):
             request.data['name'] = '{0}_{1}'.format(advertiser.id, oldName)
             result = domainApi.addNewDomainList(request.data)
             DomainList.objects.create(pk=result['id'], name=oldName, advertiser=advertiser)
-            return Response(status=status.HTTP_200_OK)
+            return Response(data={"id": result['id']}, status=status.HTTP_200_OK)
         except Exception as e:
             return Response(data=e.message, status=status.HTTP_400_BAD_REQUEST)
 
@@ -72,7 +72,11 @@ class DetailDomainListView(GenericAPIView):
     def delete(self, request, pk):
         try:
             domainList = self.get_object(pk)
-            return Response(data=request.data, status=status.HTTP_200_OK)
+            domainApi = DomainListApi(pk)
+            result = domainApi.RemoveDomainListById()
+            if result['status'] == 'OK':
+                domainList.delete()
+            return Response(status=status.HTTP_200_OK)
         except Exception as e:
             return Response(data=e.message, status=status.HTTP_400_BAD_REQUEST)
 

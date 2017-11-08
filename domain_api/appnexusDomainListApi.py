@@ -53,6 +53,22 @@ class DomainListApi(PlacementState):
             print "GetDomainListById ERROR - " + error
             return error
 
+    def RemoveDomainListById(self):
+        try:
+            headers = {"Authorization": self.get_token(), 'Content-Type': 'application/json'}
+            auth_url = self._PlacementState__appnexus_url + "domain-list?id=" + self.domain_id
+            auth_request = requests.delete(auth_url, headers=headers)
+            response = json.loads(auth_request.content)
+            try:
+                print "RemoveDomainListById Error - " + response['response']['error']
+                return response['response']['error']
+            except:
+                pass
+            return response['response']
+        except Exception as error:
+            print "RemoveDomainListById ERROR - " + error
+            return error
+
 
 
 

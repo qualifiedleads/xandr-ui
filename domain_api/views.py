@@ -125,6 +125,10 @@ def applyDomainList(request, pk):
         action = request.query_params['action']
         advertiser_id = request.query_params['advertiser_id']
         campaign_id = request.query_params['campaign_id']
+        domainApi = DomainListApi(pk)
+        result = domainApi.applyDomainListById(campaign_id, advertiser_id, action)
+        if isinstance(result, basestring):
+            raise Exception(result)
         return Response(status=status.HTTP_200_OK)
     except Exception as error:
         return Response(error.message, status=status.HTTP_400_BAD_REQUEST)

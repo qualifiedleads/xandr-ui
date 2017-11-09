@@ -90,4 +90,81 @@ class DomainListApi(PlacementState):
             print "addNewDomainList ERROR - " + error
             return error
 
+    def applyDomainListById(self, campaign_id, advertiser_id, action):
+        try:
+            campaign = self.getCampaignByCampaignIdAndadvertiserId(campaign_id, advertiser_id)
+            if isinstance(campaign, basestring):
+                return campaign
 
+            profile = self.getProfileById(campaign['profile_id'])
+            if isinstance(profile, basestring):
+                return profile
+
+            domain_list_targets = [{"id": self.domain_id}]
+            if action == 'whitelist':
+                domain_list_action = 'include'
+            elif action == 'blacklist':
+                domain_list_action = 'exclude'
+            else:
+                domain_list_action = 'exclude'
+                domain_list_targets = None
+
+            config = {
+                "profile": {
+                    "domain_list_targets": domain_list_targets,
+                    "domain_list_action": domain_list_action
+                }
+            }
+
+            return self.putProfileById(profile['id'], config)
+        except Exception as error:
+            print "applyDomainListById ERROR - " + error
+            return error
+
+    def getCampaignByCampaignIdAndadvertiserId(self, campaign_id, advertiser_id):
+        try:
+            headers = {"Authorization": self.get_token(), 'Content-Type': 'application/json'}
+            auth_url = self._PlacementState__appnexus_url + "campaign?id={0}&advertiser_id={1}".format(campaign_id, advertiser_id)
+            request = requests.get(auth_url, headers=headers)
+            response = json.loads(request.content)
+            try:
+                print "getCampaignByCampaignIdAndadvertiserId get campaign Error - " + response['response']['error']
+                return response['response']['error']
+            except:
+                pass
+            return response['response']['campaign']
+        except Exception as error:
+            print "getCampaignByCampaignIdAndadvertiserId ERROR - " + error
+            return error
+
+    def getProfileById(self, profile_id):
+        try:
+            headers = {"Authorization": self.get_token(), 'Content-Type': 'application/json'}
+            auth_url = self._PlacementState__appnexus_url + "profile?id={0}".format(profile_id)
+            request = requests.get(auth_url, headers=headers)
+            response = json.loads(request.content)
+            try:
+                print "getProfileById get profile Error - " + response['response']['error']
+                return response['response']['error']
+            except:
+                pass
+            return response['response']['profile']
+        except Exception as error:
+            print "getProfileById ERROR - " + error
+            return error
+
+    def putProfileById(self, profile_id, config):
+        try:
+            headers = {"Authorization": self.get_token(), 'Content-Type': 'application/json'}
+            auth_url = self._PlacementState__appnexus_url + "profile?id={0}".format(profile_id)
+            request = requests.put(auth_url, data=json.dumps(config), headers=headers)
+            response = json.loads(request.content)
+            try:
+                print "putProfileById get profile Error - " + response['response']['error']
+                return response['response']['error']
+            except:
+                pass
+            return response['response']['profile']
+        except Exception as error:
+            print "putProfileById ERROR - " + error
+            return error

@@ -115,13 +115,11 @@ STATICFILES_FINDERS = (
     #'django.contrib.staticfiles.finders.DefaultStorageFinder',
 )
 
-ANGULAR_APP_DIR = os.path.join(BASE_DIR, 'client/dist')
-
 STATICFILES_DIRS = [
-    ('clientAngular', os.path.join(ANGULAR_APP_DIR)),
+    os.path.join(BASE_DIR, "client", "dist"),
 ]
 
-STATIC_URL = '/static/'
+STATIC_URL = '/client/'
 STATIC_ROOT = os.path.join(BASE_DIR, "static")
 MEDIA_URL = '/media/'
 

@@ -68,10 +68,12 @@
         },
         "ADVERTISER-LIST": {
           'NAME': 'Name',
+          'TOKEN': 'token',
           'ID': 'Id',
           'AD-TYPE': 'Type of the advertiser',
           'DATA_SOURCE': 'Data source',
-          'DATA-FOR-RULES': 'Data for rules'
+          'DATA-FOR-RULES': 'Data for rules',
+          'GENERATE-TOKEN': 'Generate token'
         }
       },
       'INDEX': {

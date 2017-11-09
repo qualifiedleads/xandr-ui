@@ -64,7 +64,7 @@ class DetailDomainListView(GenericAPIView):
                 status=status.HTTP_200_OK
             )
         except Exception as e:
-            Response(data=e.message, status=status.HTTP_400_BAD_REQUEST)
+            return Response(data=e.message, status=status.HTTP_400_BAD_REQUEST)
 
     def put(self, request, pk):
         try:

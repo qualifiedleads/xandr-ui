@@ -68,10 +68,12 @@
         },
         "ADVERTISER-LIST": {
           'NAME': 'Имя',
+          'TOKEN': 'Токен доступа',
           'ID': 'Id',
           'AD-TYPE': 'Тип рекламодателя',
           'DATA_SOURCE': 'Источник данных',
-          'DATA-FOR-RULES': 'Данные для правил'
+          'DATA-FOR-RULES': 'Данные для правил',
+          'GENERATE-TOKEN': 'Generate token'
         }
       },
       'INDEX':{

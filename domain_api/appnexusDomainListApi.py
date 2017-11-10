@@ -10,15 +10,45 @@ from rtb.models import LastToken
 from rtb.placement_state import PlacementState
 
 
-class DomainListApi(PlacementState):
+class DomainListApi():
 
     def __init__(self, domain_id):
         self.domain_id = domain_id
 
+    __appnexus_url = 'https://api.appnexus.com/'
+
+    def get_token(self):
+        try:
+            _two_hours = datetime.timedelta(hours=1, minutes=55)
+            lastToken = LastToken.objects.filter(name='token')
+            if len(lastToken) >= 1:
+                if utils.get_current_time() - lastToken[0].date < _two_hours:
+                    return lastToken[0].token
+            else:
+                tempDate = utils.get_current_time()-_two_hours
+                LastToken(name='token', token='', date=tempDate).save()
+
+                auth_url = self.__appnexus_url + "auth"
+                data = {"auth": settings.NEXUS_AUTH_DATA}
+                auth_request = requests.post(auth_url, data=json.dumps(data))
+                response = json.loads(auth_request.content)
+                try:
+                    response['response']['error']
+                    print "get campaign by id - " + response['response']['error']
+                except:
+                    pass
+                last_token = response['response']['token']
+                _last_token_time = utils.get_current_time()
+                LastToken.objects.filter(name='token').update(token=last_token, date=_last_token_time)
+            return last_token
+        except Exception as e:
+            print "get token - " + response['response']['error']
+            return e
+
     def addNewDomainList(self, newDomainList):
         try:
             headers = {"Authorization": self.get_token(), 'Content-Type': 'application/json'}
-            auth_url = self._PlacementState__appnexus_url + "domain-list"
+            auth_url = self.__appnexus_url + "domain-list"
             data = {
                 "domain-list": {
                     "name": newDomainList['name'],
@@ -40,7 +70,7 @@ class DomainListApi(PlacementState):
     def getDomainListById(self):
         try:
             headers = {"Authorization": self.get_token(), 'Content-Type': 'application/json'}
-            auth_url = self._PlacementState__appnexus_url + "domain-list?id=" + self.domain_id
+            auth_url = self.__appnexus_url + "domain-list?id=" + self.domain_id
             auth_request = requests.get(auth_url, headers=headers)
             response = json.loads(auth_request.content)
             try:
@@ -56,7 +86,7 @@ class DomainListApi(PlacementState):
     def removeDomainListById(self):
         try:
             headers = {"Authorization": self.get_token(), 'Content-Type': 'application/json'}
-            auth_url = self._PlacementState__appnexus_url + "domain-list?id=" + self.domain_id
+            auth_url = self.__appnexus_url + "domain-list?id=" + self.domain_id
             auth_request = requests.delete(auth_url, headers=headers)
             response = json.loads(auth_request.content)
             try:
@@ -72,7 +102,7 @@ class DomainListApi(PlacementState):
     def updateDomainListById(self, newDomainList):
         try:
             headers = {"Authorization": self.get_token(), 'Content-Type': 'application/json'}
-            auth_url = self._PlacementState__appnexus_url + "domain-list?id=" + self.domain_id
+            auth_url = self.__appnexus_url + "domain-list?id=" + self.domain_id
             data = {
                 "domain-list": {
                     "domains": newDomainList['domains']
@@ -124,7 +154,7 @@ class DomainListApi(PlacementState):
     def getCampaignByCampaignIdAndadvertiserId(self, campaign_id, advertiser_id):
         try:
             headers = {"Authorization": self.get_token(), 'Content-Type': 'application/json'}
-            auth_url = self._PlacementState__appnexus_url + "campaign?id={0}&advertiser_id={1}".format(campaign_id, advertiser_id)
+            auth_url = self.__appnexus_url + "campaign?id={0}&advertiser_id={1}".format(campaign_id, advertiser_id)
             request = requests.get(auth_url, headers=headers)
             response = json.loads(request.content)
             try:
@@ -140,7 +170,7 @@ class DomainListApi(PlacementState):
     def getProfileById(self, profile_id):
         try:
             headers = {"Authorization": self.get_token(), 'Content-Type': 'application/json'}
-            auth_url = self._PlacementState__appnexus_url + "profile?id={0}".format(profile_id)
+            auth_url = self.__appnexus_url + "profile?id={0}".format(profile_id)
             request = requests.get(auth_url, headers=headers)
             response = json.loads(request.content)
             try:
@@ -156,7 +186,7 @@ class DomainListApi(PlacementState):
     def putProfileById(self, profile_id, config):
         try:
             headers = {"Authorization": self.get_token(), 'Content-Type': 'application/json'}
-            auth_url = self._PlacementState__appnexus_url + "profile?id={0}".format(profile_id)
+            auth_url = self.__appnexus_url + "profile?id={0}".format(profile_id)
             request = requests.put(auth_url, data=json.dumps(config), headers=headers)
             response = json.loads(request.content)
             try:

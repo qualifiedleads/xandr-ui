@@ -44,8 +44,11 @@ class DomainListView(ListCreateAPIView):
             return Response(data=e.message, status=status.HTTP_400_BAD_REQUEST)
 
     def getAdvertiserIdByHeader(self, request):
-        token = request.META['HTTP_AUTHORIZATION'].split(' ')[1]
-        return list(Advertiser.objects.filter(token=token))
+        try:
+            token = request.META['HTTP_AUTHORIZATION'].split(' ')[1]
+            return list(Advertiser.objects.filter(token=token))
+        except Exception as e:
+            raise Http404
 
 
 class DetailDomainListView(GenericAPIView):

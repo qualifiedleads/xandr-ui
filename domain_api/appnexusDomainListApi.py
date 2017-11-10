@@ -21,13 +21,12 @@ class DomainListApi():
         try:
             _two_hours = datetime.timedelta(hours=1, minutes=55)
             lastToken = LastToken.objects.filter(name='token')
-            if len(lastToken) >= 1:
-                if utils.get_current_time() - lastToken[0].date < _two_hours:
-                    return lastToken[0].token
+            if len(lastToken) >= 1 and utils.get_current_time() - lastToken[0].date < _two_hours:
+                return lastToken[0].token
             else:
                 tempDate = utils.get_current_time()-_two_hours
-                LastToken(name='token', token='', date=tempDate).save()
-
+                if len(lastToken) == 0:
+                    LastToken(name='token', token='', date=tempDate).save()
                 auth_url = self.__appnexus_url + "auth"
                 data = {"auth": settings.NEXUS_AUTH_DATA}
                 auth_request = requests.post(auth_url, data=json.dumps(data))

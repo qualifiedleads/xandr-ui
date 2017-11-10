@@ -19,7 +19,13 @@ class DomainListView(ListCreateAPIView):
         try:
             advertiser = self.getAdvertiserIdByHeader(request)[0]
             domainList = list(DomainList.objects.filter(advertiser=advertiser.id))
-            return JsonResponse({"domainList": domainList})
+            domainArray = []
+            for domain in domainList:
+                domainArray.append({
+                    "name": domain.name,
+                    "id": domain.id
+                })
+            return JsonResponse({"domainList": domainArray})
         except Exception as e:
             return Response(data=e.message, status=status.HTTP_400_BAD_REQUEST)
 

@@ -8,7 +8,7 @@ from django.contrib.staticfiles.views import serve
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
-    url(r'^api/v1/domain[/]?', include('domain_api.urls')),
+    url(r'^api/v1/client/', include('domain_api.urls')),
     url(r'^api/v1/', include('rtb.urls')),
     url(r'^docs/', include('rest_framework_docs.urls')),
     url(r'^$', RedirectView.as_view(url='/client/dist/index.html'))

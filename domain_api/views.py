@@ -2,13 +2,13 @@ from django.db import transaction
 from django.http import JsonResponse, Http404
 from rest_framework import status
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
-from rest_framework.generics import ListCreateAPIView, GenericAPIView
+from rest_framework.generics import ListCreateAPIView, GenericAPIView, ListAPIView
 from advertiserTokenPermission import AdvertiserTokenPermission
 from rest_framework.response import Response
 
 from domain_api.appnexusDomainListApi import DomainListApi
 from models import DomainList
-from rtb.models import Advertiser
+from rtb.models import Advertiser, Campaign
 
 
 class DomainListView(ListCreateAPIView):
@@ -142,3 +142,21 @@ def applyDomainList(request, pk):
     except Exception as error:
         return Response(error.message, status=status.HTTP_400_BAD_REQUEST)
 
+
+class CampaignListView(ListAPIView):
+    permission_classes = (AdvertiserTokenPermission, )
+    authentication_classes = ([])
+
+    def get(self, request, *args, **kwargs):
+        try:
+            advertiser = self.getAdvertiserIdByHeader(request)[0]
+            return JsonResponse({"campaignList": list(Campaign.objects.filter(advertiser=advertiser.id).values('id', 'name'))})
+        except Exception as e:
+            return Response(data=e.message, status=status.HTTP_400_BAD_REQUEST)
+
+    def getAdvertiserIdByHeader(self, request):
+        try:
+            token = request.META['HTTP_AUTHORIZATION'].split(' ')[1]
+            return list(Advertiser.objects.filter(token=token))
+        except Exception as e:
+            raise Http404

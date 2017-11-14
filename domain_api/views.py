@@ -150,7 +150,7 @@ class CampaignListView(ListAPIView):
     def get(self, request, *args, **kwargs):
         try:
             advertiser = self.getAdvertiserIdByHeader(request)[0]
-            return JsonResponse({"campaignList": list(Campaign.objects.filter(advertiser=advertiser.id).values('id', 'name'))})
+            return JsonResponse({"campaignList": list(Campaign.objects.filter(advertiser=advertiser.id).values('id', 'name', 'state'))})
         except Exception as e:
             return Response(data=e.message, status=status.HTTP_400_BAD_REQUEST)
 

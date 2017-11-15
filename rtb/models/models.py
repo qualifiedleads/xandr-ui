@@ -854,7 +854,7 @@ class Site(models.Model):
     supply_type = models.TextField(
         choices=SUPPLY_TYPE,
         null=True, blank=True)
-    creative_format_action = models.NullBooleanField(null=True, blank=True)
+    creative_format_action = models.TextField(null=True, blank=True)
     creative_formats = models.TextField(null=True, blank=True) # array in origine - we need use Postgresql Array of string
     allowed_click_actions = models.TextField(null=True, blank=True) #array in origine - we need use Postgresql Array of string
     marketplace_map = models.TextField(null=True, blank=True) # it is an array in origin but there is no description

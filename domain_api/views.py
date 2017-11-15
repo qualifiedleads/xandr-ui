@@ -132,7 +132,11 @@ class DetailDomainListView(GenericAPIView):
 def applyDomainList(request, pk):
     try:
         action = request.query_params['action']
-        advertiser_id = request.query_params['advertiser_id']
+        token = request.META['HTTP_AUTHORIZATION'].split(' ')[1]
+        advertiser = list(Advertiser.objects.filter(token=token))
+        if len(advertiser) == 0:
+            raise Exception("Advertiser not found")
+        advertiser_id = advertiser[0].id
         campaign_id = request.query_params['campaign_id']
         domainApi = DomainListApi(pk)
         result = domainApi.applyDomainListById(campaign_id, advertiser_id, action)

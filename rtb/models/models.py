@@ -308,10 +308,12 @@ class Advertiser(models.Model):
     rules_type = models.TextField(null=True, blank=True, db_index=True, default="report") #type of rules - "report"/"tracker"
     ad_type = models.TextField(null=True, blank=True, db_index=True, default="usualAds") #type of advertiser (usualAds/videoAd)
     grid_data_source = models.TextField(null=True, blank=True, db_index=True, default="report") # source of the grid data (report/tracker)
+    token = models.TextField(null=True, blank=True, db_index=True, default=None)
 
     def __unicode__(self):
         return self.name
     api_endpoint = 'advertiser'
+
     class Meta:
         db_table = "advertiser"
 
@@ -852,7 +854,7 @@ class Site(models.Model):
     supply_type = models.TextField(
         choices=SUPPLY_TYPE,
         null=True, blank=True)
-    creative_format_action = models.NullBooleanField(null=True, blank=True)
+    creative_format_action = models.TextField(null=True, blank=True)
     creative_formats = models.TextField(null=True, blank=True) # array in origine - we need use Postgresql Array of string
     allowed_click_actions = models.TextField(null=True, blank=True) #array in origine - we need use Postgresql Array of string
     marketplace_map = models.TextField(null=True, blank=True) # it is an array in origin but there is no description

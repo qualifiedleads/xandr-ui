@@ -17,6 +17,7 @@ import utils
 
 change_state = None
 
+
 class PlacementState:
     def __init__(self, campaign_id, placement_id):
         self.campaign_id = campaign_id

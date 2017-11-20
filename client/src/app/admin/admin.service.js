@@ -174,6 +174,24 @@
         });
     }
 
+    function generateTokenAdvertiserList(id, token) {
+      return $http({
+        method: 'PUT',
+        url: '/api/v1/advertisersType',
+        headers: { Authorization: 'Token ' + $cookies.get('token') },
+        data: {
+          id: id,
+          token: token
+        }
+      })
+        .then(function (res) {
+          return res.data;
+        })
+        .catch(function (err) {
+          $window.DevExpress.ui.notify(err.data.detail, 'error', 4000);
+        });
+    }
+
     function editAdvertiserDataSource(id, dataSource) {
       return $http({
         method: 'PUT',
@@ -286,6 +304,7 @@
     _this.changeAdvertiserDataforrules = changeAdvertiserDataforrules;
     _this.selectNexusUsersStore = selectNexusUsersStore;
     _this.editAdvertiserDataSource = editAdvertiserDataSource;
+    _this.generateTokenAdvertiserList = generateTokenAdvertiserList;
     _this.editAdvertiserList = editAdvertiserList;
     _this.advertiserListStore = advertiserListStore;
     _this.usersStore = usersStore;

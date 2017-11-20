@@ -13,6 +13,7 @@
     vm.second = false;
     vm.third = false;
     vm.statusBanner = '';
+    vm.advertiserListInstance = null;
     vm.goToMainPage = function () {
       $state.go('auth');
     };
@@ -253,6 +254,9 @@
         ]
       },
       advertiserList: {
+        onInitialized: function (data) {
+          vm.advertiserListInstance = data.component;
+        },
         remoteOperations: false,
         showBorders: true,
         alignment: 'left',
@@ -656,6 +660,53 @@
               } else {
                 tracker.addClass('state-blackRT' + options.data.id).appendTo(container);
               }
+            }
+          },
+          {
+            caption: LC('ADMIN.ADVERTISER-LIST.TOKEN'),
+            dataField: 'token',
+            width: 204,
+            alignment: 'left'
+          },
+          {
+            caption: LC('ADMIN.ADVERTISER-LIST.GENERATE-TOKEN'),
+            allowEditing: false,
+            dataField: 'rules_type',
+            alignment: 'left',
+            width: 204,
+            cellTemplate: function (container, options) {
+              $window.$('<div />').dxButton({
+                text: 'Generate',
+                height: 30,
+                width: 89,
+                disabled: false,
+                onClick: function (e) {
+                  var token = Math.random().toString(36).substr(2) + Math.random().toString(36).substr(2);
+                  AdminService.generateTokenAdvertiserList(options.data.id, token)
+                    .then(function (res) {
+                      vm.advertiserListInstance.refresh();
+                    })
+                    .catch(function (err) {
+                      return err;
+                    })
+                }
+              }).appendTo(container);
+              $window.$('<div />').dxButton({
+                text: 'Remove',
+                height: 30,
+                width: 89,
+                disabled: false,
+                onClick: function (e) {
+                  AdminService.generateTokenAdvertiserList(options.data.id, null)
+                    .then(function (res) {
+                      vm.advertiserListInstance.refresh();
+                    })
+                    .catch(function (err) {
+                      return err;
+                    })
+                }
+              }).appendTo(container);
+
             }
           }
         ]

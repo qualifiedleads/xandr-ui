@@ -1015,7 +1015,7 @@ def load_reports_for_all_advertisers(token, day, ReportClass, isHour=False):
             analize_csv(f, ReportClass,
                         metadata={"campaign_dict": campaign_dict,
                                   "advertiser_id": advertiser_id}, isHour=isHour)
-            print "%s for advertiser %s saved to DB" % (ReportClass, all_advertisers[advertiser_id])
+            print "%s for advertiser %s saved to DB" % (ReportClass, re.sub(r"[^A-Za-z0-9.!?\s]", "", all_advertisers[advertiser_id]))
         if hasattr(ReportClass, 'post_load'):
             ReportClass.post_load(day)
     finally:

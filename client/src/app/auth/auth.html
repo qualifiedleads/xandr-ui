@@ -22,8 +22,9 @@
 
   <div class="row">
     <div ng-show="!auth.bannerShow" class="Absolute-Center is-Responsive reg-form-wrapper">
+      <h4 class="text-center">This is to optimise your AppNexus campaigns only.</h4>
       <form name="auth.userForm" ng-submit="auth.submitForm(auth.user)" novalidate>
-        <div class="col-sm-10">
+        <div class="col-sm-12">
           <div class="form-group" ng-class="{ 'has-error' : auth.userForm.email.$invalid && !auth.userForm.email.$pristine }">
             <i class="fa fa-user fa-2x icon-for-user"></i>
             <input type="email" name="email" class="form-control input-item-login"  placeholder="{{ 'AUTH.MAIL-PLACEHOLDER' | translate }}" ng-model="auth.user.email" required>
@@ -31,7 +32,7 @@
             <p ng-show="!auth.userForm.email.$error.required && auth.userForm.email.$invalid && !auth.userForm.email.$pristine" class="help-block">{{ 'AUTH.MAIL-VALID' | translate }}</p>
           </div>
         </div>
-        <div class="col-sm-10">
+        <div class="col-sm-12">
           <div class="form-group" ng-class="{ 'has-error' : auth.userForm.password.$invalid && !auth.userForm.password.$pristine }">
             <i class="fa fa-unlock fa-2x icon-for-user"></i>
             <input type="password" name="password" class="input-item-password form-control input-item-password"  ng-model="auth.user.password" placeholder="{{ 'AUTH.MAIL-PASSWORD' | translate }}" required max-length="10" min-length="4">
@@ -39,8 +40,8 @@
           </div>
         </div>
         <div class="form-group">
-          <div class="col-sm-10">
-            <button type="submit" class="submitting-button btn btn-success">{{ 'AUTH.MAIL-SUBMIT' | translate }}</button>
+          <div class="col-sm-12">
+            <button type="submit" class="submitting-button btn btn-success btn-block">{{ 'AUTH.MAIL-SUBMIT' | translate }}</button>
           </div>
         </div>
       </form>

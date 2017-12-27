@@ -210,7 +210,7 @@ SELECT
   percentile_cont(0.75) WITHIN GROUP (ORDER BY "cpa") AS "close",
   AVG("cpa") AS "avg"
 FROM (SELECT
-  "hour",
+  date_trunc('day', "hour") AS hour,
   SUM("total_convs") AS "convs",
   SUM("cost") AS "cost",
   CASE WHEN SUM("total_convs") <> 0 THEN SUM("cost")/SUM("total_convs") END AS "cpa"
@@ -218,7 +218,7 @@ FROM "network_analytics_report_by_placement"
 WHERE ("hour" >= %(from_date)s
   AND "hour" <=  %(to_date)s
   AND "campaign_id" = %(campaign_id)s)
-GROUP BY "hour") subquery
+GROUP BY date_trunc('day', "hour")) subquery
 GROUP BY "date"
 ORDER BY "date"
     """
@@ -256,12 +256,12 @@ Get single campaign cpa report for given period to create boxplots
     from_date = params['from_date']
     to_date = params['to_date']
     # expand to week boundary
-    d = from_date.weekday()
-    if d>0:
-        from_date -= datetime.timedelta(days=d)
-    d = to_date.weekday()
-    if d<6:
-        to_date += datetime.timedelta(days=6-d)
+    # d = from_date.weekday()
+    # if d>0:
+    #     from_date -= datetime.timedelta(days=d)
+    # d = to_date.weekday()
+    # if d<6:
+    #     to_date += datetime.timedelta(days=6-d)
 
     res = get_campaign_cpa(advertiser_id, id, from_date, to_date)
     return Response(res)

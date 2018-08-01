@@ -609,7 +609,7 @@
                 }
               });
 
-              if (options.data.grid_data_source == 'report') {
+              if (options.data.rules_type == 'report') {
                 report.addClass('state-whiteRT' + options.data.id).addClass('active-white').appendTo(container);
               } else {
                 report.addClass('state-whiteRT' + options.data.id).appendTo(container);
@@ -655,7 +655,7 @@
                 }
               });
 
-              if (options.data.grid_data_source == 'tracker') {
+              if (options.data.rules_type == 'tracker') {
                 tracker.addClass('state-blackRT' + options.data.id).addClass('active-white').appendTo(container);
               } else {
                 tracker.addClass('state-blackRT' + options.data.id).appendTo(container);

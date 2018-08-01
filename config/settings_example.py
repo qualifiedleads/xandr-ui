@@ -35,13 +35,13 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
     'corsheaders',
     'rest_framework',
     'rest_framework_docs',
     'rest_framework.authtoken',
     'django_crontab',
     'rtb',
+    'domain_api',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -179,18 +179,37 @@ LOG_DIR=os.path.join(BASE_DIR, 'rtb', 'logs')
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
+    'formatters': {
+        'standard': {
+            'format': "[%(asctime)s] %(levelname)s [%(name)s:%(lineno)s] %(message)s",
+            'datefmt': "%d/%b/%Y %H:%M:%S"
+        },
+    },
     'handlers': {
         'file': {
             'level': 'NOTSET',
             'class': 'logging.FileHandler',
             'filename': os.path.join(LOG_DIR, 'cron.log')
             },
+        'rules_error': {
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': BASE_DIR + "/logs/rules_error.log",
+            'maxBytes': 1024*1024*5,  # 2 MB
+            'backupCount': 2,
+            'formatter': 'standard',
         },
+    },
     'loggers': {
         'django_crontab': {
             'handlers': ['file'],
             'level': 'NOTSET',
             'propagate': True,
+        },
+        'rules_error': {
+            'handlers': ['rules_error'],
+            'propagate': False,
+            'level': 'INFO',
         },
     },
 }

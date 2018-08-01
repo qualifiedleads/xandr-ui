@@ -9,6 +9,8 @@ from datetime import timedelta
 import json
 import datetime
 import pytz
+import logging
+rules_error = logging.getLogger('rules_error')
 
 
 def checkRules():
@@ -40,6 +42,10 @@ def checkRules():
                 if len(oneCampaignRules['if']) >= 1:
                     result = recursionParseRule(oneCampaignRules['if'], queryString, predType)
                     query = """ SELECT placement_id FROM """ + str(tableType) + """ WHERE campaign_id=""" + str(campaignRules.campaign_id) + ' and ' + result
+                    rules_error.error({
+                        "type": "get placement_id",
+                        'query': str(query)
+                    })
                     cursor = connection.cursor()
                     cursor.execute(query, locals())
                     numrows = int(cursor.rowcount)
@@ -66,17 +72,61 @@ def checkRules():
                                     + """ and rule_id=""" + str(campaignRules.id) \
                                     + """ and rule_index=""" + '\'' + str(indexRule) + '\'' \
                                     + """ and """ + result
+                            rules_error.error({
+                                "type": "get placement_id from unsuspendTableType",
+                                'query': str(query)
+                            })
+                            print "1.1 " + str(unsuspendQuery)
                             cursor = connection.cursor()
                             cursor.execute(unsuspendQuery, locals())
                             numrows = int(cursor.rowcount)
                             for x in range(0, numrows):
                                 unsuspendPlacement.append(cursor.fetchone()[0])
+                            rules_error.error({
+                                'changeRulesState': oneCampaignRules['then'],
+                                "campaign_id": campaignRules.campaign_id,
+                                "unsuspendPlacement": unsuspendPlacement
+                            })
                             appliedRuleForPlacement = changeRulesState(oneCampaignRules['then'], campaignRules.campaign_id, unsuspendPlacement)
+                            rules_error.error({
+                                'saveToUnsupendTable': '',
+                                "appliedRuleForPlacement": appliedRuleForPlacement,
+                                "campaignRules_id": campaignRules.id,
+                                "indexRule": indexRule,
+                                "parentTable": parentTable,
+                            })
                             saveToUnsupendTable(appliedRuleForPlacement, campaignRules.id, indexRule, parentTable)
+                            rules_error.error({
+                                'saveHistoryForPlacementState': '',
+                                "appliedRuleForPlacement": appliedRuleForPlacement,
+                                "campaignRules_id": campaignRules.id,
+                                "indexRule": indexRule,
+                                "unsuspendQuery": unsuspendQuery,
+                                "parentTable": parentTable,
+                            })
                             saveHistoryForPlacementState(appliedRuleForPlacement, campaignRules.id, indexRule, unsuspendQuery, parentTable)
                         if len(usualPlacementId) > 0:
+                            rules_error.error({
+                                'changeRulesState': oneCampaignRules['then'],
+                                "campaign_id": campaignRules.campaign_id,
+                                "usualPlacementId": usualPlacementId
+                            })
                             appliedRuleForPlacement = changeRulesState(oneCampaignRules['then'], campaignRules.campaign_id, usualPlacementId)
+                            rules_error.error({
+                                'saveToUnsupendTable': '',
+                                "appliedRuleForPlacement": appliedRuleForPlacement,
+                                "campaignRules_id": campaignRules.id,
+                                "indexRule": indexRule,
+                                "parentTable": parentTable,
+                            })
                             saveToUnsupendTable(appliedRuleForPlacement, campaignRules.id, indexRule, parentTable)
+                            rules_error.error({
+                                'saveHistoryForPlacementState': '',
+                                "appliedRuleForPlacement": appliedRuleForPlacement,
+                                "campaignRules_id": campaignRules.id,
+                                "indexRule": indexRule,
+                                "parentTable": parentTable,
+                            })
                             saveHistoryForPlacementState(appliedRuleForPlacement, campaignRules.id, indexRule, query, parentTable)
                     else:
                         print "         Not have placement-{0}".format(place)

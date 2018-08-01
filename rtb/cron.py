@@ -800,8 +800,11 @@ def hourlyTask(dayWithHour=None, load_objects_from_services=True, output=None):
         print 'Error by fetching data: %s' % e
         print traceback.print_exc(file=output)
     finally:
-        file_output.write('Finish write log file {}\n'.format(get_current_time()))
-        sys.stdout, sys.stderr = old_stdout, old_error
+        try:
+            file_output.write('Finish write log file {}\n'.format(get_current_time()))
+            sys.stdout, sys.stderr = old_stdout, old_error
+        except Exception as e:
+            pass
         if file_output:
             file_output.close()
     LastModified.objects.filter(type='hourlyTask').delete()

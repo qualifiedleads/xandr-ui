@@ -20,7 +20,7 @@ class MLVideoImpsTracker(models.Model):
     UserId = models.BigIntegerField(null=True, blank=True)
     XRealIp = models.TextField(null=True, blank=True)
     BidPrice = models.DecimalField(null=True, max_digits=35, decimal_places=10)
-    SegIds = models.IntegerField(null=True, blank=True)
+    SegIds = models.TextField(null=True, blank=True)
     UserAgent = models.TextField(null=True, blank=True)
     RemUser = models.IntegerField(null=True, blank=True)
     UserCity = models.TextField(null=True, blank=True)

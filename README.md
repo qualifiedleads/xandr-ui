@@ -1,18 +1,18 @@
-#AppNexus UI 
+# AppNexus UI
 
 This code-base is an additional UI built on top of the appnexus buy-side API.
 It helps media-buyers optimise campaigns based on CPA https://en.wikipedia.org/wiki/Cost_per_action
 
-##Background
+## Background
 
 The current Appnexus UI (or console as they call it) is built by engineers, for engineers. Over the years they have added random buttons in whatever white-space that was available.
 For a media-buyer, who is responsible for performance results (ie: conversions, leads, enquiries, ecomm sales) this drains his hours and patience.
 The purpose of this UI is to place stats next to a button that can:
-a) white-list, 
-b) black-list or
-c) pause (blacklist for a set time, then reactivate)
+    a) white-list, 
+    b) black-list or
+    c) pause (blacklist for a set time, then reactivate)
 
-###Accuracy
+## Accuracy
 
 The system uses the AppNexus reporting API to collect it's data. The data is stored in a PostGreSQL DB.
 Reporting usually comes after 6 hours from appnexus. This reduces accuracy.
@@ -20,11 +20,12 @@ For this we built our own:
 1. impression tracker
 2. click tracker
 3. conversion tracker
+
 You will need to set this up on top of your own domain and get it approved by appnexus support.
-1 & 2 need to be submitted at least 48 hrs before going live.
+1 and 2 above need to be submitted at least 48 hrs before going live.
 
 
-#Technical
+# Technical
 
 
 ### Django-angular application

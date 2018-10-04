@@ -1,7 +1,7 @@
 # AppNexus Co-Pilot
 
 This platform is an *additional* UI built on top of the Appnexus buy-side API.
-It helps media-buyers optimise campaigns based on [CPA](https://en.wikipedia.org/wiki/Cost_per_action)
+It helps media-buyers optimise campaigns based on [CPA](https://en.wikipedia.org/wiki/Cost_per_action) by automatically collecting the data via API and displays it in a Pivottable.
 
 ![Optimise your AppNexus campaigns rapidly based on CVR](https://i.imgur.com/NLEiv6f.png)
 
@@ -10,7 +10,7 @@ It helps media-buyers optimise campaigns based on [CPA](https://en.wikipedia.org
 
 The current Appnexus UI (or console as they call it) is built by engineers, for engineers. 
 For a media-buyer, who is responsible for performance results (ie: conversions, leads, enquiries, ecomm sales) this is very poor UX. It drains hours and patience.
-The purpose of this UI is to  perform as a simple "co-pilot" so you can quickly:
+The purpose of this UI is to be a simple "co-pilot" so you can quickly:
 
     a) white-list, 
     b) black-list or
@@ -19,8 +19,8 @@ The purpose of this UI is to  perform as a simple "co-pilot" so you can quickly:
 ## Accuracy
 
 The system uses the AppNexus reporting API to collect it's data. The data is stored in a PostGreSQL DB.
-Reporting usually comes after 6 hours from appnexus. This reduces accuracy.
-For this we built our own:
+Reporting sometimes comes after 6 hours from Appnexus. This can kill your CVR.
+For this we additionally built :
 1. impression tracker
 2. click tracker
 3. conversion tracker
@@ -33,7 +33,13 @@ You will need to set this up on top of your own domain and get it approved by ap
 - "CPA-buckets" are generated per: placement/domain, creative, creative size, Carrier, Seller/network/Exchange
 - Create your own Rules to manage AppNexus' traffic, auto-blacklist based on CPM, CTR, CPA, CPC
 
+## Data set
 
+Optimisation is **per placement**, not per domain.
+
+## Reciprocity
+
+As soon as you set a state in the co-pilot, it will be reflected in the Appnexus console (give or take a minute. And vice-versa: if you blacklist a specific placement in console, it will get displayed as such in the Co-Pilot.
 
 
 # Technical

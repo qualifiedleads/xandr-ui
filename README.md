@@ -3,7 +3,7 @@
 This platform is an *additional* UI built on top of the Appnexus buy-side API.
 It helps media-buyers optimise campaigns based on [CPA](https://en.wikipedia.org/wiki/Cost_per_action)
 
-[Optimise your AppNexus campaigns rapidly based on CVR](https://i.imgur.com/NLEiv6f.png)
+![Optimise your AppNexus campaigns rapidly based on CVR](https://i.imgur.com/NLEiv6f.png)
 
 
 ## Background

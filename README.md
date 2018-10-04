@@ -49,7 +49,8 @@ As soon as you set a state in the co-pilot, it will be reflected in the Appnexus
 # Owner's manual
 Please see the wiki.
 
-
+# License
+GPL v3
 
 # How to install - Technical
 

@@ -8,22 +8,25 @@ It helps media-buyers optimise campaigns based on [CPA](https://en.wikipedia.org
 
 ## Background
 
-The current Appnexus UI (or console as they call it) is built by engineers, for engineers. 
-For a media-buyer, who is responsible for performance results (ie: conversions, leads, enquiries, ecomm sales) this is very poor UX. It drains hours and patience.
+The current Appnexus UI (or "console" as they call it) is built _by_ engineers, _for_ engineers. 
+To a media-buyer, who is responsible for performance results (eg: conversions, leads, ecomm sales) this is very poor UX. 
+It drains hours and patience.
 The purpose of this UI is to be a simple "co-pilot" so you can quickly:
 
-    a) white-list, 
-    b) black-list or
-    c) pause (blacklist for a set time, then reactivate)
+   a) see what's converting, at what cost
+   b) white-list or black-list placements,
+   c) pause (blacklist for a set time, then reactivate) placements
+   d) drill-down on **what is converting** and see: creative, carrier, device-type, OS, etc.
 
 ## Accuracy
 
-The system uses the AppNexus reporting API to collect it's data. The data is stored in a PostGreSQL DB.
-Reporting sometimes comes after 6 hours from Appnexus. This can kill your CVR.
+The system uses the AppNexus reporting API to collect it's data by default. The data is pulled via API and stored in a PostGreSQL DB.
+Reporting sometimes comes after 6 hours from Appnexus. This delay can kill your campaign.
 For this we additionally built :
 1. impression tracker
 2. click tracker
 3. conversion tracker
+We will roll-out the release of the trackers shortly.
 
 You will need to set this up on top of your own domain and get it approved by appnexus support.
 1 and 2 above need to be submitted at least 48 hrs before going live.
@@ -40,6 +43,10 @@ Optimisation is **per placement**, not per domain.
 ## Reciprocity
 
 As soon as you set a state in the co-pilot, it will be reflected in the Appnexus console (give or take a minute. And vice-versa: if you blacklist a specific placement in console, it will get displayed as such in the Co-Pilot.
+
+# Owner's manual
+Please see the wiki.
+
 
 
 # Technical

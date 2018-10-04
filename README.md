@@ -1,6 +1,7 @@
 # AppNexus Co-Pilot
 
-This platform is an *additional* UI built on top of the Appnexus buy-side API.
+This platform is an *additional* UI to the Appnexus console. It's built on top of the Appnexus buy-side API.
+
 It helps media-buyers optimise campaigns based on [CPA](https://en.wikipedia.org/wiki/Cost_per_action) by automatically collecting the data via API and displays it in a Pivottable.
 
 ![Optimise your AppNexus campaigns rapidly based on CVR](https://i.imgur.com/NLEiv6f.png)
@@ -12,7 +13,7 @@ _See Conversions, CPA, CTR, etc per placement from your Appnexus campaigns. Blac
 The current Appnexus UI (or "console" as they call it) is built _by_ engineers, _for_ engineers. 
 To a media-buyer, who is responsible for performance results (eg: conversions, leads, ecomm sales) this is very poor UX. 
 It drains hours and patience.
-The purpose of this UI is to be a simple "co-pilot" so you can quickly:
+The purpose of this UI is to be a simple "co-pilot" so you don't need to use excel so much and can quickly:
 
    a) see what's converting, at what cost
    b) white-list or black-list placements,
@@ -88,7 +89,11 @@ python manage.py createcachetable rtb_cache_table
 python manage.py createsuperuser
 ======================================
 
-## ML commands
+## ML 
+
+Kmeans modeling has been started, but **is not complete**. The intention is to predict whether or not any particular placement will stand a good chance of getting a click and conversion.
+
+### ML commands
 
 1. Create test set for learning
 python manage.py mlcreatetestset

@@ -4,6 +4,7 @@ This platform is an *additional* UI built on top of the Appnexus buy-side API.
 It helps media-buyers optimise campaigns based on [CPA](https://en.wikipedia.org/wiki/Cost_per_action) by automatically collecting the data via API and displays it in a Pivottable.
 
 ![Optimise your AppNexus campaigns rapidly based on CVR](https://i.imgur.com/NLEiv6f.png)
+See: Conversions, CPA, CTR, etc per placement from your Appnexus campaigns. Blacklist under-performing campaigns with one click.
 
 
 ## Background

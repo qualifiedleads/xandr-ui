@@ -50,7 +50,7 @@ As soon as you set a state in the co-pilot, it will be reflected in the Appnexus
 Please see the wiki.
 
 # License
-GPL v3
+[GPL v3](https://github.com/qualifiedleads/appnexus-co-pilot/blob/master/LICENSE)
 
 # How to install - Technical
 

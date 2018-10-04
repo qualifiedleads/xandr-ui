@@ -50,7 +50,7 @@ Please see the wiki.
 
 
 
-# Technical
+# How to install - Technical
 
 
 ### Django-angular application
@@ -87,7 +87,9 @@ python manage.py createcachetable rtb_cache_table
 7. For create superuser, run
 python manage.py createsuperuser
 ======================================
-ML commands
+
+## ML commands
+
 1. Create test set for learning
 python manage.py mlcreatetestset
 2. Learn k-means model
@@ -114,14 +116,15 @@ python manage.py mlcreatecsvresult
 5. Check if placement good or bad
 python manage.py mlcheckplacement <placement_id> <test_type> <test_name>
 ======================================
-##imp_tracker
+
+## imp_tracker
 1. Add new shedule jobs
 python manage.py crontab add
 python manage.py crontab show
 2. To get the data manually
 python manage.py imp_tracker '2016-10-10 22:00' '2016-10-21 23:00' Impression/Click/Conversion
                     
-####Tables in database
+####  Tables in database
 rtb_impression_tracker — table for impressions from imp_tracker.
 
 rtb_impression_tracker_placement — table for placement and domain from table  rtb_impression_tracker.
@@ -140,6 +143,7 @@ AdvId - ${CP_ID}
 CreativeId - ${CREATIVE_ID} 
 AuctionId - ${AUCTION_ID}
 ========================================
+
 cron jobs
 ('* * * * *', 'rtb.crons.placement_state_cron.change_state_placement_by_cron_settings')
 This task checks placement state in our base every minute and sends all changes to appnexus.

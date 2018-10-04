@@ -1,13 +1,14 @@
 # AppNexus Co-Pilot
 
-This code-base is an additional UI built on top of the appnexus buy-side API.
+This platform is an *additional* UI built on top of the Appnexus buy-side API.
 It helps media-buyers optimise campaigns based on [CPA](https://en.wikipedia.org/wiki/Cost_per_action)
 
 ## Background
 
-The current Appnexus UI (or console as they call it) is built by engineers, for engineers. Over the years they have added random buttons in whatever white-space that was available.
-For a media-buyer, who is responsible for performance results (ie: conversions, leads, enquiries, ecomm sales) this drains his hours and patience.
-The purpose of this UI is to place stats next to a button that can:
+The current Appnexus UI (or console as they call it) is built by engineers, for engineers. 
+For a media-buyer, who is responsible for performance results (ie: conversions, leads, enquiries, ecomm sales) this is very poor UX. It drains hours and patience.
+The purpose of this UI is to  perform as a simple "co-pilot" so you can quickly:
+
     a) white-list, 
     b) black-list or
     c) pause (blacklist for a set time, then reactivate)

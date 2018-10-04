@@ -1,7 +1,7 @@
-# AppNexus UI
+# AppNexus Co-Pilot
 
 This code-base is an additional UI built on top of the appnexus buy-side API.
-It helps media-buyers optimise campaigns based on CPA https://en.wikipedia.org/wiki/Cost_per_action
+It helps media-buyers optimise campaigns based on [CPA](https://en.wikipedia.org/wiki/Cost_per_action)
 
 ## Background
 

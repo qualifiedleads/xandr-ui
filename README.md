@@ -24,6 +24,13 @@ For this we built our own:
 You will need to set this up on top of your own domain and get it approved by appnexus support.
 1 and 2 above need to be submitted at least 48 hrs before going live.
 
+## Features
+- Automatic Pivot-tables: CPA's are automatically calculated on yesterday's perfomance. 
+- "CPA-buckets" are generated per: placement/domain, creative, creative size, Carrier, Seller/network/Exchange
+- Create your own Rules to manage AppNexus' traffic, auto-blacklist based on CPM, CTR, CPA, CPC
+
+
+
 
 # Technical
 

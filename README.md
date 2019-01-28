@@ -1,4 +1,4 @@
-# AppNexus Co-Pilot
+# AppNexus 'rainmaker' is a Co-Pilot for your (buy) campaigns running on AppNexus's DSP
 
 This platform is an *additional* UI to the Appnexus console. It's built on top of the Appnexus buy-side API.
 

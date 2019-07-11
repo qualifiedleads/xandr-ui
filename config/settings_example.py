@@ -120,7 +120,7 @@ STATICFILES_DIRS = [
 ]
 
 STATIC_URL = '/client/'
-STATIC_ROOT = os.path.join(BASE_DIR, "static")
+STATIC_ROOT = os.path.join(BASE_DIR, "client")
 MEDIA_URL = '/media/'
 
 # Django Rest Framework Additional Settings
@@ -153,7 +153,7 @@ CRONJOBS = [
     ('5 */1 * * *', 'rtb.cron.hourlyTask')
 ]
 NEXUS_AUTH_DATA= {
-    "username": "stats_api", 
+    "username": "stats_api",
     "password": "API?1nsid3!"
 }
 

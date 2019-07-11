@@ -176,3 +176,10 @@ This task updates materialized view for ML purposes.
 
 ('0 */1 * * *', 'rtb.crons.campaign_rules_cron.checkRulesByCron')
 Those rules check condition and change placements states
+
+
+FAQ
+============================
+
+### After advertiser is selected `Next` button is not working
+To show graphs advertiser must have `ad_type` field equals to `leadGenerationAd` or `videoAds` in database

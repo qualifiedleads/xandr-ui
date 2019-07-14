@@ -80,7 +80,7 @@ Building a rule example:
 Resulting Rule says: IF impressions reach 1000 AND clicks are 0, THEN blacklist.
 
 You can also add a *Group of Fields*, which will create a bracket that will get calculated first, following standard arithmetic [Orders of Operation](https://en.wikipedia.org/wiki/Order_of_operations)
-[Group of fields example](https://i.imgur.com/UvCITwU.jpg)
+Group of fields example ![Group of fields example](https://i.imgur.com/UvCITwU.jpg)
 
 # Owner's manual
 Please see the wiki.

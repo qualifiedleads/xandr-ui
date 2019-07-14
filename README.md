@@ -61,11 +61,25 @@ And a few seconds later it is reflected in APNX Console ![As shown in APNX Conso
 Vice-versa, also works.
 Note: that AppNexus doesn't recognise its own placement ID's when you import it. Hence it always marks it as "unknown" or "Undisclosed Placement". This issue is out of our hands and rests solely with Appnexus.
 
-## Suspend button
+## Optimisation
 The optimisation that you do remains in the scope of that Campaign, ie: 
-Blacklist = block that placement ID _in this campaign_ . Blacklisting one publisher doesn't mean it gets blacklisted across other campaigns.
-Whitelist = No matter what you do, this placement is immune, ie: Always advertise on this placement ID _in this campaign_ .
-Suspend = *Temporarily* block this placement ![Suspend = *Temporarily* block this placement ](https://i.imgur.com/nyLeRug.jpg)
+ - Blacklist = block that placement ID _in this campaign_ . Blacklisting one publisher doesn't mean it gets blacklisted across other campaigns.
+ - Whitelist = No matter what you do, this placement is immune, ie: Always advertise on this placement ID _in this campaign_ .
+ - Suspend = *Temporarily* block this placement ![Suspend = *Temporarily* block this placement ](https://i.imgur.com/nyLeRug.jpg)
+
+## Auto- Rules
+Building rules that autimatically edit your campaign settings is support. To have this work accurately you can not rely on the APNX Reporting API, as it has delays of 6 hours. You must use the impression tracker module and conversion tracker module.
+Building a rule example:
+- set a benchmark such as '<= 1000 impressions'
+![](https://i.imgur.com/s2AGU3T.jpg)
+- click the 'F+' button to add a field
+- set AND
+- set '<= 0 clicks'
+- THEN Blacklist
+- Save Rule
+Resulting Rule says: IF impressions reach 1000 AND clicks are 0, THEN blacklist.
+
+You can also add a Group of Fields, which will create a bracket that will get calculated first, following standard arithmetic [Orders of Operation](https://en.wikipedia.org/wiki/Order_of_operations)
 
 # Owner's manual
 Please see the wiki.
@@ -205,6 +219,6 @@ Those rules check condition and change placements states
 Known peculiarities:
 ============================
 
-### After "Advertiser has been selected in the Home page, the `Next` button fails
+### After "Advertiser has been selected in the Home page, the `Go` button fails
 The 'Advertiser must be configured in the Admin panel first. Assign an `ad_type` field equals to `leadGenerationAd` or `videoAds` in database, like so:
 !['Advertiser must be configured in the Admin panel first](https://i.imgur.com/VsNMhiu.jpg)

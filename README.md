@@ -38,10 +38,10 @@ You will need to set this up on top of your own domain and get it approved by ap
 - "CPA-buckets" are generated per: placement/domain, creative, creative size, Carrier, Seller/network/Exchange
 - Create your own Rules to manage AppNexus' traffic, auto-blacklist based on CPM, CTR, CPA, CPC
 - Placement ID' matching
-Placement ID's are core to optimising campaigs in AppNexus. They are the ID's of individual placements, either on a page or site-section. When you run an "Analytics Report" 
+Placement ID's are core to optimising campaigs in AppNexus. They are the ID's of individual placements, either on a page or site-section. When you run an "Analytics Report" in AppNexus you can retrieve "placement ID", but not domain, eg:
 ![in AppNexus you can retrieve "placement ID", but not domain, eg:](https://i.imgur.com/WKddSc8.jpg)
 
-Then ![if you run a "Site Domain Performance" report you can pull the Seller and Domain/App, but not the placement ID, eg:](https://i.imgur.com/p0jr7OD.jpg)
+Then if you run a "Site Domain Performance" report you can pull the Seller and Domain/App, but not the placement ID, eg: ![if you run a "Site Domain Performance" report you can pull the Seller and Domain/App, but not the placement ID, eg:](https://i.imgur.com/p0jr7OD.jpg)
 
 However you can't pull a report to see both Domain and placement ID together.
 When it comes to CPA, this can make a huge difference. Some specific placements on a site are never profitable. But that doesn't mean the entire domain is not profitable.

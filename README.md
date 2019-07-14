@@ -48,6 +48,7 @@ _Appnexus Site Domain Performance report_
 
 However you can't pull a report to see both Domain and placement ID together.
 When it comes to CPA, this can make a huge difference. Some specific placements on a site are never profitable. But that doesn't mean the entire domain is not profitable.
+
 ![](https://i.imgur.com/uqvsNxt.jpg)
 _The APNX Rainmaker combines the two reports pulled via API into one as much as possible, based on the data compiled via the API's, and separate impression tracker, click tracker and conversion tracker, like this_
 

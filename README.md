@@ -55,9 +55,17 @@ Optimisation is **per placement**, not per domain.
 ## Reciprocity
 
 As soon as you set a state in the co-pilot, it will be reflected in the Appnexus console (give or take a minute. And vice-versa: if you blacklist a specific placement in console, it will get displayed as such in the Co-Pilot.
-As shown in APNX Console ![As shown in APNX Console](https://i.imgur.com/eKSbg17.jpg)
-Reflected in the Rainmaker UI ![Reflected in the Rainmaker ui](https://i.imgur.com/JGNx963.jpg)
-Note that AppNexus doesn't recognise its own placement ID's when you import it. Hence it always marks it as "unknown" or "Undisclosed Placement". This issue is out of our hands and rests solely with Appnexus.
+
+Click "blacklist" (permanent per Campaign) or "Suspend" (temporary blacklisting per campaign) inside the Rainmaker UI like this ![Reflected in the Rainmaker ui](https://i.imgur.com/JGNx963.jpg)
+And a few seconds later it is reflected in APNX Console ![As shown in APNX Console](https://i.imgur.com/eKSbg17.jpg)
+Vice-versa, also works.
+Note: that AppNexus doesn't recognise its own placement ID's when you import it. Hence it always marks it as "unknown" or "Undisclosed Placement". This issue is out of our hands and rests solely with Appnexus.
+
+## Suspend button
+The optimisation that you do remains in the scope of that Campaign, ie: 
+Blacklist = block that placement ID _in this campaign_ . Blacklisting one publisher doesn't mean it gets blacklisted across other campaigns.
+Whitelist = No matter what you do, this placement is immune, ie: Always advertise on this placement ID _in this campaign_ .
+Suspend = *Temporarily* block this placement ![Suspend = *Temporarily* block this placement ](https://i.imgur.com/nyLeRug.jpg)
 
 # Owner's manual
 Please see the wiki.
@@ -194,8 +202,9 @@ This task updates materialized view for ML purposes.
 Those rules check condition and change placements states
 
 
-FAQ
+Known peculiarities:
 ============================
 
-### After advertiser is selected `Next` button is not working
-To show graphs advertiser must have `ad_type` field equals to `leadGenerationAd` or `videoAds` in database
+### After "Advertiser has been selected in the Home page, the `Next` button fails
+The 'Advertiser must be configured in the Admin panel first. Assign an `ad_type` field equals to `leadGenerationAd` or `videoAds` in database, like so:
+!['Advertiser must be configured in the Admin panel first](https://i.imgur.com/VsNMhiu.jpg)

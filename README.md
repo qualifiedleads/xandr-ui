@@ -4,8 +4,8 @@ This platform is an *additional* UI to the Appnexus console. It's built on top o
 
 It helps media-buyers optimise campaigns based on [CPA](https://en.wikipedia.org/wiki/Cost_per_action) by automatically collecting the data via API and displays it in a Pivottable.
 
-![fig 1. Optimise your AppNexus campaigns rapidly based on CVR](https://i.imgur.com/NLEiv6f.png)
-_See Conversions, CPA, CTR, etc per placement from your Appnexus campaigns. Blacklist under-performing campaigns with one click._
+![Optimise your AppNexus campaigns rapidly based on CVR](https://i.imgur.com/NLEiv6f.png)
+_fig. 1 See Conversions, CPA, CTR, etc per placement from your Appnexus campaigns. Blacklist under-performing campaigns with one click._
 
 
 ## Background
@@ -45,7 +45,7 @@ Then if you run a "Site Domain Performance" report you can pull the Seller and D
 
 However you can't pull a report to see both Domain and placement ID together.
 When it comes to CPA, this can make a huge difference. Some specific placements on a site are never profitable. But that doesn't mean the entire domain is not profitable.
-The APNX Rainmaker combines the two reports pulled via API into one, like fig 1.
+The APNX Rainmaker combines the two reports pulled via API into one as much as possible, based on the data compiled via the API's, and separate impression tracker, click tracker and conversion tracker, shown in fig 1.
 
 
 ## Data set
@@ -224,6 +224,7 @@ Those rules check condition and change placements states
 Known peculiarities:
 ============================
 
-### After "Advertiser has been selected in the Home page, the `Go` button fails
-The 'Advertiser must be configured in the Admin panel first. Assign an `ad_type` field equals to `leadGenerationAd` or `videoAds` in database, like so:
+### After "Advertiser account" has been selected in the Home page, the `Go` button fails
+![](https://i.imgur.com/QFELHy7.jpg)
+The 'Advertiser must first be configured in the Admin panel. Assign an `ad_type` field equals to `leadGenerationAd` or `videoAds` in database, like so:
 !['Advertiser must be configured in the Admin panel first](https://i.imgur.com/VsNMhiu.jpg)

@@ -67,12 +67,14 @@ The optimisation that you do remains in the scope of that Campaign, ie:
  - Whitelist = No matter what you do, this placement is immune, ie: Always advertise on this placement ID _in this campaign_ .
  - Suspend = *Temporarily* block this placement ![Suspend = *Temporarily* block this placement ](https://i.imgur.com/nyLeRug.jpg)
 
-## Auto- Rules
+## Auto-Rules
 Building rules that autimatically edit your campaign settings is support. To have this work accurately you can not rely on the APNX Reporting API, as it has delays of 6 hours. You must use the impression tracker module and conversion tracker module.
 Building a rule example:
-- set a benchmark such as '<= 1000 impressions'
-![](https://i.imgur.com/s2AGU3T.jpg)_This Rule says: IF impressions reach 1000, AND clicks are 0, THEN blacklist._
+![IF impressions reach 1000, AND clicks are 0, THEN blacklist](https://i.imgur.com/VNtEFSo.jpg)_This Rule says: IF impressions reach 1000, AND clicks are 0, THEN blacklist._
 
+How to generate this example Rule
+- set a benchmark such as '<= 1000 impressions'
+![auto rule setup](https://i.imgur.com/s2AGU3T.jpg)
 - click the 'F+' button to add a field
 - set AND
 - set '<= 0 clicks'
@@ -80,7 +82,8 @@ Building a rule example:
 - Save Rule
 
 You can also add a *Group of Fields*, which will create a bracket that will get calculated first, following standard arithmetic [Orders of Operation](https://en.wikipedia.org/wiki/Order_of_operations)
-Group of fields example ![Group of fields example](https://i.imgur.com/UvCITwU.jpg)
+
+![Group of fields example](https://i.imgur.com/UvCITwU.jpg)_Group of fields example_
 
 # Owner's manual
 Please see the wiki.

@@ -15,19 +15,20 @@ To a media-buyer, who is responsible for performance results (eg: conversions, l
 It drains hours and patience.
 The purpose of this UI is to be a simple "co-pilot" so you don't need to use excel so much and can quickly:
 
-   a) see what's converting, at what cost
-   b) white-list or black-list placements,
-   c) pause (blacklist for a set time, then reactivate) placements
-   d) drill-down on **what is converting** and see: creative, carrier, device-type, OS, etc.
+   * see what's converting, at what cost
+   * white-list or black-list placements,
+   * pause (blacklist for a set time, then reactivate) placements
+   * drill-down on **what is converting** and see: creative, carrier, device-type, OS, etc.
 
 ## Accuracy
 
 The system uses the AppNexus reporting API to collect it's data by default. The data is pulled via API and stored in a PostGreSQL DB.
 Reporting sometimes comes after 6 hours from Appnexus. This delay can kill your campaign.
 For this we additionally built :
-1. impression tracker
-2. click tracker
-3. conversion tracker
+ 1. impression tracker
+ 2. click tracker
+ 3. conversion tracker
+
 We will roll-out the release of the trackers shortly.
 
 You will need to set this up on top of your own domain and get it approved by appnexus support.

@@ -55,6 +55,9 @@ Optimisation is **per placement**, not per domain.
 ## Reciprocity
 
 As soon as you set a state in the co-pilot, it will be reflected in the Appnexus console (give or take a minute. And vice-versa: if you blacklist a specific placement in console, it will get displayed as such in the Co-Pilot.
+As shown in APNX Console ![As shown in APNX Console](https://i.imgur.com/eKSbg17.jpg)
+Reflected in the Rainmaker UI ![Reflected in the Rainmaker ui](https://i.imgur.com/JGNx963.jpg)
+Note that AppNexus doesn't recognise its own placement ID's when you import it. Hence it always marks it as "unknown" or "Undisclosed Placement". This issue is out of our hands and rests solely with Appnexus.
 
 # Owner's manual
 Please see the wiki.
@@ -62,8 +65,11 @@ Please see the wiki.
 # License
 [GPL v3](https://github.com/qualifiedleads/appnexus-co-pilot/blob/master/LICENSE)
 
-# How to install - Technical
 
+
+
+
+# How to install - Technical
 
 ### Django-angular application
 

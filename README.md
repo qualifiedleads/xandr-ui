@@ -79,7 +79,7 @@ Building a rule example:
 _This Rule says: IF impressions reach 1000, AND clicks are 0, THEN blacklist._
 
 How to generate this example Rule
-- set a benchmark such as '<= 1000 impressions'
+- set a benchmark such as '>= 1000 impressions'
 ![auto rule setup](https://i.imgur.com/s2AGU3T.jpg)
 - click the 'F+' button to add a field
 - set AND

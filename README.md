@@ -64,7 +64,7 @@ As soon as you set a state in the co-pilot, it will be reflected in the Appnexus
 Click "blacklist" inside the Rainmaker UI like this ![Click "blacklist" inside the Rainmaker UI](https://i.imgur.com/JGNx963.jpg)
 And a few seconds later it is reflected in APNX Console ![As shown in APNX Console](https://i.imgur.com/eKSbg17.jpg)
 Vice-versa, also works.
-Note: that AppNexus doesn't recognise its own placement ID's when you import it. Hence it always marks it as "unknown" or "Undisclosed Placement". This issue is out of our hands and rests solely with Appnexus.
+Note: that AppNexus doesn't recognise its own placement ID's when you import it. Hence it always marks it as "unknown" or "Undisclosed Placement". This doesn't affect your campaign though. The setting is still obeyed.
 
 ## Optimisation
 The optimisation that you do remains in the scope of that Campaign, ie: 

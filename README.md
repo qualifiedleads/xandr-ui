@@ -3,7 +3,7 @@
 
 This platform is an *additional* UI to the ~~Appnexus~~ Xandr console. It's built on top of the Xandr buy-side API (formerly called Appnexus)
 
-It helps media-buyers optimise campaigns based on [CPA](https://en.wikipedia.org/wiki/Cost_per_action) by automatically collecting the data via API and displays it in a Pivottable.
+It helps media-buyers optimise campaigns based on [CPA](https://en.wikipedia.org/wiki/Cost_per_action) by automatically collecting the data via API and displaying it in a Pivottable.
 
 ![Optimise your Xandr campaigns rapidly based on CVR](https://i.imgur.com/NLEiv6f.png)
 _fig. 1 See Conversions, CPA, CTR, etc per placement from your Xandr campaigns. Blacklist under-performing campaigns with one click._

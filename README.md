@@ -16,10 +16,10 @@ To a media-buyer, who is responsible for performance results (eg: conversions, l
 It drains hours and patience.
 The purpose of this UI is to be a simple "co-pilot" so you don't need to use excel so much and can quickly:
 
-   * see what's converting, at what cost
-   * white-list or black-list placements,
-   * pause (blacklist for a set time, then reactivate) placements
-   * drill-down on **what is converting** and see: creative, carrier, device-type, OS, etc.
+   :heavy_check_mark: see what's converting, at what cost
+   :heavy_check_mark: white-list or black-list placements,
+   :heavy_check_mark: pause (blacklist for a set time, then reactivate) placements
+   :heavy_check_mark: drill-down on **what is converting** and see: creative, carrier, device-type, OS, etc.
 
 ## Accuracy
 
@@ -51,7 +51,7 @@ However you can't pull a report to see both Domain and placement ID together.
 When it comes to CPA, this can make a huge difference. Some specific placements on a site are never profitable. But that doesn't mean the entire domain is not profitable.
 
 ![](https://i.imgur.com/uqvsNxt.jpg)
-_The Xandr Rainmaker combines the two reports pulled via API into one as much as possible, based on the data compiled via the API's, and separate impression tracker, click tracker and conversion tracker, like this_
+_The Xandr Rainmaker combines the two reports pulled via API into one as much as possible, based on the data compiled via the API's, and separate impression tracker, click tracker and conversion tracker, as shown in image above_ :point_up_2:
 
 
 ## Data set
@@ -65,7 +65,7 @@ As soon as you set a state in the co-pilot, it will be reflected in the Appnexus
 Click "blacklist" inside the Rainmaker UI like this ![Click "blacklist" inside the Rainmaker UI](https://i.imgur.com/JGNx963.jpg)
 And a few seconds later it is reflected in Xandr Console ![As shown in Console](https://i.imgur.com/eKSbg17.jpg)
 Vice-versa, also works.
-Note: that Xandr doesn't recognise its own placement ID's when you import it. Hence it always marks it as "unknown" or "Undisclosed Placement". This doesn't affect your campaign though. The setting is still obeyed.
+:grey_exclamation: Note: that Xandr doesn't recognise its own placement ID's when you import it back into Xandr. Hence it always marks it as "unknown" or "Undisclosed Placement". This doesn't affect your campaign though. The setting is still obeyed.
 
 ## Optimisation
 The optimisation that you do remains in the scope of that Campaign, ie: 

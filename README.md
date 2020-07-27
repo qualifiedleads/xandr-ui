@@ -1,6 +1,7 @@
-# Xandr 'rainmaker' is a Co-Pilot for your (buy) campaigns running on Xandr DSP
+# Xandr buy-side UI 
+###a Performance & optimisation "co-pilot" for your (buy) campaigns with automated optimisation triggers
 
-This platform is an *additional* UI to the ~~Appnexus~~ Xandr console. It's built on top of the ~~Appnexus~~ Xandr buy-side API.
+This platform is an *additional* UI to the ~~Appnexus~~ Xandr console. It's built on top of the Xandr buy-side API (formerly called Appnexus)
 
 It helps media-buyers optimise campaigns based on [CPA](https://en.wikipedia.org/wiki/Cost_per_action) by automatically collecting the data via API and displays it in a Pivottable.
 
@@ -22,7 +23,7 @@ The purpose of this UI is to be a simple "co-pilot" so you don't need to use exc
 
 ## Accuracy
 
-The system uses the AppNexus reporting API to collect it's data by default. The data is pulled via API and stored in a PostGreSQL DB.
+The system uses the reporting API to collect it's data by default. The data is pulled via API and stored in a PostGreSQL DB.
 Reporting sometimes comes after 6 hours from Xandr. This delay can kill your campaign.
 For this we additionally built :
  1. impression tracker
@@ -39,18 +40,18 @@ You will need to set this up on top of your own domain and get it approved by ap
 - "CPA-buckets" are generated per: placement/domain, creative, creative size, Carrier, Seller/network/Exchange
 - Create your own Rules to manage AppNexus' traffic, auto-blacklist based on CPM, CTR, CPA, CPC
 - Placement ID' matching
-Placement ID's are core to optimising campaigs in AppNexus. They are the ID's of individual placements, either on a page or site-section. When you run an "Analytics Report" in AppNexus you can retrieve "placement ID", but not domain, eg:
-![in AppNexus you can retrieve "placement ID", but not domain, eg:](https://i.imgur.com/WKddSc8.jpg)
-_Appnexus Analytics Report_
+Placement ID's are core to optimising campaigs in AppNexus. They are the ID's of individual placements, either on a page or site-section. When you run an "Analytics Report" in Xandr you can retrieve "placement ID", but not domain, eg:
+![you can retrieve "placement ID", but not domain, eg:](https://i.imgur.com/WKddSc8.jpg)
+_Xandr Analytics Report_
 
 Then if you run a "Site Domain Performance" report you can pull the Seller and Domain/App, but not the placement ID, eg: ![if you run a "Site Domain Performance" report you can pull the Seller and Domain/App, but not the placement ID, eg:](https://i.imgur.com/p0jr7OD.jpg)
-_Appnexus Site Domain Performance report_
+_Xandr Site Domain Performance report_
 
 However you can't pull a report to see both Domain and placement ID together.
 When it comes to CPA, this can make a huge difference. Some specific placements on a site are never profitable. But that doesn't mean the entire domain is not profitable.
 
 ![](https://i.imgur.com/uqvsNxt.jpg)
-_The APNX Rainmaker combines the two reports pulled via API into one as much as possible, based on the data compiled via the API's, and separate impression tracker, click tracker and conversion tracker, like this_
+_The Xandr Rainmaker combines the two reports pulled via API into one as much as possible, based on the data compiled via the API's, and separate impression tracker, click tracker and conversion tracker, like this_
 
 
 ## Data set
@@ -62,9 +63,9 @@ Optimisation is **per placement**, not per domain.
 As soon as you set a state in the co-pilot, it will be reflected in the Appnexus console (give or take a minute. And vice-versa) if you blacklist a specific placement in console, it will get displayed as such in the UI.
 
 Click "blacklist" inside the Rainmaker UI like this ![Click "blacklist" inside the Rainmaker UI](https://i.imgur.com/JGNx963.jpg)
-And a few seconds later it is reflected in APNX Console ![As shown in APNX Console](https://i.imgur.com/eKSbg17.jpg)
+And a few seconds later it is reflected in Xandr Console ![As shown in Console](https://i.imgur.com/eKSbg17.jpg)
 Vice-versa, also works.
-Note: that AppNexus doesn't recognise its own placement ID's when you import it. Hence it always marks it as "unknown" or "Undisclosed Placement". This doesn't affect your campaign though. The setting is still obeyed.
+Note: that Xandr doesn't recognise its own placement ID's when you import it. Hence it always marks it as "unknown" or "Undisclosed Placement". This doesn't affect your campaign though. The setting is still obeyed.
 
 ## Optimisation
 The optimisation that you do remains in the scope of that Campaign, ie: 

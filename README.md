@@ -1,6 +1,6 @@
-# AppNexus 'rainmaker' is a Co-Pilot for your (buy) campaigns running on AppNexus's DSP
+# Xandr 'rainmaker' is a Co-Pilot for your (buy) campaigns running on Xandr DSP
 
-This platform is an *additional* UI to the Appnexus console. It's built on top of the Appnexus buy-side API.
+This platform is an *additional* UI to the ~~Appnexus~~ Xandr console. It's built on top of the ~~Appnexus~~ Xandr buy-side API.
 
 It helps media-buyers optimise campaigns based on [CPA](https://en.wikipedia.org/wiki/Cost_per_action) by automatically collecting the data via API and displays it in a Pivottable.
 
@@ -10,7 +10,7 @@ _fig. 1 See Conversions, CPA, CTR, etc per placement from your Appnexus campaign
 
 ## Background
 
-The current Appnexus UI (or "console" as they call it) is built _by_ engineers, _for_ engineers. 
+The Xandr UI (or "console" as they call it) is built _by_ engineers, _for_ engineers. Even the latest attempts to pretty it up have not changed it into a Buyers platform
 To a media-buyer, who is responsible for performance results (eg: conversions, leads, ecomm sales) this is very poor UX. 
 It drains hours and patience.
 The purpose of this UI is to be a simple "co-pilot" so you don't need to use excel so much and can quickly:
@@ -23,7 +23,7 @@ The purpose of this UI is to be a simple "co-pilot" so you don't need to use exc
 ## Accuracy
 
 The system uses the AppNexus reporting API to collect it's data by default. The data is pulled via API and stored in a PostGreSQL DB.
-Reporting sometimes comes after 6 hours from Appnexus. This delay can kill your campaign.
+Reporting sometimes comes after 6 hours from Xandr. This delay can kill your campaign.
 For this we additionally built :
  1. impression tracker
  2. click tracker

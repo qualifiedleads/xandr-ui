@@ -1,5 +1,5 @@
 # Xandr buy-side UI 
-###a Performance & optimisation "co-pilot" for your (buy) campaigns with automated optimisation triggers
+### a Performance & optimisation "co-pilot" for your buy-side campaigns with automated optimisation triggers
 
 This platform is an *additional* UI to the ~~Appnexus~~ Xandr console. It's built on top of the Xandr buy-side API (formerly called Appnexus)
 

@@ -5,20 +5,20 @@ This platform is an *additional* UI to the ~~Appnexus~~ Xandr console. It's buil
 
 It helps media-buyers optimise campaigns based on [CPA](https://en.wikipedia.org/wiki/Cost_per_action) by automatically collecting the data via API and displays it in a Pivottable.
 
-![Optimise your AppNexus campaigns rapidly based on CVR](https://i.imgur.com/NLEiv6f.png)
-_fig. 1 See Conversions, CPA, CTR, etc per placement from your Appnexus campaigns. Blacklist under-performing campaigns with one click._
+![Optimise your Xandr campaigns rapidly based on CVR](https://i.imgur.com/NLEiv6f.png)
+_fig. 1 See Conversions, CPA, CTR, etc per placement from your Xandr campaigns. Blacklist under-performing campaigns with one click._
 
 
 ## Background
 
-The Xandr UI (or "console" as they call it) is built _by_ engineers, _for_ engineers. Even the latest attempts to pretty it up have not changed it into a Buyers platform
+The Xandr UI (or "console" as they call it) is built _by_ engineers, _for_ engineers. Even the latest attempts to pretty it up have not really made it a "Perfomance platform"
 To a media-buyer, who is responsible for performance results (eg: conversions, leads, ecomm sales) this is very poor UX. 
-It drains hours and patience.
-The purpose of this UI is to be a simple "co-pilot" so you don't need to use excel so much and can quickly:
+It drains hours and patience. Mistakes get made
+The purpose of this UI is to be a simple assistant :vertical_traffic_light: so you don't need to use excel so much and can quickly:
 
-   :heavy_check_mark: see what's converting, at what cost
-   :heavy_check_mark: white-list or black-list placements,
-   :heavy_check_mark: pause (blacklist for a set time, then reactivate) placements
+   :heavy_check_mark: see what's converting, at what cost, 
+   :heavy_check_mark: white-list or black-list placements,  
+   :heavy_check_mark: pause (blacklist for a set time, then reactivate) placements, 
    :heavy_check_mark: drill-down on **what is converting** and see: creative, carrier, device-type, OS, etc.
 
 ## Accuracy
@@ -29,10 +29,9 @@ For this we additionally built :
  1. impression tracker
  2. click tracker
  3. conversion tracker
+(Contact us to get access to these separate repos)
 
-We will roll-out the release of the trackers shortly.
-
-You will need to set this up on top of your own domain and get it approved by appnexus support.
+You will need to set this up on top of *your own domain* and get it *approved* by Xandr support.
 1 and 2 above need to be submitted at least 48 hrs before going live.
 
 ## Features
@@ -56,7 +55,7 @@ _The Xandr Rainmaker combines the two reports pulled via API into one as much as
 
 ## Data set
 
-Optimisation is **per placement**, not per domain.
+Optimisation in our UI is **per placement**, not per domain. If buying from Google this doesn;t count, as Google Auth Buyers (AdX) doesn't support placement ID's. So it reverts to domain targeting :baby_bottle:
 
 ## Reciprocity
 
@@ -65,7 +64,7 @@ As soon as you set a state in the co-pilot, it will be reflected in the Appnexus
 Click "blacklist" inside the Rainmaker UI like this ![Click "blacklist" inside the Rainmaker UI](https://i.imgur.com/JGNx963.jpg)
 And a few seconds later it is reflected in Xandr Console ![As shown in Console](https://i.imgur.com/eKSbg17.jpg)
 Vice-versa, also works.
-:grey_exclamation: Note: that Xandr doesn't recognise its own placement ID's when you import it back into Xandr. Hence it always marks it as "unknown" or "Undisclosed Placement". This doesn't affect your campaign though. The setting is still obeyed.
+:grey_exclamation: Note: that Xandr doesn't recognise its own placement ID's when you import it back into Xandr. Hence it always marks it as "unknown" or "Undisclosed Placement" :shrug: This doesn't affect your campaign though. The adjustment made in our UI is still obeyed by Xandr.
 
 ## Optimisation
 The optimisation that you do remains in the scope of that Campaign, ie: 
@@ -79,7 +78,7 @@ Building a rule example:
 ![IF impressions reach 1000, AND clicks are 0, THEN blacklist](https://i.imgur.com/VNtEFSo.jpg)
 _This Rule says: IF impressions reach 1000, AND clicks are 0, THEN blacklist._
 
-How to generate this example Rule
+How to generate this example decision tree :palm_tree: Rule
 - set a benchmark such as '>= 1000 impressions'
 ![auto rule setup](https://i.imgur.com/s2AGU3T.jpg)
 - click the 'F+' button to add a field

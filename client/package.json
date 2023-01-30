@@ -15,7 +15,7 @@
     "gulp-cssnano": "~2.1.1",
     "gulp-filter": "~3.0.1",
     "gulp-flatten": "~0.2.0",
-    "gulp-eslint": "~1.0.0",
+    "gulp-eslint": "~6.0.0",
     "eslint-plugin-angular": "~0.12.0",
     "gulp-load-plugins": "~0.10.0",
     "gulp-size": "~2.0.0",

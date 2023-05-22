@@ -19,7 +19,7 @@ Pygments==2.7.4
 Pympler==0.4.3
 pyparsing==2.1.10
 pytz==2016.6.1
-requests==2.11.1
+requests==2.31.0
 scikit-learn==0.17.1
 scipy==0.18.1
 untangle==1.2.1
